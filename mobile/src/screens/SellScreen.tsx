@@ -326,6 +326,8 @@ export function SellScreen() {
   );
 }
 
+export default SellScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

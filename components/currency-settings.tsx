@@ -6,8 +6,8 @@ import { CurrencySelector } from '@ciuna/ui';
 import { Button } from '@ciuna/ui';
 import { CurrencyCode } from '@ciuna/types';
 import { CurrencyService } from '@ciuna/sb';
-import { useAuth } from '../lib/auth-context';
-import { formatPrice } from '../lib/utils';
+import { useAuth } from '@/lib/auth-context';
+import { formatPrice } from '@/lib/utils';
 
 interface CurrencySettingsProps {
   onSave?: () => void;

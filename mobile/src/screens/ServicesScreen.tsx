@@ -193,6 +193,8 @@ export function ServicesScreen() {
   );
 }
 
+export default ServicesScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

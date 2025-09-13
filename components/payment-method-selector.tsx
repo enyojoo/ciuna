@@ -7,8 +7,8 @@ import { Badge } from '@ciuna/ui';
 // import { RadioGroup, RadioGroupItem } from '@ciuna/ui'; // Not available
 // import { Label } from '@ciuna/ui'; // Not available
 import { PaymentService, PaymentProvider, PaymentMethod } from '@ciuna/sb';
-import { useAuth } from '../lib/auth-context';
-import { useI18n } from '../contexts/i18n-context';
+import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/contexts/i18n-context';
 import { 
   CreditCard, 
   Smartphone, 

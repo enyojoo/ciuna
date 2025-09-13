@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Tabs, TabsContent, TabsList, TabsTrigger } from '@ciuna/ui';
-import AnalyticsDashboard from '../../components/analytics-dashboard';
+import AnalyticsDashboard from '@/components/analytics-dashboard';
 import { 
   Users, 
   Store, 
@@ -16,7 +16,7 @@ import {
   Eye
 } from 'lucide-react';
 import { db } from '@ciuna/sb';
-import { formatPrice, formatRelativeTime } from '../../lib/utils';
+import { formatPrice, formatRelativeTime } from '@/lib/utils';
 import type { Profile } from '@ciuna/types';
 
 export default function AdminPage() {

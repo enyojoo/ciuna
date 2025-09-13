@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
 import { Button } from '@ciuna/ui';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ciuna/ui';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@ciuna/ui';
@@ -25,8 +25,8 @@ import {
   Clock,
   XCircle
 } from 'lucide-react';
-import { formatPrice, formatPriceWithConversion, formatRelativeTime } from '../../lib/utils';
-import { CurrencySettings } from '../../components/currency-settings';
+import { formatPrice, formatPriceWithConversion, formatRelativeTime } from '@/lib/utils';
+import { CurrencySettings } from '@/components/currency-settings';
 import Link from 'next/link';
 
 interface UserListing {
@@ -787,3 +787,792 @@ export default function UserDashboard() {
     </div>
   );
 }
+
+
+                <div className="mt-4">
+
+                  <Link href="/dashboard?tab=messages">
+
+                    <Button variant="outline" className="w-full">
+
+                      View All Messages
+
+                    </Button>
+
+                  </Link>
+
+                </div>
+
+              </CardContent>
+
+            </Card>
+
+          </TabsContent>
+
+
+
+          {/* My Listings Tab */}
+
+          <TabsContent value="listings" className="space-y-6">
+
+            <div className="flex items-center justify-between">
+
+              <h2 className="text-2xl font-bold text-gray-900">My Listings</h2>
+
+              <Link href="/sell/new">
+
+                <Button className="bg-blue-600 hover:bg-blue-700">
+
+                  <Plus className="w-4 h-4 mr-2" />
+
+                  Create New Listing
+
+                </Button>
+
+              </Link>
+
+            </div>
+
+
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+              {listings.map((listing) => (
+
+                <Card key={listing.id} className="bg-white/80 backdrop-blur-sm border-0 shadow-lg overflow-hidden">
+
+                  <div className="aspect-square bg-gray-200 relative">
+
+                    {listing.photo_urls?.[0] ? (
+
+                      <img 
+
+                        src={listing.photo_urls[0]} 
+
+                        alt={listing.title}
+
+                        className="w-full h-full object-cover"
+
+                      />
+
+                    ) : (
+
+                      <div className="w-full h-full flex items-center justify-center">
+
+                        <Package className="w-16 h-16 text-gray-400" />
+
+                      </div>
+
+                    )}
+
+                    <div className="absolute top-2 right-2">
+
+                      <Badge className={getStatusColor(listing.status)}>
+
+                        {listing.status}
+
+                      </Badge>
+
+                    </div>
+
+                  </div>
+
+                  <CardContent className="p-4">
+
+                    <h3 className="font-semibold text-gray-900 truncate mb-2">
+
+                      {listing.title}
+
+                    </h3>
+
+                    <div className="flex items-center justify-between mb-2">
+
+                      <span className="text-2xl font-bold text-blue-600">
+
+                        {formatPrice(listing.price_rub)}
+
+                      </span>
+
+                      <Badge variant="outline">
+
+                        {getConditionLabel(listing.condition)}
+
+                      </Badge>
+
+                    </div>
+
+                    <div className="flex items-center text-sm text-gray-500 mb-3">
+
+                      <MapPin className="w-4 h-4 mr-1" />
+
+                      {listing.city}, {listing.district}
+
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+
+                      <span>{listing.view_count} views</span>
+
+                      <span>{formatRelativeTime(listing.created_at)}</span>
+
+                    </div>
+
+                    <div className="flex space-x-2">
+
+                      <Button size="sm" variant="outline" className="flex-1">
+
+                        <Eye className="w-4 h-4 mr-1" />
+
+                        View
+
+                      </Button>
+
+                      <Button size="sm" variant="outline" className="flex-1">
+
+                        <Edit className="w-4 h-4 mr-1" />
+
+                        Edit
+
+                      </Button>
+
+                      <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+
+                        <Trash2 className="w-4 h-4" />
+
+                      </Button>
+
+                    </div>
+
+                  </CardContent>
+
+                </Card>
+
+              ))}
+
+            </div>
+
+
+
+            {listings.length === 0 && (
+
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+
+                <CardContent className="text-center py-12">
+
+                  <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Listings Yet</h3>
+
+                  <p className="text-gray-500 mb-6">Start selling by creating your first listing</p>
+
+                  <Link href="/sell/new">
+
+                    <Button className="bg-blue-600 hover:bg-blue-700">
+
+                      <Plus className="w-4 h-4 mr-2" />
+
+                      Create Your First Listing
+
+                    </Button>
+
+                  </Link>
+
+                </CardContent>
+
+              </Card>
+
+            )}
+
+          </TabsContent>
+
+
+
+          {/* Orders Tab */}
+
+          <TabsContent value="orders" className="space-y-6">
+
+            <h2 className="text-2xl font-bold text-gray-900">My Orders</h2>
+
+            
+
+            <div className="space-y-4">
+
+              {orders.map((order) => (
+
+                <Card key={order.id} className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+
+                  <CardContent className="p-6">
+
+                    <div className="flex items-start space-x-4">
+
+                      <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
+
+                        {order.photo_url ? (
+
+                          <img 
+
+                            src={order.photo_url} 
+
+                            alt={order.title}
+
+                            className="w-full h-full object-cover rounded-lg"
+
+                          />
+
+                        ) : (
+
+                          <ShoppingCart className="w-8 h-8 text-gray-400" />
+
+                        )}
+
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+
+                        <div className="flex items-start justify-between">
+
+                          <div>
+
+                            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+
+                              {order.title}
+
+                            </h3>
+
+                            <p className="text-gray-600 mb-2">
+
+                              {order.type === 'buying' ? 'Buying from' : 'Selling to'} {order.type === 'buying' ? order.seller_name : order.buyer_name}
+
+                            </p>
+
+                            <div className="flex items-center space-x-4 text-sm text-gray-500">
+
+                              <span className="flex items-center">
+
+                                <Calendar className="w-4 h-4 mr-1" />
+
+                                {formatRelativeTime(order.created_at)}
+
+                              </span>
+
+                              <span className="flex items-center">
+
+                                <CreditCard className="w-4 h-4 mr-1" />
+
+                                {formatPrice(order.price_rub)}
+
+                              </span>
+
+                            </div>
+
+                          </div>
+
+                          <div className="text-right">
+
+                            <Badge className={`${getStatusColor(order.status)} mb-2`}>
+
+                              {order.status}
+
+                            </Badge>
+
+                            <p className="text-2xl font-bold text-gray-900">
+
+                              {formatPrice(order.price_rub)}
+
+                            </p>
+
+                          </div>
+
+                        </div>
+
+                        <div className="mt-4 flex space-x-2">
+
+                          <Button size="sm" variant="outline">
+
+                            <Eye className="w-4 h-4 mr-1" />
+
+                            View Details
+
+                          </Button>
+
+                          {order.status === 'pending' && (
+
+                            <Button size="sm" variant="outline">
+
+                              <CreditCard className="w-4 h-4 mr-1" />
+
+                              Pay Now
+
+                            </Button>
+
+                          )}
+
+                          {order.status === 'in_transit' && (
+
+                            <Button size="sm" variant="outline">
+
+                              <Truck className="w-4 h-4 mr-1" />
+
+                              Track Package
+
+                            </Button>
+
+                          )}
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                  </CardContent>
+
+                </Card>
+
+              ))}
+
+            </div>
+
+
+
+            {orders.length === 0 && (
+
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+
+                <CardContent className="text-center py-12">
+
+                  <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Orders Yet</h3>
+
+                  <p className="text-gray-500 mb-6">Your orders will appear here when you make purchases or sales</p>
+
+                  <Link href="/listings">
+
+                    <Button className="bg-blue-600 hover:bg-blue-700">
+
+                      Browse Listings
+
+                    </Button>
+
+                  </Link>
+
+                </CardContent>
+
+              </Card>
+
+            )}
+
+          </TabsContent>
+
+
+
+          {/* Messages Tab */}
+
+          <TabsContent value="messages" className="space-y-6">
+
+            <h2 className="text-2xl font-bold text-gray-900">Messages</h2>
+
+            
+
+            <div className="space-y-4">
+
+              {messages.map((message) => (
+
+                <Card key={message.id} className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
+
+                  <CardContent className="p-6">
+
+                    <div className="flex items-center space-x-4">
+
+                      <Avatar 
+
+                        className="w-12 h-12"
+
+                        src={message.other_user_avatar}
+
+                        fallback={message.other_user_name.charAt(0).toUpperCase()}
+
+                      />
+
+                      <div className="flex-1 min-w-0">
+
+                        <div className="flex items-center justify-between mb-1">
+
+                          <h3 className="text-lg font-semibold text-gray-900">
+
+                            {message.other_user_name}
+
+                          </h3>
+
+                          <div className="flex items-center space-x-2">
+
+                            <span className="text-sm text-gray-500">
+
+                              {formatRelativeTime(message.last_message_at)}
+
+                            </span>
+
+                            {message.unread_count > 0 && (
+
+                              <Badge className="bg-blue-600 text-white">
+
+                                {message.unread_count}
+
+                              </Badge>
+
+                            )}
+
+                          </div>
+
+                        </div>
+
+                        <p className="text-gray-600 truncate">
+
+                          {message.last_message}
+
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                  </CardContent>
+
+                </Card>
+
+              ))}
+
+            </div>
+
+
+
+            {messages.length === 0 && (
+
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+
+                <CardContent className="text-center py-12">
+
+                  <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Messages Yet</h3>
+
+                  <p className="text-gray-500 mb-6">Start conversations by viewing listings or making purchases</p>
+
+                  <Link href="/listings">
+
+                    <Button className="bg-blue-600 hover:bg-blue-700">
+
+                      Browse Listings
+
+                    </Button>
+
+                  </Link>
+
+                </CardContent>
+
+              </Card>
+
+            )}
+
+          </TabsContent>
+
+
+
+          {/* Profile Tab */}
+
+          <TabsContent value="profile" className="space-y-6">
+
+            <h2 className="text-2xl font-bold text-gray-900">Profile Settings</h2>
+
+            
+
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+
+              <CardHeader>
+
+                <CardTitle>Account Information</CardTitle>
+
+                <CardDescription>Manage your account details and preferences</CardDescription>
+
+              </CardHeader>
+
+              <CardContent className="space-y-6">
+
+                <div className="flex items-center space-x-4">
+
+                  <Avatar 
+
+                    className="w-20 h-20"
+
+                    src={profile?.avatar_url}
+
+                    fallback={(profile as any)?.first_name?.[0] || user.email[0]}
+
+                  />
+
+                  <div>
+
+                    <Button variant="outline" size="sm">
+
+                      Change Photo
+
+                    </Button>
+
+                    <p className="text-sm text-gray-500 mt-1">JPG, PNG up to 2MB</p>
+
+                  </div>
+
+                </div>
+
+
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  <div>
+
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+
+                      First Name
+
+                    </label>
+
+                    <input
+
+                      type="text"
+
+                      defaultValue={(profile as any)?.first_name || ''}
+
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+
+                    />
+
+                  </div>
+
+                  <div>
+
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+
+                      Last Name
+
+                    </label>
+
+                    <input
+
+                      type="text"
+
+                      defaultValue={(profile as any)?.last_name || ''}
+
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+
+                    />
+
+                  </div>
+
+                </div>
+
+
+
+                <div>
+
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+
+                    Email
+
+                  </label>
+
+                  <input
+
+                    type="email"
+
+                    defaultValue={user.email}
+
+                    disabled
+
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
+
+                  />
+
+                  <p className="text-sm text-gray-500 mt-1">Email cannot be changed</p>
+
+                </div>
+
+
+
+                <div>
+
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+
+                    Phone
+
+                  </label>
+
+                  <input
+
+                    type="tel"
+
+                    defaultValue={profile?.phone || ''}
+
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+
+                  />
+
+                </div>
+
+
+
+                <div>
+
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+
+                    Country of Origin
+
+                  </label>
+
+                  <select
+
+                    defaultValue={profile?.country_of_origin || ''}
+
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+
+                  >
+
+                    <option value="">Select Country</option>
+
+                    <option value="US">United States</option>
+
+                    <option value="UK">United Kingdom</option>
+
+                    <option value="DE">Germany</option>
+
+                    <option value="FR">France</option>
+
+                    <option value="IT">Italy</option>
+
+                    <option value="ES">Spain</option>
+
+                    <option value="CA">Canada</option>
+
+                    <option value="AU">Australia</option>
+
+                    <option value="JP">Japan</option>
+
+                    <option value="KR">South Korea</option>
+
+                    <option value="CN">China</option>
+
+                    <option value="IN">India</option>
+
+                    <option value="BR">Brazil</option>
+
+                    <option value="MX">Mexico</option>
+
+                    <option value="other">Other</option>
+
+                  </select>
+
+                </div>
+
+
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  <div>
+
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+
+                      City
+
+                    </label>
+
+                    <input
+
+                      type="text"
+
+                      defaultValue={profile?.city || ''}
+
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+
+                    />
+
+                  </div>
+
+                  <div>
+
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+
+                      District
+
+                    </label>
+
+                    <input
+
+                      type="text"
+
+                      defaultValue={profile?.district || ''}
+
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+
+                    />
+
+                  </div>
+
+                </div>
+
+
+
+                <div className="flex items-center space-x-2">
+
+                  <input
+
+                    type="checkbox"
+
+                    id="verified_expat"
+
+                    defaultChecked={profile?.verified_expat || false}
+
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+
+                  />
+
+                  <label htmlFor="verified_expat" className="text-sm font-medium text-gray-700">
+
+                    I am a verified expat
+
+                  </label>
+
+                </div>
+
+
+
+                <div className="flex justify-end space-x-4">
+
+                  <Button variant="outline">Cancel</Button>
+
+                  <Button className="bg-blue-600 hover:bg-blue-700">Save Changes</Button>
+
+                </div>
+
+              </CardContent>
+
+            </Card>
+
+
+
+            {/* Currency Settings */}
+
+            <CurrencySettings />
+
+          </TabsContent>
+
+        </Tabs>
+
+      </div>
+
+    </div>
+
+  );
+
+}
+
+

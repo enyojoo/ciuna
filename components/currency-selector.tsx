@@ -9,7 +9,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@ciuna/ui';
-import { useI18n } from '../contexts/i18n-context';
+import { useI18n } from '@/contexts/i18n-context';
 import { DollarSign, Check } from 'lucide-react';
 
 interface CurrencySelectorProps {

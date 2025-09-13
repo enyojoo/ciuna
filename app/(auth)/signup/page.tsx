@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Input, Card, CardContent, CardHeader, CardTitle } from '@ciuna/ui';
-import { useAuth } from '../../../lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
 import { Eye, EyeOff, Mail, Lock, User, MapPin } from 'lucide-react';
 
 export default function SignUpPage() {

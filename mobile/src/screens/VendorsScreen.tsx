@@ -211,6 +211,8 @@ export function VendorsScreen() {
   );
 }
 
+export default VendorsScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

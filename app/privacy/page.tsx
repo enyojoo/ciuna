@@ -6,7 +6,7 @@ import { Button } from '@ciuna/ui';
 import { Badge } from '@ciuna/ui';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@ciuna/ui';
 import { SecurityService, PrivacyRequest, UserConsent } from '@ciuna/sb';
-import { useAuth } from '../../lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
 import { 
   Shield, 
   Download, 
@@ -498,3 +498,503 @@ export default function PrivacyPage() {
     </div>
   );
 }
+
+                    You have the right to have inaccurate personal data corrected and incomplete data completed.
+
+                  </p>
+
+                  <Button
+
+                    variant="outline"
+
+                    className="w-full"
+
+                    onClick={() => window.location.href = '/settings'}
+
+                  >
+
+                    Update Your Data
+
+                  </Button>
+
+                </CardContent>
+
+              </Card>
+
+
+
+              <Card>
+
+                <CardHeader>
+
+                  <CardTitle className="flex items-center">
+
+                    <Trash2 className="h-5 w-5 mr-2" />
+
+                    Data Deletion
+
+                  </CardTitle>
+
+                  <CardDescription>
+
+                    Request complete deletion of your personal data.
+
+                  </CardDescription>
+
+                </CardHeader>
+
+                <CardContent>
+
+                  <p className="text-sm text-gray-600 mb-4">
+
+                    You have the right to request the deletion of your personal data under certain circumstances.
+
+                  </p>
+
+                  <Button
+
+                    variant="destructive"
+
+                    onClick={handleDataDeletion}
+
+                    disabled={submitting}
+
+                    className="w-full"
+
+                  >
+
+                    {submitting ? 'Requesting...' : 'Request Data Deletion'}
+
+                  </Button>
+
+                </CardContent>
+
+              </Card>
+
+
+
+              <Card>
+
+                <CardHeader>
+
+                  <CardTitle className="flex items-center">
+
+                    <Eye className="h-5 w-5 mr-2" />
+
+                    Data Portability
+
+                  </CardTitle>
+
+                  <CardDescription>
+
+                    Transfer your data to another service.
+
+                  </CardDescription>
+
+                </CardHeader>
+
+                <CardContent>
+
+                  <p className="text-sm text-gray-600 mb-4">
+
+                    You have the right to receive your personal data in a structured format and transfer it to another controller.
+
+                  </p>
+
+                  <Button
+
+                    variant="outline"
+
+                    className="w-full"
+
+                    onClick={handleDataExport}
+
+                    disabled={submitting}
+
+                  >
+
+                    {submitting ? 'Preparing...' : 'Request Data Transfer'}
+
+                  </Button>
+
+                </CardContent>
+
+              </Card>
+
+            </div>
+
+
+
+            {/* Privacy Information */}
+
+            <Card>
+
+              <CardHeader>
+
+                <CardTitle>Your Privacy Rights</CardTitle>
+
+                <CardDescription>
+
+                  Understanding your rights under data protection laws.
+
+                </CardDescription>
+
+              </CardHeader>
+
+              <CardContent>
+
+                <div className="space-y-4">
+
+                  <div>
+
+                    <h3 className="font-semibold mb-2">Right to Information</h3>
+
+                    <p className="text-sm text-gray-600">
+
+                      You have the right to know what personal data we collect, how we use it, and who we share it with.
+
+                    </p>
+
+                  </div>
+
+                  <div>
+
+                    <h3 className="font-semibold mb-2">Right to Access</h3>
+
+                    <p className="text-sm text-gray-600">
+
+                      You can request access to all personal data we hold about you and information about how we process it.
+
+                    </p>
+
+                  </div>
+
+                  <div>
+
+                    <h3 className="font-semibold mb-2">Right to Rectification</h3>
+
+                    <p className="text-sm text-gray-600">
+
+                      You can request correction of any inaccurate or incomplete personal data we hold about you.
+
+                    </p>
+
+                  </div>
+
+                  <div>
+
+                    <h3 className="font-semibold mb-2">Right to Erasure</h3>
+
+                    <p className="text-sm text-gray-600">
+
+                      You can request deletion of your personal data in certain circumstances, such as when it's no longer necessary.
+
+                    </p>
+
+                  </div>
+
+                  <div>
+
+                    <h3 className="font-semibold mb-2">Right to Object</h3>
+
+                    <p className="text-sm text-gray-600">
+
+                      You can object to processing of your personal data for direct marketing or legitimate interests.
+
+                    </p>
+
+                  </div>
+
+                </div>
+
+              </CardContent>
+
+            </Card>
+
+          </TabsContent>
+
+
+
+          {/* Consent Tab */}
+
+          <TabsContent value="consent" className="space-y-6">
+
+            <Card>
+
+              <CardHeader>
+
+                <CardTitle>Consent Management</CardTitle>
+
+                <CardDescription>
+
+                  Manage your consent preferences for different types of data processing.
+
+                </CardDescription>
+
+              </CardHeader>
+
+              <CardContent>
+
+                <div className="space-y-6">
+
+                  {[
+
+                    {
+
+                      type: 'MARKETING_EMAILS',
+
+                      title: 'Marketing Emails',
+
+                      description: 'Receive promotional emails and newsletters about our services and products.',
+
+                      current: consents.find(c => c.consent_type === 'MARKETING_EMAILS')?.granted || false
+
+                    },
+
+                    {
+
+                      type: 'ANALYTICS_TRACKING',
+
+                      title: 'Analytics Tracking',
+
+                      description: 'Allow us to collect anonymous usage data to improve our services.',
+
+                      current: consents.find(c => c.consent_type === 'ANALYTICS_TRACKING')?.granted || false
+
+                    },
+
+                    {
+
+                      type: 'COOKIES',
+
+                      title: 'Cookies',
+
+                      description: 'Allow us to use cookies to enhance your browsing experience.',
+
+                      current: consents.find(c => c.consent_type === 'COOKIES')?.granted || false
+
+                    },
+
+                    {
+
+                      type: 'DATA_PROCESSING',
+
+                      title: 'Data Processing',
+
+                      description: 'Allow us to process your personal data to provide our services.',
+
+                      current: consents.find(c => c.consent_type === 'DATA_PROCESSING')?.granted || true
+
+                    },
+
+                    {
+
+                      type: 'THIRD_PARTY_SHARING',
+
+                      title: 'Third-Party Sharing',
+
+                      description: 'Allow us to share your data with trusted third-party service providers.',
+
+                      current: consents.find(c => c.consent_type === 'THIRD_PARTY_SHARING')?.granted || false
+
+                    }
+
+                  ].map((consent) => (
+
+                    <div key={consent.type} className="flex items-center justify-between p-4 border rounded-lg">
+
+                      <div className="flex-1">
+
+                        <h3 className="font-medium">{consent.title}</h3>
+
+                        <p className="text-sm text-gray-600 mt-1">{consent.description}</p>
+
+                        <div className="flex items-center mt-2">
+
+                          <Badge className={consent.current ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+
+                            {consent.current ? 'Consented' : 'Not Consented'}
+
+                          </Badge>
+
+                          {consent.current && (
+
+                            <span className="text-xs text-gray-500 ml-2">
+
+                              Since {consents.find(c => c.consent_type === consent.type)?.granted_at ? 
+
+                                new Date(consents.find(c => c.consent_type === consent.type)!.granted_at).toLocaleDateString() : 
+
+                                'Recently'
+
+                              }
+
+                            </span>
+
+                          )}
+
+                        </div>
+
+                      </div>
+
+                      <div className="ml-4">
+
+                        <Button
+
+                          variant={consent.current ? 'destructive' : 'default'}
+
+                          size="sm"
+
+                          onClick={() => handleConsentUpdate(consent.type, !consent.current)}
+
+                        >
+
+                          {consent.current ? 'Withdraw' : 'Grant'}
+
+                        </Button>
+
+                      </div>
+
+                    </div>
+
+                  ))}
+
+                </div>
+
+              </CardContent>
+
+            </Card>
+
+          </TabsContent>
+
+
+
+          {/* Requests Tab */}
+
+          <TabsContent value="requests" className="space-y-6">
+
+            <Card>
+
+              <CardHeader>
+
+                <CardTitle>Privacy Requests</CardTitle>
+
+                <CardDescription>
+
+                  Track the status of your privacy-related requests.
+
+                </CardDescription>
+
+              </CardHeader>
+
+              <CardContent>
+
+                {privacyRequests.length === 0 ? (
+
+                  <div className="text-center py-8">
+
+                    <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+
+                      No privacy requests
+
+                    </h3>
+
+                    <p className="text-gray-600">
+
+                      You haven't submitted any privacy requests yet.
+
+                    </p>
+
+                  </div>
+
+                ) : (
+
+                  <div className="space-y-4">
+
+                    {privacyRequests.map((request) => (
+
+                      <div
+
+                        key={request.id}
+
+                        className="flex items-center justify-between p-4 border rounded-lg"
+
+                      >
+
+                        <div className="flex items-center space-x-3">
+
+                          {getStatusIcon(request.status)}
+
+                          <div>
+
+                            <h3 className="font-medium capitalize">
+
+                              {request.request_type.toLowerCase().replace('_', ' ')}
+
+                            </h3>
+
+                            <p className="text-sm text-gray-600">
+
+                              Submitted {new Date(request.created_at).toLocaleDateString()}
+
+                            </p>
+
+                            {request.description && (
+
+                              <p className="text-sm text-gray-500 mt-1">
+
+                                {request.description}
+
+                              </p>
+
+                            )}
+
+                          </div>
+
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+
+                          {getStatusBadge(request.status)}
+
+                          {request.status === 'COMPLETED' && (
+
+                            <Button variant="outline" size="sm">
+
+                              <Download className="h-4 w-4 mr-1" />
+
+                              Download
+
+                            </Button>
+
+                          )}
+
+                        </div>
+
+                      </div>
+
+                    ))}
+
+                  </div>
+
+                )}
+
+              </CardContent>
+
+            </Card>
+
+          </TabsContent>
+
+        </Tabs>
+
+      </div>
+
+    </div>
+
+  );
+
+}
+
+

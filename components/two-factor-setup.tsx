@@ -7,7 +7,7 @@ import { Input } from '@ciuna/ui';
 import { Badge } from '@ciuna/ui';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@ciuna/ui';
 import { SecurityService } from '@ciuna/sb';
-import { useAuth } from '../lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
 import { Shield, Smartphone, Mail, Key, CheckCircle, AlertCircle } from 'lucide-react';
 import QRCode from 'qrcode';
 

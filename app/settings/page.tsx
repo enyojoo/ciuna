@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ciuna/ui';
 import { Button } from '@ciuna/ui';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@ciuna/ui';
-import { useI18n } from '../../contexts/i18n-context';
-import LanguageSelector from '../../components/language-selector';
-import CurrencySelector from '../../components/currency-selector';
-import NotificationSettings from '../../components/notification-settings';
-import { useAuth } from '../../lib/auth-context';
+import { useI18n } from '@/contexts/i18n-context';
+import LanguageSelector from '@/components/language-selector';
+import CurrencySelector from '@/components/currency-selector';
+import NotificationSettings from '@/components/notification-settings';
+import { useAuth } from '@/lib/auth-context';
 import { Settings, Globe, DollarSign, Bell, User } from 'lucide-react';
 
 export default function SettingsPage() {

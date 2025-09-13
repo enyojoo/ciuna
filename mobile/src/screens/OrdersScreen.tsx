@@ -286,6 +286,8 @@ export function OrdersScreen() {
   );
 }
 
+export default OrdersScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

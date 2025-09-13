@@ -19,7 +19,7 @@ export type AuthStackParamList = {
 
 const Stack = createStackNavigator<AuthStackParamList>();
 
-export default function AuthNavigator() {
+export function AuthNavigator() {
   const { user, loading } = useAuth();
 
   if (loading) {

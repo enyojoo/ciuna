@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ciun
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@ciuna/ui';
 import { SearchService, SearchResult, SearchSuggestion } from '@ciuna/sb';
 import { useAuth } from '@/lib/auth-context';
-import AdvancedSearch from '../../components/advanced-search';
-import SearchResults from '../../components/search-results';
+import AdvancedSearch from '@/components/advanced-search';
+import SearchResults from '@/components/search-results';
 import { 
   Search, 
   TrendingUp, 

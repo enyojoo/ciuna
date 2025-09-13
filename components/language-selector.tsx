@@ -9,7 +9,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@ciuna/ui';
-import { useLanguage } from '../contexts/i18n-context';
+import { useLanguage } from '@/contexts/i18n-context';
 import { Globe, Check } from 'lucide-react';
 
 interface LanguageSelectorProps {

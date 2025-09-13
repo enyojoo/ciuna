@@ -14,6 +14,8 @@ export function LoadingScreen() {
   );
 }
 
+export default LoadingScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

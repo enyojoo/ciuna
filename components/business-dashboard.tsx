@@ -7,8 +7,8 @@ import { Badge } from '@ciuna/ui';
 // import { Progress } from '@ciuna/ui'; // Progress component not available
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@ciuna/ui';
 import { BusinessService, BusinessGoal, BusinessNotification, InventoryItem } from '@ciuna/sb';
-import { useAuth } from '../lib/auth-context';
-import { useI18n } from '../contexts/i18n-context';
+import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/contexts/i18n-context';
 import { 
   TrendingUp, 
   TrendingDown, 

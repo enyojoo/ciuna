@@ -6,7 +6,7 @@ import { Button } from '@ciuna/ui';
 import { Badge } from '@ciuna/ui';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@ciuna/ui';
 import { SecurityService, KYCVerification } from '@ciuna/sb';
-import { useAuth } from '../lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
 import { 
   Shield, 
   Upload, 

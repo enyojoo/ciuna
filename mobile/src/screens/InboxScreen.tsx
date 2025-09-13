@@ -179,6 +179,8 @@ export function InboxScreen() {
   );
 }
 
+export default InboxScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
