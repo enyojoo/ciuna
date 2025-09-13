@@ -3,6 +3,7 @@ export declare const GroupBuyDealSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     vendor_product_id: z.ZodString;
     min_quantity: z.ZodNumber;
     discount_percentage: z.ZodNumber;
@@ -25,8 +26,8 @@ export declare const GroupBuyDealSchema: z.ZodObject<{
     discount_percentage: number;
     current_quantity: number;
     is_featured: boolean;
-    max_quantity?: number | undefined;
     description?: string | undefined;
+    max_quantity?: number | undefined;
     terms?: string | undefined;
     featured_until?: string | undefined;
 }, {
@@ -38,9 +39,9 @@ export declare const GroupBuyDealSchema: z.ZodObject<{
     min_quantity: number;
     discount_percentage: number;
     status?: "ACTIVE" | "CANCELLED" | "COMPLETED" | undefined;
+    description?: string | undefined;
     current_quantity?: number | undefined;
     max_quantity?: number | undefined;
-    description?: string | undefined;
     terms?: string | undefined;
     is_featured?: boolean | undefined;
     featured_until?: string | undefined;
@@ -49,6 +50,7 @@ export declare const CreateGroupBuyDealSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     vendor_product_id: z.ZodString;
     min_quantity: z.ZodNumber;
     discount_percentage: z.ZodNumber;
@@ -123,6 +125,7 @@ export declare const GroupBuyOrderSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     deal_id: z.ZodString;
     buyer_id: z.ZodString;
     quantity: z.ZodNumber;
@@ -147,10 +150,10 @@ export declare const GroupBuyOrderSchema: z.ZodObject<{
     price_per_unit_rub: number;
     discount_amount_rub: number;
     payment_id?: string | undefined;
-    order_id?: string | undefined;
     notes?: string | undefined;
     cancelled_at?: string | undefined;
     cancelled_reason?: string | undefined;
+    order_id?: string | undefined;
 }, {
     id: string;
     created_at: string;
@@ -163,15 +166,16 @@ export declare const GroupBuyOrderSchema: z.ZodObject<{
     discount_amount_rub: number;
     status?: "PENDING" | "CANCELLED" | "REFUNDED" | "CONFIRMED" | undefined;
     payment_id?: string | undefined;
-    order_id?: string | undefined;
     notes?: string | undefined;
     cancelled_at?: string | undefined;
     cancelled_reason?: string | undefined;
+    order_id?: string | undefined;
 }>;
 export declare const CreateGroupBuyOrderSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     deal_id: z.ZodString;
     buyer_id: z.ZodString;
     quantity: z.ZodNumber;
@@ -246,17 +250,19 @@ export declare const GroupBuyDealWithRelationsSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
-    status: z.ZodDefault<z.ZodEnum<["ACTIVE", "COMPLETED", "CANCELLED"]>>;
-    description: z.ZodOptional<z.ZodString>;
-    expires_at: z.ZodString;
+} & {
     vendor_product_id: z.ZodString;
     min_quantity: z.ZodNumber;
     discount_percentage: z.ZodNumber;
+    expires_at: z.ZodString;
+    status: z.ZodDefault<z.ZodEnum<["ACTIVE", "COMPLETED", "CANCELLED"]>>;
     current_quantity: z.ZodDefault<z.ZodNumber>;
     max_quantity: z.ZodOptional<z.ZodNumber>;
+    description: z.ZodOptional<z.ZodString>;
     terms: z.ZodOptional<z.ZodString>;
     is_featured: z.ZodDefault<z.ZodBoolean>;
     featured_until: z.ZodOptional<z.ZodString>;
+} & {
     vendor_product: z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
@@ -473,18 +479,20 @@ export declare const GroupBuyOrderWithRelationsSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
-    status: z.ZodDefault<z.ZodEnum<["PENDING", "CONFIRMED", "CANCELLED", "REFUNDED"]>>;
-    total_amount_rub: z.ZodNumber;
-    payment_id: z.ZodOptional<z.ZodString>;
-    notes: z.ZodOptional<z.ZodString>;
-    cancelled_at: z.ZodOptional<z.ZodString>;
-    cancelled_reason: z.ZodOptional<z.ZodString>;
+} & {
     deal_id: z.ZodString;
     buyer_id: z.ZodString;
     quantity: z.ZodNumber;
     price_per_unit_rub: z.ZodNumber;
+    total_amount_rub: z.ZodNumber;
     discount_amount_rub: z.ZodNumber;
+    status: z.ZodDefault<z.ZodEnum<["PENDING", "CONFIRMED", "CANCELLED", "REFUNDED"]>>;
+    payment_id: z.ZodOptional<z.ZodString>;
     order_id: z.ZodOptional<z.ZodString>;
+    notes: z.ZodOptional<z.ZodString>;
+    cancelled_at: z.ZodOptional<z.ZodString>;
+    cancelled_reason: z.ZodOptional<z.ZodString>;
+} & {
     deal: z.ZodObject<{
         id: z.ZodString;
         vendor_product_id: z.ZodString;
@@ -650,24 +658,24 @@ export declare const GroupBuyFiltersSchema: z.ZodObject<{
     is_featured: z.ZodOptional<z.ZodBoolean>;
     search: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
+    status?: "ACTIVE" | "CANCELLED" | "COMPLETED" | undefined;
+    is_featured?: boolean | undefined;
     vendor_id?: string | undefined;
     category_id?: string | undefined;
-    status?: "ACTIVE" | "CANCELLED" | "COMPLETED" | undefined;
     min_discount?: number | undefined;
     max_discount?: number | undefined;
     expires_after?: string | undefined;
     expires_before?: string | undefined;
-    is_featured?: boolean | undefined;
     search?: string | undefined;
 }, {
+    status?: "ACTIVE" | "CANCELLED" | "COMPLETED" | undefined;
+    is_featured?: boolean | undefined;
     vendor_id?: string | undefined;
     category_id?: string | undefined;
-    status?: "ACTIVE" | "CANCELLED" | "COMPLETED" | undefined;
     min_discount?: number | undefined;
     max_discount?: number | undefined;
     expires_after?: string | undefined;
     expires_before?: string | undefined;
-    is_featured?: boolean | undefined;
     search?: string | undefined;
 }>;
 export type GroupBuyDeal = z.infer<typeof GroupBuyDealSchema>;

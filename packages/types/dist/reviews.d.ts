@@ -3,6 +3,7 @@ export declare const ReviewSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     order_id: z.ZodString;
     reviewer_id: z.ZodString;
     reviewee_id: z.ZodString;
@@ -40,6 +41,7 @@ export declare const CreateReviewSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     order_id: z.ZodString;
     reviewer_id: z.ZodString;
     reviewee_id: z.ZodString;
@@ -92,14 +94,16 @@ export declare const ReviewWithReviewerSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
-    rating: z.ZodNumber;
+} & {
     order_id: z.ZodString;
     reviewer_id: z.ZodString;
     reviewee_id: z.ZodString;
+    rating: z.ZodNumber;
     comment: z.ZodOptional<z.ZodString>;
     is_anonymous: z.ZodDefault<z.ZodBoolean>;
     helpful_count: z.ZodDefault<z.ZodNumber>;
     is_verified_purchase: z.ZodDefault<z.ZodBoolean>;
+} & {
     reviewer: z.ZodObject<{
         id: z.ZodString;
         email: z.ZodString;
@@ -302,14 +306,16 @@ export declare const ReviewSummarySchema: z.ZodObject<{
         id: z.ZodString;
         created_at: z.ZodString;
         updated_at: z.ZodString;
-        rating: z.ZodNumber;
+    } & {
         order_id: z.ZodString;
         reviewer_id: z.ZodString;
         reviewee_id: z.ZodString;
+        rating: z.ZodNumber;
         comment: z.ZodOptional<z.ZodString>;
         is_anonymous: z.ZodDefault<z.ZodBoolean>;
         helpful_count: z.ZodDefault<z.ZodNumber>;
         is_verified_purchase: z.ZodDefault<z.ZodBoolean>;
+    } & {
         reviewer: z.ZodObject<{
             id: z.ZodString;
             email: z.ZodString;
@@ -590,17 +596,17 @@ export declare const ReviewFiltersSchema: z.ZodObject<{
     date_from: z.ZodOptional<z.ZodString>;
     date_to: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    reviewee_id?: string | undefined;
     rating?: number | undefined;
-    is_verified_purchase?: boolean | undefined;
     date_from?: string | undefined;
     date_to?: string | undefined;
+    reviewee_id?: string | undefined;
+    is_verified_purchase?: boolean | undefined;
 }, {
-    reviewee_id?: string | undefined;
     rating?: number | undefined;
-    is_verified_purchase?: boolean | undefined;
     date_from?: string | undefined;
     date_to?: string | undefined;
+    reviewee_id?: string | undefined;
+    is_verified_purchase?: boolean | undefined;
 }>;
 export type Review = z.infer<typeof ReviewSchema>;
 export type CreateReview = z.infer<typeof CreateReviewSchema>;

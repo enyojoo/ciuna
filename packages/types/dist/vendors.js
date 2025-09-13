@@ -6,7 +6,7 @@ export const VendorSchema = BaseRecordSchema.extend({
     name: z.string().min(1).max(200),
     description: z.string().min(1).max(2000),
     logo_url: z.string().url().optional(),
-    country: z.string().min(2).max(2),
+    country: z.string().min(2).max(2), // ISO country code
     city: z.string().min(1).max(100),
     district: z.string().optional(),
     verified: z.boolean().default(false),

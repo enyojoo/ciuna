@@ -3,6 +3,7 @@ export declare const VendorProductSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     vendor_id: z.ZodString;
     name: z.ZodString;
     description: z.ZodString;
@@ -37,13 +38,13 @@ export declare const VendorProductSchema: z.ZodObject<{
         countries: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
     }, "strip", z.ZodTypeAny, {
         countries: string[];
+        estimated_days?: number | undefined;
         free_shipping_threshold?: number | undefined;
         shipping_cost_rub?: number | undefined;
-        estimated_days?: number | undefined;
     }, {
+        estimated_days?: number | undefined;
         free_shipping_threshold?: number | undefined;
         shipping_cost_rub?: number | undefined;
-        estimated_days?: number | undefined;
         countries?: string[] | undefined;
     }>>;
     seo_title: z.ZodOptional<z.ZodString>;
@@ -70,18 +71,18 @@ export declare const VendorProductSchema: z.ZodObject<{
     is_dropship: boolean;
     specifications: Record<string, any>;
     sales_count: number;
-    sku?: string | undefined;
     weight_kg?: number | undefined;
     dimensions?: {
         length_cm: number;
         width_cm: number;
         height_cm: number;
     } | undefined;
+    sku?: string | undefined;
     shipping_info?: {
         countries: string[];
+        estimated_days?: number | undefined;
         free_shipping_threshold?: number | undefined;
         shipping_cost_rub?: number | undefined;
-        estimated_days?: number | undefined;
     } | undefined;
     seo_title?: string | undefined;
     seo_description?: string | undefined;
@@ -94,36 +95,37 @@ export declare const VendorProductSchema: z.ZodObject<{
     name: string;
     vendor_id: string;
     category_id: string;
-    stock_quantity?: number | undefined;
-    photo_urls?: string[] | undefined;
-    is_local_stock?: boolean | undefined;
-    is_dropship?: boolean | undefined;
     status?: "ACTIVE" | "OUT_OF_STOCK" | "DISABLED" | undefined;
-    sku?: string | undefined;
+    photo_urls?: string[] | undefined;
+    tags?: string[] | undefined;
+    view_count?: number | undefined;
+    favorite_count?: number | undefined;
     weight_kg?: number | undefined;
     dimensions?: {
         length_cm: number;
         width_cm: number;
         height_cm: number;
     } | undefined;
-    tags?: string[] | undefined;
+    stock_quantity?: number | undefined;
+    is_local_stock?: boolean | undefined;
+    is_dropship?: boolean | undefined;
+    sku?: string | undefined;
     specifications?: Record<string, any> | undefined;
     shipping_info?: {
+        estimated_days?: number | undefined;
         free_shipping_threshold?: number | undefined;
         shipping_cost_rub?: number | undefined;
-        estimated_days?: number | undefined;
         countries?: string[] | undefined;
     } | undefined;
     seo_title?: string | undefined;
     seo_description?: string | undefined;
-    view_count?: number | undefined;
-    favorite_count?: number | undefined;
     sales_count?: number | undefined;
 }>;
 export declare const CreateVendorProductSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     vendor_id: z.ZodString;
     name: z.ZodString;
     description: z.ZodString;
@@ -158,13 +160,13 @@ export declare const CreateVendorProductSchema: z.ZodObject<Omit<{
         countries: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
     }, "strip", z.ZodTypeAny, {
         countries: string[];
+        estimated_days?: number | undefined;
         free_shipping_threshold?: number | undefined;
         shipping_cost_rub?: number | undefined;
-        estimated_days?: number | undefined;
     }, {
+        estimated_days?: number | undefined;
         free_shipping_threshold?: number | undefined;
         shipping_cost_rub?: number | undefined;
-        estimated_days?: number | undefined;
         countries?: string[] | undefined;
     }>>;
     seo_title: z.ZodOptional<z.ZodString>;
@@ -194,9 +196,9 @@ export declare const CreateVendorProductSchema: z.ZodObject<Omit<{
     sku?: string | undefined;
     shipping_info?: {
         countries: string[];
+        estimated_days?: number | undefined;
         free_shipping_threshold?: number | undefined;
         shipping_cost_rub?: number | undefined;
-        estimated_days?: number | undefined;
     } | undefined;
     seo_title?: string | undefined;
     seo_description?: string | undefined;
@@ -221,9 +223,9 @@ export declare const CreateVendorProductSchema: z.ZodObject<Omit<{
     sku?: string | undefined;
     specifications?: Record<string, any> | undefined;
     shipping_info?: {
+        estimated_days?: number | undefined;
         free_shipping_threshold?: number | undefined;
         shipping_cost_rub?: number | undefined;
-        estimated_days?: number | undefined;
         countries?: string[] | undefined;
     } | undefined;
     seo_title?: string | undefined;
@@ -267,13 +269,13 @@ export declare const UpdateVendorProductSchema: z.ZodObject<Omit<{
         countries: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
     }, "strip", z.ZodTypeAny, {
         countries: string[];
+        estimated_days?: number | undefined;
         free_shipping_threshold?: number | undefined;
         shipping_cost_rub?: number | undefined;
-        estimated_days?: number | undefined;
     }, {
+        estimated_days?: number | undefined;
         free_shipping_threshold?: number | undefined;
         shipping_cost_rub?: number | undefined;
-        estimated_days?: number | undefined;
         countries?: string[] | undefined;
     }>>>;
     seo_title: z.ZodOptional<z.ZodOptional<z.ZodString>>;
@@ -302,9 +304,9 @@ export declare const UpdateVendorProductSchema: z.ZodObject<Omit<{
     specifications?: Record<string, any> | undefined;
     shipping_info?: {
         countries: string[];
+        estimated_days?: number | undefined;
         free_shipping_threshold?: number | undefined;
         shipping_cost_rub?: number | undefined;
-        estimated_days?: number | undefined;
     } | undefined;
     seo_title?: string | undefined;
     seo_description?: string | undefined;
@@ -328,9 +330,9 @@ export declare const UpdateVendorProductSchema: z.ZodObject<Omit<{
     sku?: string | undefined;
     specifications?: Record<string, any> | undefined;
     shipping_info?: {
+        estimated_days?: number | undefined;
         free_shipping_threshold?: number | undefined;
         shipping_cost_rub?: number | undefined;
-        estimated_days?: number | undefined;
         countries?: string[] | undefined;
     } | undefined;
     seo_title?: string | undefined;
@@ -340,16 +342,18 @@ export declare const VendorProductWithRelationsSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
-    status: z.ZodDefault<z.ZodEnum<["ACTIVE", "OUT_OF_STOCK", "DISABLED"]>>;
-    description: z.ZodString;
-    price_rub: z.ZodNumber;
-    name: z.ZodString;
-    photo_urls: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+} & {
     vendor_id: z.ZodString;
+    name: z.ZodString;
+    description: z.ZodString;
     category_id: z.ZodString;
-    tags: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
-    view_count: z.ZodDefault<z.ZodNumber>;
-    favorite_count: z.ZodDefault<z.ZodNumber>;
+    price_rub: z.ZodNumber;
+    stock_quantity: z.ZodDefault<z.ZodNumber>;
+    photo_urls: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+    is_local_stock: z.ZodDefault<z.ZodBoolean>;
+    is_dropship: z.ZodDefault<z.ZodBoolean>;
+    status: z.ZodDefault<z.ZodEnum<["ACTIVE", "OUT_OF_STOCK", "DISABLED"]>>;
+    sku: z.ZodOptional<z.ZodString>;
     weight_kg: z.ZodOptional<z.ZodNumber>;
     dimensions: z.ZodOptional<z.ZodObject<{
         length_cm: z.ZodNumber;
@@ -364,10 +368,7 @@ export declare const VendorProductWithRelationsSchema: z.ZodObject<{
         width_cm: number;
         height_cm: number;
     }>>;
-    stock_quantity: z.ZodDefault<z.ZodNumber>;
-    is_local_stock: z.ZodDefault<z.ZodBoolean>;
-    is_dropship: z.ZodDefault<z.ZodBoolean>;
-    sku: z.ZodOptional<z.ZodString>;
+    tags: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
     specifications: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodAny>>;
     shipping_info: z.ZodOptional<z.ZodObject<{
         free_shipping_threshold: z.ZodOptional<z.ZodNumber>;
@@ -376,18 +377,21 @@ export declare const VendorProductWithRelationsSchema: z.ZodObject<{
         countries: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
     }, "strip", z.ZodTypeAny, {
         countries: string[];
+        estimated_days?: number | undefined;
         free_shipping_threshold?: number | undefined;
         shipping_cost_rub?: number | undefined;
-        estimated_days?: number | undefined;
     }, {
+        estimated_days?: number | undefined;
         free_shipping_threshold?: number | undefined;
         shipping_cost_rub?: number | undefined;
-        estimated_days?: number | undefined;
         countries?: string[] | undefined;
     }>>;
     seo_title: z.ZodOptional<z.ZodString>;
     seo_description: z.ZodOptional<z.ZodString>;
+    view_count: z.ZodDefault<z.ZodNumber>;
+    favorite_count: z.ZodDefault<z.ZodNumber>;
     sales_count: z.ZodDefault<z.ZodNumber>;
+} & {
     vendor: z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
@@ -485,6 +489,12 @@ export declare const VendorProductWithRelationsSchema: z.ZodObject<{
     is_dropship: boolean;
     specifications: Record<string, any>;
     sales_count: number;
+    photos?: {
+        url: string;
+        filename: string;
+        size: number;
+        mime_type: string;
+    }[] | undefined;
     weight_kg?: number | undefined;
     dimensions?: {
         length_cm: number;
@@ -494,18 +504,12 @@ export declare const VendorProductWithRelationsSchema: z.ZodObject<{
     sku?: string | undefined;
     shipping_info?: {
         countries: string[];
+        estimated_days?: number | undefined;
         free_shipping_threshold?: number | undefined;
         shipping_cost_rub?: number | undefined;
-        estimated_days?: number | undefined;
     } | undefined;
     seo_title?: string | undefined;
     seo_description?: string | undefined;
-    photos?: {
-        url: string;
-        filename: string;
-        size: number;
-        mime_type: string;
-    }[] | undefined;
     reviews?: {
         average_rating: number;
         total_count: number;
@@ -538,6 +542,12 @@ export declare const VendorProductWithRelationsSchema: z.ZodObject<{
     tags?: string[] | undefined;
     view_count?: number | undefined;
     favorite_count?: number | undefined;
+    photos?: {
+        url: string;
+        filename: string;
+        size: number;
+        mime_type: string;
+    }[] | undefined;
     weight_kg?: number | undefined;
     dimensions?: {
         length_cm: number;
@@ -550,20 +560,14 @@ export declare const VendorProductWithRelationsSchema: z.ZodObject<{
     sku?: string | undefined;
     specifications?: Record<string, any> | undefined;
     shipping_info?: {
+        estimated_days?: number | undefined;
         free_shipping_threshold?: number | undefined;
         shipping_cost_rub?: number | undefined;
-        estimated_days?: number | undefined;
         countries?: string[] | undefined;
     } | undefined;
     seo_title?: string | undefined;
     seo_description?: string | undefined;
     sales_count?: number | undefined;
-    photos?: {
-        url: string;
-        filename: string;
-        size: number;
-        mime_type: string;
-    }[] | undefined;
     reviews?: {
         average_rating: number;
         total_count: number;
@@ -584,49 +588,51 @@ export declare const ProductFiltersSchema: z.ZodObject<{
     country: z.ZodOptional<z.ZodString>;
     city: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
+    status?: "ACTIVE" | "OUT_OF_STOCK" | "DISABLED" | undefined;
+    city?: string | undefined;
+    country?: string | undefined;
     vendor_id?: string | undefined;
     category_id?: string | undefined;
-    min_price?: number | undefined;
-    max_price?: number | undefined;
-    status?: "ACTIVE" | "OUT_OF_STOCK" | "DISABLED" | undefined;
-    is_local_stock?: boolean | undefined;
-    is_dropship?: boolean | undefined;
     search?: string | undefined;
     tags?: string[] | undefined;
+    min_price?: number | undefined;
+    max_price?: number | undefined;
     min_rating?: number | undefined;
+    is_local_stock?: boolean | undefined;
+    is_dropship?: boolean | undefined;
     in_stock?: boolean | undefined;
-    country?: string | undefined;
-    city?: string | undefined;
 }, {
+    status?: "ACTIVE" | "OUT_OF_STOCK" | "DISABLED" | undefined;
+    city?: string | undefined;
+    country?: string | undefined;
     vendor_id?: string | undefined;
     category_id?: string | undefined;
-    min_price?: number | undefined;
-    max_price?: number | undefined;
-    status?: "ACTIVE" | "OUT_OF_STOCK" | "DISABLED" | undefined;
-    is_local_stock?: boolean | undefined;
-    is_dropship?: boolean | undefined;
     search?: string | undefined;
     tags?: string[] | undefined;
+    min_price?: number | undefined;
+    max_price?: number | undefined;
     min_rating?: number | undefined;
+    is_local_stock?: boolean | undefined;
+    is_dropship?: boolean | undefined;
     in_stock?: boolean | undefined;
-    country?: string | undefined;
-    city?: string | undefined;
 }>;
 export declare const ProductSearchResponseSchema: z.ZodObject<{
     products: z.ZodArray<z.ZodObject<{
         id: z.ZodString;
         created_at: z.ZodString;
         updated_at: z.ZodString;
-        status: z.ZodDefault<z.ZodEnum<["ACTIVE", "OUT_OF_STOCK", "DISABLED"]>>;
-        description: z.ZodString;
-        price_rub: z.ZodNumber;
-        name: z.ZodString;
-        photo_urls: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+    } & {
         vendor_id: z.ZodString;
+        name: z.ZodString;
+        description: z.ZodString;
         category_id: z.ZodString;
-        tags: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
-        view_count: z.ZodDefault<z.ZodNumber>;
-        favorite_count: z.ZodDefault<z.ZodNumber>;
+        price_rub: z.ZodNumber;
+        stock_quantity: z.ZodDefault<z.ZodNumber>;
+        photo_urls: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+        is_local_stock: z.ZodDefault<z.ZodBoolean>;
+        is_dropship: z.ZodDefault<z.ZodBoolean>;
+        status: z.ZodDefault<z.ZodEnum<["ACTIVE", "OUT_OF_STOCK", "DISABLED"]>>;
+        sku: z.ZodOptional<z.ZodString>;
         weight_kg: z.ZodOptional<z.ZodNumber>;
         dimensions: z.ZodOptional<z.ZodObject<{
             length_cm: z.ZodNumber;
@@ -641,10 +647,7 @@ export declare const ProductSearchResponseSchema: z.ZodObject<{
             width_cm: number;
             height_cm: number;
         }>>;
-        stock_quantity: z.ZodDefault<z.ZodNumber>;
-        is_local_stock: z.ZodDefault<z.ZodBoolean>;
-        is_dropship: z.ZodDefault<z.ZodBoolean>;
-        sku: z.ZodOptional<z.ZodString>;
+        tags: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
         specifications: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodAny>>;
         shipping_info: z.ZodOptional<z.ZodObject<{
             free_shipping_threshold: z.ZodOptional<z.ZodNumber>;
@@ -653,18 +656,21 @@ export declare const ProductSearchResponseSchema: z.ZodObject<{
             countries: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
         }, "strip", z.ZodTypeAny, {
             countries: string[];
+            estimated_days?: number | undefined;
             free_shipping_threshold?: number | undefined;
             shipping_cost_rub?: number | undefined;
-            estimated_days?: number | undefined;
         }, {
+            estimated_days?: number | undefined;
             free_shipping_threshold?: number | undefined;
             shipping_cost_rub?: number | undefined;
-            estimated_days?: number | undefined;
             countries?: string[] | undefined;
         }>>;
         seo_title: z.ZodOptional<z.ZodString>;
         seo_description: z.ZodOptional<z.ZodString>;
+        view_count: z.ZodDefault<z.ZodNumber>;
+        favorite_count: z.ZodDefault<z.ZodNumber>;
         sales_count: z.ZodDefault<z.ZodNumber>;
+    } & {
         vendor: z.ZodObject<{
             id: z.ZodString;
             name: z.ZodString;
@@ -762,6 +768,12 @@ export declare const ProductSearchResponseSchema: z.ZodObject<{
         is_dropship: boolean;
         specifications: Record<string, any>;
         sales_count: number;
+        photos?: {
+            url: string;
+            filename: string;
+            size: number;
+            mime_type: string;
+        }[] | undefined;
         weight_kg?: number | undefined;
         dimensions?: {
             length_cm: number;
@@ -771,18 +783,12 @@ export declare const ProductSearchResponseSchema: z.ZodObject<{
         sku?: string | undefined;
         shipping_info?: {
             countries: string[];
+            estimated_days?: number | undefined;
             free_shipping_threshold?: number | undefined;
             shipping_cost_rub?: number | undefined;
-            estimated_days?: number | undefined;
         } | undefined;
         seo_title?: string | undefined;
         seo_description?: string | undefined;
-        photos?: {
-            url: string;
-            filename: string;
-            size: number;
-            mime_type: string;
-        }[] | undefined;
         reviews?: {
             average_rating: number;
             total_count: number;
@@ -815,6 +821,12 @@ export declare const ProductSearchResponseSchema: z.ZodObject<{
         tags?: string[] | undefined;
         view_count?: number | undefined;
         favorite_count?: number | undefined;
+        photos?: {
+            url: string;
+            filename: string;
+            size: number;
+            mime_type: string;
+        }[] | undefined;
         weight_kg?: number | undefined;
         dimensions?: {
             length_cm: number;
@@ -827,20 +839,14 @@ export declare const ProductSearchResponseSchema: z.ZodObject<{
         sku?: string | undefined;
         specifications?: Record<string, any> | undefined;
         shipping_info?: {
+            estimated_days?: number | undefined;
             free_shipping_threshold?: number | undefined;
             shipping_cost_rub?: number | undefined;
-            estimated_days?: number | undefined;
             countries?: string[] | undefined;
         } | undefined;
         seo_title?: string | undefined;
         seo_description?: string | undefined;
         sales_count?: number | undefined;
-        photos?: {
-            url: string;
-            filename: string;
-            size: number;
-            mime_type: string;
-        }[] | undefined;
         reviews?: {
             average_rating: number;
             total_count: number;
@@ -862,33 +868,33 @@ export declare const ProductSearchResponseSchema: z.ZodObject<{
         country: z.ZodOptional<z.ZodString>;
         city: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
+        status?: "ACTIVE" | "OUT_OF_STOCK" | "DISABLED" | undefined;
+        city?: string | undefined;
+        country?: string | undefined;
         vendor_id?: string | undefined;
         category_id?: string | undefined;
-        min_price?: number | undefined;
-        max_price?: number | undefined;
-        status?: "ACTIVE" | "OUT_OF_STOCK" | "DISABLED" | undefined;
-        is_local_stock?: boolean | undefined;
-        is_dropship?: boolean | undefined;
         search?: string | undefined;
         tags?: string[] | undefined;
+        min_price?: number | undefined;
+        max_price?: number | undefined;
         min_rating?: number | undefined;
+        is_local_stock?: boolean | undefined;
+        is_dropship?: boolean | undefined;
         in_stock?: boolean | undefined;
-        country?: string | undefined;
-        city?: string | undefined;
     }, {
+        status?: "ACTIVE" | "OUT_OF_STOCK" | "DISABLED" | undefined;
+        city?: string | undefined;
+        country?: string | undefined;
         vendor_id?: string | undefined;
         category_id?: string | undefined;
-        min_price?: number | undefined;
-        max_price?: number | undefined;
-        status?: "ACTIVE" | "OUT_OF_STOCK" | "DISABLED" | undefined;
-        is_local_stock?: boolean | undefined;
-        is_dropship?: boolean | undefined;
         search?: string | undefined;
         tags?: string[] | undefined;
+        min_price?: number | undefined;
+        max_price?: number | undefined;
         min_rating?: number | undefined;
+        is_local_stock?: boolean | undefined;
+        is_dropship?: boolean | undefined;
         in_stock?: boolean | undefined;
-        country?: string | undefined;
-        city?: string | undefined;
     }>;
     aggregations: z.ZodOptional<z.ZodObject<{
         price_ranges: z.ZodArray<z.ZodObject<{
@@ -966,19 +972,19 @@ export declare const ProductSearchResponseSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     total: number;
     filters: {
+        status?: "ACTIVE" | "OUT_OF_STOCK" | "DISABLED" | undefined;
+        city?: string | undefined;
+        country?: string | undefined;
         vendor_id?: string | undefined;
         category_id?: string | undefined;
-        min_price?: number | undefined;
-        max_price?: number | undefined;
-        status?: "ACTIVE" | "OUT_OF_STOCK" | "DISABLED" | undefined;
-        is_local_stock?: boolean | undefined;
-        is_dropship?: boolean | undefined;
         search?: string | undefined;
         tags?: string[] | undefined;
+        min_price?: number | undefined;
+        max_price?: number | undefined;
         min_rating?: number | undefined;
+        is_local_stock?: boolean | undefined;
+        is_dropship?: boolean | undefined;
         in_stock?: boolean | undefined;
-        country?: string | undefined;
-        city?: string | undefined;
     };
     products: {
         id: string;
@@ -1013,6 +1019,12 @@ export declare const ProductSearchResponseSchema: z.ZodObject<{
         is_dropship: boolean;
         specifications: Record<string, any>;
         sales_count: number;
+        photos?: {
+            url: string;
+            filename: string;
+            size: number;
+            mime_type: string;
+        }[] | undefined;
         weight_kg?: number | undefined;
         dimensions?: {
             length_cm: number;
@@ -1022,18 +1034,12 @@ export declare const ProductSearchResponseSchema: z.ZodObject<{
         sku?: string | undefined;
         shipping_info?: {
             countries: string[];
+            estimated_days?: number | undefined;
             free_shipping_threshold?: number | undefined;
             shipping_cost_rub?: number | undefined;
-            estimated_days?: number | undefined;
         } | undefined;
         seo_title?: string | undefined;
         seo_description?: string | undefined;
-        photos?: {
-            url: string;
-            filename: string;
-            size: number;
-            mime_type: string;
-        }[] | undefined;
         reviews?: {
             average_rating: number;
             total_count: number;
@@ -1059,19 +1065,19 @@ export declare const ProductSearchResponseSchema: z.ZodObject<{
 }, {
     total: number;
     filters: {
+        status?: "ACTIVE" | "OUT_OF_STOCK" | "DISABLED" | undefined;
+        city?: string | undefined;
+        country?: string | undefined;
         vendor_id?: string | undefined;
         category_id?: string | undefined;
-        min_price?: number | undefined;
-        max_price?: number | undefined;
-        status?: "ACTIVE" | "OUT_OF_STOCK" | "DISABLED" | undefined;
-        is_local_stock?: boolean | undefined;
-        is_dropship?: boolean | undefined;
         search?: string | undefined;
         tags?: string[] | undefined;
+        min_price?: number | undefined;
+        max_price?: number | undefined;
         min_rating?: number | undefined;
+        is_local_stock?: boolean | undefined;
+        is_dropship?: boolean | undefined;
         in_stock?: boolean | undefined;
-        country?: string | undefined;
-        city?: string | undefined;
     };
     products: {
         id: string;
@@ -1101,6 +1107,12 @@ export declare const ProductSearchResponseSchema: z.ZodObject<{
         tags?: string[] | undefined;
         view_count?: number | undefined;
         favorite_count?: number | undefined;
+        photos?: {
+            url: string;
+            filename: string;
+            size: number;
+            mime_type: string;
+        }[] | undefined;
         weight_kg?: number | undefined;
         dimensions?: {
             length_cm: number;
@@ -1113,20 +1125,14 @@ export declare const ProductSearchResponseSchema: z.ZodObject<{
         sku?: string | undefined;
         specifications?: Record<string, any> | undefined;
         shipping_info?: {
+            estimated_days?: number | undefined;
             free_shipping_threshold?: number | undefined;
             shipping_cost_rub?: number | undefined;
-            estimated_days?: number | undefined;
             countries?: string[] | undefined;
         } | undefined;
         seo_title?: string | undefined;
         seo_description?: string | undefined;
         sales_count?: number | undefined;
-        photos?: {
-            url: string;
-            filename: string;
-            size: number;
-            mime_type: string;
-        }[] | undefined;
         reviews?: {
             average_rating: number;
             total_count: number;
@@ -1154,6 +1160,7 @@ export declare const ProductVariantSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     product_id: z.ZodString;
     name: z.ZodString;
     sku: z.ZodOptional<z.ZodString>;
@@ -1181,16 +1188,17 @@ export declare const ProductVariantSchema: z.ZodObject<{
     price_rub: number;
     name: string;
     product_id: string;
-    sku?: string | undefined;
-    stock_quantity?: number | undefined;
-    attributes?: Record<string, string> | undefined;
-    photo_urls?: string[] | undefined;
     is_active?: boolean | undefined;
+    photo_urls?: string[] | undefined;
+    stock_quantity?: number | undefined;
+    sku?: string | undefined;
+    attributes?: Record<string, string> | undefined;
 }>;
 export declare const CreateProductVariantSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     product_id: z.ZodString;
     name: z.ZodString;
     sku: z.ZodOptional<z.ZodString>;

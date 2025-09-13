@@ -3,6 +3,7 @@ export declare const OrderSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     buyer_id: z.ZodString;
     seller_id: z.ZodString;
     listing_id: z.ZodOptional<z.ZodString>;
@@ -35,16 +36,16 @@ export declare const OrderSchema: z.ZodObject<{
     buyer_id: string;
     seller_id: string;
     delivery_amount_rub: number;
+    notes?: string | undefined;
+    completed_at?: string | undefined;
+    cancelled_at?: string | undefined;
+    cancelled_reason?: string | undefined;
     listing_id?: string | undefined;
     vendor_product_id?: string | undefined;
+    exchange_rate?: number | undefined;
     service_booking_id?: string | undefined;
     delivery_id?: string | undefined;
     total_amount_original?: number | undefined;
-    exchange_rate?: number | undefined;
-    notes?: string | undefined;
-    cancelled_at?: string | undefined;
-    cancelled_reason?: string | undefined;
-    completed_at?: string | undefined;
 }, {
     id: string;
     created_at: string;
@@ -54,25 +55,26 @@ export declare const OrderSchema: z.ZodObject<{
     payment_id: string;
     buyer_id: string;
     seller_id: string;
-    listing_id?: string | undefined;
-    vendor_product_id?: string | undefined;
-    service_booking_id?: string | undefined;
-    escrow_status?: "HELD" | "RELEASED" | "REFUNDED" | undefined;
-    delivery_id?: string | undefined;
     status?: "PENDING" | "PAID" | "FULFILLING" | "DELIVERED" | "CANCELLED" | undefined;
-    delivery_amount_rub?: number | undefined;
-    currency?: "USD" | "EUR" | "GBP" | "RUB" | "JPY" | "CAD" | "AUD" | "CHF" | "CNY" | "KRW" | "SGD" | "HKD" | "NZD" | "SEK" | "NOK" | "DKK" | "PLN" | "CZK" | "HUF" | "TRY" | "BRL" | "MXN" | "INR" | "ZAR" | "THB" | "MYR" | "IDR" | "PHP" | "VND" | "UAH" | undefined;
-    total_amount_original?: number | undefined;
-    exchange_rate?: number | undefined;
+    escrow_status?: "HELD" | "RELEASED" | "REFUNDED" | undefined;
     notes?: string | undefined;
+    completed_at?: string | undefined;
     cancelled_at?: string | undefined;
     cancelled_reason?: string | undefined;
-    completed_at?: string | undefined;
+    listing_id?: string | undefined;
+    vendor_product_id?: string | undefined;
+    currency?: "USD" | "EUR" | "GBP" | "RUB" | "JPY" | "CAD" | "AUD" | "CHF" | "CNY" | "KRW" | "SGD" | "HKD" | "NZD" | "SEK" | "NOK" | "DKK" | "PLN" | "CZK" | "HUF" | "TRY" | "BRL" | "MXN" | "INR" | "ZAR" | "THB" | "MYR" | "IDR" | "PHP" | "VND" | "UAH" | undefined;
+    exchange_rate?: number | undefined;
+    service_booking_id?: string | undefined;
+    delivery_id?: string | undefined;
+    delivery_amount_rub?: number | undefined;
+    total_amount_original?: number | undefined;
 }>;
 export declare const CreateOrderSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     buyer_id: z.ZodString;
     seller_id: z.ZodString;
     listing_id: z.ZodOptional<z.ZodString>;
@@ -191,25 +193,27 @@ export declare const OrderWithRelationsSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
-    status: z.ZodDefault<z.ZodEnum<["PENDING", "PAID", "FULFILLING", "DELIVERED", "CANCELLED"]>>;
-    escrow_status: z.ZodDefault<z.ZodEnum<["HELD", "RELEASED", "REFUNDED"]>>;
-    total_amount_rub: z.ZodNumber;
-    escrow_amount_rub: z.ZodNumber;
-    payment_id: z.ZodString;
-    notes: z.ZodOptional<z.ZodString>;
-    completed_at: z.ZodOptional<z.ZodString>;
-    cancelled_at: z.ZodOptional<z.ZodString>;
-    cancelled_reason: z.ZodOptional<z.ZodString>;
-    listing_id: z.ZodOptional<z.ZodString>;
-    vendor_product_id: z.ZodOptional<z.ZodString>;
-    currency: z.ZodDefault<z.ZodEnum<["USD", "EUR", "GBP", "RUB", "JPY", "CAD", "AUD", "CHF", "CNY", "KRW", "SGD", "HKD", "NZD", "SEK", "NOK", "DKK", "PLN", "CZK", "HUF", "TRY", "BRL", "MXN", "INR", "ZAR", "THB", "MYR", "IDR", "PHP", "VND", "UAH"]>>;
-    exchange_rate: z.ZodOptional<z.ZodNumber>;
+} & {
     buyer_id: z.ZodString;
     seller_id: z.ZodString;
+    listing_id: z.ZodOptional<z.ZodString>;
+    vendor_product_id: z.ZodOptional<z.ZodString>;
     service_booking_id: z.ZodOptional<z.ZodString>;
+    escrow_status: z.ZodDefault<z.ZodEnum<["HELD", "RELEASED", "REFUNDED"]>>;
+    payment_id: z.ZodString;
     delivery_id: z.ZodOptional<z.ZodString>;
+    status: z.ZodDefault<z.ZodEnum<["PENDING", "PAID", "FULFILLING", "DELIVERED", "CANCELLED"]>>;
+    total_amount_rub: z.ZodNumber;
+    escrow_amount_rub: z.ZodNumber;
     delivery_amount_rub: z.ZodDefault<z.ZodNumber>;
+    currency: z.ZodDefault<z.ZodEnum<["USD", "EUR", "GBP", "RUB", "JPY", "CAD", "AUD", "CHF", "CNY", "KRW", "SGD", "HKD", "NZD", "SEK", "NOK", "DKK", "PLN", "CZK", "HUF", "TRY", "BRL", "MXN", "INR", "ZAR", "THB", "MYR", "IDR", "PHP", "VND", "UAH"]>>;
     total_amount_original: z.ZodOptional<z.ZodNumber>;
+    exchange_rate: z.ZodOptional<z.ZodNumber>;
+    notes: z.ZodOptional<z.ZodString>;
+    cancelled_at: z.ZodOptional<z.ZodString>;
+    cancelled_reason: z.ZodOptional<z.ZodString>;
+    completed_at: z.ZodOptional<z.ZodString>;
+} & {
     buyer: z.ZodObject<{
         id: z.ZodString;
         email: z.ZodString;
@@ -399,10 +403,6 @@ export declare const OrderWithRelationsSchema: z.ZodObject<{
     cancelled_reason?: string | undefined;
     listing_id?: string | undefined;
     vendor_product_id?: string | undefined;
-    exchange_rate?: number | undefined;
-    service_booking_id?: string | undefined;
-    delivery_id?: string | undefined;
-    total_amount_original?: number | undefined;
     listing?: {
         id: string;
         title: string;
@@ -419,6 +419,10 @@ export declare const OrderWithRelationsSchema: z.ZodObject<{
             name: string;
         };
     } | undefined;
+    exchange_rate?: number | undefined;
+    service_booking_id?: string | undefined;
+    delivery_id?: string | undefined;
+    total_amount_original?: number | undefined;
     service_booking?: {
         id: string;
         scheduled_at: string;
@@ -470,12 +474,6 @@ export declare const OrderWithRelationsSchema: z.ZodObject<{
     cancelled_reason?: string | undefined;
     listing_id?: string | undefined;
     vendor_product_id?: string | undefined;
-    currency?: "USD" | "EUR" | "GBP" | "RUB" | "JPY" | "CAD" | "AUD" | "CHF" | "CNY" | "KRW" | "SGD" | "HKD" | "NZD" | "SEK" | "NOK" | "DKK" | "PLN" | "CZK" | "HUF" | "TRY" | "BRL" | "MXN" | "INR" | "ZAR" | "THB" | "MYR" | "IDR" | "PHP" | "VND" | "UAH" | undefined;
-    exchange_rate?: number | undefined;
-    service_booking_id?: string | undefined;
-    delivery_id?: string | undefined;
-    delivery_amount_rub?: number | undefined;
-    total_amount_original?: number | undefined;
     listing?: {
         id: string;
         title: string;
@@ -492,6 +490,12 @@ export declare const OrderWithRelationsSchema: z.ZodObject<{
             name: string;
         };
     } | undefined;
+    currency?: "USD" | "EUR" | "GBP" | "RUB" | "JPY" | "CAD" | "AUD" | "CHF" | "CNY" | "KRW" | "SGD" | "HKD" | "NZD" | "SEK" | "NOK" | "DKK" | "PLN" | "CZK" | "HUF" | "TRY" | "BRL" | "MXN" | "INR" | "ZAR" | "THB" | "MYR" | "IDR" | "PHP" | "VND" | "UAH" | undefined;
+    exchange_rate?: number | undefined;
+    service_booking_id?: string | undefined;
+    delivery_id?: string | undefined;
+    delivery_amount_rub?: number | undefined;
+    total_amount_original?: number | undefined;
     service_booking?: {
         id: string;
         scheduled_at: string;
@@ -515,19 +519,19 @@ export declare const OrderFiltersSchema: z.ZodObject<{
     date_from: z.ZodOptional<z.ZodString>;
     date_to: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    buyer_id?: string | undefined;
-    seller_id?: string | undefined;
     status?: "PENDING" | "PAID" | "FULFILLING" | "DELIVERED" | "CANCELLED" | undefined;
     escrow_status?: "HELD" | "RELEASED" | "REFUNDED" | undefined;
     date_from?: string | undefined;
     date_to?: string | undefined;
+    buyer_id?: string | undefined;
+    seller_id?: string | undefined;
 }, {
-    buyer_id?: string | undefined;
-    seller_id?: string | undefined;
     status?: "PENDING" | "PAID" | "FULFILLING" | "DELIVERED" | "CANCELLED" | undefined;
     escrow_status?: "HELD" | "RELEASED" | "REFUNDED" | undefined;
     date_from?: string | undefined;
     date_to?: string | undefined;
+    buyer_id?: string | undefined;
+    seller_id?: string | undefined;
 }>;
 export type Order = z.infer<typeof OrderSchema>;
 export type CreateOrder = z.infer<typeof CreateOrderSchema>;

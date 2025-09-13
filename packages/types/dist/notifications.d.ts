@@ -39,8 +39,8 @@ export declare const NotificationSchema: z.ZodObject<{
     read_at: string | null;
     recipient_id: string;
     channel: "EMAIL" | "SMS" | "PUSH" | "IN_APP";
-    data?: Record<string, any> | undefined;
     status?: "PENDING" | "DELIVERED" | "SENT" | "FAILED" | "READ" | undefined;
+    data?: Record<string, any> | undefined;
 }>;
 export declare const NotificationPreferenceSchema: z.ZodObject<{
     profile_id: z.ZodString;
@@ -99,10 +99,10 @@ export declare const NotificationTemplateSchema: z.ZodObject<{
     content: string;
     channel: "EMAIL" | "SMS" | "PUSH" | "IN_APP";
     language_code: string;
-    subject?: string | undefined;
-    html_content?: string | undefined;
     variables?: string[] | undefined;
     is_active?: boolean | undefined;
+    subject?: string | undefined;
+    html_content?: string | undefined;
 }>;
 export declare const UserNotificationPreferenceSchema: z.ZodObject<{
     user_id: z.ZodString;

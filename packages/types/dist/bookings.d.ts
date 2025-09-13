@@ -3,6 +3,7 @@ export declare const ServiceBookingSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     service_id: z.ZodString;
     client_id: z.ZodString;
     scheduled_at: z.ZodString;
@@ -82,6 +83,7 @@ export declare const CreateServiceBookingSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     service_id: z.ZodString;
     client_id: z.ZodString;
     scheduled_at: z.ZodString;
@@ -212,11 +214,12 @@ export declare const ServiceBookingWithRelationsSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
-    status: z.ZodDefault<z.ZodEnum<["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"]>>;
+} & {
     service_id: z.ZodString;
     client_id: z.ZodString;
     scheduled_at: z.ZodString;
     duration_minutes: z.ZodNumber;
+    status: z.ZodDefault<z.ZodEnum<["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"]>>;
     escrow_status: z.ZodDefault<z.ZodEnum<["HELD", "RELEASED", "REFUNDED"]>>;
     total_amount_rub: z.ZodNumber;
     escrow_amount_rub: z.ZodNumber;
@@ -234,6 +237,7 @@ export declare const ServiceBookingWithRelationsSchema: z.ZodObject<{
     cancelled_reason: z.ZodOptional<z.ZodString>;
     rescheduled_at: z.ZodOptional<z.ZodString>;
     reschedule_reason: z.ZodOptional<z.ZodString>;
+} & {
     service: z.ZodObject<{
         id: z.ZodString;
         title: z.ZodString;
@@ -530,25 +534,25 @@ export declare const BookingFiltersSchema: z.ZodObject<{
     is_online: z.ZodOptional<z.ZodBoolean>;
     is_in_person: z.ZodOptional<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
-    client_id?: string | undefined;
-    service_id?: string | undefined;
-    provider_id?: string | undefined;
     status?: "PENDING" | "CANCELLED" | "COMPLETED" | "CONFIRMED" | undefined;
+    service_id?: string | undefined;
+    client_id?: string | undefined;
     escrow_status?: "HELD" | "RELEASED" | "REFUNDED" | undefined;
-    date_from?: string | undefined;
-    date_to?: string | undefined;
     is_online?: boolean | undefined;
     is_in_person?: boolean | undefined;
+    provider_id?: string | undefined;
+    date_from?: string | undefined;
+    date_to?: string | undefined;
 }, {
-    client_id?: string | undefined;
-    service_id?: string | undefined;
-    provider_id?: string | undefined;
     status?: "PENDING" | "CANCELLED" | "COMPLETED" | "CONFIRMED" | undefined;
+    service_id?: string | undefined;
+    client_id?: string | undefined;
     escrow_status?: "HELD" | "RELEASED" | "REFUNDED" | undefined;
-    date_from?: string | undefined;
-    date_to?: string | undefined;
     is_online?: boolean | undefined;
     is_in_person?: boolean | undefined;
+    provider_id?: string | undefined;
+    date_from?: string | undefined;
+    date_to?: string | undefined;
 }>;
 export declare const BookingStatsSchema: z.ZodObject<{
     total_bookings: z.ZodNumber;
@@ -588,6 +592,7 @@ export declare const BookingReminderSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     booking_id: z.ZodString;
     type: z.ZodEnum<["EMAIL", "SMS", "PUSH"]>;
     scheduled_for: z.ZodString;
@@ -614,14 +619,15 @@ export declare const BookingReminderSchema: z.ZodObject<{
     booking_id: string;
     scheduled_for: string;
     template: string;
-    sent_at?: string | undefined;
     status?: "PENDING" | "SENT" | "FAILED" | undefined;
+    sent_at?: string | undefined;
     variables?: Record<string, any> | undefined;
 }>;
 export declare const BookingReviewRequestSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     booking_id: z.ZodString;
     sent_at: z.ZodString;
     expires_at: z.ZodString;

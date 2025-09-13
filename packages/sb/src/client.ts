@@ -1,5 +1,4 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { Database } from './types';
+import { createClient } from '@supabase/supabase-js';
 
 // Environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'http://localhost:54321';
@@ -9,8 +8,8 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'your-servic
 // Re-export createClient for use in other modules
 export { createClient };
 
-// Create Supabase client for client-side usage
-export const supabase: SupabaseClient<Database> = createClient<Database>(
+// Create Supabase client for client-side usage (without strict typing for now)
+export const supabase = createClient(
   supabaseUrl,
   supabaseAnonKey,
   {
@@ -23,7 +22,7 @@ export const supabase: SupabaseClient<Database> = createClient<Database>(
 );
 
 // Create Supabase client for server-side usage (with service role key)
-export const supabaseAdmin: SupabaseClient<Database> = createClient<Database>(
+export const supabaseAdmin = createClient(
   supabaseUrl,
   supabaseServiceKey,
   {

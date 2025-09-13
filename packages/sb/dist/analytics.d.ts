@@ -104,8 +104,8 @@ export declare class AnalyticsService {
      */
     static getRealTimeMetrics(): Promise<any | null>;
 }
-export declare const trackUserAction: (action: string, category: string, label?: string, value?: number) => Promise<string | null>;
-export declare const trackPageView: (path: string, title?: string, category?: string) => Promise<string | null>;
-export declare const trackConversion: (type: ConversionEvent['conversion_type'], value?: number, currency?: string, itemId?: string, itemType?: string) => Promise<string | null>;
-export declare const trackError: (error: Error, context?: string) => Promise<string | null>;
+export declare const trackUserAction: (action: string, category: string, label?: string, value?: number) => Promise<string>;
+export declare const trackPageView: (path: string, title?: string, category?: string) => Promise<string>;
+export declare const trackConversion: (type: ConversionEvent["conversion_type"], value?: number, currency?: string, itemId?: string, itemType?: string) => Promise<string>;
+export declare const trackError: (error: Error, context?: string) => Promise<string>;
 //# sourceMappingURL=analytics.d.ts.map

@@ -3,7 +3,7 @@ export declare const realtime: {
     subscribeToTable<T extends {
         [key: string]: any;
     } = any>(table: string, callback: (payload: RealtimePostgresChangesPayload<T>) => void, options?: {
-        event?: 'INSERT' | 'UPDATE' | 'DELETE' | '*';
+        event?: "INSERT" | "UPDATE" | "DELETE" | "*";
         schema?: string;
         filter?: string;
     }): RealtimeChannel;

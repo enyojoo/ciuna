@@ -1,21 +1,31 @@
 import type { AuthUser, Profile, CreateProfile, UpdateProfile } from '@ciuna/types';
 export declare const auth: {
     getCurrentUser(): Promise<AuthUser | null>;
-    getCurrentSession(): Promise<import("@supabase/supabase-js").AuthSession | null>;
+    getCurrentSession(): Promise<import("@supabase/supabase-js").AuthSession>;
     signUp(email: string, password: string, metadata?: any): Promise<{
         user: import("@supabase/supabase-js").AuthUser | null;
         session: import("@supabase/supabase-js").AuthSession | null;
+    } | {
+        user: null;
+        session: null;
     }>;
     signIn(email: string, password: string): Promise<{
         user: import("@supabase/supabase-js").AuthUser;
         session: import("@supabase/supabase-js").AuthSession;
-        weakPassword?: import("@supabase/supabase-js").WeakPassword | undefined;
+        weakPassword?: import("@supabase/supabase-js").WeakPassword;
+    } | {
+        user: null;
+        session: null;
+        weakPassword?: null;
     }>;
-    signInWithOAuth(provider: 'google' | 'github' | 'discord' | 'apple', options?: {
+    signInWithOAuth(provider: "google" | "github" | "discord" | "apple", options?: {
         redirectTo?: string;
     }): Promise<{
         provider: import("@supabase/supabase-js").Provider;
         url: string;
+    } | {
+        provider: import("@supabase/supabase-js").Provider;
+        url: null;
     }>;
     signOut(): Promise<void>;
     resetPassword(email: string, options?: {
@@ -23,12 +33,16 @@ export declare const auth: {
     }): Promise<{}>;
     updatePassword(password: string): Promise<{
         user: import("@supabase/supabase-js").AuthUser;
+    } | {
+        user: null;
     }>;
     updateUser(updates: {
         email?: string;
         data?: any;
     }): Promise<{
         user: import("@supabase/supabase-js").AuthUser;
+    } | {
+        user: null;
     }>;
     onAuthStateChange(callback: (event: string, session: any) => void): {
         data: {
@@ -60,9 +74,9 @@ export declare const profiles: {
         preferences: Record<string, any>;
         district?: string | undefined;
         phone?: string | undefined;
+        bio?: string | undefined;
         documents?: Record<string, any> | undefined;
         avatar_url?: string | undefined;
-        bio?: string | undefined;
     }[]>;
 };
 //# sourceMappingURL=auth.d.ts.map

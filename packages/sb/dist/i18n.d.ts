@@ -53,7 +53,7 @@ export declare class I18nService {
     /**
      * Get localized content for a specific item
      */
-    static getLocalizedContent(contentType: string, contentId: string, languageCode: string | undefined, fieldName: string): Promise<string | null>;
+    static getLocalizedContent(contentType: string, contentId: string, languageCode: string, fieldName: string): Promise<string | null>;
     /**
      * Set localized content for a specific item
      */
@@ -94,6 +94,6 @@ export declare class I18nService {
 export declare const t: (key: string, languageCode?: string, namespace?: string) => Promise<string>;
 export declare const formatPrice: (amount: number, currencyCode?: string, languageCode?: string) => string;
 export declare const formatDate: (date: Date | string, languageCode?: string, timezone?: string) => string;
-export declare const formatTime: (date: Date | string, languageCode?: string, timezone?: string, format?: '12h' | '24h') => string;
+export declare const formatTime: (date: Date | string, languageCode?: string, timezone?: string, format?: "12h" | "24h") => string;
 export declare const formatRelativeTime: (date: Date | string, languageCode?: string, timezone?: string) => string;
 //# sourceMappingURL=i18n.d.ts.map

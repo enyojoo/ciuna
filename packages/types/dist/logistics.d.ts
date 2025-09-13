@@ -3,6 +3,7 @@ export declare const DeliverySchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     order_id: z.ZodString;
     pickup_address_id: z.ZodString;
     dropoff_address_id: z.ZodString;
@@ -44,20 +45,21 @@ export declare const DeliverySchema: z.ZodObject<{
     dropoff_address_id: string;
     timeslot_start: string;
     timeslot_end: string;
-    cod?: boolean | undefined;
     status?: "DELIVERED" | "CREATED" | "PICKED_UP" | "IN_TRANSIT" | "OUT_FOR_DELIVERY" | "RETURNED" | undefined;
+    photo_urls?: string[] | undefined;
     tracking_code?: string | undefined;
+    cod?: boolean | undefined;
     courier_id?: string | undefined;
     courier_notes?: string | undefined;
     delivery_notes?: string | undefined;
     actual_delivery_time?: string | undefined;
     signature_url?: string | undefined;
-    photo_urls?: string[] | undefined;
 }>;
 export declare const CreateDeliverySchema: z.ZodObject<Omit<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     order_id: z.ZodString;
     pickup_address_id: z.ZodString;
     dropoff_address_id: z.ZodString;
@@ -148,20 +150,22 @@ export declare const DeliveryWithRelationsSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
-    status: z.ZodDefault<z.ZodEnum<["CREATED", "PICKED_UP", "IN_TRANSIT", "OUT_FOR_DELIVERY", "DELIVERED", "RETURNED"]>>;
-    photo_urls: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+} & {
     order_id: z.ZodString;
-    tracking_code: z.ZodOptional<z.ZodString>;
     pickup_address_id: z.ZodString;
     dropoff_address_id: z.ZodString;
     timeslot_start: z.ZodString;
     timeslot_end: z.ZodString;
     cod: z.ZodDefault<z.ZodBoolean>;
+    status: z.ZodDefault<z.ZodEnum<["CREATED", "PICKED_UP", "IN_TRANSIT", "OUT_FOR_DELIVERY", "DELIVERED", "RETURNED"]>>;
+    tracking_code: z.ZodOptional<z.ZodString>;
     courier_id: z.ZodOptional<z.ZodString>;
     courier_notes: z.ZodOptional<z.ZodString>;
     delivery_notes: z.ZodOptional<z.ZodString>;
     actual_delivery_time: z.ZodOptional<z.ZodString>;
     signature_url: z.ZodOptional<z.ZodString>;
+    photo_urls: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+} & {
     order: z.ZodObject<{
         id: z.ZodString;
         buyer_id: z.ZodString;
@@ -320,6 +324,7 @@ export declare const IntlShipmentQuoteSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     from_country: z.ZodString;
     to_country: z.ZodDefault<z.ZodString>;
     volumetric_weight_kg: z.ZodNumber;
@@ -462,19 +467,19 @@ export declare const DeliveryFiltersSchema: z.ZodObject<{
     date_from: z.ZodOptional<z.ZodString>;
     date_to: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    order_id?: string | undefined;
-    courier_id?: string | undefined;
     status?: "DELIVERED" | "CREATED" | "PICKED_UP" | "IN_TRANSIT" | "OUT_FOR_DELIVERY" | "RETURNED" | undefined;
     city?: string | undefined;
     date_from?: string | undefined;
     date_to?: string | undefined;
+    order_id?: string | undefined;
+    courier_id?: string | undefined;
 }, {
-    order_id?: string | undefined;
-    courier_id?: string | undefined;
     status?: "DELIVERED" | "CREATED" | "PICKED_UP" | "IN_TRANSIT" | "OUT_FOR_DELIVERY" | "RETURNED" | undefined;
     city?: string | undefined;
     date_from?: string | undefined;
     date_to?: string | undefined;
+    order_id?: string | undefined;
+    courier_id?: string | undefined;
 }>;
 export type Delivery = z.infer<typeof DeliverySchema>;
 export type CreateDelivery = z.infer<typeof CreateDeliverySchema>;

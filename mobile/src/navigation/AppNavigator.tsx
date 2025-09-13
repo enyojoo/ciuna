@@ -15,13 +15,13 @@ import InboxScreen from '../screens/InboxScreen';
 import OrdersScreen from '../screens/OrdersScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import DashboardScreen from '../screens/DashboardScreen';
-import { VendorDashboardScreen } from '../screens/VendorDashboardScreen';
-import { ProviderDashboardScreen } from '../screens/ProviderDashboardScreen';
-import { ListingDetailScreen } from '../screens/ListingDetailScreen';
-import { ServiceDetailScreen } from '../screens/ServiceDetailScreen';
-import { VendorDetailScreen } from '../screens/VendorDetailScreen';
-import { BookingScreen } from '../screens/BookingScreen';
-import { ChatScreen } from '../screens/ChatScreen';
+import VendorDashboardScreen from '../screens/VendorDashboardScreen';
+import ProviderDashboardScreen from '../screens/ProviderDashboardScreen';
+import ListingDetailScreen from '../screens/ListingDetailScreen';
+import ServiceDetailScreen from '../screens/ServiceDetailScreen';
+import VendorDetailScreen from '../screens/VendorDetailScreen';
+import BookingScreen from '../screens/BookingScreen';
+import ChatScreen from '../screens/ChatScreen';
 import { 
   Home, 
   Search, 
@@ -110,7 +110,7 @@ function VendorTabs() {
       })}
     >
       <Tab.Screen name="Dashboard" component={VendorDashboardScreen} />
-      <Tab.Screen name="Products" component={VendorDashboardScreen} />
+      <Tab.Screen name="Products" component={VendorsScreen} />
       <Tab.Screen name="Orders" component={OrdersScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>

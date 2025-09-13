@@ -49,7 +49,7 @@ export const storage = {
         const { data, error } = await supabase.storage
             .createBucket(bucketName, {
             public: options?.public || false,
-            fileSizeLimit: options?.fileSizeLimit || 52428800,
+            fileSizeLimit: options?.fileSizeLimit || 52428800, // 50MB
             allowedMimeTypes: options?.allowedMimeTypes || null,
         });
         return { data, error };

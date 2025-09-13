@@ -118,7 +118,7 @@ export declare class SecurityService {
     /**
      * Log security event
      */
-    static logSecurityEvent(userId: string | null, eventType: string, severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | undefined, description: string, ipAddress?: string, userAgent?: string, locationData?: Record<string, any>, metadata?: Record<string, any>): Promise<string | null>;
+    static logSecurityEvent(userId: string | null, eventType: string, severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL', description: string, ipAddress?: string, userAgent?: string, locationData?: Record<string, any>, metadata?: Record<string, any>): Promise<string | null>;
     /**
      * Check rate limit
      */

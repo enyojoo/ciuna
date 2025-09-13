@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ciun
 import { Button } from '@ciuna/ui';
 import { Badge } from '@ciuna/ui';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@ciuna/ui';
-import { SecurityService, KYCVerification } from '@ciuna/sb';
+import { SecurityService, type KYCVerification } from '@ciuna/sb';
 import { useAuth } from '@/lib/auth-context';
 import { 
   Shield, 

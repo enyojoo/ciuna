@@ -30,7 +30,7 @@ export class NotificationService {
             const notificationId = await this.createNotification({
                 userId: recipientId,
                 type,
-                channel: enabledChannels[0],
+                channel: enabledChannels[0], // Primary channel
                 title,
                 content: message,
                 data

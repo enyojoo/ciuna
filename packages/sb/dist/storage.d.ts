@@ -25,7 +25,7 @@ export declare const storage: {
         offset?: number;
         sortBy?: {
             column: string;
-            order: 'asc' | 'desc';
+            order: "asc" | "desc";
         };
     }): Promise<{
         data: any[] | null;

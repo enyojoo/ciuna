@@ -3,6 +3,7 @@ export declare const ListingSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     seller_id: z.ZodString;
     title: z.ZodString;
     description: z.ZodString;
@@ -39,10 +40,10 @@ export declare const ListingSchema: z.ZodObject<{
     tags: string[];
     view_count: number;
     favorite_count: number;
-    price_original?: number | undefined;
-    exchange_rate?: number | undefined;
     district?: string | undefined;
     expires_at?: string | undefined;
+    exchange_rate?: number | undefined;
+    price_original?: number | undefined;
 }, {
     id: string;
     created_at: string;
@@ -54,22 +55,23 @@ export declare const ListingSchema: z.ZodObject<{
     category_id: string;
     seller_id: string;
     condition: "NEW" | "LIKE_NEW" | "GOOD" | "FAIR";
-    currency?: "USD" | "EUR" | "GBP" | "RUB" | "JPY" | "CAD" | "AUD" | "CHF" | "CNY" | "KRW" | "SGD" | "HKD" | "NZD" | "SEK" | "NOK" | "DKK" | "PLN" | "CZK" | "HUF" | "TRY" | "BRL" | "MXN" | "INR" | "ZAR" | "THB" | "MYR" | "IDR" | "PHP" | "VND" | "UAH" | undefined;
-    price_original?: number | undefined;
-    exchange_rate?: number | undefined;
-    district?: string | undefined;
-    photo_urls?: string[] | undefined;
     status?: "ACTIVE" | "PAUSED" | "SOLD" | "PENDING_REVIEW" | undefined;
+    district?: string | undefined;
+    expires_at?: string | undefined;
+    photo_urls?: string[] | undefined;
+    currency?: "USD" | "EUR" | "GBP" | "RUB" | "JPY" | "CAD" | "AUD" | "CHF" | "CNY" | "KRW" | "SGD" | "HKD" | "NZD" | "SEK" | "NOK" | "DKK" | "PLN" | "CZK" | "HUF" | "TRY" | "BRL" | "MXN" | "INR" | "ZAR" | "THB" | "MYR" | "IDR" | "PHP" | "VND" | "UAH" | undefined;
+    exchange_rate?: number | undefined;
+    price_original?: number | undefined;
     is_negotiable?: boolean | undefined;
     tags?: string[] | undefined;
     view_count?: number | undefined;
     favorite_count?: number | undefined;
-    expires_at?: string | undefined;
 }>;
 export declare const CreateListingSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     seller_id: z.ZodString;
     title: z.ZodString;
     description: z.ZodString;
@@ -182,24 +184,26 @@ export declare const ListingWithRelationsSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
-    status: z.ZodDefault<z.ZodEnum<["ACTIVE", "PAUSED", "SOLD", "PENDING_REVIEW"]>>;
-    city: z.ZodString;
-    district: z.ZodOptional<z.ZodString>;
+} & {
+    seller_id: z.ZodString;
     title: z.ZodString;
     description: z.ZodString;
-    price_rub: z.ZodNumber;
-    expires_at: z.ZodOptional<z.ZodString>;
-    photo_urls: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
-    currency: z.ZodDefault<z.ZodEnum<["USD", "EUR", "GBP", "RUB", "JPY", "CAD", "AUD", "CHF", "CNY", "KRW", "SGD", "HKD", "NZD", "SEK", "NOK", "DKK", "PLN", "CZK", "HUF", "TRY", "BRL", "MXN", "INR", "ZAR", "THB", "MYR", "IDR", "PHP", "VND", "UAH"]>>;
-    exchange_rate: z.ZodOptional<z.ZodNumber>;
     category_id: z.ZodString;
-    seller_id: z.ZodString;
+    price_rub: z.ZodNumber;
+    currency: z.ZodDefault<z.ZodEnum<["USD", "EUR", "GBP", "RUB", "JPY", "CAD", "AUD", "CHF", "CNY", "KRW", "SGD", "HKD", "NZD", "SEK", "NOK", "DKK", "PLN", "CZK", "HUF", "TRY", "BRL", "MXN", "INR", "ZAR", "THB", "MYR", "IDR", "PHP", "VND", "UAH"]>>;
     price_original: z.ZodOptional<z.ZodNumber>;
+    exchange_rate: z.ZodOptional<z.ZodNumber>;
     condition: z.ZodEnum<["NEW", "LIKE_NEW", "GOOD", "FAIR"]>;
+    city: z.ZodString;
+    district: z.ZodOptional<z.ZodString>;
+    photo_urls: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+    status: z.ZodDefault<z.ZodEnum<["ACTIVE", "PAUSED", "SOLD", "PENDING_REVIEW"]>>;
     is_negotiable: z.ZodDefault<z.ZodBoolean>;
     tags: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
     view_count: z.ZodDefault<z.ZodNumber>;
     favorite_count: z.ZodDefault<z.ZodNumber>;
+    expires_at: z.ZodOptional<z.ZodString>;
+} & {
     seller: z.ZodObject<{
         id: z.ZodString;
         email: z.ZodString;
@@ -341,51 +345,53 @@ export declare const ListingFiltersSchema: z.ZodObject<{
     tags: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
     seller_id: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    category_id?: string | undefined;
+    status?: "ACTIVE" | "PAUSED" | "SOLD" | "PENDING_REVIEW" | undefined;
     city?: string | undefined;
     district?: string | undefined;
+    category_id?: string | undefined;
+    search?: string | undefined;
+    seller_id?: string | undefined;
+    condition?: "NEW" | "LIKE_NEW" | "GOOD" | "FAIR" | undefined;
+    tags?: string[] | undefined;
     min_price?: number | undefined;
     max_price?: number | undefined;
-    condition?: "NEW" | "LIKE_NEW" | "GOOD" | "FAIR" | undefined;
-    status?: "ACTIVE" | "PAUSED" | "SOLD" | "PENDING_REVIEW" | undefined;
-    search?: string | undefined;
-    tags?: string[] | undefined;
-    seller_id?: string | undefined;
 }, {
-    category_id?: string | undefined;
+    status?: "ACTIVE" | "PAUSED" | "SOLD" | "PENDING_REVIEW" | undefined;
     city?: string | undefined;
     district?: string | undefined;
+    category_id?: string | undefined;
+    search?: string | undefined;
+    seller_id?: string | undefined;
+    condition?: "NEW" | "LIKE_NEW" | "GOOD" | "FAIR" | undefined;
+    tags?: string[] | undefined;
     min_price?: number | undefined;
     max_price?: number | undefined;
-    condition?: "NEW" | "LIKE_NEW" | "GOOD" | "FAIR" | undefined;
-    status?: "ACTIVE" | "PAUSED" | "SOLD" | "PENDING_REVIEW" | undefined;
-    search?: string | undefined;
-    tags?: string[] | undefined;
-    seller_id?: string | undefined;
 }>;
 export declare const ListingSearchResponseSchema: z.ZodObject<{
     listings: z.ZodArray<z.ZodObject<{
         id: z.ZodString;
         created_at: z.ZodString;
         updated_at: z.ZodString;
-        status: z.ZodDefault<z.ZodEnum<["ACTIVE", "PAUSED", "SOLD", "PENDING_REVIEW"]>>;
-        city: z.ZodString;
-        district: z.ZodOptional<z.ZodString>;
+    } & {
+        seller_id: z.ZodString;
         title: z.ZodString;
         description: z.ZodString;
-        price_rub: z.ZodNumber;
-        expires_at: z.ZodOptional<z.ZodString>;
-        photo_urls: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
-        currency: z.ZodDefault<z.ZodEnum<["USD", "EUR", "GBP", "RUB", "JPY", "CAD", "AUD", "CHF", "CNY", "KRW", "SGD", "HKD", "NZD", "SEK", "NOK", "DKK", "PLN", "CZK", "HUF", "TRY", "BRL", "MXN", "INR", "ZAR", "THB", "MYR", "IDR", "PHP", "VND", "UAH"]>>;
-        exchange_rate: z.ZodOptional<z.ZodNumber>;
         category_id: z.ZodString;
-        seller_id: z.ZodString;
+        price_rub: z.ZodNumber;
+        currency: z.ZodDefault<z.ZodEnum<["USD", "EUR", "GBP", "RUB", "JPY", "CAD", "AUD", "CHF", "CNY", "KRW", "SGD", "HKD", "NZD", "SEK", "NOK", "DKK", "PLN", "CZK", "HUF", "TRY", "BRL", "MXN", "INR", "ZAR", "THB", "MYR", "IDR", "PHP", "VND", "UAH"]>>;
         price_original: z.ZodOptional<z.ZodNumber>;
+        exchange_rate: z.ZodOptional<z.ZodNumber>;
         condition: z.ZodEnum<["NEW", "LIKE_NEW", "GOOD", "FAIR"]>;
+        city: z.ZodString;
+        district: z.ZodOptional<z.ZodString>;
+        photo_urls: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+        status: z.ZodDefault<z.ZodEnum<["ACTIVE", "PAUSED", "SOLD", "PENDING_REVIEW"]>>;
         is_negotiable: z.ZodDefault<z.ZodBoolean>;
         tags: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
         view_count: z.ZodDefault<z.ZodNumber>;
         favorite_count: z.ZodDefault<z.ZodNumber>;
+        expires_at: z.ZodOptional<z.ZodString>;
+    } & {
         seller: z.ZodObject<{
             id: z.ZodString;
             email: z.ZodString;
@@ -528,27 +534,27 @@ export declare const ListingSearchResponseSchema: z.ZodObject<{
         tags: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
         seller_id: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
-        category_id?: string | undefined;
+        status?: "ACTIVE" | "PAUSED" | "SOLD" | "PENDING_REVIEW" | undefined;
         city?: string | undefined;
         district?: string | undefined;
+        category_id?: string | undefined;
+        search?: string | undefined;
+        seller_id?: string | undefined;
+        condition?: "NEW" | "LIKE_NEW" | "GOOD" | "FAIR" | undefined;
+        tags?: string[] | undefined;
         min_price?: number | undefined;
         max_price?: number | undefined;
-        condition?: "NEW" | "LIKE_NEW" | "GOOD" | "FAIR" | undefined;
-        status?: "ACTIVE" | "PAUSED" | "SOLD" | "PENDING_REVIEW" | undefined;
-        search?: string | undefined;
-        tags?: string[] | undefined;
-        seller_id?: string | undefined;
     }, {
-        category_id?: string | undefined;
+        status?: "ACTIVE" | "PAUSED" | "SOLD" | "PENDING_REVIEW" | undefined;
         city?: string | undefined;
         district?: string | undefined;
+        category_id?: string | undefined;
+        search?: string | undefined;
+        seller_id?: string | undefined;
+        condition?: "NEW" | "LIKE_NEW" | "GOOD" | "FAIR" | undefined;
+        tags?: string[] | undefined;
         min_price?: number | undefined;
         max_price?: number | undefined;
-        condition?: "NEW" | "LIKE_NEW" | "GOOD" | "FAIR" | undefined;
-        status?: "ACTIVE" | "PAUSED" | "SOLD" | "PENDING_REVIEW" | undefined;
-        search?: string | undefined;
-        tags?: string[] | undefined;
-        seller_id?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     total: number;
@@ -594,16 +600,16 @@ export declare const ListingSearchResponseSchema: z.ZodObject<{
         }[] | undefined;
     }[];
     filters: {
-        category_id?: string | undefined;
+        status?: "ACTIVE" | "PAUSED" | "SOLD" | "PENDING_REVIEW" | undefined;
         city?: string | undefined;
         district?: string | undefined;
+        category_id?: string | undefined;
+        search?: string | undefined;
+        seller_id?: string | undefined;
+        condition?: "NEW" | "LIKE_NEW" | "GOOD" | "FAIR" | undefined;
+        tags?: string[] | undefined;
         min_price?: number | undefined;
         max_price?: number | undefined;
-        condition?: "NEW" | "LIKE_NEW" | "GOOD" | "FAIR" | undefined;
-        status?: "ACTIVE" | "PAUSED" | "SOLD" | "PENDING_REVIEW" | undefined;
-        search?: string | undefined;
-        tags?: string[] | undefined;
-        seller_id?: string | undefined;
     };
 }, {
     total: number;
@@ -649,16 +655,16 @@ export declare const ListingSearchResponseSchema: z.ZodObject<{
         }[] | undefined;
     }[];
     filters: {
-        category_id?: string | undefined;
+        status?: "ACTIVE" | "PAUSED" | "SOLD" | "PENDING_REVIEW" | undefined;
         city?: string | undefined;
         district?: string | undefined;
+        category_id?: string | undefined;
+        search?: string | undefined;
+        seller_id?: string | undefined;
+        condition?: "NEW" | "LIKE_NEW" | "GOOD" | "FAIR" | undefined;
+        tags?: string[] | undefined;
         min_price?: number | undefined;
         max_price?: number | undefined;
-        condition?: "NEW" | "LIKE_NEW" | "GOOD" | "FAIR" | undefined;
-        status?: "ACTIVE" | "PAUSED" | "SOLD" | "PENDING_REVIEW" | undefined;
-        search?: string | undefined;
-        tags?: string[] | undefined;
-        seller_id?: string | undefined;
     };
 }>;
 export type Listing = z.infer<typeof ListingSchema>;

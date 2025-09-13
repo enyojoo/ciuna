@@ -3,6 +3,7 @@ export declare const VendorSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     owner_id: z.ZodString;
     name: z.ZodString;
     description: z.ZodString;
@@ -41,8 +42,8 @@ export declare const VendorSchema: z.ZodObject<{
     social_links: Record<string, string>;
     total_sales: number;
     commission_rate: number;
-    logo_url?: string | undefined;
     district?: string | undefined;
+    logo_url?: string | undefined;
     business_license?: string | undefined;
     tax_id?: string | undefined;
     bank_details?: Record<string, any> | undefined;
@@ -59,10 +60,12 @@ export declare const VendorSchema: z.ZodObject<{
     description: string;
     name: string;
     owner_id: string;
-    logo_url?: string | undefined;
+    status?: "ACTIVE" | "SUSPENDED" | undefined;
     district?: string | undefined;
     verified?: boolean | undefined;
-    status?: "ACTIVE" | "SUSPENDED" | undefined;
+    rating?: number | undefined;
+    review_count?: number | undefined;
+    logo_url?: string | undefined;
     business_license?: string | undefined;
     tax_id?: string | undefined;
     bank_details?: Record<string, any> | undefined;
@@ -70,8 +73,6 @@ export declare const VendorSchema: z.ZodObject<{
     contact_phone?: string | undefined;
     website?: string | undefined;
     social_links?: Record<string, string> | undefined;
-    rating?: number | undefined;
-    review_count?: number | undefined;
     total_sales?: number | undefined;
     commission_rate?: number | undefined;
 }>;
@@ -79,6 +80,7 @@ export declare const CreateVendorSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     owner_id: z.ZodString;
     name: z.ZodString;
     description: z.ZodString;
@@ -205,18 +207,17 @@ export declare const VendorWithOwnerSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
-    type: z.ZodEnum<["LOCAL", "INTERNATIONAL"]>;
-    status: z.ZodDefault<z.ZodEnum<["ACTIVE", "SUSPENDED"]>>;
+} & {
+    owner_id: z.ZodString;
+    name: z.ZodString;
+    description: z.ZodString;
+    logo_url: z.ZodOptional<z.ZodString>;
+    country: z.ZodString;
     city: z.ZodString;
     district: z.ZodOptional<z.ZodString>;
-    country: z.ZodString;
-    description: z.ZodString;
-    name: z.ZodString;
     verified: z.ZodDefault<z.ZodBoolean>;
-    rating: z.ZodDefault<z.ZodNumber>;
-    review_count: z.ZodDefault<z.ZodNumber>;
-    owner_id: z.ZodString;
-    logo_url: z.ZodOptional<z.ZodString>;
+    type: z.ZodEnum<["LOCAL", "INTERNATIONAL"]>;
+    status: z.ZodDefault<z.ZodEnum<["ACTIVE", "SUSPENDED"]>>;
     business_license: z.ZodOptional<z.ZodString>;
     tax_id: z.ZodOptional<z.ZodString>;
     bank_details: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>;
@@ -224,8 +225,11 @@ export declare const VendorWithOwnerSchema: z.ZodObject<{
     contact_phone: z.ZodOptional<z.ZodString>;
     website: z.ZodOptional<z.ZodString>;
     social_links: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodString>>;
+    rating: z.ZodDefault<z.ZodNumber>;
+    review_count: z.ZodDefault<z.ZodNumber>;
     total_sales: z.ZodDefault<z.ZodNumber>;
     commission_rate: z.ZodDefault<z.ZodNumber>;
+} & {
     owner: z.ZodObject<{
         id: z.ZodString;
         email: z.ZodString;
@@ -314,6 +318,7 @@ export declare const VendorVerificationSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     vendor_id: z.ZodString;
     status: z.ZodDefault<z.ZodEnum<["PENDING", "APPROVED", "REJECTED"]>>;
     documents: z.ZodArray<z.ZodObject<{
@@ -400,19 +405,19 @@ export declare const VendorFiltersSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     type?: "LOCAL" | "INTERNATIONAL" | undefined;
     status?: "ACTIVE" | "SUSPENDED" | undefined;
-    country?: string | undefined;
     city?: string | undefined;
+    country?: string | undefined;
     verified?: boolean | undefined;
-    min_rating?: number | undefined;
     search?: string | undefined;
+    min_rating?: number | undefined;
 }, {
     type?: "LOCAL" | "INTERNATIONAL" | undefined;
     status?: "ACTIVE" | "SUSPENDED" | undefined;
-    country?: string | undefined;
     city?: string | undefined;
+    country?: string | undefined;
     verified?: boolean | undefined;
-    min_rating?: number | undefined;
     search?: string | undefined;
+    min_rating?: number | undefined;
 }>;
 export type Vendor = z.infer<typeof VendorSchema>;
 export type CreateVendor = z.infer<typeof CreateVendorSchema>;

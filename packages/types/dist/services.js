@@ -51,7 +51,7 @@ export const ServiceSchema = BaseRecordSchema.extend({
     category: ServiceCategorySchema,
     price_rub: RubleAmountSchema,
     duration_minutes: z.number().int().positive(),
-    available_slots: z.record(z.any()).default({}),
+    available_slots: z.record(z.any()).default({}), // Calendar availability
     is_online: z.boolean().default(false),
     is_in_person: z.boolean().default(true),
     location: z.string().optional(),

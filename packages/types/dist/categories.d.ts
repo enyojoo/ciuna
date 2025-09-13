@@ -3,6 +3,7 @@ export declare const CategorySchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     name: z.ZodString;
     slug: z.ZodString;
     parent_id: z.ZodNullable<z.ZodString>;
@@ -37,6 +38,7 @@ export declare const CreateCategorySchema: z.ZodObject<Omit<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     name: z.ZodString;
     slug: z.ZodString;
     parent_id: z.ZodNullable<z.ZodString>;
@@ -93,13 +95,15 @@ export declare const CategoryWithChildrenSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
-    description: z.ZodOptional<z.ZodString>;
+} & {
     name: z.ZodString;
     slug: z.ZodString;
     parent_id: z.ZodNullable<z.ZodString>;
+    description: z.ZodOptional<z.ZodString>;
     icon: z.ZodOptional<z.ZodString>;
     sort_order: z.ZodDefault<z.ZodNumber>;
     is_active: z.ZodDefault<z.ZodBoolean>;
+} & {
     children: z.ZodOptional<z.ZodArray<z.ZodAny, "many">>;
 }, "strip", z.ZodTypeAny, {
     id: string;
@@ -130,13 +134,15 @@ export declare const CategoryTreeSchema: z.ZodArray<z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
-    description: z.ZodOptional<z.ZodString>;
+} & {
     name: z.ZodString;
     slug: z.ZodString;
     parent_id: z.ZodNullable<z.ZodString>;
+    description: z.ZodOptional<z.ZodString>;
     icon: z.ZodOptional<z.ZodString>;
     sort_order: z.ZodDefault<z.ZodNumber>;
     is_active: z.ZodDefault<z.ZodBoolean>;
+} & {
     children: z.ZodOptional<z.ZodArray<z.ZodAny, "many">>;
 }, "strip", z.ZodTypeAny, {
     id: string;

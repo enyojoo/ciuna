@@ -3,6 +3,7 @@ export declare const ProfileSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     email: z.ZodString;
     role: z.ZodEnum<["USER", "VENDOR", "COURIER", "ADMIN"]>;
     country_of_origin: z.ZodString;
@@ -30,9 +31,9 @@ export declare const ProfileSchema: z.ZodObject<{
     preferences: Record<string, any>;
     district?: string | undefined;
     phone?: string | undefined;
+    bio?: string | undefined;
     documents?: Record<string, any> | undefined;
     avatar_url?: string | undefined;
-    bio?: string | undefined;
 }, {
     id: string;
     created_at: string;
@@ -43,11 +44,11 @@ export declare const ProfileSchema: z.ZodObject<{
     role: "USER" | "VENDOR" | "COURIER" | "ADMIN";
     district?: string | undefined;
     phone?: string | undefined;
+    bio?: string | undefined;
     verified_expat?: boolean | undefined;
     verification_status?: "PENDING" | "APPROVED" | "REJECTED" | undefined;
     documents?: Record<string, any> | undefined;
     avatar_url?: string | undefined;
-    bio?: string | undefined;
     languages?: string[] | undefined;
     preferences?: Record<string, any> | undefined;
 }>;
@@ -55,6 +56,7 @@ export declare const CreateProfileSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     email: z.ZodString;
     role: z.ZodEnum<["USER", "VENDOR", "COURIER", "ADMIN"]>;
     country_of_origin: z.ZodString;
@@ -147,19 +149,21 @@ export declare const ProfileWithAuthSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
+    email: z.ZodString;
+    role: z.ZodEnum<["USER", "VENDOR", "COURIER", "ADMIN"]>;
+    country_of_origin: z.ZodString;
     city: z.ZodString;
     district: z.ZodOptional<z.ZodString>;
-    email: z.ZodString;
     phone: z.ZodOptional<z.ZodString>;
-    bio: z.ZodOptional<z.ZodString>;
-    country_of_origin: z.ZodString;
     verified_expat: z.ZodDefault<z.ZodBoolean>;
-    role: z.ZodEnum<["USER", "VENDOR", "COURIER", "ADMIN"]>;
     verification_status: z.ZodDefault<z.ZodEnum<["PENDING", "APPROVED", "REJECTED"]>>;
     documents: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>;
     avatar_url: z.ZodOptional<z.ZodString>;
+    bio: z.ZodOptional<z.ZodString>;
     languages: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
     preferences: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodAny>>;
+} & {
     auth_user: z.ZodObject<{
         id: z.ZodString;
         email: z.ZodString;

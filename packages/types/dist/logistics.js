@@ -63,7 +63,7 @@ export const DeliveryWithRelationsSchema = DeliverySchema.extend({
 });
 // International shipment quote
 export const IntlShipmentQuoteSchema = BaseRecordSchema.extend({
-    from_country: z.string().min(2).max(2),
+    from_country: z.string().min(2).max(2), // ISO country code
     to_country: z.string().min(2).max(2).default('RU'),
     volumetric_weight_kg: z.number().positive(),
     base_cost_rub: RubleAmountSchema,

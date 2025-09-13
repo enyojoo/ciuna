@@ -3,6 +3,7 @@ export declare const ConversationSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     listing_id: z.ZodOptional<z.ZodString>;
     vendor_product_id: z.ZodOptional<z.ZodString>;
     service_id: z.ZodOptional<z.ZodString>;
@@ -14,18 +15,18 @@ export declare const ConversationSchema: z.ZodObject<{
     created_at: string;
     updated_at: string;
     is_archived: boolean;
+    service_id?: string | undefined;
     listing_id?: string | undefined;
     vendor_product_id?: string | undefined;
-    service_id?: string | undefined;
     last_message_at?: string | undefined;
     last_message_id?: string | undefined;
 }, {
     id: string;
     created_at: string;
     updated_at: string;
+    service_id?: string | undefined;
     listing_id?: string | undefined;
     vendor_product_id?: string | undefined;
-    service_id?: string | undefined;
     last_message_at?: string | undefined;
     last_message_id?: string | undefined;
     is_archived?: boolean | undefined;
@@ -34,6 +35,7 @@ export declare const ConversationParticipantSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     conversation_id: z.ZodString;
     user_id: z.ZodString;
     joined_at: z.ZodString;
@@ -57,14 +59,15 @@ export declare const ConversationParticipantSchema: z.ZodObject<{
     user_id: string;
     conversation_id: string;
     joined_at: string;
-    left_at?: string | undefined;
     is_active?: boolean | undefined;
+    left_at?: string | undefined;
     unread_count?: number | undefined;
 }>;
 export declare const MessageSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     conversation_id: z.ZodString;
     sender_id: z.ZodString;
     content: z.ZodString;
@@ -141,6 +144,7 @@ export declare const CreateMessageSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     conversation_id: z.ZodString;
     sender_id: z.ZodString;
     content: z.ZodString;
@@ -273,12 +277,14 @@ export declare const ConversationWithDetailsSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
-    service_id: z.ZodOptional<z.ZodString>;
+} & {
     listing_id: z.ZodOptional<z.ZodString>;
     vendor_product_id: z.ZodOptional<z.ZodString>;
+    service_id: z.ZodOptional<z.ZodString>;
     last_message_at: z.ZodOptional<z.ZodString>;
     last_message_id: z.ZodOptional<z.ZodString>;
     is_archived: z.ZodDefault<z.ZodBoolean>;
+} & {
     participants: z.ZodArray<z.ZodObject<{
         id: z.ZodString;
         user_id: z.ZodString;
@@ -332,6 +338,7 @@ export declare const ConversationWithDetailsSchema: z.ZodObject<{
         id: z.ZodString;
         created_at: z.ZodString;
         updated_at: z.ZodString;
+    } & {
         conversation_id: z.ZodString;
         sender_id: z.ZodString;
         content: z.ZodString;
@@ -468,6 +475,11 @@ export declare const ConversationWithDetailsSchema: z.ZodObject<{
         };
     }[];
     service_id?: string | undefined;
+    service?: {
+        id: string;
+        title: string;
+        price_rub: number;
+    } | undefined;
     listing_id?: string | undefined;
     vendor_product_id?: string | undefined;
     last_message_at?: string | undefined;
@@ -506,11 +518,6 @@ export declare const ConversationWithDetailsSchema: z.ZodObject<{
         name: string;
         photo_urls: string[];
     } | undefined;
-    service?: {
-        id: string;
-        title: string;
-        price_rub: number;
-    } | undefined;
 }, {
     id: string;
     created_at: string;
@@ -529,6 +536,11 @@ export declare const ConversationWithDetailsSchema: z.ZodObject<{
         };
     }[];
     service_id?: string | undefined;
+    service?: {
+        id: string;
+        title: string;
+        price_rub: number;
+    } | undefined;
     listing_id?: string | undefined;
     vendor_product_id?: string | undefined;
     last_message_at?: string | undefined;
@@ -568,16 +580,12 @@ export declare const ConversationWithDetailsSchema: z.ZodObject<{
         name: string;
         photo_urls: string[];
     } | undefined;
-    service?: {
-        id: string;
-        title: string;
-        price_rub: number;
-    } | undefined;
 }>;
 export declare const MessageWithSenderSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     conversation_id: z.ZodString;
     sender_id: z.ZodString;
     content: z.ZodString;
@@ -607,6 +615,7 @@ export declare const MessageWithSenderSchema: z.ZodObject<{
         target_language: string;
         confidence?: number | undefined;
     }>>;
+} & {
     sender: z.ZodObject<{
         id: z.ZodString;
         email: z.ZodString;

@@ -3,6 +3,7 @@ export declare const ServiceProviderSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     profile_id: z.ZodString;
     name: z.ZodString;
     bio: z.ZodString;
@@ -52,19 +53,19 @@ export declare const ServiceProviderSchema: z.ZodObject<{
     name: string;
     bio: string;
     profile_id: string;
-    skills?: string[] | undefined;
-    credentials?: Record<string, any> | undefined;
-    verified?: boolean | undefined;
     status?: "ACTIVE" | "SUSPENDED" | undefined;
+    verified?: boolean | undefined;
     rating?: number | undefined;
     review_count?: number | undefined;
     total_bookings?: number | undefined;
-    response_time_hours?: number | undefined;
     completion_rate?: number | undefined;
     languages?: string[] | undefined;
+    social_links?: Record<string, string> | undefined;
+    skills?: string[] | undefined;
+    credentials?: Record<string, any> | undefined;
+    response_time_hours?: number | undefined;
     service_areas?: string[] | undefined;
     portfolio_urls?: string[] | undefined;
-    social_links?: Record<string, string> | undefined;
     hourly_rate_rub?: number | undefined;
     min_project_value_rub?: number | undefined;
     max_project_value_rub?: number | undefined;
@@ -73,6 +74,7 @@ export declare const CreateServiceProviderSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     profile_id: z.ZodString;
     name: z.ZodString;
     bio: z.ZodString;
@@ -183,6 +185,7 @@ export declare const ServiceSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     provider_id: z.ZodString;
     title: z.ZodString;
     description: z.ZodString;
@@ -237,25 +240,26 @@ export declare const ServiceSchema: z.ZodObject<{
     price_rub: number;
     category: "LEGAL" | "FINANCIAL" | "PERSONAL" | "EVENT" | "HEALTHCARE";
     provider_id: string;
-    available_slots?: Record<string, any> | undefined;
-    is_online?: boolean | undefined;
-    is_in_person?: boolean | undefined;
-    location?: string | undefined;
-    max_participants?: number | undefined;
+    status?: "ACTIVE" | "SUSPENDED" | "INACTIVE" | undefined;
     requirements?: string[] | undefined;
     deliverables?: string[] | undefined;
-    cancellation_policy?: string | undefined;
-    status?: "ACTIVE" | "SUSPENDED" | "INACTIVE" | undefined;
-    tags?: string[] | undefined;
-    view_count?: number | undefined;
-    booking_count?: number | undefined;
+    is_online?: boolean | undefined;
+    is_in_person?: boolean | undefined;
     rating?: number | undefined;
     review_count?: number | undefined;
+    available_slots?: Record<string, any> | undefined;
+    tags?: string[] | undefined;
+    view_count?: number | undefined;
+    location?: string | undefined;
+    max_participants?: number | undefined;
+    cancellation_policy?: string | undefined;
+    booking_count?: number | undefined;
 }>;
 export declare const CreateServiceSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     provider_id: z.ZodString;
     title: z.ZodString;
     description: z.ZodString;
@@ -372,26 +376,28 @@ export declare const ServiceWithRelationsSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
-    status: z.ZodDefault<z.ZodEnum<["ACTIVE", "INACTIVE", "SUSPENDED"]>>;
-    duration_minutes: z.ZodNumber;
-    requirements: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
-    deliverables: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
-    is_online: z.ZodDefault<z.ZodBoolean>;
-    is_in_person: z.ZodDefault<z.ZodBoolean>;
+} & {
+    provider_id: z.ZodString;
     title: z.ZodString;
     description: z.ZodString;
-    price_rub: z.ZodNumber;
     category: z.ZodEnum<["LEGAL", "FINANCIAL", "PERSONAL", "EVENT", "HEALTHCARE"]>;
-    rating: z.ZodDefault<z.ZodNumber>;
-    review_count: z.ZodDefault<z.ZodNumber>;
+    price_rub: z.ZodNumber;
+    duration_minutes: z.ZodNumber;
     available_slots: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodAny>>;
-    provider_id: z.ZodString;
-    tags: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
-    view_count: z.ZodDefault<z.ZodNumber>;
+    is_online: z.ZodDefault<z.ZodBoolean>;
+    is_in_person: z.ZodDefault<z.ZodBoolean>;
     location: z.ZodOptional<z.ZodString>;
     max_participants: z.ZodDefault<z.ZodNumber>;
+    requirements: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+    deliverables: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
     cancellation_policy: z.ZodOptional<z.ZodString>;
+    status: z.ZodDefault<z.ZodEnum<["ACTIVE", "INACTIVE", "SUSPENDED"]>>;
+    tags: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+    view_count: z.ZodDefault<z.ZodNumber>;
     booking_count: z.ZodDefault<z.ZodNumber>;
+    rating: z.ZodDefault<z.ZodNumber>;
+    review_count: z.ZodDefault<z.ZodNumber>;
+} & {
     provider: z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
@@ -477,11 +483,11 @@ export declare const ServiceWithRelationsSchema: z.ZodObject<{
         description?: string | undefined;
     };
     location?: string | undefined;
-    cancellation_policy?: string | undefined;
     reviews?: {
         average_rating: number;
         total_count: number;
     } | undefined;
+    cancellation_policy?: string | undefined;
 }, {
     id: string;
     created_at: string;
@@ -517,13 +523,13 @@ export declare const ServiceWithRelationsSchema: z.ZodObject<{
     tags?: string[] | undefined;
     view_count?: number | undefined;
     location?: string | undefined;
-    max_participants?: number | undefined;
-    cancellation_policy?: string | undefined;
-    booking_count?: number | undefined;
     reviews?: {
         average_rating: number;
         total_count: number;
     } | undefined;
+    max_participants?: number | undefined;
+    cancellation_policy?: string | undefined;
+    booking_count?: number | undefined;
 }>;
 export declare const ServiceFiltersSchema: z.ZodObject<{
     provider_id: z.ZodOptional<z.ZodString>;
@@ -540,30 +546,30 @@ export declare const ServiceFiltersSchema: z.ZodObject<{
     max_duration: z.ZodOptional<z.ZodNumber>;
     min_duration: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
-    provider_id?: string | undefined;
-    category?: "LEGAL" | "FINANCIAL" | "PERSONAL" | "EVENT" | "HEALTHCARE" | undefined;
-    min_price?: number | undefined;
-    max_price?: number | undefined;
     is_online?: boolean | undefined;
     is_in_person?: boolean | undefined;
-    location?: string | undefined;
-    min_rating?: number | undefined;
+    category?: "LEGAL" | "FINANCIAL" | "PERSONAL" | "EVENT" | "HEALTHCARE" | undefined;
+    provider_id?: string | undefined;
     search?: string | undefined;
     tags?: string[] | undefined;
+    min_price?: number | undefined;
+    max_price?: number | undefined;
+    location?: string | undefined;
+    min_rating?: number | undefined;
     available_date?: string | undefined;
     max_duration?: number | undefined;
     min_duration?: number | undefined;
 }, {
-    provider_id?: string | undefined;
-    category?: "LEGAL" | "FINANCIAL" | "PERSONAL" | "EVENT" | "HEALTHCARE" | undefined;
-    min_price?: number | undefined;
-    max_price?: number | undefined;
     is_online?: boolean | undefined;
     is_in_person?: boolean | undefined;
-    location?: string | undefined;
-    min_rating?: number | undefined;
+    category?: "LEGAL" | "FINANCIAL" | "PERSONAL" | "EVENT" | "HEALTHCARE" | undefined;
+    provider_id?: string | undefined;
     search?: string | undefined;
     tags?: string[] | undefined;
+    min_price?: number | undefined;
+    max_price?: number | undefined;
+    location?: string | undefined;
+    min_rating?: number | undefined;
     available_date?: string | undefined;
     max_duration?: number | undefined;
     min_duration?: number | undefined;
@@ -573,26 +579,28 @@ export declare const ServiceSearchResponseSchema: z.ZodObject<{
         id: z.ZodString;
         created_at: z.ZodString;
         updated_at: z.ZodString;
-        status: z.ZodDefault<z.ZodEnum<["ACTIVE", "INACTIVE", "SUSPENDED"]>>;
-        duration_minutes: z.ZodNumber;
-        requirements: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
-        deliverables: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
-        is_online: z.ZodDefault<z.ZodBoolean>;
-        is_in_person: z.ZodDefault<z.ZodBoolean>;
+    } & {
+        provider_id: z.ZodString;
         title: z.ZodString;
         description: z.ZodString;
-        price_rub: z.ZodNumber;
         category: z.ZodEnum<["LEGAL", "FINANCIAL", "PERSONAL", "EVENT", "HEALTHCARE"]>;
-        rating: z.ZodDefault<z.ZodNumber>;
-        review_count: z.ZodDefault<z.ZodNumber>;
+        price_rub: z.ZodNumber;
+        duration_minutes: z.ZodNumber;
         available_slots: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodAny>>;
-        provider_id: z.ZodString;
-        tags: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
-        view_count: z.ZodDefault<z.ZodNumber>;
+        is_online: z.ZodDefault<z.ZodBoolean>;
+        is_in_person: z.ZodDefault<z.ZodBoolean>;
         location: z.ZodOptional<z.ZodString>;
         max_participants: z.ZodDefault<z.ZodNumber>;
+        requirements: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+        deliverables: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
         cancellation_policy: z.ZodOptional<z.ZodString>;
+        status: z.ZodDefault<z.ZodEnum<["ACTIVE", "INACTIVE", "SUSPENDED"]>>;
+        tags: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+        view_count: z.ZodDefault<z.ZodNumber>;
         booking_count: z.ZodDefault<z.ZodNumber>;
+        rating: z.ZodDefault<z.ZodNumber>;
+        review_count: z.ZodDefault<z.ZodNumber>;
+    } & {
         provider: z.ZodObject<{
             id: z.ZodString;
             name: z.ZodString;
@@ -678,11 +686,11 @@ export declare const ServiceSearchResponseSchema: z.ZodObject<{
             description?: string | undefined;
         };
         location?: string | undefined;
-        cancellation_policy?: string | undefined;
         reviews?: {
             average_rating: number;
             total_count: number;
         } | undefined;
+        cancellation_policy?: string | undefined;
     }, {
         id: string;
         created_at: string;
@@ -718,13 +726,13 @@ export declare const ServiceSearchResponseSchema: z.ZodObject<{
         tags?: string[] | undefined;
         view_count?: number | undefined;
         location?: string | undefined;
-        max_participants?: number | undefined;
-        cancellation_policy?: string | undefined;
-        booking_count?: number | undefined;
         reviews?: {
             average_rating: number;
             total_count: number;
         } | undefined;
+        max_participants?: number | undefined;
+        cancellation_policy?: string | undefined;
+        booking_count?: number | undefined;
     }>, "many">;
     total: z.ZodNumber;
     filters: z.ZodObject<{
@@ -742,30 +750,30 @@ export declare const ServiceSearchResponseSchema: z.ZodObject<{
         max_duration: z.ZodOptional<z.ZodNumber>;
         min_duration: z.ZodOptional<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
-        provider_id?: string | undefined;
-        category?: "LEGAL" | "FINANCIAL" | "PERSONAL" | "EVENT" | "HEALTHCARE" | undefined;
-        min_price?: number | undefined;
-        max_price?: number | undefined;
         is_online?: boolean | undefined;
         is_in_person?: boolean | undefined;
-        location?: string | undefined;
-        min_rating?: number | undefined;
+        category?: "LEGAL" | "FINANCIAL" | "PERSONAL" | "EVENT" | "HEALTHCARE" | undefined;
+        provider_id?: string | undefined;
         search?: string | undefined;
         tags?: string[] | undefined;
+        min_price?: number | undefined;
+        max_price?: number | undefined;
+        location?: string | undefined;
+        min_rating?: number | undefined;
         available_date?: string | undefined;
         max_duration?: number | undefined;
         min_duration?: number | undefined;
     }, {
-        provider_id?: string | undefined;
-        category?: "LEGAL" | "FINANCIAL" | "PERSONAL" | "EVENT" | "HEALTHCARE" | undefined;
-        min_price?: number | undefined;
-        max_price?: number | undefined;
         is_online?: boolean | undefined;
         is_in_person?: boolean | undefined;
-        location?: string | undefined;
-        min_rating?: number | undefined;
+        category?: "LEGAL" | "FINANCIAL" | "PERSONAL" | "EVENT" | "HEALTHCARE" | undefined;
+        provider_id?: string | undefined;
         search?: string | undefined;
         tags?: string[] | undefined;
+        min_price?: number | undefined;
+        max_price?: number | undefined;
+        location?: string | undefined;
+        min_rating?: number | undefined;
         available_date?: string | undefined;
         max_duration?: number | undefined;
         min_duration?: number | undefined;
@@ -841,16 +849,16 @@ export declare const ServiceSearchResponseSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     total: number;
     filters: {
-        provider_id?: string | undefined;
-        category?: "LEGAL" | "FINANCIAL" | "PERSONAL" | "EVENT" | "HEALTHCARE" | undefined;
-        min_price?: number | undefined;
-        max_price?: number | undefined;
         is_online?: boolean | undefined;
         is_in_person?: boolean | undefined;
-        location?: string | undefined;
-        min_rating?: number | undefined;
+        category?: "LEGAL" | "FINANCIAL" | "PERSONAL" | "EVENT" | "HEALTHCARE" | undefined;
+        provider_id?: string | undefined;
         search?: string | undefined;
         tags?: string[] | undefined;
+        min_price?: number | undefined;
+        max_price?: number | undefined;
+        location?: string | undefined;
+        min_rating?: number | undefined;
         available_date?: string | undefined;
         max_duration?: number | undefined;
         min_duration?: number | undefined;
@@ -892,11 +900,11 @@ export declare const ServiceSearchResponseSchema: z.ZodObject<{
             description?: string | undefined;
         };
         location?: string | undefined;
-        cancellation_policy?: string | undefined;
         reviews?: {
             average_rating: number;
             total_count: number;
         } | undefined;
+        cancellation_policy?: string | undefined;
     }[];
     aggregations?: {
         price_ranges: {
@@ -917,16 +925,16 @@ export declare const ServiceSearchResponseSchema: z.ZodObject<{
 }, {
     total: number;
     filters: {
-        provider_id?: string | undefined;
-        category?: "LEGAL" | "FINANCIAL" | "PERSONAL" | "EVENT" | "HEALTHCARE" | undefined;
-        min_price?: number | undefined;
-        max_price?: number | undefined;
         is_online?: boolean | undefined;
         is_in_person?: boolean | undefined;
-        location?: string | undefined;
-        min_rating?: number | undefined;
+        category?: "LEGAL" | "FINANCIAL" | "PERSONAL" | "EVENT" | "HEALTHCARE" | undefined;
+        provider_id?: string | undefined;
         search?: string | undefined;
         tags?: string[] | undefined;
+        min_price?: number | undefined;
+        max_price?: number | undefined;
+        location?: string | undefined;
+        min_rating?: number | undefined;
         available_date?: string | undefined;
         max_duration?: number | undefined;
         min_duration?: number | undefined;
@@ -966,13 +974,13 @@ export declare const ServiceSearchResponseSchema: z.ZodObject<{
         tags?: string[] | undefined;
         view_count?: number | undefined;
         location?: string | undefined;
-        max_participants?: number | undefined;
-        cancellation_policy?: string | undefined;
-        booking_count?: number | undefined;
         reviews?: {
             average_rating: number;
             total_count: number;
         } | undefined;
+        max_participants?: number | undefined;
+        cancellation_policy?: string | undefined;
+        booking_count?: number | undefined;
     }[];
     aggregations?: {
         price_ranges: {
@@ -995,6 +1003,7 @@ export declare const ServiceProviderVerificationSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     provider_id: z.ZodString;
     status: z.ZodDefault<z.ZodEnum<["PENDING", "APPROVED", "REJECTED"]>>;
     documents: z.ZodArray<z.ZodObject<{
@@ -1086,25 +1095,27 @@ export declare const ServiceProviderWithProfileSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
-    status: z.ZodDefault<z.ZodEnum<["ACTIVE", "SUSPENDED"]>>;
+} & {
+    profile_id: z.ZodString;
     name: z.ZodString;
     bio: z.ZodString;
+    skills: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+    credentials: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodAny>>;
     verified: z.ZodDefault<z.ZodBoolean>;
+    status: z.ZodDefault<z.ZodEnum<["ACTIVE", "SUSPENDED"]>>;
     rating: z.ZodDefault<z.ZodNumber>;
     review_count: z.ZodDefault<z.ZodNumber>;
     total_bookings: z.ZodDefault<z.ZodNumber>;
+    response_time_hours: z.ZodOptional<z.ZodNumber>;
     completion_rate: z.ZodDefault<z.ZodNumber>;
     languages: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
-    social_links: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodString>>;
-    profile_id: z.ZodString;
-    skills: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
-    credentials: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodAny>>;
-    response_time_hours: z.ZodOptional<z.ZodNumber>;
     service_areas: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
     portfolio_urls: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+    social_links: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodString>>;
     hourly_rate_rub: z.ZodOptional<z.ZodNumber>;
     min_project_value_rub: z.ZodOptional<z.ZodNumber>;
     max_project_value_rub: z.ZodOptional<z.ZodNumber>;
+} & {
     profile: z.ZodObject<{
         id: z.ZodString;
         email: z.ZodString;
@@ -1125,10 +1136,10 @@ export declare const ServiceProviderWithProfileSchema: z.ZodObject<{
         verified_expat: boolean;
         role: "USER" | "VENDOR" | "COURIER" | "ADMIN";
         verification_status: "PENDING" | "APPROVED" | "REJECTED";
-        country_of_origin?: string | undefined;
         city?: string | undefined;
         district?: string | undefined;
         phone?: string | undefined;
+        country_of_origin?: string | undefined;
     }, {
         id: string;
         created_at: string;
@@ -1137,10 +1148,10 @@ export declare const ServiceProviderWithProfileSchema: z.ZodObject<{
         verified_expat: boolean;
         role: "USER" | "VENDOR" | "COURIER" | "ADMIN";
         verification_status: "PENDING" | "APPROVED" | "REJECTED";
-        country_of_origin?: string | undefined;
         city?: string | undefined;
         district?: string | undefined;
         phone?: string | undefined;
+        country_of_origin?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     id: string;
@@ -1169,10 +1180,10 @@ export declare const ServiceProviderWithProfileSchema: z.ZodObject<{
         verified_expat: boolean;
         role: "USER" | "VENDOR" | "COURIER" | "ADMIN";
         verification_status: "PENDING" | "APPROVED" | "REJECTED";
-        country_of_origin?: string | undefined;
         city?: string | undefined;
         district?: string | undefined;
         phone?: string | undefined;
+        country_of_origin?: string | undefined;
     };
     response_time_hours?: number | undefined;
     hourly_rate_rub?: number | undefined;
@@ -1193,10 +1204,10 @@ export declare const ServiceProviderWithProfileSchema: z.ZodObject<{
         verified_expat: boolean;
         role: "USER" | "VENDOR" | "COURIER" | "ADMIN";
         verification_status: "PENDING" | "APPROVED" | "REJECTED";
-        country_of_origin?: string | undefined;
         city?: string | undefined;
         district?: string | undefined;
         phone?: string | undefined;
+        country_of_origin?: string | undefined;
     };
     status?: "ACTIVE" | "SUSPENDED" | undefined;
     verified?: boolean | undefined;

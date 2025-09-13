@@ -3,6 +3,7 @@ export declare const PaymentSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     provider: z.ZodEnum<["MOCKPAY", "YOOMONEY", "SBER", "TINKOFF"]>;
     provider_ref: z.ZodString;
     amount_rub: z.ZodNumber;
@@ -37,8 +38,8 @@ export declare const PaymentSchema: z.ZodObject<{
     amount_rub: number;
     provider_ref: string;
     status?: "CANCELLED" | "REFUNDED" | "AUTHORIZED" | "CAPTURED" | undefined;
-    currency?: string | undefined;
     description?: string | undefined;
+    currency?: string | undefined;
     metadata?: Record<string, any> | undefined;
     failure_reason?: string | undefined;
     processed_at?: string | undefined;
@@ -49,6 +50,7 @@ export declare const CreatePaymentSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     provider: z.ZodEnum<["MOCKPAY", "YOOMONEY", "SBER", "TINKOFF"]>;
     provider_ref: z.ZodString;
     amount_rub: z.ZodNumber;
@@ -123,17 +125,19 @@ export declare const PaymentWithOrderSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
-    status: z.ZodDefault<z.ZodEnum<["AUTHORIZED", "CAPTURED", "CANCELLED", "REFUNDED"]>>;
-    description: z.ZodOptional<z.ZodString>;
+} & {
     provider: z.ZodEnum<["MOCKPAY", "YOOMONEY", "SBER", "TINKOFF"]>;
-    amount_rub: z.ZodNumber;
-    currency: z.ZodDefault<z.ZodString>;
     provider_ref: z.ZodString;
+    amount_rub: z.ZodNumber;
+    status: z.ZodDefault<z.ZodEnum<["AUTHORIZED", "CAPTURED", "CANCELLED", "REFUNDED"]>>;
+    currency: z.ZodDefault<z.ZodString>;
+    description: z.ZodOptional<z.ZodString>;
     metadata: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodAny>>;
     failure_reason: z.ZodOptional<z.ZodString>;
     processed_at: z.ZodOptional<z.ZodString>;
     refunded_amount_rub: z.ZodDefault<z.ZodNumber>;
     refunded_at: z.ZodOptional<z.ZodString>;
+} & {
     order: z.ZodObject<{
         id: z.ZodString;
         buyer_id: z.ZodString;
@@ -218,15 +222,16 @@ export declare const PaymentIntentSchema: z.ZodObject<{
     id: string;
     status: "CANCELLED" | "REFUNDED" | "AUTHORIZED" | "CAPTURED";
     amount_rub: number;
-    currency?: string | undefined;
     description?: string | undefined;
-    client_secret?: string | undefined;
+    currency?: string | undefined;
     metadata?: Record<string, any> | undefined;
+    client_secret?: string | undefined;
 }>;
 export declare const RefundSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     payment_id: z.ZodString;
     amount_rub: z.ZodNumber;
     reason: z.ZodOptional<z.ZodString>;
@@ -241,26 +246,27 @@ export declare const RefundSchema: z.ZodObject<{
     status: "PENDING" | "CANCELLED" | "FAILED" | "SUCCEEDED";
     payment_id: string;
     amount_rub: number;
-    reason?: string | undefined;
     provider_ref?: string | undefined;
-    processed_at?: string | undefined;
     failure_reason?: string | undefined;
+    processed_at?: string | undefined;
+    reason?: string | undefined;
 }, {
     id: string;
     created_at: string;
     updated_at: string;
     payment_id: string;
     amount_rub: number;
-    reason?: string | undefined;
     status?: "PENDING" | "CANCELLED" | "FAILED" | "SUCCEEDED" | undefined;
     provider_ref?: string | undefined;
-    processed_at?: string | undefined;
     failure_reason?: string | undefined;
+    processed_at?: string | undefined;
+    reason?: string | undefined;
 }>;
 export declare const CreateRefundSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     created_at: z.ZodString;
     updated_at: z.ZodString;
+} & {
     payment_id: z.ZodString;
     amount_rub: z.ZodNumber;
     reason: z.ZodOptional<z.ZodString>;

@@ -83,7 +83,7 @@ export class SecurityService {
                 .insert({
                 user_id: userId,
                 method,
-                code: code.substring(0, 2) + '***',
+                code: code.substring(0, 2) + '***', // Partial code for logging
                 success: isValid,
             });
             if (isValid) {
