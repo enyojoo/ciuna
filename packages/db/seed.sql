@@ -2,46 +2,33 @@
 -- This file contains sample data for testing the platform
 
 -- Insert sample categories
-INSERT INTO categories (name, description, parent_id, is_active, sort_order) VALUES
-('Electronics', 'Electronic devices and accessories', NULL, true, 1),
-('Furniture', 'Home and office furniture', NULL, true, 2),
-('Clothing', 'Fashion and apparel', NULL, true, 3),
-('Books', 'Books and educational materials', NULL, true, 4),
-('Sports', 'Sports equipment and gear', NULL, true, 5),
-('Home & Garden', 'Home improvement and gardening', NULL, true, 6),
-('Automotive', 'Car parts and accessories', NULL, true, 7),
-('Services', 'Professional services', NULL, true, 8),
-('Food & Drinks', 'Food and beverages', NULL, true, 9),
-('Beauty & Health', 'Beauty and health products', NULL, true, 10);
+INSERT INTO categories (name, slug, description, parent_id, is_active, sort_order) VALUES
+('Electronics', 'electronics', 'Electronic devices and accessories', NULL, true, 1),
+('Furniture', 'furniture', 'Home and office furniture', NULL, true, 2),
+('Clothing', 'clothing', 'Fashion and apparel', NULL, true, 3),
+('Books', 'books', 'Books and educational materials', NULL, true, 4),
+('Sports', 'sports', 'Sports equipment and gear', NULL, true, 5),
+('Home & Garden', 'home-garden', 'Home improvement and gardening', NULL, true, 6),
+('Automotive', 'automotive', 'Car parts and accessories', NULL, true, 7),
+('Services', 'services', 'Professional services', NULL, true, 8),
+('Food & Drinks', 'food-drinks', 'Food and beverages', NULL, true, 9),
+('Beauty & Health', 'beauty-health', 'Beauty and health products', NULL, true, 10);
 
 -- Insert subcategories for Electronics
-INSERT INTO categories (name, description, parent_id, is_active, sort_order) VALUES
-('Smartphones', 'Mobile phones and accessories', (SELECT id FROM categories WHERE name = 'Electronics'), true, 1),
-('Laptops', 'Laptop computers and accessories', (SELECT id FROM categories WHERE name = 'Electronics'), true, 2),
-('Audio', 'Headphones, speakers, and audio equipment', (SELECT id FROM categories WHERE name = 'Electronics'), true, 3),
-('Gaming', 'Gaming consoles and accessories', (SELECT id FROM categories WHERE name = 'Electronics'), true, 4);
+INSERT INTO categories (name, slug, description, parent_id, is_active, sort_order) VALUES
+('Smartphones', 'smartphones', 'Mobile phones and accessories', (SELECT id FROM categories WHERE name = 'Electronics'), true, 1),
+('Laptops', 'laptops', 'Laptop computers and accessories', (SELECT id FROM categories WHERE name = 'Electronics'), true, 2),
+('Audio', 'audio', 'Headphones, speakers, and audio equipment', (SELECT id FROM categories WHERE name = 'Electronics'), true, 3),
+('Gaming', 'gaming', 'Gaming consoles and accessories', (SELECT id FROM categories WHERE name = 'Electronics'), true, 4);
 
 -- Insert subcategories for Services
-INSERT INTO categories (name, description, parent_id, is_active, sort_order) VALUES
-('Tutoring', 'Educational and language tutoring', (SELECT id FROM categories WHERE name = 'Services'), true, 1),
-('Cleaning', 'House and office cleaning services', (SELECT id FROM categories WHERE name = 'Services'), true, 2),
-('Repair', 'Repair and maintenance services', (SELECT id FROM categories WHERE name = 'Services'), true, 3),
-('Transportation', 'Delivery and transportation services', (SELECT id FROM categories WHERE name = 'Services'), true, 4);
+INSERT INTO categories (name, slug, description, parent_id, is_active, sort_order) VALUES
+('Tutoring', 'tutoring', 'Educational and language tutoring', (SELECT id FROM categories WHERE name = 'Services'), true, 1),
+('Cleaning', 'cleaning', 'House and office cleaning services', (SELECT id FROM categories WHERE name = 'Services'), true, 2),
+('Repair', 'repair', 'Repair and maintenance services', (SELECT id FROM categories WHERE name = 'Services'), true, 3),
+('Transportation', 'transportation', 'Delivery and transportation services', (SELECT id FROM categories WHERE name = 'Services'), true, 4);
 
--- Insert sample locations
-INSERT INTO locations (name, type, parent_id, latitude, longitude, is_active) VALUES
-('Moscow', 'city', NULL, 55.7558, 37.6176, true),
-('Saint Petersburg', 'city', NULL, 59.9311, 30.3609, true),
-('Novosibirsk', 'city', NULL, 55.0084, 82.9357, true),
-('Yekaterinburg', 'city', NULL, 56.8431, 60.6454, true),
-('Kazan', 'city', NULL, 55.8304, 49.0661, true);
-
--- Insert sample districts for Moscow
-INSERT INTO locations (name, type, parent_id, latitude, longitude, is_active) VALUES
-('Arbat', 'district', (SELECT id FROM locations WHERE name = 'Moscow'), 55.7522, 37.5916, true),
-('Tverskoy', 'district', (SELECT id FROM locations WHERE name = 'Moscow'), 55.7658, 37.6176, true),
-('Zamoskvorechye', 'district', (SELECT id FROM locations WHERE name = 'Moscow'), 55.7408, 37.6256, true),
-('Khamovniki', 'district', (SELECT id FROM locations WHERE name = 'Moscow'), 55.7408, 37.5856, true);
+-- Locations table doesn't exist in current schema - using city/district as text fields
 
 -- Insert sample users (these will be created through Supabase Auth)
 -- Note: In a real scenario, users are created through the auth system
@@ -49,16 +36,16 @@ INSERT INTO locations (name, type, parent_id, latitude, longitude, is_active) VA
 
 -- Insert sample listings
 INSERT INTO listings (
-    user_id, 
+    seller_id, 
     title, 
     description, 
     category_id, 
-    price, 
-    currency, 
+    price_rub, 
     condition, 
-    location_id, 
+    city, 
+    district, 
     status,
-    images,
+    photo_urls,
     tags
 ) VALUES
 (
@@ -67,9 +54,9 @@ INSERT INTO listings (
     'Excellent condition iPhone 13 Pro Max in Space Gray. Used for 6 months, no scratches or damage. Comes with original box, charger, and case.',
     (SELECT id FROM categories WHERE name = 'Smartphones'),
     75000,
-    'RUB',
     'LIKE_NEW',
-    (SELECT id FROM locations WHERE name = 'Arbat'),
+    'Moscow',
+    'Arbat',
     'ACTIVE',
     ARRAY['https://example.com/iphone1.jpg', 'https://example.com/iphone2.jpg'],
     ARRAY['iphone', 'smartphone', 'apple', 'mobile']
@@ -80,9 +67,9 @@ INSERT INTO listings (
     'MacBook Pro 14-inch with M1 Pro chip, 16GB RAM, 512GB SSD. Perfect for developers and designers. Barely used, like new condition.',
     (SELECT id FROM categories WHERE name = 'Laptops'),
     150000,
-    'RUB',
     'LIKE_NEW',
-    (SELECT id FROM locations WHERE name = 'Tverskoy'),
+    'Moscow',
+    'Tverskoy',
     'ACTIVE',
     ARRAY['https://example.com/macbook1.jpg', 'https://example.com/macbook2.jpg'],
     ARRAY['macbook', 'laptop', 'apple', 'm1', 'pro']
@@ -93,9 +80,9 @@ INSERT INTO listings (
     'Noise-canceling wireless headphones in excellent condition. Great sound quality and battery life. Original packaging included.',
     (SELECT id FROM categories WHERE name = 'Audio'),
     25000,
-    'RUB',
     'GOOD',
-    (SELECT id FROM locations WHERE name = 'Zamoskvorechye'),
+    'Moscow',
+    'Zamoskvorechye',
     'ACTIVE',
     ARRAY['https://example.com/sony1.jpg'],
     ARRAY['sony', 'headphones', 'wireless', 'noise-canceling']
@@ -106,9 +93,9 @@ INSERT INTO listings (
     'Professional English tutoring for all levels. Native speaker with 5 years experience. Online or in-person sessions available.',
     (SELECT id FROM categories WHERE name = 'Tutoring'),
     2000,
-    'RUB',
     'NEW',
-    (SELECT id FROM locations WHERE name = 'Khamovniki'),
+    'Moscow',
+    'Khamovniki',
     'ACTIVE',
     ARRAY['https://example.com/tutor1.jpg'],
     ARRAY['english', 'tutoring', 'education', 'language']
