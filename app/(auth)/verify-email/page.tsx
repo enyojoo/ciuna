@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle, Button } from '@ciuna/ui';
+import { Card, CardContent, CardHeader, CardTitle, Button } from '@/lib/ui';
 import { CheckCircle, XCircle, Clock, Mail, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Tabs, TabsContent, TabsList, TabsTrigger } from '@ciuna/ui';
+import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Tabs, TabsContent, TabsList, TabsTrigger } from '@/lib/ui';
 import AnalyticsDashboard from '@/components/analytics-dashboard';
 import { 
   Users, 
@@ -15,9 +15,9 @@ import {
   AlertTriangle,
   Eye
 } from 'lucide-react';
-import { db } from '@ciuna/sb';
+import { db } from '@/lib/supabase';
 import { formatPrice, formatRelativeTime } from '@/lib/utils';
-import type { Profile } from '@ciuna/types';
+import type { Profile } from '@/lib/types';
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('overview');

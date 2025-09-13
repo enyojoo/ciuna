@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Tabs, TabsContent, TabsList, TabsTrigger } from '@ciuna/ui';
+import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Tabs, TabsContent, TabsList, TabsTrigger } from '@/lib/ui';
 import { 
   Plus, 
   Wrench, 
@@ -19,9 +19,9 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react';
-import { db } from '@ciuna/sb';
+import { db } from '@/lib/supabase';
 import { formatPrice, formatRelativeTime } from '@/lib/utils';
-import type { ServiceProviderWithProfile, ServiceWithRelations, ServiceBookingWithRelations } from '@ciuna/types';
+import type { ServiceProviderWithProfile, ServiceWithRelations, ServiceBookingWithRelations } from '@/lib/types';
 
 export default function ProviderDashboardPage() {
   const { user, profile } = useAuth();

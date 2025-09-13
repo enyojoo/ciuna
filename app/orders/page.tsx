@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '@ciuna/ui';
+import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '@/lib/ui';
 import { 
   ShoppingBag, 
   Package, 
@@ -13,9 +13,9 @@ import {
   MessageCircle,
   Star
 } from 'lucide-react';
-import { db } from '@ciuna/sb';
+import { db } from '@/lib/supabase';
 import { formatPrice, formatRelativeTime } from '@/lib/utils';
-import type { Order } from '@ciuna/types';
+import type { Order } from '@/lib/types';
 
 export default function OrdersPage() {
   const { user } = useAuth();

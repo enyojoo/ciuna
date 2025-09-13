@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, Badge, Button, Input } from '@ciuna/ui';
+import { Card, CardContent, Badge, Button, Input } from '@/lib/ui';
 import { Search, MapPin, Star, Clock, Users, Filter, SlidersHorizontal } from 'lucide-react';
-import { db } from '@ciuna/sb';
+import { db } from '@/lib/supabase';
 import { formatPrice, formatRelativeTime } from '@/lib/utils';
-import type { Service, ServiceFilters } from '@ciuna/types';
+import type { Service, ServiceFilters } from '@/lib/types';
 
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);

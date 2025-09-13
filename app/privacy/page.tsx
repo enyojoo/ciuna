@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ciuna/ui';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@ciuna/ui';
-import { Button } from '@ciuna/ui';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/lib/ui';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/lib/ui';
+import { Button } from '@/lib/ui';
 import { Shield, Eye, Database, Settings, Download, Trash2 } from 'lucide-react';
 
 export default function PrivacyPage() {

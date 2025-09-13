@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { Card, CardContent, CardHeader, Avatar, Badge, Button } from '@ciuna/ui';
+import { Card, CardContent, CardHeader, Avatar, Badge, Button } from '@/lib/ui';
 import { 
   MessageCircle, 
   Search, 
@@ -13,9 +13,9 @@ import {
   Phone,
   Video
 } from 'lucide-react';
-import { db } from '@ciuna/sb';
+import { db } from '@/lib/supabase';
 import { formatRelativeTime } from '@/lib/utils';
-import type { Conversation, Message } from '@ciuna/types';
+import type { Conversation, Message } from '@/lib/types';
 
 export default function InboxPage() {
   const { user } = useAuth();

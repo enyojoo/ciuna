@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent, Badge, Button, Avatar, Textarea } from '@ciuna/ui';
+import { Card, CardContent, Badge, Button, Avatar, Textarea } from '@/lib/ui';
 import { 
   MapPin, 
   Star, 
@@ -15,9 +15,9 @@ import {
   Shield,
   CheckCircle
 } from 'lucide-react';
-import { db } from '@ciuna/sb';
+import { db } from '@/lib/supabase';
 import { formatPrice, formatRelativeTime } from '@/lib/utils';
-import type { Service, ServiceBooking } from '@ciuna/types';
+import type { Service, ServiceBooking } from '@/lib/types';
 
 export default function ServiceDetailPage() {
   const params = useParams();

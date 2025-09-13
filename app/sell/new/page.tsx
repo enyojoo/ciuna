@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge } from '@ciuna/ui';
+import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge } from '@/lib/ui';
 import { 
   Upload, 
   X, 
@@ -14,8 +14,8 @@ import {
   Minus
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
-import { db } from '@ciuna/sb';
-import type { Category, Condition } from '@ciuna/types';
+import { db } from '@/lib/supabase';
+import type { Category, Condition } from '@/lib/types';
 
 export default function CreateListingPage() {
   const { user, profile } = useAuth();

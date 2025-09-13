@@ -4,11 +4,11 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Card, CardContent, Badge, Button, Input } from '@ciuna/ui';
+import { Card, CardContent, Badge, Button, Input } from '@/lib/ui';
 import { Search, Filter, MapPin, Eye, Heart, SlidersHorizontal } from 'lucide-react';
-import { db } from '@ciuna/sb';
+import { db } from '@/lib/supabase';
 import { formatPrice, formatRelativeTime } from '@/lib/utils';
-import type { Listing, ListingFilters } from '@ciuna/types';
+import type { Listing, ListingFilters } from '@/lib/types';
 
 function ListingsContent() {
   const searchParams = useSearchParams();

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '@ciuna/ui';
+import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '@/lib/ui';
 import { 
   Plus, 
   Package, 
@@ -17,9 +17,9 @@ import {
   BarChart3,
   Settings
 } from 'lucide-react';
-import { db } from '@ciuna/sb';
+import { db } from '@/lib/supabase';
 import { formatPrice } from '@/lib/utils';
-import type { Vendor, VendorProduct, Order } from '@ciuna/types';
+import type { Vendor, VendorProduct, Order } from '@/lib/types';
 
 export default function VendorDashboardPage() {
   const { user, profile } = useAuth();

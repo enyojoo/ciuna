@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { Button } from '@ciuna/ui';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ciuna/ui';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@ciuna/ui';
-import { Badge } from '@ciuna/ui';
-import { Avatar } from '@ciuna/ui';
+import { Button } from '@/lib/ui';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/lib/ui';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/lib/ui';
+import { Badge } from '@/lib/ui';
+import { Avatar } from '@/lib/ui';
 import { 
   BarChart3, 
   Package, 

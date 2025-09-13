@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ciuna/ui';
-import { Button } from '@ciuna/ui';
-import { Badge } from '@ciuna/ui';
-import { BusinessService, SubscriptionPlan, UserSubscription } from '@ciuna/sb';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/lib/ui';
+import { Button } from '@/lib/ui';
+import { Badge } from '@/lib/ui';
+import { BusinessService, SubscriptionPlan, UserSubscription } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/contexts/i18n-context';
 import { 

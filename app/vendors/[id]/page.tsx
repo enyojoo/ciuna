@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Card, CardContent, Badge, Button, Avatar } from '@ciuna/ui';
+import { Card, CardContent, Badge, Button, Avatar } from '@/lib/ui';
 import { 
   MapPin, 
   Star, 
@@ -17,9 +17,9 @@ import {
   Phone,
   Mail
 } from 'lucide-react';
-import { db } from '@ciuna/sb';
+import { db } from '@/lib/supabase';
 import { formatPrice, formatRelativeTime } from '@/lib/utils';
-import type { Vendor, VendorProduct } from '@ciuna/types';
+import type { Vendor, VendorProduct } from '@/lib/types';
 
 export default function VendorDetailPage() {
   const params = useParams();

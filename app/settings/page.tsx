@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ciuna/ui';
-import { Button } from '@ciuna/ui';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@ciuna/ui';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/lib/ui';
+import { Button } from '@/lib/ui';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/lib/ui';
 import { useI18n } from '@/contexts/i18n-context';
 import LanguageSelector from '@/components/language-selector';
 import CurrencySelector from '@/components/currency-selector';

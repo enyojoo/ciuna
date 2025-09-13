@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Card, CardContent, Badge, Button, Input } from '@ciuna/ui';
+import { Card, CardContent, Badge, Button, Input } from '@/lib/ui';
 import { Search, MapPin, Star, Shield, Filter, SlidersHorizontal } from 'lucide-react';
-import { db } from '@ciuna/sb';
+import { db } from '@/lib/supabase';
 import { formatPrice } from '@/lib/utils';
-import type { Vendor } from '@ciuna/types';
+import type { Vendor } from '@/lib/types';
 
 export default function VendorsPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
