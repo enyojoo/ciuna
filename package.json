@@ -1,0 +1,49 @@
+{
+  "name": "ciuna",
+  "version": "1.0.0",
+  "description": "Next-generation expat marketplace platform for Russia",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "dev:web": "turbo run dev --filter=web",
+    "dev:mobile": "turbo run dev --filter=mobile",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "test:web": "turbo run test --filter=web",
+    "test:mobile": "turbo run test --filter=mobile",
+    "test:e2e": "turbo run test:e2e --filter=web",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean",
+    "db:seed": "cd packages/db && node scripts/seed.js",
+    "db:migrate": "cd packages/db && supabase db push",
+    "db:reset": "cd packages/db && supabase db reset",
+    "db:types": "cd packages/db && supabase gen types typescript --local > ../types/database.types.ts"
+  },
+  "devDependencies": {
+    "@turbo/gen": "^1.10.12",
+    "turbo": "^1.10.12",
+    "typescript": "^5.1.3"
+  },
+  "packageManager": "pnpm@8.6.10",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "keywords": [
+    "marketplace",
+    "expat",
+    "russia",
+    "p2p",
+    "ecommerce",
+    "nextjs",
+    "react-native",
+    "supabase"
+  ],
+  "author": "Ciuna Team",
+  "license": "MIT"
+}
