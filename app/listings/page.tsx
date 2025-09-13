@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -10,7 +10,7 @@ import { db } from '@ciuna/sb';
 import { formatPrice, formatRelativeTime } from '@/lib/utils';
 import type { Listing, ListingFilters } from '@ciuna/types';
 
-export default function ListingsPage() {
+function ListingsContent() {
   const searchParams = useSearchParams();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -257,5 +257,28 @@ export default function ListingsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ListingsPage() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="animate-pulse">
+              <div className="bg-gray-200 rounded-lg h-48 mb-4"></div>
+              <div className="space-y-2">
+                <div className="bg-gray-200 rounded h-4"></div>
+                <div className="bg-gray-200 rounded h-4 w-3/4"></div>
+                <div className="bg-gray-200 rounded h-6 w-1/2"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    }>
+      <ListingsContent />
+    </Suspense>
   );
 }

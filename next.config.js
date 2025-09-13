@@ -3,7 +3,6 @@ const nextConfig = {
   images: {
     domains: ['localhost', 'example.com'],
   },
-  transpilePackages: ['@ciuna/types', '@ciuna/sb', '@ciuna/ui'],
   experimental: {
     esmExternals: 'loose',
   },
@@ -13,6 +12,8 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  trailingSlash: true,
+  skipTrailingSlashRedirect: true,
 };
 
 module.exports = nextConfig;
