@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { Card, CardContent, Badge, Button, Input } from '@ciuna/ui';
 import { Search, Filter, MapPin, Eye, Heart, SlidersHorizontal } from 'lucide-react';
 import { db } from '@ciuna/sb';
-import { formatPrice, formatRelativeTime } from '@/lib/utils';
+import { formatPrice, formatRelativeTime } from '../../lib/utils';
 import type { ListingWithRelations, ListingFilters } from '@ciuna/types';
 
 export default function ListingsPage() {

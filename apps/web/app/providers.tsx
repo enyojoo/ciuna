@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
 import { AuthProvider } from '@/lib/auth-context';
-import { I18nProvider } from '../contexts/i18n-context';
+import { I18nProvider } from '@/contexts/i18n-context';
 
 export function Providers({ children, userId }: { children: React.ReactNode; userId?: string }) {
   const [queryClient] = useState(

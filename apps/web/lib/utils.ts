@@ -32,12 +32,6 @@ export function formatPriceWithConversion(
   return formatted;
 }
 
-/**
- * Get currency symbol
- */
-export function getCurrencySymbol(currency: CurrencyCode): string {
-  return getCurrencySymbol(currency);
-}
 
 /**
  * Format relative time

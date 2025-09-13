@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/auth-context';
+import { useAuth } from '../../lib/auth-context';
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '@ciuna/ui';
 import { 
   ShoppingBag, 
