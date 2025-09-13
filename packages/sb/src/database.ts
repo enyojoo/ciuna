@@ -192,7 +192,7 @@ export const db = {
       return { data: data as Vendor[], total: count || 0 };
     },
 
-    async getById(id: number): Promise<Vendor | null> {
+    async getById(id: string): Promise<Vendor | null> {
       const { data, error } = await supabase
         .from('vendors')
         .select('*')
@@ -214,7 +214,7 @@ export const db = {
       return data as Vendor;
     },
 
-    async update(id: number, updates: UpdateVendor): Promise<Vendor> {
+    async update(id: string, updates: UpdateVendor): Promise<Vendor> {
       const { data, error } = await supabase
         .from('vendors')
         .update(updates)
@@ -224,6 +224,17 @@ export const db = {
 
       if (error) throw error;
       return data as Vendor;
+    },
+
+    async getByOwnerId(ownerId: string): Promise<Vendor | null> {
+      const { data, error } = await supabase
+        .from('vendors')
+        .select('*')
+        .eq('owner_id', ownerId)
+        .single();
+
+      if (error) throw error;
+      return data as Vendor | null;
     },
   },
 

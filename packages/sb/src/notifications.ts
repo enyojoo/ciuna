@@ -1,11 +1,9 @@
-import { createClient } from './client';
+import { supabase } from './client';
 import { NotificationType, NotificationChannel, NotificationStatus } from '@ciuna/types';
 import { 
   NotificationProviderFactory, 
   NotificationTemplateEngine 
 } from './notification-providers';
-
-const supabase = createClient();
 
 export interface NotificationData {
   [key: string]: any;
@@ -149,7 +147,7 @@ export class NotificationService {
           }
           results.push({ channel, success: result, result: result ? 'sent' : 'failed' });
         } catch (error) {
-          results.push({ channel, success: false, error: error.message });
+          results.push({ channel, success: false, error: error instanceof Error ? error.message : String(error) });
         }
       }
 
@@ -659,7 +657,7 @@ export class NotificationService {
         .update({
           status: 'FAILED',
           failed_at: new Date().toISOString(),
-          failure_reason: error.message,
+          failure_reason: error instanceof Error ? error.message : String(error),
           updated_at: new Date().toISOString(),
         })
         .eq('id', notification.id);
@@ -669,7 +667,7 @@ export class NotificationService {
         .update({
           status: 'FAILED',
           attempts: queueItem.attempts + 1,
-          error_message: error.message,
+          error_message: error instanceof Error ? error.message : String(error),
         })
         .eq('id', queueItem.id);
     }

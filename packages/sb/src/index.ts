@@ -10,6 +10,11 @@ export * from './analytics';
 export * from './i18n';
 export * from './security';
 export * from './payments';
-export * from './currency';
 export * from './search';
 export * from './business';
+
+// Export types
+export * from './types';
+
+// Export currency utilities (avoiding duplicate ExchangeRate export)
+export { CurrencyService } from './currency';

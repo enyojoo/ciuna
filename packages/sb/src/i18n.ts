@@ -1,6 +1,4 @@
-import { createClient } from './client';
-
-const supabase = createClient();
+import { supabase } from './client';
 
 export interface Language {
   id: number;
@@ -45,7 +43,7 @@ export interface UserPreferences {
 
 export class I18nService {
   private static translationsCache: Map<string, Map<string, string>> = new Map();
-  private static languagesCache: Language[] | null = null;
+  private static languagesCache: Language[] = [];
 
   /**
    * Get all supported languages
@@ -266,7 +264,7 @@ export class I18nService {
    */
   static clearCache(): void {
     this.translationsCache.clear();
-    this.languagesCache = null;
+    this.languagesCache = [];
   }
 
   /**

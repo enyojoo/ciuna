@@ -38,7 +38,7 @@ export class TwilioSMSProvider {
       console.error('Twilio SMS error:', error);
       return {
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
@@ -97,7 +97,7 @@ export class SendGridEmailProvider {
       console.error('SendGrid email error:', error);
       return {
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
@@ -151,7 +151,7 @@ export class FCMProvider {
       console.error('FCM push notification error:', error);
       return {
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
@@ -192,7 +192,7 @@ export class FCMProvider {
       console.error('FCM multicast push notification error:', error);
       return {
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }

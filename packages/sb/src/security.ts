@@ -1,7 +1,5 @@
-import { createClient } from './client';
+import { supabase } from './client';
 import { NotificationService } from './notifications';
-
-const supabase = createClient();
 
 export interface TwoFactorAuth {
   id: string;
@@ -346,7 +344,7 @@ export class SecurityService {
   static async logSecurityEvent(
     userId: string | null,
     eventType: string,
-    severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'INFO',
+    severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'LOW',
     description: string,
     ipAddress?: string,
     userAgent?: string,

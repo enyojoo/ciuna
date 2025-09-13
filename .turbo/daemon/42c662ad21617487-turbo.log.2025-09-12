@@ -1,0 +1,173 @@
+2025-09-12T18:21:14.091136Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("node_modules")}
+2025-09-12T18:21:14.091591Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-12T18:21:15.291765Z  WARN daemon_server: turborepo_lib::commands::daemon: daemon already running
+2025-09-12T18:21:38.994898Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web")}
+2025-09-12T18:21:38.994941Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2025-09-12T18:24:29.985483Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\next.config.js")}
+2025-09-12T18:24:29.986207Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2025-09-12T18:24:30.154449Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\next.config.js")}
+2025-09-12T18:24:30.154473Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2025-09-12T18:24:42.373054Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\next.config.js"), AnchoredSystemPathBuf("apps\\web\\components\\navigation.tsx")}
+2025-09-12T18:24:42.373106Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2025-09-12T18:24:42.462346Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\next.config.js")}
+2025-09-12T18:24:42.462371Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2025-09-12T18:25:27.602553Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\app\\layout.tsx")}
+2025-09-12T18:25:27.602605Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2025-09-12T18:25:27.683765Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\app\\layout.tsx")}
+2025-09-12T18:25:27.683800Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2025-09-12T18:29:37.194654Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\ui")}
+2025-09-12T18:29:37.194789Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/ui"), path: AnchoredSystemPathBuf("packages\\ui") }}))
+2025-09-12T18:29:37.901389Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\ui")}
+2025-09-12T18:29:37.901444Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/ui"), path: AnchoredSystemPathBuf("packages\\ui") }}))
+2025-09-12T18:30:02.195281Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\types")}
+2025-09-12T18:30:02.195322Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/types"), path: AnchoredSystemPathBuf("packages\\types") }}))
+2025-09-12T18:30:04.596352Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\types")}
+2025-09-12T18:30:04.596441Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/types"), path: AnchoredSystemPathBuf("packages\\types") }}))
+2025-09-12T18:30:18.888105Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\types\\src\\bookings.ts")}
+2025-09-12T18:30:18.888148Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/types"), path: AnchoredSystemPathBuf("packages\\types") }}))
+2025-09-12T18:30:19.014291Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\types\\src\\bookings.ts")}
+2025-09-12T18:30:19.014314Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/types"), path: AnchoredSystemPathBuf("packages\\types") }}))
+2025-09-12T18:30:36.638904Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\types\\src\\bookings.ts")}
+2025-09-12T18:30:36.638948Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/types"), path: AnchoredSystemPathBuf("packages\\types") }}))
+2025-09-12T18:30:58.556751Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\types\\src\\categories.ts")}
+2025-09-12T18:30:58.556793Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/types"), path: AnchoredSystemPathBuf("packages\\types") }}))
+2025-09-12T18:31:28.829936Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\types\\src\\categories.ts")}
+2025-09-12T18:31:28.830019Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/types"), path: AnchoredSystemPathBuf("packages\\types") }}))
+2025-09-12T18:32:41.986932Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\types\\src\\categories.ts")}
+2025-09-12T18:32:41.986966Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/types"), path: AnchoredSystemPathBuf("packages\\types") }}))
+2025-09-12T18:32:41.987283Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\types\\src\\categories.ts")}
+2025-09-12T18:32:41.987302Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/types"), path: AnchoredSystemPathBuf("packages\\types") }}))
+2025-09-12T18:33:06.712891Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\types\\src\\categories.ts")}
+2025-09-12T18:33:06.712987Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/types"), path: AnchoredSystemPathBuf("packages\\types") }}))
+2025-09-12T18:33:06.914663Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\types\\src\\categories.ts")}
+2025-09-12T18:33:06.914687Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/types"), path: AnchoredSystemPathBuf("packages\\types") }}))
+2025-09-12T18:34:24.698027Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\sb")}
+2025-09-12T18:34:24.698084Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/sb"), path: AnchoredSystemPathBuf("packages\\sb") }}))
+2025-09-12T18:34:25.312796Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\sb")}
+2025-09-12T18:34:25.312829Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/sb"), path: AnchoredSystemPathBuf("packages\\sb") }}))
+2025-09-12T18:34:43.890012Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\sb\\src\\auth.ts")}
+2025-09-12T18:34:43.890052Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/sb"), path: AnchoredSystemPathBuf("packages\\sb") }}))
+2025-09-12T18:35:03.687800Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\sb\\src\\auth.ts")}
+2025-09-12T18:35:03.687836Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/sb"), path: AnchoredSystemPathBuf("packages\\sb") }}))
+2025-09-12T18:35:21.094043Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\sb\\src\\realtime.ts")}
+2025-09-12T18:35:21.094130Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/sb"), path: AnchoredSystemPathBuf("packages\\sb") }}))
+2025-09-12T18:35:48.582076Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\sb\\src\\realtime.ts")}
+2025-09-12T18:35:48.582165Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/sb"), path: AnchoredSystemPathBuf("packages\\sb") }}))
+2025-09-12T18:35:59.493096Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\sb\\src\\realtime.ts")}
+2025-09-12T18:35:59.493160Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/sb"), path: AnchoredSystemPathBuf("packages\\sb") }}))
+2025-09-12T18:36:11.516242Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\sb\\src\\realtime.ts")}
+2025-09-12T18:36:11.516280Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/sb"), path: AnchoredSystemPathBuf("packages\\sb") }}))
+2025-09-12T18:36:50.927153Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\sb\\tsconfig.json")}
+2025-09-12T18:36:50.927198Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/sb"), path: AnchoredSystemPathBuf("packages\\sb") }}))
+2025-09-12T18:37:32.185579Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db")}
+2025-09-12T18:37:32.185659Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T18:37:32.283485Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db")}
+2025-09-12T18:37:32.283601Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T18:38:59.290863Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\app\\(auth)\\signin\\page.tsx")}
+2025-09-12T18:38:59.290906Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2025-09-12T18:39:11.720497Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\app\\(auth)\\signup\\page.tsx")}
+2025-09-12T18:39:11.720532Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2025-09-12T18:39:11.720772Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\app\\(auth)\\signup\\page.tsx")}
+2025-09-12T18:39:11.720791Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2025-09-12T18:39:26.928486Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\app\\admin\\page.tsx")}
+2025-09-12T18:39:26.928521Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2025-09-12T18:39:47.954173Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\app\\inbox\\page.tsx")}
+2025-09-12T18:39:47.954211Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2025-09-12T18:40:05.515093Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\app\\inbox\\page.tsx")}
+2025-09-12T18:40:05.515252Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2025-09-12T18:40:48.183086Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\app\\layout.tsx")}
+2025-09-12T18:40:48.183127Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2025-09-12T18:42:33.693912Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\app\\(auth)\\signin\\page.tsx")}
+2025-09-12T18:42:33.693994Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2025-09-12T18:42:59.267464Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\app\\(auth)\\signup\\page.tsx")}
+2025-09-12T18:42:59.267550Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2025-09-12T19:02:01.434803Z  WARN daemon_server: turborepo_lib::commands::daemon: daemon already running
+2025-09-12T19:02:01.478444Z  WARN daemon_server: turborepo_lib::commands::daemon: daemon already running
+2025-09-12T19:04:24.883743Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:04:24.883808Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:04:25.049538Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:04:25.049562Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:05:48.626583Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:05:48.626632Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:06:06.312747Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:06:06.312836Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:06:06.691219Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:06:06.691246Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:06:09.046283Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db")}
+2025-09-12T19:06:09.046321Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:06:28.930705Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db"), AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:06:28.930899Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:06:30.247277Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:06:30.247314Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:06:30.394384Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:06:30.394423Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:07:03.143106Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db")}
+2025-09-12T19:07:03.143148Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:08:02.870141Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db")}
+2025-09-12T19:08:02.870185Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:09:21.384663Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:09:21.384700Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:09:21.462435Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:09:21.462459Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:10:43.535392Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:10:43.535608Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:10:43.626197Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:10:43.626422Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:10:48.232106Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:10:48.232196Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:11:08.134330Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:11:08.134418Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:11:08.285908Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:11:08.285929Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:12:04.291484Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:12:04.291716Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:12:27.127686Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\package.json")}
+2025-09-12T19:12:27.127721Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:12:27.313723Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\package.json")}
+2025-09-12T19:12:27.313851Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:12:37.167662Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:12:37.167709Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:12:37.167919Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:12:37.167944Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:12:39.154546Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("_tmp_14292_a69d144b475723e8db7e09d3395002a4")}
+2025-09-12T19:12:39.154581Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-12T19:12:39.235148Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(""), AnchoredSystemPathBuf("_tmp_14292_a69d144b475723e8db7e09d3395002a4")}
+2025-09-12T19:12:39.235180Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-12T19:14:19.519156Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("node_modules")}
+2025-09-12T19:14:19.519187Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-12T19:14:19.532377Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\node_modules"), AnchoredSystemPathBuf("apps\\functions\\node_modules"), AnchoredSystemPathBuf("node_modules"), AnchoredSystemPathBuf("packages\\db\\node_modules"), AnchoredSystemPathBuf("packages\\config\\node_modules"), AnchoredSystemPathBuf("apps\\mobile\\node_modules"), AnchoredSystemPathBuf("packages\\ui\\node_modules")}
+2025-09-12T19:14:19.532424Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/functions"), path: AnchoredSystemPathBuf("apps\\functions") }, WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }, WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }, WorkspacePackage { name: Other("@ciuna/mobile"), path: AnchoredSystemPathBuf("apps\\mobile") }, WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }, WorkspacePackage { name: Other("@ciuna/ui"), path: AnchoredSystemPathBuf("packages\\ui") }, WorkspacePackage { name: Other("@ciuna/config"), path: AnchoredSystemPathBuf("packages\\config") }}))
+2025-09-12T19:14:19.645247Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\functions\\node_modules"), AnchoredSystemPathBuf("apps\\mobile\\node_modules")}
+2025-09-12T19:14:19.645311Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/functions"), path: AnchoredSystemPathBuf("apps\\functions") }, WorkspacePackage { name: Other("@ciuna/mobile"), path: AnchoredSystemPathBuf("apps\\mobile") }}))
+2025-09-12T19:14:19.731829Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\ui\\node_modules"), AnchoredSystemPathBuf("apps\\web\\node_modules"), AnchoredSystemPathBuf("packages\\db\\node_modules"), AnchoredSystemPathBuf("apps\\mobile\\node_modules"), AnchoredSystemPathBuf("packages\\sb\\node_modules"), AnchoredSystemPathBuf("packages\\types\\node_modules"), AnchoredSystemPathBuf("packages\\config\\node_modules")}
+2025-09-12T19:14:19.731881Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }, WorkspacePackage { name: Other("@ciuna/mobile"), path: AnchoredSystemPathBuf("apps\\mobile") }, WorkspacePackage { name: Other("@ciuna/ui"), path: AnchoredSystemPathBuf("packages\\ui") }, WorkspacePackage { name: Other("@ciuna/sb"), path: AnchoredSystemPathBuf("packages\\sb") }, WorkspacePackage { name: Other("@ciuna/types"), path: AnchoredSystemPathBuf("packages\\types") }, WorkspacePackage { name: Other("@ciuna/web"), path: AnchoredSystemPathBuf("apps\\web") }, WorkspacePackage { name: Other("@ciuna/config"), path: AnchoredSystemPathBuf("packages\\config") }}))
+2025-09-12T19:14:23.345857Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("pnpm-lock.yaml.1659610827"), AnchoredSystemPathBuf("node_modules")}
+2025-09-12T19:14:23.346318Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-12T19:14:23.450276Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("")}
+2025-09-12T19:14:23.450314Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({}))
+2025-09-12T19:14:24.733285Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(""), AnchoredSystemPathBuf("pnpm-lock.yaml.1659610827"), AnchoredSystemPathBuf("pnpm-lock.yaml")}
+2025-09-12T19:14:24.733320Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-12T19:14:24.827639Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("node_modules")}
+2025-09-12T19:14:24.827708Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-12T19:15:43.630210Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:15:43.630261Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:15:43.739367Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:15:43.739389Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:15:53.083287Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:15:53.083536Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:15:53.282523Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:15:53.282544Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:16:30.935461Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db")}
+2025-09-12T19:16:30.935498Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:18:13.832374Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db")}
+2025-09-12T19:18:13.832415Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:18:30.953195Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:18:30.953232Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:18:34.775383Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:18:34.775477Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:18:34.838267Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:18:34.838290Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:18:50.050725Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:18:50.050815Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))
+2025-09-12T19:18:50.141030Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\db\\tsconfig.json")}
+2025-09-12T19:18:50.141118Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ciuna/db"), path: AnchoredSystemPathBuf("packages\\db") }}))

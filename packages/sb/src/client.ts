@@ -6,6 +6,9 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || 'your-anon-key';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'your-service-role-key';
 
+// Re-export createClient for use in other modules
+export { createClient };
+
 // Create Supabase client for client-side usage
 export const supabase: SupabaseClient<Database> = createClient<Database>(
   supabaseUrl,

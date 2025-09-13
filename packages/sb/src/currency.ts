@@ -1,6 +1,4 @@
-import { createClient } from './client';
-
-const supabase = createClient();
+import { supabase } from './client';
 
 export interface Currency {
   code: string;

@@ -1,6 +1,4 @@
-import { createClient } from './client';
-
-const supabase = createClient();
+import { supabase } from './client';
 
 export interface SearchResult {
   id: string;
@@ -371,7 +369,7 @@ export class SearchService {
         return [];
       }
 
-      return data?.map(item => ({
+      return data?.map((item: any) => ({
         suggestion: item.suggestion_text,
         type: item.suggestion_type,
         score: item.popularity_score,
@@ -400,7 +398,7 @@ export class SearchService {
         return [];
       }
 
-      return data?.map(item => ({
+      return data?.map((item: any) => ({
         suggestion: item.suggestion_text,
         type: item.suggestion_type,
         score: item.popularity_score,
@@ -455,8 +453,8 @@ export class SearchService {
       const { error } = await supabase
         .from('search_suggestions')
         .update({
-          click_count: supabase.raw('click_count + ?', [increment]),
-          popularity_score: supabase.raw('popularity_score + ?', [increment * 0.1]),
+          click_count: `click_count + ${increment}`,
+          popularity_score: `popularity_score + ${increment * 0.1}`,
         })
         .eq('suggestion_text', suggestionText);
 
@@ -552,12 +550,12 @@ export class SearchService {
 
       const searches = data || [];
       const totalSearches = searches.length;
-      const avgResponseTime = searches.reduce((sum, s) => sum + (s.response_time_ms || 0), 0) / totalSearches;
-      const clickThroughRate = searches.filter(s => s.clicked_result_id).length / totalSearches;
+      const avgResponseTime = searches.reduce((sum: number, s: any) => sum + (s.response_time_ms || 0), 0) / totalSearches;
+      const clickThroughRate = searches.filter((s: any) => s.clicked_result_id).length / totalSearches;
 
       // Get top queries
       const queryCounts: { [key: string]: number } = {};
-      searches.forEach(s => {
+      searches.forEach((s: any) => {
         queryCounts[s.query_text] = (queryCounts[s.query_text] || 0) + 1;
       });
 

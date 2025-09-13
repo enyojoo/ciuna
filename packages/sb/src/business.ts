@@ -1,6 +1,4 @@
-import { createClient } from './client';
-
-const supabase = createClient();
+import { supabase } from './client';
 
 export interface SubscriptionPlan {
   id: string;
@@ -665,7 +663,7 @@ export class BusinessService {
         .select('*')
         .eq('user_id', userId)
         .eq('is_active', true)
-        .lte('quantity', supabase.raw('min_quantity'));
+        .lte('quantity', 'min_quantity');
 
       if (error) {
         console.error('Error fetching low inventory alerts:', error);

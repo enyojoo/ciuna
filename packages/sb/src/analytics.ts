@@ -1,6 +1,4 @@
-import { createClient } from './client';
-
-const supabase = createClient();
+import { supabase } from './client';
 
 export interface AnalyticsEvent {
   user_id?: string;
@@ -217,19 +215,19 @@ export class AnalyticsService {
   /**
    * Track an error event
    */
-  static async trackError(error: ErrorEvent): Promise<string | null> {
+  static async trackError(errorEvent: ErrorEvent): Promise<string | null> {
     try {
       const { data, error } = await supabase
         .from('error_events')
         .insert({
-          user_id: error.user_id || null,
-          session_id: error.session_id || null,
-          error_type: error.error_type,
-          error_message: error.error_message,
-          error_stack: error.error_stack || null,
-          page_url: error.page_url || null,
-          user_agent: error.user_agent || null,
-          properties: error.properties || {},
+          user_id: errorEvent.user_id || null,
+          session_id: errorEvent.session_id || null,
+          error_type: errorEvent.error_type,
+          error_message: errorEvent.error_message,
+          error_stack: errorEvent.error_stack || null,
+          page_url: errorEvent.page_url || null,
+          user_agent: errorEvent.user_agent || null,
+          properties: errorEvent.properties || {},
         })
         .select('id')
         .single();
