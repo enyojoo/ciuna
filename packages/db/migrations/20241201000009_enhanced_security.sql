@@ -2,7 +2,7 @@
 -- This migration creates tables for 2FA, KYC, compliance, and advanced security features
 
 -- Create 2FA settings table
-CREATE TABLE two_factor_auth (
+CREATE TABLE IF NOT EXISTS two_factor_auth (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     method TEXT NOT NULL CHECK (method IN ('SMS', 'TOTP', 'EMAIL')),
@@ -18,7 +18,7 @@ CREATE TABLE two_factor_auth (
 );
 
 -- Create 2FA verification attempts table
-CREATE TABLE two_factor_attempts (
+CREATE TABLE IF NOT EXISTS two_factor_attempts (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     method TEXT NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE two_factor_attempts (
 );
 
 -- Create KYC verification table
-CREATE TABLE kyc_verifications (
+CREATE TABLE IF NOT EXISTS kyc_verifications (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'IN_REVIEW', 'APPROVED', 'REJECTED', 'EXPIRED')),
@@ -50,7 +50,7 @@ CREATE TABLE kyc_verifications (
 );
 
 -- Create security events table for audit logging
-CREATE TABLE security_events (
+CREATE TABLE IF NOT EXISTS security_events (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
     event_type TEXT NOT NULL CHECK (event_type IN (
@@ -69,7 +69,7 @@ CREATE TABLE security_events (
 );
 
 -- Create API keys table for programmatic access
-CREATE TABLE api_keys (
+CREATE TABLE IF NOT EXISTS api_keys (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     name TEXT NOT NULL,
@@ -83,7 +83,7 @@ CREATE TABLE api_keys (
 );
 
 -- Create rate limiting table
-CREATE TABLE rate_limits (
+CREATE TABLE IF NOT EXISTS rate_limits (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     identifier TEXT NOT NULL, -- IP address, user ID, or API key
     action TEXT NOT NULL, -- 'LOGIN', 'API_CALL', 'PASSWORD_RESET', etc.
@@ -95,7 +95,7 @@ CREATE TABLE rate_limits (
 );
 
 -- Create fraud detection table
-CREATE TABLE fraud_indicators (
+CREATE TABLE IF NOT EXISTS fraud_indicators (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     indicator_type TEXT NOT NULL CHECK (indicator_type IN (
@@ -112,7 +112,7 @@ CREATE TABLE fraud_indicators (
 );
 
 -- Create data privacy requests table (GDPR compliance)
-CREATE TABLE privacy_requests (
+CREATE TABLE IF NOT EXISTS privacy_requests (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     request_type TEXT NOT NULL CHECK (request_type IN ('DATA_EXPORT', 'DATA_DELETION', 'DATA_RECTIFICATION', 'CONSENT_WITHDRAWAL')),
@@ -128,7 +128,7 @@ CREATE TABLE privacy_requests (
 );
 
 -- Create consent management table
-CREATE TABLE user_consents (
+CREATE TABLE IF NOT EXISTS user_consents (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     consent_type TEXT NOT NULL CHECK (consent_type IN (
@@ -146,65 +146,69 @@ CREATE TABLE user_consents (
 );
 
 -- Add security fields to profiles table
-ALTER TABLE profiles ADD COLUMN security_level TEXT DEFAULT 'STANDARD' CHECK (security_level IN ('BASIC', 'STANDARD', 'HIGH', 'MAXIMUM'));
-ALTER TABLE profiles ADD COLUMN failed_login_attempts INTEGER DEFAULT 0;
-ALTER TABLE profiles ADD COLUMN locked_until TIMESTAMPTZ;
-ALTER TABLE profiles ADD COLUMN last_login_at TIMESTAMPTZ;
-ALTER TABLE profiles ADD COLUMN last_login_ip INET;
-ALTER TABLE profiles ADD COLUMN password_changed_at TIMESTAMPTZ;
-ALTER TABLE profiles ADD COLUMN email_verified_at TIMESTAMPTZ;
-ALTER TABLE profiles ADD COLUMN phone_verified_at TIMESTAMPTZ;
-ALTER TABLE profiles ADD COLUMN kyc_verified_at TIMESTAMPTZ;
-ALTER TABLE profiles ADD COLUMN risk_score INTEGER DEFAULT 0 CHECK (risk_score >= 0 AND risk_score <= 100);
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS security_level TEXT DEFAULT 'STANDARD' CHECK (security_level IN ('BASIC', 'STANDARD', 'HIGH', 'MAXIMUM'));
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS last_login_ip INET;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMPTZ;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMPTZ;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone_verified_at TIMESTAMPTZ;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS kyc_verified_at TIMESTAMPTZ;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS risk_score INTEGER DEFAULT 0 CHECK (risk_score >= 0 AND risk_score <= 100);
 
 -- Create indexes for performance
-CREATE INDEX idx_two_factor_auth_user_id ON two_factor_auth(user_id);
-CREATE INDEX idx_two_factor_auth_method ON two_factor_auth(method);
-CREATE INDEX idx_two_factor_attempts_user_id ON two_factor_attempts(user_id);
-CREATE INDEX idx_two_factor_attempts_created_at ON two_factor_attempts(created_at);
+CREATE INDEX IF NOT EXISTS idx_two_factor_auth_user_id ON two_factor_auth(user_id);
+CREATE INDEX IF NOT EXISTS idx_two_factor_auth_method ON two_factor_auth(method);
+CREATE INDEX IF NOT EXISTS idx_two_factor_attempts_user_id ON two_factor_attempts(user_id);
+CREATE INDEX IF NOT EXISTS idx_two_factor_attempts_created_at ON two_factor_attempts(created_at);
 
-CREATE INDEX idx_kyc_verifications_user_id ON kyc_verifications(user_id);
-CREATE INDEX idx_kyc_verifications_status ON kyc_verifications(status);
-CREATE INDEX idx_kyc_verifications_type ON kyc_verifications(verification_type);
+CREATE INDEX IF NOT EXISTS idx_kyc_verifications_user_id ON kyc_verifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_kyc_verifications_status ON kyc_verifications(status);
+CREATE INDEX IF NOT EXISTS idx_kyc_verifications_type ON kyc_verifications(verification_type);
 
-CREATE INDEX idx_security_events_user_id ON security_events(user_id);
-CREATE INDEX idx_security_events_type ON security_events(event_type);
-CREATE INDEX idx_security_events_severity ON security_events(severity);
-CREATE INDEX idx_security_events_created_at ON security_events(created_at);
+CREATE INDEX IF NOT EXISTS idx_security_events_user_id ON security_events(user_id);
+CREATE INDEX IF NOT EXISTS idx_security_events_type ON security_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_security_events_severity ON security_events(severity);
+CREATE INDEX IF NOT EXISTS idx_security_events_created_at ON security_events(created_at);
 
-CREATE INDEX idx_api_keys_user_id ON api_keys(user_id);
-CREATE INDEX idx_api_keys_key_hash ON api_keys(key_hash);
-CREATE INDEX idx_api_keys_active ON api_keys(is_active);
+CREATE INDEX IF NOT EXISTS idx_api_keys_user_id ON api_keys(user_id);
+CREATE INDEX IF NOT EXISTS idx_api_keys_key_hash ON api_keys(key_hash);
+CREATE INDEX IF NOT EXISTS idx_api_keys_active ON api_keys(is_active);
 
-CREATE INDEX idx_rate_limits_identifier ON rate_limits(identifier);
-CREATE INDEX idx_rate_limits_action ON rate_limits(action);
-CREATE INDEX idx_rate_limits_expires_at ON rate_limits(expires_at);
+CREATE INDEX IF NOT EXISTS idx_rate_limits_identifier ON rate_limits(identifier);
+CREATE INDEX IF NOT EXISTS idx_rate_limits_action ON rate_limits(action);
+CREATE INDEX IF NOT EXISTS idx_rate_limits_expires_at ON rate_limits(expires_at);
 
-CREATE INDEX idx_fraud_indicators_user_id ON fraud_indicators(user_id);
-CREATE INDEX idx_fraud_indicators_type ON fraud_indicators(indicator_type);
-CREATE INDEX idx_fraud_indicators_resolved ON fraud_indicators(is_resolved);
+CREATE INDEX IF NOT EXISTS idx_fraud_indicators_user_id ON fraud_indicators(user_id);
+CREATE INDEX IF NOT EXISTS idx_fraud_indicators_type ON fraud_indicators(indicator_type);
+CREATE INDEX IF NOT EXISTS idx_fraud_indicators_resolved ON fraud_indicators(is_resolved);
 
-CREATE INDEX idx_privacy_requests_user_id ON privacy_requests(user_id);
-CREATE INDEX idx_privacy_requests_type ON privacy_requests(request_type);
-CREATE INDEX idx_privacy_requests_status ON privacy_requests(status);
+CREATE INDEX IF NOT EXISTS idx_privacy_requests_user_id ON privacy_requests(user_id);
+CREATE INDEX IF NOT EXISTS idx_privacy_requests_type ON privacy_requests(request_type);
+CREATE INDEX IF NOT EXISTS idx_privacy_requests_status ON privacy_requests(status);
 
-CREATE INDEX idx_user_consents_user_id ON user_consents(user_id);
-CREATE INDEX idx_user_consents_type ON user_consents(consent_type);
-CREATE INDEX idx_user_consents_granted ON user_consents(granted);
+CREATE INDEX IF NOT EXISTS idx_user_consents_user_id ON user_consents(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_consents_type ON user_consents(consent_type);
+CREATE INDEX IF NOT EXISTS idx_user_consents_granted ON user_consents(granted);
 
--- Add triggers for updated_at columns
+-- Add triggers for updated_at columns (drop first to avoid conflicts)
+DROP TRIGGER IF EXISTS update_two_factor_auth_updated_at ON two_factor_auth;
 CREATE TRIGGER update_two_factor_auth_updated_at 
     BEFORE UPDATE ON two_factor_auth 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_kyc_verifications_updated_at ON kyc_verifications;
 CREATE TRIGGER update_kyc_verifications_updated_at 
     BEFORE UPDATE ON kyc_verifications 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_api_keys_updated_at ON api_keys;
 CREATE TRIGGER update_api_keys_updated_at 
     BEFORE UPDATE ON api_keys 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_privacy_requests_updated_at ON privacy_requests;
 CREATE TRIGGER update_privacy_requests_updated_at 
     BEFORE UPDATE ON privacy_requests 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -239,7 +243,7 @@ CREATE POLICY "Admins can manage all KYC data" ON kyc_verifications
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
+            AND profiles.role = 'ADMIN'
         )
     );
 
@@ -252,7 +256,7 @@ CREATE POLICY "Admins can view all security events" ON security_events
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
+            AND profiles.role = 'ADMIN'
         )
     );
 
@@ -270,7 +274,7 @@ CREATE POLICY "Only admins can access fraud indicators" ON fraud_indicators
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
+            AND profiles.role = 'ADMIN'
         )
     );
 
@@ -320,8 +324,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION log_security_event(
     p_user_id UUID,
     p_event_type TEXT,
-    p_severity TEXT DEFAULT 'INFO',
     p_description TEXT,
+    p_severity TEXT DEFAULT 'INFO',
     p_ip_address INET DEFAULT NULL,
     p_user_agent TEXT DEFAULT NULL,
     p_location_data JSONB DEFAULT '{}',

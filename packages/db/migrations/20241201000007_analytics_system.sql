@@ -2,7 +2,7 @@
 -- This migration creates tables for tracking user behavior, system metrics, and business analytics
 
 -- Create analytics events table for tracking user actions
-CREATE TABLE analytics_events (
+CREATE TABLE IF NOT EXISTS analytics_events (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
     session_id TEXT,
@@ -25,7 +25,7 @@ CREATE TABLE analytics_events (
 );
 
 -- Create page views table for detailed page tracking
-CREATE TABLE page_views (
+CREATE TABLE IF NOT EXISTS page_views (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
     session_id TEXT,
@@ -45,7 +45,7 @@ CREATE TABLE page_views (
 );
 
 -- Create conversion events table for tracking business metrics
-CREATE TABLE conversion_events (
+CREATE TABLE IF NOT EXISTS conversion_events (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
     session_id TEXT,
@@ -62,7 +62,7 @@ CREATE TABLE conversion_events (
 );
 
 -- Create system metrics table for monitoring
-CREATE TABLE system_metrics (
+CREATE TABLE IF NOT EXISTS system_metrics (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     metric_name TEXT NOT NULL,
     metric_value NUMERIC NOT NULL,
@@ -72,7 +72,7 @@ CREATE TABLE system_metrics (
 );
 
 -- Create user sessions table for session tracking
-CREATE TABLE user_sessions (
+CREATE TABLE IF NOT EXISTS user_sessions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
     session_id TEXT UNIQUE NOT NULL,
@@ -93,7 +93,7 @@ CREATE TABLE user_sessions (
 );
 
 -- Create performance metrics table
-CREATE TABLE performance_metrics (
+CREATE TABLE IF NOT EXISTS performance_metrics (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     page_path TEXT,
     load_time_ms INTEGER,
@@ -110,7 +110,7 @@ CREATE TABLE performance_metrics (
 );
 
 -- Create error tracking table
-CREATE TABLE error_events (
+CREATE TABLE IF NOT EXISTS error_events (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
     session_id TEXT,
@@ -125,35 +125,35 @@ CREATE TABLE error_events (
 );
 
 -- Create indexes for performance
-CREATE INDEX idx_analytics_events_user_id ON analytics_events(user_id);
-CREATE INDEX idx_analytics_events_type ON analytics_events(event_type);
-CREATE INDEX idx_analytics_events_category ON analytics_events(event_category);
-CREATE INDEX idx_analytics_events_created_at ON analytics_events(created_at);
-CREATE INDEX idx_analytics_events_session_id ON analytics_events(session_id);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_user_id ON analytics_events(user_id);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_type ON analytics_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_category ON analytics_events(event_category);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_created_at ON analytics_events(created_at);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_session_id ON analytics_events(session_id);
 
-CREATE INDEX idx_page_views_user_id ON page_views(user_id);
-CREATE INDEX idx_page_views_path ON page_views(page_path);
-CREATE INDEX idx_page_views_created_at ON page_views(created_at);
-CREATE INDEX idx_page_views_session_id ON page_views(session_id);
+CREATE INDEX IF NOT EXISTS idx_page_views_user_id ON page_views(user_id);
+CREATE INDEX IF NOT EXISTS idx_page_views_path ON page_views(page_path);
+CREATE INDEX IF NOT EXISTS idx_page_views_created_at ON page_views(created_at);
+CREATE INDEX IF NOT EXISTS idx_page_views_session_id ON page_views(session_id);
 
-CREATE INDEX idx_conversion_events_user_id ON conversion_events(user_id);
-CREATE INDEX idx_conversion_events_type ON conversion_events(conversion_type);
-CREATE INDEX idx_conversion_events_created_at ON conversion_events(created_at);
-CREATE INDEX idx_conversion_events_session_id ON conversion_events(session_id);
+CREATE INDEX IF NOT EXISTS idx_conversion_events_user_id ON conversion_events(user_id);
+CREATE INDEX IF NOT EXISTS idx_conversion_events_type ON conversion_events(conversion_type);
+CREATE INDEX IF NOT EXISTS idx_conversion_events_created_at ON conversion_events(created_at);
+CREATE INDEX IF NOT EXISTS idx_conversion_events_session_id ON conversion_events(session_id);
 
-CREATE INDEX idx_system_metrics_name ON system_metrics(metric_name);
-CREATE INDEX idx_system_metrics_timestamp ON system_metrics(timestamp);
+CREATE INDEX IF NOT EXISTS idx_system_metrics_name ON system_metrics(metric_name);
+CREATE INDEX IF NOT EXISTS idx_system_metrics_timestamp ON system_metrics(timestamp);
 
-CREATE INDEX idx_user_sessions_user_id ON user_sessions(user_id);
-CREATE INDEX idx_user_sessions_session_id ON user_sessions(session_id);
-CREATE INDEX idx_user_sessions_started_at ON user_sessions(started_at);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_session_id ON user_sessions(session_id);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_started_at ON user_sessions(started_at);
 
-CREATE INDEX idx_performance_metrics_path ON performance_metrics(page_path);
-CREATE INDEX idx_performance_metrics_created_at ON performance_metrics(created_at);
+CREATE INDEX IF NOT EXISTS idx_performance_metrics_path ON performance_metrics(page_path);
+CREATE INDEX IF NOT EXISTS idx_performance_metrics_created_at ON performance_metrics(created_at);
 
-CREATE INDEX idx_error_events_type ON error_events(error_type);
-CREATE INDEX idx_error_events_created_at ON error_events(created_at);
-CREATE INDEX idx_error_events_resolved ON error_events(resolved);
+CREATE INDEX IF NOT EXISTS idx_error_events_type ON error_events(error_type);
+CREATE INDEX IF NOT EXISTS idx_error_events_created_at ON error_events(created_at);
+CREATE INDEX IF NOT EXISTS idx_error_events_resolved ON error_events(resolved);
 
 -- Create RLS policies
 ALTER TABLE analytics_events ENABLE ROW LEVEL SECURITY;
@@ -173,7 +173,7 @@ CREATE POLICY "Admins can view all analytics events" ON analytics_events
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
+            AND profiles.role = 'ADMIN'
         )
     );
 
@@ -186,7 +186,7 @@ CREATE POLICY "Admins can view all page views" ON page_views
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
+            AND profiles.role = 'ADMIN'
         )
     );
 
@@ -199,7 +199,7 @@ CREATE POLICY "Admins can view all conversion events" ON conversion_events
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
+            AND profiles.role = 'ADMIN'
         )
     );
 
@@ -209,7 +209,7 @@ CREATE POLICY "Only admins can access system metrics" ON system_metrics
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
+            AND profiles.role = 'ADMIN'
         )
     );
 
@@ -222,7 +222,7 @@ CREATE POLICY "Admins can view all sessions" ON user_sessions
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
+            AND profiles.role = 'ADMIN'
         )
     );
 
@@ -232,7 +232,7 @@ CREATE POLICY "Only admins can access performance metrics" ON performance_metric
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
+            AND profiles.role = 'ADMIN'
         )
     );
 
@@ -245,9 +245,14 @@ CREATE POLICY "Admins can view all error events" ON error_events
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
+            AND profiles.role = 'ADMIN'
         )
     );
+
+-- Drop existing functions to avoid conflicts
+DROP FUNCTION IF EXISTS track_event(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, NUMERIC, JSONB, TEXT, TEXT, TEXT, INET, TEXT, TEXT, TEXT, TEXT, TEXT);
+DROP FUNCTION IF EXISTS track_conversion(UUID, TEXT, TEXT, NUMERIC, TEXT, UUID, TEXT, JSONB);
+DROP FUNCTION IF EXISTS get_analytics_dashboard_data(TIMESTAMPTZ, TIMESTAMPTZ);
 
 -- Create functions for analytics
 CREATE OR REPLACE FUNCTION track_event(

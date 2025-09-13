@@ -24,7 +24,11 @@ ALTER TABLE orders ADD COLUMN currency currency_code DEFAULT 'RUB';
 ALTER TABLE orders ADD COLUMN total_amount_original INTEGER;
 ALTER TABLE orders ADD COLUMN exchange_rate DECIMAL(10,6) DEFAULT 1.0;
 
-ALTER TABLE payments ADD COLUMN currency currency_code DEFAULT 'RUB';
+-- Alter existing currency column to use currency_code type
+-- First, drop the default constraint, then alter the type, then add the new default
+ALTER TABLE payments ALTER COLUMN currency DROP DEFAULT;
+ALTER TABLE payments ALTER COLUMN currency TYPE currency_code USING currency::currency_code;
+ALTER TABLE payments ALTER COLUMN currency SET DEFAULT 'RUB';
 ALTER TABLE payments ADD COLUMN amount_original INTEGER;
 ALTER TABLE payments ADD COLUMN exchange_rate DECIMAL(10,6) DEFAULT 1.0;
 
@@ -133,10 +137,7 @@ INSERT INTO exchange_rates (from_currency, to_currency, rate, source) VALUES
 ('RUB', 'CAD', 0.017, 'api'),
 ('RUB', 'AUD', 0.018, 'api'),
 
--- Add reverse rates for all pairs
-('EUR', 'USD', 1.18, 'api'),
-('GBP', 'USD', 1.37, 'api'),
-('RUB', 'USD', 0.013, 'api'),
+-- Add reverse rates for remaining pairs (avoiding duplicates)
 ('JPY', 'USD', 0.009, 'api'),
 ('CAD', 'USD', 0.80, 'api'),
 ('AUD', 'USD', 0.74, 'api'),

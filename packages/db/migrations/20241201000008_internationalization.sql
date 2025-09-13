@@ -2,7 +2,7 @@
 -- This migration creates tables for managing multi-language content and user language preferences
 
 -- Create languages table
-CREATE TABLE languages (
+CREATE TABLE IF NOT EXISTS languages (
     id SERIAL PRIMARY KEY,
     code TEXT UNIQUE NOT NULL CHECK (LENGTH(code) = 2),
     name TEXT NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE languages (
 );
 
 -- Create translations table for dynamic content
-CREATE TABLE translations (
+CREATE TABLE IF NOT EXISTS translations (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     key TEXT NOT NULL,
     language_code TEXT NOT NULL REFERENCES languages(code) ON DELETE CASCADE,
@@ -27,7 +27,7 @@ CREATE TABLE translations (
 );
 
 -- Create localized content table for user-generated content
-CREATE TABLE localized_content (
+CREATE TABLE IF NOT EXISTS localized_content (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     content_type TEXT NOT NULL CHECK (content_type IN (
         'listing_title', 'listing_description', 'vendor_name', 'vendor_description',
@@ -43,39 +43,42 @@ CREATE TABLE localized_content (
 );
 
 -- Add language preference to profiles
-ALTER TABLE profiles ADD COLUMN preferred_language TEXT REFERENCES languages(code) DEFAULT 'en';
-ALTER TABLE profiles ADD COLUMN timezone TEXT DEFAULT 'UTC';
-ALTER TABLE profiles ADD COLUMN date_format TEXT DEFAULT 'MM/DD/YYYY';
-ALTER TABLE profiles ADD COLUMN time_format TEXT DEFAULT '12h';
-ALTER TABLE profiles ADD COLUMN currency_code TEXT DEFAULT 'RUB';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS preferred_language TEXT REFERENCES languages(code) DEFAULT 'en';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'UTC';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS date_format TEXT DEFAULT 'MM/DD/YYYY';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS time_format TEXT DEFAULT '12h';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS currency_code TEXT DEFAULT 'RUB';
 
 -- Create indexes for performance
-CREATE INDEX idx_languages_code ON languages(code);
-CREATE INDEX idx_languages_active ON languages(is_active);
+CREATE INDEX IF NOT EXISTS idx_languages_code ON languages(code);
+CREATE INDEX IF NOT EXISTS idx_languages_active ON languages(is_active);
 
-CREATE INDEX idx_translations_key ON translations(key);
-CREATE INDEX idx_translations_language ON translations(language_code);
-CREATE INDEX idx_translations_namespace ON translations(namespace);
-CREATE INDEX idx_translations_key_language_namespace ON translations(key, language_code, namespace);
+CREATE INDEX IF NOT EXISTS idx_translations_key ON translations(key);
+CREATE INDEX IF NOT EXISTS idx_translations_language ON translations(language_code);
+CREATE INDEX IF NOT EXISTS idx_translations_namespace ON translations(namespace);
+CREATE INDEX IF NOT EXISTS idx_translations_key_language_namespace ON translations(key, language_code, namespace);
 
-CREATE INDEX idx_localized_content_type_id ON localized_content(content_type, content_id);
-CREATE INDEX idx_localized_content_language ON localized_content(language_code);
-CREATE INDEX idx_localized_content_type_language ON localized_content(content_type, language_code);
+CREATE INDEX IF NOT EXISTS idx_localized_content_type_id ON localized_content(content_type, content_id);
+CREATE INDEX IF NOT EXISTS idx_localized_content_language ON localized_content(language_code);
+CREATE INDEX IF NOT EXISTS idx_localized_content_type_language ON localized_content(content_type, language_code);
 
--- Add triggers for updated_at columns
+-- Add triggers for updated_at columns (drop first to avoid conflicts)
+DROP TRIGGER IF EXISTS update_languages_updated_at ON languages;
 CREATE TRIGGER update_languages_updated_at 
     BEFORE UPDATE ON languages 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_translations_updated_at ON translations;
 CREATE TRIGGER update_translations_updated_at 
     BEFORE UPDATE ON translations 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_localized_content_updated_at ON localized_content;
 CREATE TRIGGER update_localized_content_updated_at 
     BEFORE UPDATE ON localized_content 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Insert supported languages
+-- Insert supported languages (ignore conflicts)
 INSERT INTO languages (code, name, native_name, rtl, is_active) VALUES
 ('en', 'English', 'English', FALSE, TRUE),
 ('ru', 'Russian', 'Русский', FALSE, TRUE),
@@ -91,9 +94,10 @@ INSERT INTO languages (code, name, native_name, rtl, is_active) VALUES
 ('hi', 'Hindi', 'हिन्दी', FALSE, TRUE),
 ('tr', 'Turkish', 'Türkçe', FALSE, TRUE),
 ('pl', 'Polish', 'Polski', FALSE, TRUE),
-('nl', 'Dutch', 'Nederlands', FALSE, TRUE);
+('nl', 'Dutch', 'Nederlands', FALSE, TRUE)
+ON CONFLICT (code) DO NOTHING;
 
--- Insert common translations
+-- Insert common translations (ignore conflicts)
 INSERT INTO translations (key, language_code, namespace, value) VALUES
 -- Common UI elements
 ('common.loading', 'en', 'common', 'Loading...'),
@@ -105,7 +109,7 @@ INSERT INTO translations (key, language_code, namespace, value) VALUES
 ('common.error', 'en', 'common', 'An error occurred'),
 ('common.error', 'ru', 'common', 'Произошла ошибка'),
 ('common.error', 'de', 'common', 'Ein Fehler ist aufgetreten'),
-('common.error', 'fr', 'common', 'Une erreur s\'est produite'),
+('common.error', 'fr', 'common', 'Une erreur s''est produite'),
 ('common.error', 'es', 'common', 'Ocurrió un error'),
 
 ('common.success', 'en', 'common', 'Success'),
@@ -197,7 +201,7 @@ INSERT INTO translations (key, language_code, namespace, value) VALUES
 ('auth.signup', 'en', 'auth', 'Sign Up'),
 ('auth.signup', 'ru', 'auth', 'Регистрация'),
 ('auth.signup', 'de', 'auth', 'Registrieren'),
-('auth.signup', 'fr', 'auth', 'S\'inscrire'),
+('auth.signup', 'fr', 'auth', 'S''inscrire'),
 ('auth.signup', 'es', 'auth', 'Registrarse'),
 
 ('auth.signout', 'en', 'auth', 'Sign Out'),
@@ -241,7 +245,8 @@ INSERT INTO translations (key, language_code, namespace, value) VALUES
 ('marketplace.currency', 'ru', 'marketplace', 'Валюта'),
 ('marketplace.currency', 'de', 'marketplace', 'Währung'),
 ('marketplace.currency', 'fr', 'marketplace', 'Devise'),
-('marketplace.currency', 'es', 'marketplace', 'Moneda'),
+('marketplace.currency', 'es', 'marketplace', 'Moneda')
+ON CONFLICT (key, language_code, namespace) DO NOTHING;
 
 -- Create RLS policies
 ALTER TABLE languages ENABLE ROW LEVEL SECURITY;
@@ -259,6 +264,11 @@ CREATE POLICY "Translations are publicly readable" ON translations
 -- Localized content: public read access
 CREATE POLICY "Localized content is publicly readable" ON localized_content
     FOR SELECT USING (true);
+
+-- Drop existing functions to avoid conflicts
+DROP FUNCTION IF EXISTS get_translation(TEXT, TEXT, TEXT);
+DROP FUNCTION IF EXISTS get_localized_content(TEXT, UUID, TEXT, TEXT);
+DROP FUNCTION IF EXISTS set_localized_content(TEXT, UUID, TEXT, TEXT, TEXT);
 
 -- Create functions for i18n
 CREATE OR REPLACE FUNCTION get_translation(
@@ -291,8 +301,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION get_localized_content(
     p_content_type TEXT,
     p_content_id UUID,
-    p_language_code TEXT DEFAULT 'en',
-    p_field_name TEXT
+    p_field_name TEXT,
+    p_language_code TEXT DEFAULT 'en'
 ) RETURNS TEXT AS $$
 DECLARE
     content_value TEXT;

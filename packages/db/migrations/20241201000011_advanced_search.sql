@@ -37,7 +37,7 @@ CREATE TABLE search_suggestions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     suggestion_text TEXT NOT NULL,
     suggestion_type TEXT NOT NULL CHECK (suggestion_type IN ('AUTOCOMPLETE', 'POPULAR', 'TRENDING', 'CATEGORY', 'LOCATION')),
-    category_id UUID REFERENCES categories(id) ON DELETE CASCADE,
+    category_id BIGINT REFERENCES categories(id) ON DELETE CASCADE,
     location_data JSONB DEFAULT '{}',
     popularity_score NUMERIC(5,2) DEFAULT 0,
     click_count INTEGER DEFAULT 0,
@@ -473,7 +473,7 @@ CREATE POLICY "Admins can view all search queries" ON search_queries
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
+            AND profiles.role = 'ADMIN'
         )
     );
 
@@ -499,6 +499,6 @@ CREATE POLICY "Admins can view search analytics" ON search_analytics
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
+            AND profiles.role = 'ADMIN'
         )
     );

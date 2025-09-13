@@ -2,7 +2,7 @@
 -- This migration creates tables for YooMoney, Stripe, and cash payment processing
 
 -- Create payment providers table
-CREATE TABLE payment_providers (
+CREATE TABLE IF NOT EXISTS payment_providers (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     display_name TEXT NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE payment_providers (
 );
 
 -- Create payment methods table
-CREATE TABLE payment_methods (
+CREATE TABLE IF NOT EXISTS payment_methods (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     provider_id UUID REFERENCES payment_providers(id) ON DELETE CASCADE NOT NULL,
@@ -31,7 +31,7 @@ CREATE TABLE payment_methods (
 );
 
 -- Create payment transactions table
-CREATE TABLE payment_transactions (
+CREATE TABLE IF NOT EXISTS payment_transactions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
@@ -105,18 +105,8 @@ CREATE TABLE payment_disputes (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Create exchange rates table for currency conversion
-CREATE TABLE exchange_rates (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    from_currency TEXT NOT NULL,
-    to_currency TEXT NOT NULL,
-    rate NUMERIC(10, 6) NOT NULL,
-    provider TEXT NOT NULL DEFAULT 'MANUAL',
-    valid_from TIMESTAMPTZ DEFAULT NOW(),
-    valid_until TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(from_currency, to_currency, valid_from)
-);
+-- Exchange rates table already exists from multi-currency support migration
+-- No need to recreate it
 
 -- Add payment-related fields to orders table
 ALTER TABLE orders ADD COLUMN payment_status TEXT DEFAULT 'PENDING' CHECK (payment_status IN (
@@ -153,8 +143,7 @@ CREATE INDEX idx_payment_webhooks_created_at ON payment_webhooks(created_at);
 CREATE INDEX idx_payment_disputes_transaction_id ON payment_disputes(transaction_id);
 CREATE INDEX idx_payment_disputes_status ON payment_disputes(status);
 
-CREATE INDEX idx_exchange_rates_from_to ON exchange_rates(from_currency, to_currency);
-CREATE INDEX idx_exchange_rates_valid_from ON exchange_rates(valid_from);
+-- Exchange rates indexes already created in multi-currency migration
 
 -- Add triggers for updated_at columns
 CREATE TRIGGER update_payment_providers_updated_at 
@@ -191,7 +180,7 @@ ALTER TABLE payment_transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE escrow_accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payment_webhooks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payment_disputes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE exchange_rates ENABLE ROW LEVEL SECURITY;
+-- Exchange rates RLS already enabled in multi-currency migration
 
 -- Payment providers: public read access
 CREATE POLICY "Payment providers are publicly readable" ON payment_providers
@@ -210,7 +199,7 @@ CREATE POLICY "Admins can view all transactions" ON payment_transactions
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
+            AND profiles.role = 'ADMIN'
         )
     );
 
@@ -237,13 +226,11 @@ CREATE POLICY "Admins can manage all disputes" ON payment_disputes
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE profiles.id = auth.uid() 
-            AND profiles.role = 'admin'
+            AND profiles.role = 'ADMIN'
         )
     );
 
--- Exchange rates: public read access
-CREATE POLICY "Exchange rates are publicly readable" ON exchange_rates
-    FOR SELECT USING (true);
+-- Exchange rates RLS policy already exists in multi-currency migration
 
 -- Create payment functions
 CREATE OR REPLACE FUNCTION create_payment_transaction(
@@ -315,33 +302,5 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION get_exchange_rate(
-    p_from_currency TEXT,
-    p_to_currency TEXT,
-    p_date TIMESTAMPTZ DEFAULT NOW()
-) RETURNS NUMERIC AS $$
-DECLARE
-    exchange_rate NUMERIC;
-BEGIN
-    -- Get the most recent exchange rate
-    SELECT rate INTO exchange_rate
-    FROM exchange_rates
-    WHERE from_currency = p_from_currency 
-    AND to_currency = p_to_currency
-    AND valid_from <= p_date
-    AND (valid_until IS NULL OR valid_until >= p_date)
-    ORDER BY valid_from DESC
-    LIMIT 1;
-    
-    -- If no rate found, return 1 (same currency) or NULL
-    IF exchange_rate IS NULL THEN
-        IF p_from_currency = p_to_currency THEN
-            RETURN 1.0;
-        ELSE
-            RETURN NULL;
-        END IF;
-    END IF;
-    
-    RETURN exchange_rate;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+-- Exchange rate function already exists from multi-currency support migration
+-- The existing function handles TEXT to currency_code conversion automatically
