@@ -11,7 +11,7 @@
     "NEXT_PUBLIC_APP_NAME": "Ciuna"
   },
   "functions": {
-    "apps/web/app/api/**/*.ts": {
+    "app/api/**/*.ts": {
       "maxDuration": 30
     }
   },
