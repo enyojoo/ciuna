@@ -6,7 +6,7 @@ import { Button } from '@ciuna/ui';
 import { Badge } from '@ciuna/ui';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@ciuna/ui';
 import { PaymentService, PaymentMethod, PaymentTransaction, PaymentProvider } from '@ciuna/sb';
-import { useAuth } from '../lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '../contexts/i18n-context';
 import { 
   CreditCard, 

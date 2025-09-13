@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ciun
 import { Button } from '@ciuna/ui';
 import { Badge } from '@ciuna/ui';
 import { BusinessService, SubscriptionPlan, UserSubscription } from '@ciuna/sb';
-import { useAuth } from '../lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '../contexts/i18n-context';
 import { 
   Check, 

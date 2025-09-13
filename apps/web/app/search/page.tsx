@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ciuna/ui';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@ciuna/ui';
 import { SearchService, SearchResult, SearchSuggestion } from '@ciuna/sb';
-import { useAuth } from '../lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
 import AdvancedSearch from '../../components/advanced-search';
 import SearchResults from '../../components/search-results';
 import { 

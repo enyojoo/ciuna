@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '../lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, Avatar, Badge, Button } from '@ciuna/ui';
 import { 
   MessageCircle, 
@@ -14,7 +14,7 @@ import {
   Video
 } from 'lucide-react';
 import { db } from '@ciuna/sb';
-import { formatRelativeTime } from '../lib/utils';
+import { formatRelativeTime } from '@/lib/utils';
 import type { ConversationWithParticipants, MessageWithSender } from '@ciuna/types';
 
 export default function InboxPage() {
