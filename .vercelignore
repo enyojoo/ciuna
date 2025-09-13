@@ -123,10 +123,9 @@ docs/
 .git/
 .gitignore
 
-# Package manager files
+# Package manager files (keep pnpm-lock.yaml for Vercel)
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
 
 # Turbo
 .turbo/
