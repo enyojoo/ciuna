@@ -5,7 +5,7 @@
 CREATE TABLE search_indexes (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     index_name TEXT NOT NULL UNIQUE,
-    index_type TEXT NOT NULL CHECK (index_type IN ('LISTINGS', 'VENDORS', 'SERVICES', 'USERS', 'PRODUCTS')),
+    index_type TEXT NOT NULL CHECK (index_type IN ('LISTINGS', 'VENDORS', 'SERVICES', 'USERS')),
     elasticsearch_index TEXT NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     last_updated TIMESTAMPTZ DEFAULT NOW(),
@@ -81,7 +81,7 @@ CREATE TABLE search_recommendations (
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     recommendation_type TEXT NOT NULL CHECK (recommendation_type IN ('SIMILAR', 'TRENDING', 'PERSONALIZED', 'CATEGORY', 'LOCATION')),
     target_id UUID NOT NULL, -- ID of the item being recommended
-    target_type TEXT NOT NULL CHECK (target_type IN ('LISTING', 'VENDOR', 'SERVICE', 'PRODUCT')),
+    target_type TEXT NOT NULL CHECK (target_type IN ('LISTING', 'VENDOR', 'SERVICE')),
     score NUMERIC(5,4) DEFAULT 0,
     reason TEXT,
     metadata JSONB DEFAULT '{}',
@@ -118,9 +118,7 @@ ALTER TABLE services ADD COLUMN search_vector tsvector;
 ALTER TABLE services ADD COLUMN search_keywords TEXT[];
 ALTER TABLE services ADD COLUMN search_metadata JSONB DEFAULT '{}';
 
-ALTER TABLE products ADD COLUMN search_vector tsvector;
-ALTER TABLE products ADD COLUMN search_keywords TEXT[];
-ALTER TABLE products ADD COLUMN search_metadata JSONB DEFAULT '{}';
+-- Products table doesn't exist in current schema - using vendor_products instead
 
 -- Create indexes for performance
 CREATE INDEX idx_search_indexes_type ON search_indexes(index_type);
@@ -160,8 +158,7 @@ CREATE INDEX idx_vendors_search_keywords ON vendors USING gin(search_keywords);
 CREATE INDEX idx_services_search_vector ON services USING gin(search_vector);
 CREATE INDEX idx_services_search_keywords ON services USING gin(search_keywords);
 
-CREATE INDEX idx_products_search_vector ON products USING gin(search_vector);
-CREATE INDEX idx_products_search_keywords ON products USING gin(search_keywords);
+-- Products table doesn't exist - indexes removed
 
 -- Add triggers for updated_at columns
 CREATE TRIGGER update_search_indexes_updated_at 
@@ -239,24 +236,7 @@ BEGIN
         );
     END IF;
 
-    -- Update search vector for products
-    IF TG_TABLE_NAME = 'products' THEN
-        NEW.search_vector := to_tsvector('english',
-            COALESCE(NEW.name, '') || ' ' ||
-            COALESCE(NEW.description, '') || ' ' ||
-            COALESCE(NEW.brand, '') || ' ' ||
-            COALESCE(NEW.category_name, '')
-        );
-        NEW.search_keywords := string_to_array(
-            lower(regexp_replace(
-                COALESCE(NEW.name, '') || ' ' ||
-                COALESCE(NEW.description, '') || ' ' ||
-                COALESCE(NEW.brand, '') || ' ' ||
-                COALESCE(NEW.category_name, ''),
-                '[^a-zA-Z0-9\s]', '', 'g'
-            )), ' '
-        );
-    END IF;
+    -- Products table doesn't exist - search vector update removed
 
     RETURN NEW;
 END;
@@ -275,9 +255,7 @@ CREATE TRIGGER update_services_search_vector
     BEFORE INSERT OR UPDATE ON services
     FOR EACH ROW EXECUTE FUNCTION update_search_vector();
 
-CREATE TRIGGER update_products_search_vector
-    BEFORE INSERT OR UPDATE ON products
-    FOR EACH ROW EXECUTE FUNCTION update_search_vector();
+-- Products table doesn't exist - trigger removed
 
 -- Create search function
 CREATE OR REPLACE FUNCTION search_content(
@@ -376,29 +354,7 @@ BEGIN
         LIMIT p_limit OFFSET p_offset;
     END IF;
     
-    -- Search products
-    IF p_content_type = 'ALL' OR p_content_type = 'PRODUCTS' THEN
-        RETURN QUERY
-        SELECT 
-            p.id,
-            p.name as title,
-            p.description,
-            'PRODUCT'::TEXT as content_type,
-            ts_rank(p.search_vector, search_query) as score,
-            jsonb_build_object(
-                'price', p.price,
-                'currency', p.currency,
-                'brand', p.brand,
-                'category', p.category_name,
-                'vendor_id', p.vendor_id,
-                'created_at', p.created_at
-            ) as metadata
-        FROM products p
-        WHERE p.search_vector @@ search_query
-        AND p.is_active = true
-        ORDER BY score DESC
-        LIMIT p_limit OFFSET p_offset;
-    END IF;
+    -- Products table doesn't exist - search section removed
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
