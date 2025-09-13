@@ -5,8 +5,8 @@
   "installCommand": "pnpm install",
   "framework": "nextjs",
   "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "https://placeholder.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "placeholder-key",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://cgtfmnwyqrioflvulwth.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNndGZtbnd5cXJpb2ZsdnVsd3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2OTk5MzQsImV4cCI6MjA3MzI3NTkzNH0.OAYDBaMcBP3tr4As0GfoFXNpOdKbYezzNcyZc9wmdQA",
     "NEXT_PUBLIC_APP_URL": "https://ciuna.vercel.app",
     "NEXT_PUBLIC_APP_NAME": "Ciuna"
   },
