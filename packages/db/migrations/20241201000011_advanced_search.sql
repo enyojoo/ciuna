@@ -2,7 +2,7 @@
 -- This migration creates tables for search functionality, filters, and recommendations
 
 -- Create search indexes table for tracking search performance
-CREATE TABLE search_indexes (
+CREATE TABLE IF NOT EXISTS search_indexes (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     index_name TEXT NOT NULL UNIQUE,
     index_type TEXT NOT NULL CHECK (index_type IN ('LISTINGS', 'VENDORS', 'SERVICES', 'USERS')),
@@ -16,7 +16,7 @@ CREATE TABLE search_indexes (
 );
 
 -- Create search queries table for analytics
-CREATE TABLE search_queries (
+CREATE TABLE IF NOT EXISTS search_queries (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
     query_text TEXT NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE search_queries (
 );
 
 -- Create search suggestions table
-CREATE TABLE search_suggestions (
+CREATE TABLE IF NOT EXISTS search_suggestions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     suggestion_text TEXT NOT NULL,
     suggestion_type TEXT NOT NULL CHECK (suggestion_type IN ('AUTOCOMPLETE', 'POPULAR', 'TRENDING', 'CATEGORY', 'LOCATION')),
@@ -47,7 +47,7 @@ CREATE TABLE search_suggestions (
 );
 
 -- Create search filters table for dynamic filtering
-CREATE TABLE search_filters (
+CREATE TABLE IF NOT EXISTS search_filters (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     filter_key TEXT NOT NULL,
     filter_name TEXT NOT NULL,
@@ -60,7 +60,7 @@ CREATE TABLE search_filters (
 );
 
 -- Create user search preferences
-CREATE TABLE user_search_preferences (
+CREATE TABLE IF NOT EXISTS user_search_preferences (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     preferred_categories UUID[] DEFAULT '{}',
@@ -76,7 +76,7 @@ CREATE TABLE user_search_preferences (
 );
 
 -- Create search recommendations table
-CREATE TABLE search_recommendations (
+CREATE TABLE IF NOT EXISTS search_recommendations (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     recommendation_type TEXT NOT NULL CHECK (recommendation_type IN ('SIMILAR', 'TRENDING', 'PERSONALIZED', 'CATEGORY', 'LOCATION')),
@@ -91,7 +91,7 @@ CREATE TABLE search_recommendations (
 );
 
 -- Create search analytics table
-CREATE TABLE search_analytics (
+CREATE TABLE IF NOT EXISTS search_analytics (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     date DATE NOT NULL,
     query_text TEXT,
@@ -106,73 +106,77 @@ CREATE TABLE search_analytics (
 );
 
 -- Add search-related fields to existing tables
-ALTER TABLE listings ADD COLUMN search_vector tsvector;
-ALTER TABLE listings ADD COLUMN search_keywords TEXT[];
-ALTER TABLE listings ADD COLUMN search_metadata JSONB DEFAULT '{}';
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS search_vector tsvector;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS search_keywords TEXT[];
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS search_metadata JSONB DEFAULT '{}';
 
-ALTER TABLE vendors ADD COLUMN search_vector tsvector;
-ALTER TABLE vendors ADD COLUMN search_keywords TEXT[];
-ALTER TABLE vendors ADD COLUMN search_metadata JSONB DEFAULT '{}';
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS search_vector tsvector;
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS search_keywords TEXT[];
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS search_metadata JSONB DEFAULT '{}';
 
-ALTER TABLE services ADD COLUMN search_vector tsvector;
-ALTER TABLE services ADD COLUMN search_keywords TEXT[];
-ALTER TABLE services ADD COLUMN search_metadata JSONB DEFAULT '{}';
+ALTER TABLE services ADD COLUMN IF NOT EXISTS search_vector tsvector;
+ALTER TABLE services ADD COLUMN IF NOT EXISTS search_keywords TEXT[];
+ALTER TABLE services ADD COLUMN IF NOT EXISTS search_metadata JSONB DEFAULT '{}';
 
 -- Products table doesn't exist in current schema - using vendor_products instead
 
 -- Create indexes for performance
-CREATE INDEX idx_search_indexes_type ON search_indexes(index_type);
-CREATE INDEX idx_search_indexes_active ON search_indexes(is_active);
+CREATE INDEX IF NOT EXISTS idx_search_indexes_type ON search_indexes(index_type);
+CREATE INDEX IF NOT EXISTS idx_search_indexes_active ON search_indexes(is_active);
 
-CREATE INDEX idx_search_queries_user_id ON search_queries(user_id);
-CREATE INDEX idx_search_queries_created_at ON search_queries(created_at);
-CREATE INDEX idx_search_queries_query_text ON search_queries USING gin(to_tsvector('english', query_text));
+CREATE INDEX IF NOT EXISTS idx_search_queries_user_id ON search_queries(user_id);
+CREATE INDEX IF NOT EXISTS idx_search_queries_created_at ON search_queries(created_at);
+CREATE INDEX IF NOT EXISTS idx_search_queries_query_text ON search_queries USING gin(to_tsvector('english', query_text));
 
-CREATE INDEX idx_search_suggestions_type ON search_suggestions(suggestion_type);
-CREATE INDEX idx_search_suggestions_active ON search_suggestions(is_active);
-CREATE INDEX idx_search_suggestions_popularity ON search_suggestions(popularity_score DESC);
-CREATE INDEX idx_search_suggestions_text ON search_suggestions USING gin(to_tsvector('english', suggestion_text));
+CREATE INDEX IF NOT EXISTS idx_search_suggestions_type ON search_suggestions(suggestion_type);
+CREATE INDEX IF NOT EXISTS idx_search_suggestions_active ON search_suggestions(is_active);
+CREATE INDEX IF NOT EXISTS idx_search_suggestions_popularity ON search_suggestions(popularity_score DESC);
+CREATE INDEX IF NOT EXISTS idx_search_suggestions_text ON search_suggestions USING gin(to_tsvector('english', suggestion_text));
 
-CREATE INDEX idx_search_filters_type ON search_filters(filter_type);
-CREATE INDEX idx_search_filters_active ON search_filters(is_active);
-CREATE INDEX idx_search_filters_sort ON search_filters(sort_order);
+CREATE INDEX IF NOT EXISTS idx_search_filters_type ON search_filters(filter_type);
+CREATE INDEX IF NOT EXISTS idx_search_filters_active ON search_filters(is_active);
+CREATE INDEX IF NOT EXISTS idx_search_filters_sort ON search_filters(sort_order);
 
-CREATE INDEX idx_user_search_preferences_user_id ON user_search_preferences(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_search_preferences_user_id ON user_search_preferences(user_id);
 
-CREATE INDEX idx_search_recommendations_user_id ON search_recommendations(user_id);
-CREATE INDEX idx_search_recommendations_type ON search_recommendations(recommendation_type);
-CREATE INDEX idx_search_recommendations_target ON search_recommendations(target_type, target_id);
-CREATE INDEX idx_search_recommendations_active ON search_recommendations(is_active);
-CREATE INDEX idx_search_recommendations_score ON search_recommendations(score DESC);
+CREATE INDEX IF NOT EXISTS idx_search_recommendations_user_id ON search_recommendations(user_id);
+CREATE INDEX IF NOT EXISTS idx_search_recommendations_type ON search_recommendations(recommendation_type);
+CREATE INDEX IF NOT EXISTS idx_search_recommendations_target ON search_recommendations(target_type, target_id);
+CREATE INDEX IF NOT EXISTS idx_search_recommendations_active ON search_recommendations(is_active);
+CREATE INDEX IF NOT EXISTS idx_search_recommendations_score ON search_recommendations(score DESC);
 
-CREATE INDEX idx_search_analytics_date ON search_analytics(date);
-CREATE INDEX idx_search_analytics_query ON search_analytics(query_text);
+CREATE INDEX IF NOT EXISTS idx_search_analytics_date ON search_analytics(date);
+CREATE INDEX IF NOT EXISTS idx_search_analytics_query ON search_analytics(query_text);
 
 -- Create full-text search indexes
-CREATE INDEX idx_listings_search_vector ON listings USING gin(search_vector);
-CREATE INDEX idx_listings_search_keywords ON listings USING gin(search_keywords);
+CREATE INDEX IF NOT EXISTS idx_listings_search_vector ON listings USING gin(search_vector);
+CREATE INDEX IF NOT EXISTS idx_listings_search_keywords ON listings USING gin(search_keywords);
 
-CREATE INDEX idx_vendors_search_vector ON vendors USING gin(search_vector);
-CREATE INDEX idx_vendors_search_keywords ON vendors USING gin(search_keywords);
+CREATE INDEX IF NOT EXISTS idx_vendors_search_vector ON vendors USING gin(search_vector);
+CREATE INDEX IF NOT EXISTS idx_vendors_search_keywords ON vendors USING gin(search_keywords);
 
-CREATE INDEX idx_services_search_vector ON services USING gin(search_vector);
-CREATE INDEX idx_services_search_keywords ON services USING gin(search_keywords);
+CREATE INDEX IF NOT EXISTS idx_services_search_vector ON services USING gin(search_vector);
+CREATE INDEX IF NOT EXISTS idx_services_search_keywords ON services USING gin(search_keywords);
 
 -- Products table doesn't exist - indexes removed
 
 -- Add triggers for updated_at columns
+DROP TRIGGER IF EXISTS update_search_indexes_updated_at ON search_indexes;
 CREATE TRIGGER update_search_indexes_updated_at 
     BEFORE UPDATE ON search_indexes 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_search_suggestions_updated_at ON search_suggestions;
 CREATE TRIGGER update_search_suggestions_updated_at 
     BEFORE UPDATE ON search_suggestions 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_search_filters_updated_at ON search_filters;
 CREATE TRIGGER update_search_filters_updated_at 
     BEFORE UPDATE ON search_filters 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_user_search_preferences_updated_at ON user_search_preferences;
 CREATE TRIGGER update_user_search_preferences_updated_at 
     BEFORE UPDATE ON user_search_preferences 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -186,15 +190,17 @@ BEGIN
         NEW.search_vector := to_tsvector('english', 
             COALESCE(NEW.title, '') || ' ' || 
             COALESCE(NEW.description, '') || ' ' ||
-            COALESCE(NEW.category_name, '') || ' ' ||
-            COALESCE(NEW.location, '')
+            COALESCE(NEW.city, '') || ' ' ||
+            COALESCE(NEW.district, '') || ' ' ||
+            COALESCE(array_to_string(NEW.tags, ' '), '')
         );
         NEW.search_keywords := string_to_array(
             lower(regexp_replace(
                 COALESCE(NEW.title, '') || ' ' || 
                 COALESCE(NEW.description, '') || ' ' ||
-                COALESCE(NEW.category_name, '') || ' ' ||
-                COALESCE(NEW.location, ''),
+                COALESCE(NEW.city, '') || ' ' ||
+                COALESCE(NEW.district, '') || ' ' ||
+                COALESCE(array_to_string(NEW.tags, ' '), ''),
                 '[^a-zA-Z0-9\s]', '', 'g'
             )), ' '
         );
@@ -203,15 +209,17 @@ BEGIN
     -- Update search vector for vendors
     IF TG_TABLE_NAME = 'vendors' THEN
         NEW.search_vector := to_tsvector('english',
-            COALESCE(NEW.business_name, '') || ' ' ||
+            COALESCE(NEW.name, '') || ' ' ||
             COALESCE(NEW.description, '') || ' ' ||
-            COALESCE(NEW.location, '')
+            COALESCE(NEW.city, '') || ' ' ||
+            COALESCE(NEW.district, '')
         );
         NEW.search_keywords := string_to_array(
             lower(regexp_replace(
-                COALESCE(NEW.business_name, '') || ' ' ||
+                COALESCE(NEW.name, '') || ' ' ||
                 COALESCE(NEW.description, '') || ' ' ||
-                COALESCE(NEW.location, ''),
+                COALESCE(NEW.city, '') || ' ' ||
+                COALESCE(NEW.district, ''),
                 '[^a-zA-Z0-9\s]', '', 'g'
             )), ' '
         );
@@ -222,15 +230,17 @@ BEGIN
         NEW.search_vector := to_tsvector('english',
             COALESCE(NEW.title, '') || ' ' ||
             COALESCE(NEW.description, '') || ' ' ||
-            COALESCE(NEW.category_name, '') || ' ' ||
-            COALESCE(NEW.location, '')
+            COALESCE(NEW.category::text, '') || ' ' ||
+            COALESCE(NEW.location, '') || ' ' ||
+            COALESCE(array_to_string(NEW.tags, ' '), '')
         );
         NEW.search_keywords := string_to_array(
             lower(regexp_replace(
                 COALESCE(NEW.title, '') || ' ' ||
                 COALESCE(NEW.description, '') || ' ' ||
-                COALESCE(NEW.category_name, '') || ' ' ||
-                COALESCE(NEW.location, ''),
+                COALESCE(NEW.category::text, '') || ' ' ||
+                COALESCE(NEW.location, '') || ' ' ||
+                COALESCE(array_to_string(NEW.tags, ' '), ''),
                 '[^a-zA-Z0-9\s]', '', 'g'
             )), ' '
         );
@@ -243,14 +253,17 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create triggers for search vector updates
+DROP TRIGGER IF EXISTS update_listings_search_vector ON listings;
 CREATE TRIGGER update_listings_search_vector
     BEFORE INSERT OR UPDATE ON listings
     FOR EACH ROW EXECUTE FUNCTION update_search_vector();
 
+DROP TRIGGER IF EXISTS update_vendors_search_vector ON vendors;
 CREATE TRIGGER update_vendors_search_vector
     BEFORE INSERT OR UPDATE ON vendors
     FOR EACH ROW EXECUTE FUNCTION update_search_vector();
 
+DROP TRIGGER IF EXISTS update_services_search_vector ON services;
 CREATE TRIGGER update_services_search_vector
     BEFORE INSERT OR UPDATE ON services
     FOR EACH ROW EXECUTE FUNCTION update_search_vector();
@@ -417,13 +430,16 @@ ALTER TABLE search_recommendations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE search_analytics ENABLE ROW LEVEL SECURITY;
 
 -- Search indexes: public read access
+DROP POLICY IF EXISTS "Search indexes are publicly readable" ON search_indexes;
 CREATE POLICY "Search indexes are publicly readable" ON search_indexes
     FOR SELECT USING (is_active = true);
 
 -- Search queries: users can view their own, admins can view all
+DROP POLICY IF EXISTS "Users can view their own search queries" ON search_queries;
 CREATE POLICY "Users can view their own search queries" ON search_queries
     FOR SELECT USING (auth.uid() = user_id OR user_id IS NULL);
 
+DROP POLICY IF EXISTS "Admins can view all search queries" ON search_queries;
 CREATE POLICY "Admins can view all search queries" ON search_queries
     FOR ALL USING (
         EXISTS (
@@ -434,22 +450,27 @@ CREATE POLICY "Admins can view all search queries" ON search_queries
     );
 
 -- Search suggestions: public read access
+DROP POLICY IF EXISTS "Search suggestions are publicly readable" ON search_suggestions;
 CREATE POLICY "Search suggestions are publicly readable" ON search_suggestions
     FOR SELECT USING (is_active = true);
 
 -- Search filters: public read access
+DROP POLICY IF EXISTS "Search filters are publicly readable" ON search_filters;
 CREATE POLICY "Search filters are publicly readable" ON search_filters
     FOR SELECT USING (is_active = true);
 
 -- User search preferences: users can manage their own
+DROP POLICY IF EXISTS "Users can manage their own search preferences" ON user_search_preferences;
 CREATE POLICY "Users can manage their own search preferences" ON user_search_preferences
     FOR ALL USING (auth.uid() = user_id);
 
 -- Search recommendations: users can view their own
+DROP POLICY IF EXISTS "Users can view their own recommendations" ON search_recommendations;
 CREATE POLICY "Users can view their own recommendations" ON search_recommendations
     FOR SELECT USING (auth.uid() = user_id OR user_id IS NULL);
 
 -- Search analytics: admins only
+DROP POLICY IF EXISTS "Admins can view search analytics" ON search_analytics;
 CREATE POLICY "Admins can view search analytics" ON search_analytics
     FOR ALL USING (
         EXISTS (

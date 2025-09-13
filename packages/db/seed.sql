@@ -30,9 +30,21 @@ INSERT INTO categories (name, slug, description, parent_id, is_active, sort_orde
 
 -- Locations table doesn't exist in current schema - using city/district as text fields
 
--- Insert sample users (these will be created through Supabase Auth)
--- Note: In a real scenario, users are created through the auth system
--- This is just for reference of what the data structure looks like
+-- IMPORTANT: This seed file requires profiles to exist first!
+-- 
+-- Before running this seed file, you must:
+-- 1. Create users in Supabase Auth with these specific IDs:
+--    - 9e8a6b85-0587-4106-b5d8-21506fb88d85 (john.doe@example.com)
+--    - a0c13f9c-885a-4378-a024-0ab7008ef135 (maria.smith@example.com)
+--    - 564fe5f9-0cac-4b21-94f7-04c553c0df3a (alex.tech@example.com)
+--    - cb6afb44-8e6b-43ee-94f5-bcd9b82054ff (furniture.plus@example.com)
+--    - 978f5857-dff2-43d3-8c24-d2b2d6226055 (anna.tutor@example.com)
+--    - 77348c6e-22a6-4094-8d7a-bf5dec674a1f (maria.clean@example.com)
+--    - 3ee90f5f-bf22-4d1b-873f-c85de644c3b1 (alex.repair@example.com)
+-- 2. Run create_profiles.sql to create the corresponding profiles
+-- 3. Then run this seed.sql file
+--
+-- Alternative: Use supabase db reset to apply all migrations and seed data automatically
 
 -- Insert sample listings
 INSERT INTO listings (
@@ -49,7 +61,7 @@ INSERT INTO listings (
     tags
 ) VALUES
 (
-    '00000000-0000-0000-0000-000000000001',
+    '9e8a6b85-0587-4106-b5d8-21506fb88d85',
     'iPhone 13 Pro Max 256GB',
     'Excellent condition iPhone 13 Pro Max in Space Gray. Used for 6 months, no scratches or damage. Comes with original box, charger, and case.',
     (SELECT id FROM categories WHERE name = 'Smartphones'),
@@ -62,7 +74,7 @@ INSERT INTO listings (
     ARRAY['iphone', 'smartphone', 'apple', 'mobile']
 ),
 (
-    '00000000-0000-0000-0000-000000000001',
+    '9e8a6b85-0587-4106-b5d8-21506fb88d85',
     'MacBook Pro 14" M1 Pro',
     'MacBook Pro 14-inch with M1 Pro chip, 16GB RAM, 512GB SSD. Perfect for developers and designers. Barely used, like new condition.',
     (SELECT id FROM categories WHERE name = 'Laptops'),
@@ -75,7 +87,7 @@ INSERT INTO listings (
     ARRAY['macbook', 'laptop', 'apple', 'm1', 'pro']
 ),
 (
-    '00000000-0000-0000-0000-000000000002',
+    'a0c13f9c-885a-4378-a024-0ab7008ef135',
     'Sony WH-1000XM4 Headphones',
     'Noise-canceling wireless headphones in excellent condition. Great sound quality and battery life. Original packaging included.',
     (SELECT id FROM categories WHERE name = 'Audio'),
@@ -88,7 +100,7 @@ INSERT INTO listings (
     ARRAY['sony', 'headphones', 'wireless', 'noise-canceling']
 ),
 (
-    '00000000-0000-0000-0000-000000000002',
+    'a0c13f9c-885a-4378-a024-0ab7008ef135',
     'English Tutoring Services',
     'Professional English tutoring for all levels. Native speaker with 5 years experience. Online or in-person sessions available.',
     (SELECT id FROM categories WHERE name = 'Tutoring'),
@@ -103,89 +115,101 @@ INSERT INTO listings (
 
 -- Insert sample vendors
 INSERT INTO vendors (
-    user_id,
-    business_name,
-    business_type,
+    owner_id,
+    name,
     description,
-    location_id,
+    country,
+    city,
+    district,
+    type,
+    status,
     contact_email,
     contact_phone,
     website,
     rating,
-    is_verified,
-    is_active
+    verified
 ) VALUES
 (
-    '00000000-0000-0000-0000-000000000003',
+    '564fe5f9-0cac-4b21-94f7-04c553c0df3a',
     'TechStore Moscow',
-    'SMALL_BUSINESS',
     'Leading electronics retailer in Moscow. Specializing in smartphones, laptops, and accessories. Authorized dealer for major brands.',
-    (SELECT id FROM locations WHERE name = 'Moscow'),
+    'RU',
+    'Moscow',
+    'Central',
+    'LOCAL',
+    'ACTIVE',
     'info@techstore-moscow.ru',
     '+7 (495) 123-4567',
     'https://techstore-moscow.ru',
     4.8,
-    true,
     true
 ),
 (
-    '00000000-0000-0000-0000-000000000004',
+    'cb6afb44-8e6b-43ee-94f5-bcd9b82054ff',
     'Furniture Plus',
-    'SMALL_BUSINESS',
     'Modern furniture store offering contemporary and classic designs. Custom orders available. Free delivery in Moscow.',
-    (SELECT id FROM locations WHERE name = 'Moscow'),
+    'RU',
+    'Moscow',
+    'Central',
+    'LOCAL',
+    'ACTIVE',
     'orders@furniture-plus.ru',
     '+7 (495) 987-6543',
     'https://furniture-plus.ru',
     4.6,
-    true,
     true
 );
 
--- Insert sample products for vendors
-INSERT INTO products (
-    vendor_id,
+-- Products table doesn't exist in current schema - using vendor_products instead
+
+-- Insert sample service providers first
+INSERT INTO service_providers (
+    profile_id,
     name,
-    description,
-    category_id,
-    price,
-    currency,
-    sku,
-    stock_quantity,
-    is_active
+    bio,
+    skills,
+    verified,
+    status,
+    rating,
+    languages,
+    service_areas,
+    hourly_rate_rub
 ) VALUES
 (
-    (SELECT id FROM vendors WHERE business_name = 'TechStore Moscow'),
-    'Samsung Galaxy S23 Ultra',
-    'Latest Samsung flagship smartphone with 200MP camera and S Pen. 256GB storage, 12GB RAM.',
-    (SELECT id FROM categories WHERE name = 'Smartphones'),
-    85000,
-    'RUB',
-    'SAMSUNG-S23U-256',
-    10,
-    true
+    '978f5857-dff2-43d3-8c24-d2b2d6226055',
+    'Anna Petrov',
+    'Professional Russian language tutor with 5 years experience teaching expats.',
+    ARRAY['Russian Language', 'Teaching', 'Translation'],
+    true,
+    'ACTIVE',
+    4.9,
+    ARRAY['Russian', 'English'],
+    ARRAY['Moscow', 'Online'],
+    2000
 ),
 (
-    (SELECT id FROM vendors WHERE business_name = 'TechStore Moscow'),
-    'Dell XPS 13 Laptop',
-    'Ultra-thin laptop with 13.4" 4K display, Intel i7 processor, 16GB RAM, 512GB SSD.',
-    (SELECT id FROM categories WHERE name = 'Laptops'),
-    120000,
-    'RUB',
-    'DELL-XPS13-512',
-    5,
-    true
+    '77348c6e-22a6-4094-8d7a-bf5dec674a1f',
+    'Maria Clean',
+    'Professional cleaning service with 3 years experience. Insured and reliable.',
+    ARRAY['House Cleaning', 'Office Cleaning', 'Deep Cleaning'],
+    true,
+    'ACTIVE',
+    4.7,
+    ARRAY['Russian', 'English'],
+    ARRAY['Moscow'],
+    3000
 ),
 (
-    (SELECT id FROM vendors WHERE business_name = 'Furniture Plus'),
-    'Modern Office Chair',
-    'Ergonomic office chair with lumbar support and adjustable height. Black leather upholstery.',
-    (SELECT id FROM categories WHERE name = 'Furniture'),
-    25000,
-    'RUB',
-    'CHAIR-OFFICE-001',
-    15,
-    true
+    '3ee90f5f-bf22-4d1b-873f-c85de644c3b1',
+    'Alex Tech',
+    'Computer repair specialist with 8 years experience in hardware and software.',
+    ARRAY['Computer Repair', 'Laptop Repair', 'Data Recovery'],
+    true,
+    'ACTIVE',
+    4.8,
+    ARRAY['Russian', 'English'],
+    ARRAY['Moscow'],
+    2500
 );
 
 -- Insert sample services
@@ -193,51 +217,59 @@ INSERT INTO services (
     provider_id,
     title,
     description,
-    category_id,
-    price,
-    currency,
-    location_id,
-    is_active
+    category,
+    price_rub,
+    duration_minutes,
+    location,
+    is_online,
+    is_in_person,
+    status
 ) VALUES
 (
-    '00000000-0000-0000-0000-000000000005',
+    (SELECT id FROM service_providers WHERE name = 'Anna Petrov'),
     'Russian Language Tutoring',
     'Learn Russian with a native speaker. All levels welcome. Flexible scheduling and personalized approach.',
-    (SELECT id FROM categories WHERE name = 'Tutoring'),
+    'PERSONAL',
     1500,
-    'RUB',
-    (SELECT id FROM locations WHERE name = 'Moscow'),
-    true
+    60,
+    'Moscow',
+    true,
+    true,
+    'ACTIVE'
 ),
 (
-    '00000000-0000-0000-0000-000000000006',
+    (SELECT id FROM service_providers WHERE name = 'Maria Clean'),
     'Home Cleaning Service',
     'Professional house cleaning service. Weekly, bi-weekly, or one-time cleaning available. Insured and bonded.',
-    (SELECT id FROM categories WHERE name = 'Cleaning'),
+    'PERSONAL',
     3000,
-    'RUB',
-    (SELECT id FROM locations WHERE name = 'Moscow'),
-    true
+    120,
+    'Moscow',
+    false,
+    true,
+    'ACTIVE'
 ),
 (
-    '00000000-0000-0000-0000-000000000007',
+    (SELECT id FROM service_providers WHERE name = 'Alex Tech'),
     'Computer Repair Service',
     'Expert computer and laptop repair. Hardware and software issues. Same-day service available.',
-    (SELECT id FROM categories WHERE name = 'Repair'),
+    'PERSONAL',
     2000,
-    'RUB',
-    (SELECT id FROM locations WHERE name = 'Moscow'),
-    true
+    90,
+    'Moscow',
+    false,
+    true,
+    'ACTIVE'
 );
 
 -- Insert sample exchange rates
-INSERT INTO exchange_rates (from_currency, to_currency, rate, provider, valid_from) VALUES
-('USD', 'RUB', 95.50, 'MANUAL', NOW()),
-('EUR', 'RUB', 103.20, 'MANUAL', NOW()),
-('GBP', 'RUB', 118.75, 'MANUAL', NOW()),
-('RUB', 'USD', 0.0105, 'MANUAL', NOW()),
-('RUB', 'EUR', 0.0097, 'MANUAL', NOW()),
-('RUB', 'GBP', 0.0084, 'MANUAL', NOW());
+INSERT INTO exchange_rates (from_currency, to_currency, rate, source, valid_from) VALUES
+('USD', 'RUB', 95.50, 'manual', NOW()),
+('EUR', 'RUB', 103.20, 'manual', NOW()),
+('GBP', 'RUB', 118.75, 'manual', NOW()),
+('RUB', 'USD', 0.0105, 'manual', NOW()),
+('RUB', 'EUR', 0.0097, 'manual', NOW()),
+('RUB', 'GBP', 0.0084, 'manual', NOW());
 
 -- Insert sample search suggestions
 INSERT INTO search_suggestions (suggestion_text, suggestion_type, popularity_score) VALUES
@@ -254,75 +286,10 @@ INSERT INTO search_suggestions (suggestion_text, suggestion_type, popularity_sco
 ('Saint Petersburg', 'LOCATION', 0.8),
 ('Novosibirsk', 'LOCATION', 0.7);
 
--- Insert sample business goals
-INSERT INTO business_goals (
-    user_id,
-    title,
-    description,
-    goal_type,
-    target_value,
-    current_value,
-    unit,
-    start_date,
-    end_date,
-    status,
-    progress_percentage
-) VALUES
-(
-    '00000000-0000-0000-0000-000000000001',
-    'Monthly Revenue Target',
-    'Achieve 500,000 RUB in monthly revenue',
-    'REVENUE',
-    500000,
-    350000,
-    'RUB',
-    CURRENT_DATE,
-    CURRENT_DATE + INTERVAL '1 month',
-    'ACTIVE',
-    70.0
-),
-(
-    '00000000-0000-0000-0000-000000000002',
-    'Customer Acquisition',
-    'Reach 100 new customers this quarter',
-    'CUSTOMERS',
-    100,
-    75,
-    'customers',
-    CURRENT_DATE,
-    CURRENT_DATE + INTERVAL '3 months',
-    'ACTIVE',
-    75.0
-);
-
--- Insert sample business notifications
-INSERT INTO business_notifications (
-    user_id,
-    notification_type,
-    title,
-    message,
-    priority,
-    is_read
-) VALUES
-(
-    '00000000-0000-0000-0000-000000000001',
-    'REVENUE_MILESTONE',
-    'Revenue Milestone Reached!',
-    'Congratulations! You have reached 70% of your monthly revenue goal.',
-    'MEDIUM',
-    false
-),
-(
-    '00000000-0000-0000-0000-000000000002',
-    'GOAL_AT_RISK',
-    'Goal Progress Alert',
-    'Your customer acquisition goal is at risk. Consider increasing marketing efforts.',
-    'HIGH',
-    false
-);
+-- Business goals and notifications tables don't exist in current schema
 
 -- Update search vectors for full-text search
 UPDATE listings SET search_vector = to_tsvector('english', title || ' ' || description);
-UPDATE vendors SET search_vector = to_tsvector('english', business_name || ' ' || description);
+UPDATE vendors SET search_vector = to_tsvector('english', name || ' ' || description);
 UPDATE services SET search_vector = to_tsvector('english', title || ' ' || description);
-UPDATE products SET search_vector = to_tsvector('english', name || ' ' || description);
+-- Products table doesn't exist - search vector update removed
