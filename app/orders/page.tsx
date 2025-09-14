@@ -1,5 +1,9 @@
+'use client'
+
 import { useTranslations } from 'next-intl'
-import { getTranslations } from 'next-intl/server'
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -147,8 +151,8 @@ const getDeliveryStatusIcon = (status: string) => {
   }
 }
 
-export default async function OrdersPage() {
-  const t = await getTranslations('orders')
+export default function OrdersPage() {
+  const t = useTranslations('orders')
   const buyingOrders = mockOrders.filter(order => order.type === 'buying')
   const sellingOrders = mockOrders.filter(order => order.type === 'selling')
 

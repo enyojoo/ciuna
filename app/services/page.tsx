@@ -1,5 +1,9 @@
+'use client'
+
 import { useTranslations } from 'next-intl'
-import { getTranslations } from 'next-intl/server'
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -142,8 +146,8 @@ const categories = [
   { value: 'HEALTHCARE', label: 'Healthcare' }
 ]
 
-export default async function ServicesPage() {
-  const t = await getTranslations('services')
+export default function ServicesPage() {
+  const t = useTranslations('services')
 
   return (
     <div className="min-h-screen bg-background">

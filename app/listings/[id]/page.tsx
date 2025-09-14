@@ -1,6 +1,10 @@
+'use client'
+
 import { useTranslations } from 'next-intl'
-import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -87,8 +91,8 @@ interface ListingPageProps {
   }
 }
 
-export default async function ListingPage({ params }: ListingPageProps) {
-  const t = await getTranslations('listing')
+export default function ListingPage({ params }: ListingPageProps) {
+  const t = useTranslations('listing')
   const listingId = parseInt(params.id)
   
   // In real app, fetch from Supabase
