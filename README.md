@@ -1,289 +1,369 @@
-# Ciuna - Expat Marketplace Platform
+# Ciuna - Expat Marketplace in Eastern Europe
 
-A next-generation marketplace platform designed for expats living in a foreign country , featuring P2P trading, vendor marketplace, services, and integrated logistics.
+A production-ready Next.js 14 marketplace platform for expats living in Eastern Europe, built with Supabase, supporting multiple currencies and vendors from any country.
 
-## 🚀 Features
+## 🌟 Features
 
-### Core Marketplace
-- **P2P Listings** - Buy and sell items locally
-- **Vendor Marketplace** - Professional sellers with inventory management
-- **Services Marketplace** - Verified service providers with booking
-- **Group Buying** - Collaborative purchasing for better deals
-- **Integrated Logistics** - Local and international shipping
+- **Multi-language Support**: English, Russian, French, Chinese, Arabic, Spanish
+- **P2P Marketplace**: Buy and sell items with other expats
+- **Vendor System**: Local and international vendors with product catalogs
+- **Group Buying**: Collaborative purchasing with discounts
+- **Service Booking**: Find and book services from verified providers
+- **Realtime Messaging**: Chat with auto-translation
+- **Escrow System**: Secure payments with escrow protection
+- **Mobile Responsive**: Optimized for all devices
+- **Dark Mode**: Complete dark/light theme support
 
-### Platform Features
-- **Multi-language Support** - Russian, English, and major international languages
-- **Multi-currency** - RUB, USD, EUR, and 30+ currencies
-- **Advanced Search** - Full-text search with filters and suggestions
-- **Real-time Chat** - In-app messaging system
-- **Payment Integration** - YooMoney, Stripe, and cash payments
-- **Mobile Apps** - Native iOS and Android applications
+## 🛠 Tech Stack
 
-### Business Tools
-- **Analytics Dashboard** - Comprehensive business insights
-- **Inventory Management** - Stock tracking and alerts
-- **Subscription Plans** - Flexible pricing for different business needs
-- **Reporting** - Custom reports and business intelligence
-- **Goal Tracking** - Set and monitor business objectives
-
-### Security & Compliance
-- **Two-Factor Authentication** - Enhanced account security
-- **KYC Verification** - Identity verification for businesses
-- **GDPR Compliance** - Data protection and privacy controls
-- **Audit Logging** - Complete activity tracking
-- **Rate Limiting** - Protection against abuse
-
-## 🏗️ Architecture
-
-### Monorepo Structure
-```
-ciuna/
-├── apps/
-│   ├── web/                 # Next.js 14 web application
-│   └── mobile/              # Expo React Native mobile app
-├── packages/
-│   ├── db/                  # Database migrations and schema
-│   ├── sb/                  # Supabase client and services
-│   ├── ui/                  # Shared UI components
-│   ├── types/               # TypeScript type definitions
-│   ├── config/              # Shared configuration
-│   └── functions/           # Supabase Edge Functions
-```
-
-### Technology Stack
-- **Frontend**: Next.js 14, React Native, TypeScript, Tailwind CSS
-- **Backend**: Supabase (PostgreSQL, Auth, Storage, Realtime)
-- **Database**: PostgreSQL with Row Level Security
-- **Mobile**: Expo with native features
-- **Deployment**: Vercel (Web), EAS (Mobile)
-- **Monorepo**: Turborepo with pnpm workspaces
+- **Frontend**: Next.js 14 (App Router), TypeScript, TailwindCSS
+- **UI Components**: shadcn/ui with Radix UI primitives
+- **Backend**: Supabase (PostgreSQL, Auth, Storage, Realtime, Edge Functions)
+- **State Management**: React Query (TanStack Query)
+- **Internationalization**: next-intl
+- **Forms**: React Hook Form + Zod validation
+- **Styling**: TailwindCSS with custom design system
+- **Testing**: Playwright (E2E), Vitest (Unit)
 
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 18+ 
-- pnpm
-- Supabase CLI
-- Expo CLI (for mobile development)
+- npm or yarn
+- Supabase account
 
-### Installation
+### 1. Clone and Install
 
-1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/ciuna.git
+git clone <repository-url>
 cd ciuna
+npm install
 ```
 
-2. **Install dependencies**
+### 2. Environment Setup
+
+Copy the environment template:
+
 ```bash
-pnpm install
+cp env.example .env.local
 ```
 
-3. **Set up environment variables**
-```bash
-# Copy environment files
-cp apps/web/.env.example apps/web/.env.local
-cp apps/mobile/.env.example apps/mobile/.env
-cp packages/sb/.env.example packages/sb/.env
+Fill in your Supabase credentials:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+INTERNAL_SIGNING_SECRET=your_long_random_string_here
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-4. **Configure Supabase**
+### 3. Database Setup
+
+Run the database migrations:
+
 ```bash
-# Start Supabase locally
-supabase start
-
-# Run migrations
-supabase db reset
-```
-
-5. **Start development servers**
-```bash
-# Start web app
-pnpm dev:web
-
-# Start mobile app (in another terminal)
-pnpm dev:mobile
-```
-
-## 📱 Mobile Development
-
-### iOS Development
-```bash
-cd apps/mobile
-npx expo run:ios
-```
-
-### Android Development
-```bash
-cd apps/mobile
-npx expo run:android
-```
-
-### Expo Go (Quick Testing)
-```bash
-cd apps/mobile
-npx expo start
-# Scan QR code with Expo Go app
-```
-
-## 🌐 Web Development
-
-### Local Development
-```bash
-cd apps/web
-pnpm dev
-# Open http://localhost:3000
-```
-
-### Production Build
-```bash
-cd apps/web
-pnpm build
-pnpm start
-```
-
-## 🗄️ Database
-
-### Running Migrations
-```bash
-# Apply all migrations
-supabase db push
-
-# Reset database
+# If using Supabase CLI
 supabase db reset
 
-# Generate types
-supabase gen types typescript --local > packages/types/database.types.ts
+# Or manually run the SQL files in order:
+# 1. supabase/migrations/001_initial_schema.sql
+# 2. supabase/migrations/002_rls_policies.sql
+# 3. supabase/migrations/003_storage_policies.sql
 ```
 
-### Seed Data
+Seed the database with sample data:
+
 ```bash
-# Run seed script
-pnpm db:seed
+# If using Supabase CLI
+supabase db seed
+
+# Or manually run:
+# supabase/seed/001_initial_data.sql
 ```
+
+### 4. Deploy Edge Functions
+
+```bash
+# Deploy all Edge Functions
+supabase functions deploy payments-authorize
+supabase functions deploy payments-capture
+supabase functions deploy payments-refund
+supabase functions deploy shipping-quote
+supabase functions deploy groupbuy-close
+supabase functions deploy services-confirm
+```
+
+### 5. Start Development Server
+
+```bash
+npm run dev
+```
+
+Visit [http://localhost:3000](http://localhost:3000) to see the application.
+
+## 📁 Project Structure
+
+```
+ciuna/
+├── app/                    # Next.js App Router pages
+│   ├── auth/              # Authentication pages
+│   ├── listings/          # Marketplace listings
+│   ├── vendors/           # Vendor pages
+│   ├── services/          # Service booking
+│   ├── orders/            # Order management
+│   ├── inbox/             # Messaging system
+│   └── admin/             # Admin dashboard
+├── components/            # Reusable UI components
+│   └── ui/               # shadcn/ui components
+├── lib/                  # Utilities and configurations
+│   ├── supabase/         # Supabase client setup
+│   ├── types.ts          # TypeScript type definitions
+│   ├── utils.ts          # Utility functions
+│   └── i18n.ts           # Internationalization config
+├── messages/             # Translation files
+│   ├── en.json           # English translations
+│   ├── ru.json           # Russian translations
+│   ├── fr.json           # French translations
+│   ├── zh.json           # Chinese translations
+│   ├── ar.json           # Arabic translations
+│   └── es.json           # Spanish translations
+├── supabase/
+│   ├── migrations/       # Database schema migrations
+│   ├── seed/            # Database seed data
+│   └── functions/       # Edge Functions
+├── tests/
+│   └── e2e/             # Playwright E2E tests
+└── public/              # Static assets
+```
+
+## 🗄 Database Schema
+
+### Core Tables
+
+- **profiles**: User profiles with verification status
+- **listings**: P2P marketplace items
+- **vendors**: Vendor stores and information
+- **vendor_products**: Products sold by vendors
+- **services**: Service offerings from providers
+- **orders**: Transaction records
+- **conversations/messages**: Realtime messaging system
+
+### Key Features
+
+- **Row Level Security (RLS)**: Comprehensive security policies
+- **Multi-currency Support**: Prices stored in rubles with conversion
+- **Escrow System**: Secure payment handling
+- **Group Buying**: Collaborative purchasing with discounts
+- **International Shipping**: Quote calculation and tracking
+
+## 🌐 Internationalization
+
+The app supports 6 languages with automatic locale detection:
+
+- **English** (en) - Default
+- **Russian** (ru) - Primary market language
+- **French** (fr) - European expats
+- **Chinese** (zh) - Asian expats
+- **Arabic** (ar) - Middle Eastern expats
+- **Spanish** (es) - Latin American expats
+
+Language switching is available in the navigation header.
+
+## 🔐 Authentication & Security
+
+- **Supabase Auth**: Email/password and social login
+- **Row Level Security**: Database-level access control
+- **JWT Tokens**: Secure session management
+- **Role-based Access**: USER, VENDOR, COURIER, ADMIN roles
+- **Email Verification**: Required for account activation
+
+## 💳 Payment System
+
+### Supported Payment Methods
+
+- **YooMoney**: Primary Russian payment system
+- **Stripe**: International payments
+- **Flutterwave**: African market support
+- **Cash**: Local transactions
+
+### Escrow Flow
+
+1. **Authorization**: Payment authorized but not captured
+2. **Escrow Hold**: Funds held in secure account
+3. **Delivery Confirmation**: Buyer confirms receipt
+4. **Release**: Funds released to seller
+5. **Refund**: Available if issues arise
+
+## 🚚 Shipping & Logistics
+
+### International Shipping
+
+- **Quote Calculation**: Real-time shipping cost estimation
+- **Duty Estimation**: Tax and duty calculations
+- **Tracking**: Package tracking integration
+- **Multiple Carriers**: Support for various shipping providers
+
+### Local Delivery
+
+- **Courier Network**: Local delivery partners
+- **Time Slots**: Scheduled delivery windows
+- **COD Support**: Cash on delivery option
+
+## 📱 Mobile Experience
+
+- **Responsive Design**: Optimized for all screen sizes
+- **Touch-friendly**: Mobile-first interaction design
+- **Offline Support**: Basic functionality without internet
+- **Push Notifications**: Real-time updates (coming soon)
 
 ## 🧪 Testing
 
-### Web Testing
-```bash
-# Unit tests
-pnpm test:web
+### E2E Tests (Playwright)
 
-# E2E tests
-pnpm test:e2e
+```bash
+npm run e2e
 ```
 
-### Mobile Testing
+Key test scenarios:
+- User registration and authentication
+- P2P buying/selling flow
+- Vendor product purchasing
+- Service booking and completion
+- Group buying participation
+- Messaging system
+
+### Unit Tests (Vitest)
+
 ```bash
-# Unit tests
-pnpm test:mobile
+npm run test
 ```
+
+Tests cover:
+- Utility functions
+- Form validation
+- API handlers
+- Edge Functions
 
 ## 🚀 Deployment
 
-### Web Deployment (Vercel)
-1. Connect GitHub repository to Vercel
-2. Set environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
+### Vercel Deployment
 
-### Mobile Deployment (EAS)
-```bash
-# Build for production
-eas build --platform all
+1. **Connect Repository**: Link your GitHub repository to Vercel
+2. **Environment Variables**: Set all required environment variables
+3. **Build Settings**: Vercel will auto-detect Next.js settings
+4. **Deploy**: Automatic deployment on push to main branch
 
-# Submit to app stores
-eas submit --platform all
-```
+### Environment Variables for Production
 
-## 🔧 Configuration
-
-### Environment Variables
-
-#### Web App (.env.local)
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
-
-#### Mobile App (.env)
-```env
-EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-#### Supabase (.env)
-```env
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+INTERNAL_SIGNING_SECRET=your_production_secret
+NEXT_PUBLIC_SITE_URL=https://your-domain.vercel.app
 ```
 
-## 📊 Features Overview
+### Supabase Configuration
 
-### User Features
-- User registration and authentication
-- Profile management with verification
-- Multi-language and currency support
-- Advanced search and filtering
-- Real-time messaging
-- Order management
-- Payment processing
+1. **Update Auth Settings**: Add production URLs to allowed origins
+2. **Deploy Edge Functions**: Deploy all functions to production
+3. **Configure Storage**: Set up production storage buckets
+4. **Database**: Run migrations on production database
 
-### Vendor Features
-- Product catalog management
-- Inventory tracking
-- Order fulfillment
-- Analytics dashboard
-- Subscription management
-- Business reporting
+## 📊 Monitoring & Analytics
 
-### Admin Features
-- User management
-- Content moderation
-- Analytics and reporting
-- System configuration
-- Security monitoring
+### Built-in Monitoring
+
+- **Error Tracking**: Automatic error logging
+- **Performance Metrics**: Core Web Vitals tracking
+- **User Analytics**: Basic usage statistics
+- **Database Monitoring**: Query performance tracking
+
+### Recommended Tools
+
+- **Sentry**: Error tracking and performance monitoring
+- **Google Analytics**: User behavior analytics
+- **Supabase Dashboard**: Database and auth monitoring
+- **Vercel Analytics**: Performance and usage insights
+
+## 🔧 Development Scripts
+
+```bash
+# Development
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+
+# Code Quality
+npm run lint         # Run ESLint
+npm run typecheck    # TypeScript type checking
+
+# Testing
+npm run test         # Run unit tests
+npm run e2e          # Run E2E tests
+
+# Database
+npm run db:reset     # Reset database (Supabase CLI)
+npm run db:seed      # Seed database (Supabase CLI)
+```
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+### Development Guidelines
+
+- Follow TypeScript best practices
+- Use conventional commit messages
+- Write tests for new features
+- Update documentation as needed
+- Follow the existing code style
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
-For support and questions:
-- Create an issue on GitHub
-- Contact the development team
-- Check the documentation
+### Documentation
 
-## 🗺️ Roadmap
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Supabase Documentation](https://supabase.com/docs)
+- [TailwindCSS Documentation](https://tailwindcss.com/docs)
+- [shadcn/ui Documentation](https://ui.shadcn.com)
+
+### Community
+
+- [GitHub Issues](https://github.com/your-org/ciuna/issues)
+- [Discord Community](https://discord.gg/ciuna)
+- [Email Support](mailto:support@ciuna.com)
+
+## 🗺 Roadmap
 
 ### Phase 1 (Current)
 - ✅ Core marketplace functionality
-- ✅ User authentication and profiles
-- ✅ Basic payment integration
-- ✅ Mobile applications
+- ✅ Multi-language support
+- ✅ Basic payment system
+- ✅ Messaging system
 
-### Phase 2 (Next)
-- 🔄 Advanced analytics
-- 🔄 AI-powered recommendations
-- 🔄 Enhanced mobile features
-- 🔄 API marketplace
+### Phase 2 (Q2 2024)
+- 🔄 Mobile app (React Native)
+- 🔄 Advanced search and filters
+- 🔄 Push notifications
+- 🔄 Video calling for services
 
-### Phase 3 (Future)
-- 📋 International expansion
-- 📋 Blockchain integration
-- 📋 Advanced logistics
-- 📋 Enterprise features
+### Phase 3 (Q3 2024)
+- 📋 AI-powered recommendations
+- 📋 Advanced analytics dashboard
+- 📋 API for third-party integrations
+- 📋 White-label solutions
 
 ---
 
-Built with ❤️ for the expat community
+**Built with ❤️ for the expat community in Russia**
