@@ -1,5 +1,9 @@
+'use client'
+
 import { useTranslations } from 'next-intl'
-import { getTranslations } from 'next-intl/server'
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,8 +20,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
-export default async function HomePage() {
-  const t = await getTranslations('home')
+export default function HomePage() {
+  const t = useTranslations('home')
 
   const features = [
     {

@@ -1,5 +1,9 @@
+'use client'
+
 import { useTranslations } from 'next-intl'
-import { getTranslations } from 'next-intl/server'
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -148,8 +152,8 @@ const mockUsers = [
   }
 ]
 
-export default async function AdminPage() {
-  const t = await getTranslations('admin')
+export default function AdminPage() {
+  const t = useTranslations('admin')
 
   return (
     <div className="min-h-screen bg-background">
