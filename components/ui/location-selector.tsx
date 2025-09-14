@@ -42,7 +42,6 @@ export function LocationSelector({ className = '' }: LocationSelectorProps) {
   ]
 
   const currentLocation = locations.find(l => l.value === location)
-  const currentCurrency = currencies.find(c => c.value === currency)
 
   const features = [
     { key: 'list', label: 'List Items', description: 'Create listings for sale' },

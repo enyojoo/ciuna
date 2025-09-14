@@ -12,17 +12,10 @@ import {
   Store, 
   Settings, 
   Save,
-  Upload,
-  MapPin,
-  Phone,
-  Mail,
-  Globe,
   CreditCard,
   Truck,
   Bell,
   Shield,
-  DollarSign,
-  Package
 } from 'lucide-react'
 import { UserRole } from '@/lib/auth/access-control'
 import { useState } from 'react'
@@ -497,7 +490,7 @@ export default function VendorSettings() {
               Store Preferences
             </CardTitle>
             <CardDescription>
-              Configure your store's default settings
+              Configure your store&apos;s default settings
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

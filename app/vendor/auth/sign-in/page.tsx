@@ -126,7 +126,7 @@ export default function VendorSignIn() {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Don't have a vendor account?{' '}
+                Don&apos;t have a vendor account?{' '}
                 <Button
                   variant="link"
                   onClick={() => router.push('/vendor/auth/sign-up')}

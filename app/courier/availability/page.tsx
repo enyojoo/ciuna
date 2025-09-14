@@ -190,7 +190,7 @@ export default function CourierAvailability() {
               </div>
               
               <div>
-                <p className="text-sm text-muted-foreground">Today's Deliveries</p>
+                <p className="text-sm text-muted-foreground">Today&apos;s Deliveries</p>
                 <p className="font-medium">{currentStatus.todayDeliveries}</p>
                 <p className="text-sm text-muted-foreground">
                   Earnings: ₽{currentStatus.todayEarnings}
@@ -345,7 +345,7 @@ export default function CourierAvailability() {
               Service Areas
             </CardTitle>
             <CardDescription>
-              Define the areas where you're willing to make deliveries
+              Define the areas where you&apos;re willing to make deliveries
             </CardDescription>
           </CardHeader>
           <CardContent>

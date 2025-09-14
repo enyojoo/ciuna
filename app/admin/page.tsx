@@ -22,8 +22,6 @@ import {
   AlertTriangle,
   TrendingUp,
   DollarSign,
-  Globe,
-  Settings
 } from 'lucide-react'
 import { formatPrice, formatDate, getStatusLabel } from '@/lib/utils'
 
@@ -113,44 +111,6 @@ const mockRecentActivity = [
   }
 ]
 
-const mockUsers = [
-  {
-    id: 1,
-    first_name: 'John',
-    last_name: 'Smith',
-    email: 'john.smith@example.com',
-    role: 'USER' as const,
-    verified_expat: true,
-    created_at: '2024-01-10T10:30:00Z',
-    last_active: '2024-01-15T14:30:00Z',
-    total_orders: 5,
-    total_spent: 150000
-  },
-  {
-    id: 2,
-    first_name: 'Maria',
-    last_name: 'Garcia',
-    email: 'maria.garcia@example.com',
-    role: 'VENDOR' as const,
-    verified_expat: true,
-    created_at: '2024-01-08T15:45:00Z',
-    last_active: '2024-01-15T12:15:00Z',
-    total_orders: 12,
-    total_spent: 250000
-  },
-  {
-    id: 3,
-    first_name: 'David',
-    last_name: 'Wilson',
-    email: 'david.wilson@example.com',
-    role: 'USER' as const,
-    verified_expat: false,
-    created_at: '2024-01-12T09:20:00Z',
-    last_active: '2024-01-15T10:45:00Z',
-    total_orders: 2,
-    total_spent: 15000
-  }
-]
 
 export default function AdminPage() {
   return (

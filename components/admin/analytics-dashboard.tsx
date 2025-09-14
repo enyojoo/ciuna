@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { 
@@ -11,10 +10,8 @@ import {
   DollarSign, 
   Globe, 
   TrendingUp, 
-  TrendingDown,
   MapPin,
   CreditCard,
-  Truck,
   Package
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -49,7 +46,6 @@ export function AnalyticsDashboard({ className = '' }: AnalyticsDashboardProps) 
   const [timeRange, setTimeRange] = useState('30d')
   const [selectedLocation, setSelectedLocation] = useState('all')
 
-  const supabase = createClient()
 
   useEffect(() => {
     loadAnalyticsData()

@@ -126,7 +126,7 @@ export default function CourierSignIn() {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Don't have a courier account?{' '}
+                Don&apos;t have a courier account?{' '}
                 <Button
                   variant="link"
                   onClick={() => router.push('/courier/auth/sign-up')}

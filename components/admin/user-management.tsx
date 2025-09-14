@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,7 +11,6 @@ import { Switch } from '@/components/ui/switch'
 import { 
   Users, 
   Search, 
-  Filter, 
   Edit, 
   Save, 
   X,
@@ -19,13 +18,9 @@ import {
   DollarSign,
   Shield,
   CheckCircle,
-  XCircle,
-  AlertTriangle
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Profile, UserLocation, SupportedCurrency } from '@/lib/types'
-import { getLocationDisplay } from '@/lib/location'
-import { formatCurrency } from '@/lib/currency'
 
 interface UserManagementProps {
   className?: string
@@ -43,7 +38,7 @@ export function UserManagement({ className = '' }: UserManagementProps) {
 
   useEffect(() => {
     loadUsers()
-  }, [])
+  }, [loadUsers])
 
   const loadUsers = async () => {
     setIsLoading(true)
@@ -371,7 +366,7 @@ export function UserManagement({ className = '' }: UserManagementProps) {
                       <Select
                         value={editingUser.role}
                         onValueChange={(value) => 
-                          setEditingUser(prev => prev ? { ...prev, role: value as any } : null)
+                          setEditingUser(prev => prev ? { ...prev, role: value as string } : null)
                         }
                       >
                         <SelectTrigger>
@@ -404,7 +399,7 @@ export function UserManagement({ className = '' }: UserManagementProps) {
                       <Select
                         value={editingUser.verification_status}
                         onValueChange={(value) => 
-                          setEditingUser(prev => prev ? { ...prev, verification_status: value as any } : null)
+                          setEditingUser(prev => prev ? { ...prev, verification_status: value as string } : null)
                         }
                       >
                         <SelectTrigger className="w-32">

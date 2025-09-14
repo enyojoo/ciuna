@@ -10,7 +10,6 @@ import {
   TrendingDown,
   Calendar,
   Download,
-  Filter,
   Clock,
   CheckCircle,
   AlertCircle,
@@ -19,7 +18,7 @@ import {
   Award
 } from 'lucide-react'
 import { UserRole } from '@/lib/auth/access-control'
-import { formatCurrency } from '@/lib/currency'
+import { formatCurrency, SupportedCurrency } from '@/lib/currency'
 import { useState } from 'react'
 
 export default function CourierEarnings() {
@@ -130,14 +129,6 @@ export default function CourierEarnings() {
     }
   ]
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'default'
-      case 'pending': return 'secondary'
-      case 'cancelled': return 'outline'
-      default: return 'outline'
-    }
-  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -351,7 +342,7 @@ export default function CourierEarnings() {
                       
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">
-                          Reward: {formatCurrency(achievement.reward, achievement.currency)}
+                          Reward: {formatCurrency(achievement.reward, achievement.currency as SupportedCurrency)}
                         </span>
                         {achievement.progress >= achievement.target ? (
                           <Badge variant="default">Completed</Badge>
@@ -392,10 +383,10 @@ export default function CourierEarnings() {
                     </div>
                     
                     <div className="text-right">
-                      <div className="font-medium">{formatCurrency(earning.earnings, earning.currency)}</div>
+                      <div className="font-medium">{formatCurrency(earning.earnings, earning.currency as SupportedCurrency)}</div>
                       <div className="text-sm text-muted-foreground">
-                        {earning.bonus > 0 && `+${formatCurrency(earning.bonus, earning.currency)} bonus`}
-                        {earning.tip > 0 && ` +${formatCurrency(earning.tip, earning.currency)} tip`}
+                        {earning.bonus > 0 && `+${formatCurrency(earning.bonus, earning.currency as SupportedCurrency)} bonus`}
+                        {earning.tip > 0 && ` +${formatCurrency(earning.tip, earning.currency as SupportedCurrency)} tip`}
                       </div>
                     </div>
                   </div>

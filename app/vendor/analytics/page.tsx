@@ -3,7 +3,6 @@
 import { RoleLayout } from '@/components/layouts/role-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { 
   BarChart3, 
   TrendingUp, 
@@ -14,11 +13,8 @@ import {
   Package,
   Eye,
   Download,
-  Filter,
-  Calendar,
   Target,
   Award,
-  Star
 } from 'lucide-react'
 import { UserRole } from '@/lib/auth/access-control'
 import { formatCurrency } from '@/lib/currency'
@@ -59,14 +55,6 @@ export default function VendorAnalytics() {
     { name: 'Wireless Headphones', sales: 6, revenue: 30000, growth: -5.2 }
   ]
 
-  const salesData = [
-    { month: 'Jan', revenue: 85000, orders: 28 },
-    { month: 'Feb', revenue: 92000, orders: 32 },
-    { month: 'Mar', revenue: 78000, orders: 26 },
-    { month: 'Apr', revenue: 105000, orders: 35 },
-    { month: 'May', revenue: 98000, orders: 31 },
-    { month: 'Jun', revenue: 125000, orders: 45 }
-  ]
 
   const customerInsights = {
     newCustomers: 12,

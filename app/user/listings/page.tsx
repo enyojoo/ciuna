@@ -1,7 +1,7 @@
 'use client'
 
 import { RoleLayout } from '@/components/layouts/role-layout'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
@@ -9,13 +9,12 @@ import {
   Plus, 
   Edit, 
   Eye, 
-  Trash2,
   MoreHorizontal,
   Filter,
   Search
 } from 'lucide-react'
 import { UserRole } from '@/lib/auth/access-control'
-import { formatCurrency } from '@/lib/currency'
+import { formatCurrency, SupportedCurrency } from '@/lib/currency'
 
 export default function UserListings() {
   const role: UserRole = 'USER'
@@ -127,7 +126,7 @@ export default function UserListings() {
                   <h3 className="font-medium line-clamp-2">{listing.title}</h3>
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-bold">
-                      {formatCurrency(listing.price, listing.currency as any)}
+                      {formatCurrency(listing.price, listing.currency as SupportedCurrency)}
                     </span>
                     <span className="text-sm text-muted-foreground">
                       {listing.views} views

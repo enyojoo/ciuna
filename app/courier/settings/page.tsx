@@ -11,15 +11,11 @@ import {
   Truck, 
   Settings, 
   Save,
-  Upload,
   MapPin,
-  Phone,
-  Mail,
   CreditCard,
   Bell,
   Shield,
   Clock,
-  DollarSign,
   User,
   FileText
 } from 'lucide-react'
@@ -91,7 +87,7 @@ export default function CourierSettings() {
     // Show success message
   }
 
-  const handleWorkingHoursChange = (day: string, field: string, value: any) => {
+  const handleWorkingHoursChange = (day: string, field: string, value: string | boolean) => {
     setSettings(prev => ({
       ...prev,
       workingHours: {

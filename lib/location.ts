@@ -138,7 +138,7 @@ export class LocationService {
       // Group providers by location
       this.shippingProviders.clear()
       shippingData?.forEach(provider => {
-        provider.countries.forEach(country => {
+        provider.countries.forEach((country: string) => {
           if (!this.shippingProviders.has(country)) {
             this.shippingProviders.set(country, [])
           }
@@ -157,7 +157,7 @@ export class LocationService {
       // Group methods by location
       this.paymentMethods.clear()
       paymentData?.forEach(method => {
-        method.countries.forEach(country => {
+        method.countries.forEach((country: string) => {
           if (!this.paymentMethods.has(country)) {
             this.paymentMethods.set(country, [])
           }

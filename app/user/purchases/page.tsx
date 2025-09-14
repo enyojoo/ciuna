@@ -1,7 +1,7 @@
 'use client'
 
 import { RoleLayout } from '@/components/layouts/role-layout'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
@@ -16,7 +16,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { UserRole } from '@/lib/auth/access-control'
-import { formatCurrency } from '@/lib/currency'
+import { formatCurrency, SupportedCurrency } from '@/lib/currency'
 
 export default function UserPurchases() {
   const role: UserRole = 'USER'
@@ -159,7 +159,7 @@ export default function UserPurchases() {
                     </div>
                     <div className="text-right">
                       <div className="font-medium">
-                        {formatCurrency(purchase.total, purchase.currency as any)}
+                        {formatCurrency(purchase.total, purchase.currency as SupportedCurrency)}
                       </div>
                       {getStatusBadge(purchase.status)}
                     </div>
@@ -182,7 +182,7 @@ export default function UserPurchases() {
                         </div>
                         <div className="text-right">
                           <div className="font-medium">
-                            {formatCurrency(item.price, item.currency as any)}
+                            {formatCurrency(item.price, item.currency as SupportedCurrency)}
                           </div>
                         </div>
                       </div>

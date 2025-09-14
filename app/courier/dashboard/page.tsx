@@ -9,7 +9,6 @@ import {
   Truck, 
   DollarSign, 
   TrendingUp, 
-  MapPin,
   Clock,
   CheckCircle,
   AlertCircle,

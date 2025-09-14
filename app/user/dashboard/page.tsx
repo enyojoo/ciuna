@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ResponsiveGrid } from '@/components/ui/responsive-grid'
 import { ResponsiveHeader } from '@/components/ui/responsive-header'
-import { ResponsiveButtonGroup } from '@/components/ui/responsive-button-group'
 import { 
   Package, 
   ShoppingCart, 
@@ -18,12 +17,10 @@ import {
   Plus,
   Star
 } from 'lucide-react'
-import { getQuickActions } from '@/lib/quick-actions/role-actions'
 import { UserRole } from '@/lib/auth/access-control'
 
 export default function UserDashboard() {
   const role: UserRole = 'USER'
-  const quickActions = getQuickActions(role)
 
   // Mock data - in real app, this would come from Supabase
   const stats = {

@@ -126,7 +126,7 @@ export default function UserSignIn() {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <Button
                   variant="link"
                   onClick={() => router.push('/user/auth/sign-up')}

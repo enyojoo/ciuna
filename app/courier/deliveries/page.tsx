@@ -1,27 +1,23 @@
 'use client'
 
 import { RoleLayout } from '@/components/layouts/role-layout'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { 
   Truck, 
   Search, 
-  Filter,
   Eye,
-  MapPin,
-  Clock,
   CheckCircle,
   AlertCircle,
   Package,
-  MoreHorizontal,
   Navigation,
   Phone,
   MessageCircle
 } from 'lucide-react'
 import { UserRole } from '@/lib/auth/access-control'
-import { formatCurrency } from '@/lib/currency'
+import { formatCurrency, SupportedCurrency } from '@/lib/currency'
 import { useState } from 'react'
 
 export default function CourierDeliveries() {
@@ -385,7 +381,7 @@ export default function CourierDeliveries() {
                         
                         <div>
                           <p className="text-sm text-muted-foreground">Earnings</p>
-                          <p className="text-lg font-bold">{formatCurrency(delivery.earnings, delivery.currency)}</p>
+                          <p className="text-lg font-bold">{formatCurrency(delivery.earnings, delivery.currency as SupportedCurrency)}</p>
                         </div>
                       </div>
                       

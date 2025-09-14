@@ -13,7 +13,6 @@ import {
   Shield, 
   CreditCard,
   MapPin,
-  Globe,
   Save
 } from 'lucide-react'
 import { UserRole } from '@/lib/auth/access-control'
@@ -271,7 +270,7 @@ export default function UserSettings() {
               <div>
                 <Label htmlFor="showOnlineStatus">Show Online Status</Label>
                 <p className="text-sm text-muted-foreground">
-                  Show when you're online to other users
+                  Show when you&apos;re online to other users
                 </p>
               </div>
               <Switch

@@ -13,7 +13,6 @@ import {
   Users,
   Eye,
   Plus,
-  Store,
   Star
 } from 'lucide-react'
 import { UserRole } from '@/lib/auth/access-control'
@@ -168,7 +167,7 @@ export default function VendorDashboard() {
                 Revenue Overview
               </CardTitle>
               <CardDescription>
-                Your store's revenue performance
+                Your store&apos;s revenue performance
               </CardDescription>
             </CardHeader>
             <CardContent>

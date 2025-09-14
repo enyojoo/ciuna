@@ -4,7 +4,6 @@ import {
   Heart, 
   Plus,
   BarChart3,
-  Store,
   Truck,
   DollarSign,
   Users,

@@ -42,7 +42,7 @@ export function PriceDisplay({
     if (originalCurrency !== userCurrency && showConversion) {
       loadConversion()
     }
-  }, [amount, originalCurrency, userCurrency, showConversion])
+  }, [amount, originalCurrency, userCurrency, showConversion, loadConversion])
 
   const loadConversion = async () => {
     setIsLoading(true)
@@ -145,7 +145,7 @@ export function PriceSelector({
     } else {
       setConversion(null)
     }
-  }, [amount, originalCurrency, selectedCurrency])
+  }, [amount, originalCurrency, selectedCurrency, loadConversion])
 
   const loadConversion = async () => {
     setIsLoading(true)

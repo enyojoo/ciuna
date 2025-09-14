@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useTheme } from 'next-themes'
-import { Menu, Sun, Moon, ShoppingCart, MessageCircle, User, LogOut } from 'lucide-react'
+import { Menu, Sun, Moon, ShoppingCart, MessageCircle, User, LogOut, Home, Search, Store, FileText, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -35,7 +36,7 @@ interface NavigationProps {
   userNavigation?: NavigationItem[]
 }
 
-export function Navigation({ user, onSignOut, role, navigation, userNavigation }: NavigationProps) {
+export function Navigation({ user, onSignOut, navigation, userNavigation }: NavigationProps) {
   const { theme, setTheme } = useTheme()
   const [isOpen, setIsOpen] = useState(false)
   const { canAccess } = useFeatureAccess()

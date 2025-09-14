@@ -16,14 +16,13 @@ import {
   Shield,
   FileText,
   MapPin,
-  CreditCard
 } from 'lucide-react'
 import { UserRole } from '@/lib/auth/access-control'
 
 export interface NavigationItem {
   name: string
   href: string
-  icon: any
+  icon: React.ComponentType<{ className?: string }>
   badge?: string
   requiresFeature?: string
   requiresRole?: UserRole[]

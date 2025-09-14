@@ -16,10 +16,10 @@ import {
   MapPin,
   DollarSign,
   CheckCircle,
-  AlertCircle
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { UserLocation, SupportedCurrency } from '@/lib/currency'
+import { SupportedCurrency } from '@/lib/currency'
+import { UserLocation } from '@/lib/location'
 
 const locations: { value: UserLocation; label: string }[] = [
   { value: 'russia', label: 'Russia' },

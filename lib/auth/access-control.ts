@@ -21,7 +21,7 @@ export interface AccessControl {
   canManageSettings?: boolean
 }
 
-export const getRoleFeatures = (role: UserRole, location: UserLocation): AccessControl => {
+export const getRoleFeatures = (role: UserRole, _location: UserLocation): AccessControl => {
   const baseFeatures = {
     canBuy: true,
     canMessage: true,

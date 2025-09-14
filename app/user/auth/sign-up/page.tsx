@@ -18,7 +18,8 @@ import {
   CheckCircle
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { UserLocation, SupportedCurrency } from '@/lib/currency'
+import { SupportedCurrency } from '@/lib/currency'
+import { UserLocation } from '@/lib/location'
 
 const locations: { value: UserLocation; label: string }[] = [
   { value: 'russia', label: 'Russia' },
@@ -281,7 +282,7 @@ export default function UserSignUp() {
                       }}
                     />
                     <Label htmlFor="vendor" className="text-sm">
-                      I'm interested in becoming a vendor to sell products
+                      I&apos;m interested in becoming a vendor to sell products
                     </Label>
                   </div>
                   
@@ -295,14 +296,14 @@ export default function UserSignUp() {
                       }}
                     />
                     <Label htmlFor="courier" className="text-sm">
-                      I'm interested in becoming a courier for delivery services
+                      I&apos;m interested in becoming a courier for delivery services
                     </Label>
                   </div>
                 </div>
                 
                 {(showVendorOption || showCourierOption) && (
                   <div className="text-xs text-blue-700 bg-blue-100 p-2 rounded">
-                    <p>Great! We'll send you information about these opportunities after you complete your registration.</p>
+                    <p>Great! We&apos;ll send you information about these opportunities after you complete your registration.</p>
                   </div>
                 )}
               </div>
@@ -334,7 +335,7 @@ export default function UserSignUp() {
                     onCheckedChange={(checked) => setFormData(prev => ({ ...prev, agreeToMarketing: !!checked }))}
                   />
                   <Label htmlFor="marketing" className="text-sm">
-                    I'd like to receive marketing emails and updates
+                    I&apos;d like to receive marketing emails and updates
                   </Label>
                 </div>
               </div>
@@ -368,7 +369,7 @@ export default function UserSignUp() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-500" />
-              What you'll get as a Buyer & Seller
+              What you&apos;ll get as a Buyer & Seller
             </CardTitle>
           </CardHeader>
           <CardContent>

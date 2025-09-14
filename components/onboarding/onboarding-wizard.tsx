@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -37,14 +37,13 @@ export function OnboardingWizard({ role, user, onComplete }: OnboardingWizardPro
   const [currentStep, setCurrentStep] = useState(0)
   const [completedSteps, setCompletedSteps] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
 
   const steps = getOnboardingSteps(role)
   const progress = getOnboardingProgress(role, completedSteps)
   const currentStepData = steps[currentStep]
 
   const getStepIcon = (stepId: string) => {
-    const icons: Record<string, any> = {
+    const icons: Record<string, React.ComponentType<{ className?: string }>> = {
       profile: User,
       location: MapPin,
       preferences: Settings,
@@ -242,7 +241,7 @@ export function OnboardingWizard({ role, user, onComplete }: OnboardingWizardPro
 }
 
 // Step Components (simplified for now)
-function ProfileStep({ user }: { user: any }) {
+function ProfileStep() {
   return (
     <div className="text-center py-8">
       <p className="text-muted-foreground">Profile setup form would go here</p>
@@ -250,7 +249,7 @@ function ProfileStep({ user }: { user: any }) {
   )
 }
 
-function LocationStep({ user }: { user: any }) {
+function LocationStep() {
   return (
     <div className="text-center py-8">
       <p className="text-muted-foreground">Location selection form would go here</p>
@@ -258,7 +257,7 @@ function LocationStep({ user }: { user: any }) {
   )
 }
 
-function PreferencesStep({ user }: { user: any }) {
+function PreferencesStep() {
   return (
     <div className="text-center py-8">
       <p className="text-muted-foreground">Preferences form would go here</p>
@@ -266,7 +265,7 @@ function PreferencesStep({ user }: { user: any }) {
   )
 }
 
-function StoreStep({ user }: { user: any }) {
+function StoreStep() {
   return (
     <div className="text-center py-8">
       <p className="text-muted-foreground">Store setup form would go here</p>
@@ -274,7 +273,7 @@ function StoreStep({ user }: { user: any }) {
   )
 }
 
-function VerificationStep({ user }: { user: any }) {
+function VerificationStep() {
   return (
     <div className="text-center py-8">
       <p className="text-muted-foreground">Verification form would go here</p>
@@ -282,7 +281,7 @@ function VerificationStep({ user }: { user: any }) {
   )
 }
 
-function PaymentStep({ user }: { user: any }) {
+function PaymentStep() {
   return (
     <div className="text-center py-8">
       <p className="text-muted-foreground">Payment setup form would go here</p>
@@ -290,7 +289,7 @@ function PaymentStep({ user }: { user: any }) {
   )
 }
 
-function DocumentsStep({ user }: { user: any }) {
+function DocumentsStep() {
   return (
     <div className="text-center py-8">
       <p className="text-muted-foreground">Document upload form would go here</p>
@@ -298,7 +297,7 @@ function DocumentsStep({ user }: { user: any }) {
   )
 }
 
-function AvailabilityStep({ user }: { user: any }) {
+function AvailabilityStep() {
   return (
     <div className="text-center py-8">
       <p className="text-muted-foreground">Availability setup form would go here</p>
@@ -306,7 +305,7 @@ function AvailabilityStep({ user }: { user: any }) {
   )
 }
 
-function PermissionsStep({ user }: { user: any }) {
+function PermissionsStep() {
   return (
     <div className="text-center py-8">
       <p className="text-muted-foreground">Permissions setup form would go here</p>

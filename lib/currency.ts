@@ -144,7 +144,6 @@ export class CurrencyService {
   }
 
   formatCurrency(amount: number, currency: SupportedCurrency, locale: string = 'en-US'): string {
-    const symbol = CURRENCY_SYMBOLS[currency]
     const formatter = new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: currency,

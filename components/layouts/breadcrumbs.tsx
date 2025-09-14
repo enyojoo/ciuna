@@ -21,7 +21,6 @@ export function Breadcrumbs({ pathname, role }: BreadcrumbsProps) {
     <nav className="flex items-center space-x-1 text-sm text-muted-foreground mb-4">
       {breadcrumbs.map((item, index) => {
         const isLast = index === breadcrumbs.length - 1
-        const Icon = item.icon
 
         return (
           <div key={item.href} className="flex items-center">

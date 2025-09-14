@@ -9,7 +9,6 @@ import { Navigation } from '@/components/navigation'
 import { Sidebar } from '@/components/layouts/sidebar'
 import { MobileNav } from '@/components/layouts/mobile-nav'
 import { Breadcrumbs } from '@/components/layouts/breadcrumbs'
-import { QuickActions } from '@/components/layouts/quick-actions'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
 interface RoleLayoutProps {
@@ -19,7 +18,7 @@ interface RoleLayoutProps {
 
 export function RoleLayout({ children, role }: RoleLayoutProps) {
   const [isLoading, setIsLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ id: string; role: string; email: string; first_name?: string; last_name?: string; avatar_url?: string; location?: string; completed_steps?: string[] } | null>(null)
   const router = useRouter()
   const pathname = usePathname()
 

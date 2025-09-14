@@ -43,7 +43,7 @@ export interface RoleFeatures {
   canManagePlatform: boolean
 }
 
-export const getRoleFeatures = (role: UserRole, location: UserLocation): RoleFeatures => {
+export const getRoleFeatures = (role: UserRole, _location: UserLocation): RoleFeatures => {
   const baseFeatures: RoleFeatures = {
     // Core marketplace features
     canBuy: true,
@@ -149,8 +149,8 @@ export const canAccessFeature = (role: UserRole, feature: keyof RoleFeatures, lo
 export const getAvailableFeatures = (role: UserRole, location: UserLocation): string[] => {
   const features = getRoleFeatures(role, location)
   return Object.entries(features)
-    .filter(([_, enabled]) => enabled)
-    .map(([feature, _]) => feature)
+    .filter(([, enabled]) => enabled)
+    .map(([feature]) => feature)
 }
 
 export const getFeatureDescription = (feature: keyof RoleFeatures): string => {

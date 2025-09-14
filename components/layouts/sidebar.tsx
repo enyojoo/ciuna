@@ -41,7 +41,7 @@ export function Sidebar({ role, navigation, quickActions }: SidebarProps) {
   const pathname = usePathname()
 
   const getIcon = (iconName: string) => {
-    const icons: Record<string, any> = {
+    const icons: Record<string, React.ComponentType<{ className?: string }>> = {
       Home,
       Search,
       Package,

@@ -40,7 +40,7 @@ export function MobileNav({ role, navigation, quickActions }: MobileNavProps) {
   const pathname = usePathname()
 
   const getIcon = (iconName: string) => {
-    const icons: Record<string, any> = {
+    const icons: Record<string, React.ComponentType<{ className?: string }>> = {
       Home,
       Search,
       Package,

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
@@ -17,17 +16,14 @@ import {
   Settings, 
   Plus, 
   Edit, 
-  Trash2, 
   Save,
   RefreshCw,
   CheckCircle,
   XCircle,
-  AlertTriangle
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { currencyService } from '@/lib/currency'
-import { locationService } from '@/lib/location'
-import { SupportedCurrency, UserLocation } from '@/lib/currency'
+import { SupportedCurrency } from '@/lib/currency'
 import { FeatureAccessRule, ShippingProvider, PaymentMethod, CurrencyExchangeRate } from '@/lib/types'
 
 interface GlobalSettingsProps {
@@ -45,7 +41,6 @@ export function GlobalSettings({ className = '' }: GlobalSettingsProps) {
 
   // Feature Access Management
   const [featureRules, setFeatureRules] = useState<FeatureAccessRule[]>([])
-  const [editingRule, setEditingRule] = useState<FeatureAccessRule | null>(null)
 
   // Shipping Providers Management
   const [shippingProviders, setShippingProviders] = useState<ShippingProvider[]>([])
@@ -71,7 +66,7 @@ export function GlobalSettings({ className = '' }: GlobalSettingsProps) {
 
   useEffect(() => {
     loadAllData()
-  }, [])
+  }, [loadAllData])
 
   const loadAllData = async () => {
     setIsLoading(true)
@@ -209,22 +204,13 @@ export function GlobalSettings({ className = '' }: GlobalSettingsProps) {
       await currencyService.updateExchangeRates()
       await loadExchangeRates()
       setSuccess('Exchange rates updated successfully')
-    } catch (err) {
+    } catch {
       setError('Failed to update exchange rates')
     } finally {
       setIsLoading(false)
     }
   }
 
-  const showSuccess = (message: string) => {
-    setSuccess(message)
-    setTimeout(() => setSuccess(null), 3000)
-  }
-
-  const showError = (message: string) => {
-    setError(message)
-    setTimeout(() => setError(null), 3000)
-  }
 
   return (
     <div className={`space-y-6 ${className}`}>

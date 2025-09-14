@@ -1,7 +1,7 @@
 'use client'
 
 import { RoleLayout } from '@/components/layouts/role-layout'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -12,9 +12,7 @@ import {
   Package, 
   Plus, 
   Search, 
-  Filter,
   Edit,
-  Trash2,
   Eye,
   MoreHorizontal,
   Star,
@@ -22,7 +20,7 @@ import {
   TrendingDown
 } from 'lucide-react'
 import { UserRole } from '@/lib/auth/access-control'
-import { formatCurrency } from '@/lib/currency'
+import { formatCurrency, SupportedCurrency } from '@/lib/currency'
 import { useState } from 'react'
 
 export default function VendorProducts() {
@@ -226,10 +224,10 @@ export default function VendorProducts() {
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-lg font-bold">{formatCurrency(product.price, product.currency)}</p>
+                        <p className="text-lg font-bold">{formatCurrency(product.price, product.currency as SupportedCurrency)}</p>
                         {product.originalPrice > product.price && (
                           <p className="text-sm text-muted-foreground line-through">
-                            {formatCurrency(product.originalPrice, product.currency)}
+                            {formatCurrency(product.originalPrice, product.currency as SupportedCurrency)}
                           </p>
                         )}
                       </div>

@@ -34,7 +34,7 @@ interface RoleDashboardProps {
 }
 
 export function RoleDashboard({ role, user, children }: RoleDashboardProps) {
-  const features = getRoleFeatures(role, user.location as any || 'other')
+  const features = getRoleFeatures(role, user.location as string || 'other')
   const quickActions = getQuickActions(role)
   const onboardingProgress = getOnboardingProgress(role, user.completed_steps || [])
   const nextStep = getNextOnboardingStep(role, user.completed_steps || [])
@@ -112,7 +112,7 @@ export function RoleDashboard({ role, user, children }: RoleDashboardProps) {
               Complete Your Setup
             </CardTitle>
             <CardDescription className="text-orange-700">
-              You're {onboardingProgress}% complete with your {role.toLowerCase()} setup
+              You&apos;re {onboardingProgress}% complete with your {role.toLowerCase()} setup
             </CardDescription>
           </CardHeader>
           <CardContent>
