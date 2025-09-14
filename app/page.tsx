@@ -1,6 +1,5 @@
 'use client'
-
-import { useTranslations } from 'next-intl'
+import { useTranslations } from '@/lib/translations'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -56,15 +55,15 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-              {t('title')}
+              {t('hero_title')}
             </h1>
             <p className="mt-6 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto">
-              {t('subtitle')}
+              {t('hero_description')}
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Button asChild size="lg">
                 <Link href="/listings">
-                  {t('get_started')}
+                  {t('cta.get_started')}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>

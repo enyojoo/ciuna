@@ -1,6 +1,6 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
+import { useTranslations } from '@/lib/translations'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -142,6 +142,7 @@ const categories = [
 ]
 
 export default function ServicesPage() {
+  const t = useTranslations('services')
   const t = useTranslations('services')
 
   return (

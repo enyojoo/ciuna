@@ -1,6 +1,5 @@
 'use client'
-
-import { useTranslations } from 'next-intl'
+import { useTranslations } from '@/lib/translations'
 import { Navigation } from '@/components/navigation'
 import { ListingCard } from '@/components/listing-card'
 import { Button } from '@/components/ui/button'

@@ -1,6 +1,6 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
+import { useTranslations } from '@/lib/translations'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -150,6 +150,7 @@ const getDeliveryStatusIcon = (status: string) => {
 }
 
 export default function OrdersPage() {
+  const t = useTranslations('orders')
   const t = useTranslations('orders')
   const buyingOrders = mockOrders.filter(order => order.type === 'buying')
   const sellingOrders = mockOrders.filter(order => order.type === 'selling')

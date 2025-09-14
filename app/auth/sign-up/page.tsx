@@ -1,6 +1,5 @@
 'use client'
-
-import { useTranslations } from 'next-intl'
+import { useTranslations } from '@/lib/translations'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
