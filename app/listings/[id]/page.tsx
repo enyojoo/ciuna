@@ -2,15 +2,11 @@
 
 import { useTranslations } from 'next-intl'
 import { notFound } from 'next/navigation'
-
-// Force dynamic rendering
-export const dynamic = 'force-dynamic'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
 import { 
   Heart, 
   MessageCircle, 
@@ -18,13 +14,11 @@ import {
   Flag, 
   MapPin, 
   Calendar,
-  Star,
   Shield,
-  Truck
+  Star
 } from 'lucide-react'
 import { formatPrice, getConditionLabel, getInitials, formatDate } from '@/lib/utils'
 import Image from 'next/image'
-import Link from 'next/link'
 
 // Mock data - in real app, this would come from Supabase
 const mockListing = {

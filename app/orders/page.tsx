@@ -1,12 +1,9 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-
-// Force dynamic rendering
-export const dynamic = 'force-dynamic'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
@@ -22,6 +19,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { formatPrice, getStatusLabel, formatDate } from '@/lib/utils'
+import Image from 'next/image'
 
 // Mock data - in real app, this would come from Supabase
 const mockOrders = [
@@ -196,9 +194,11 @@ export default function OrdersPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex space-x-4">
                         <div className="w-20 h-20 bg-muted rounded-lg flex-shrink-0">
-                          <img
+                          <Image
                             src={order.listing.photo_urls[0]}
                             alt={order.listing.title}
+                            width={80}
+                            height={80}
                             className="w-full h-full object-cover rounded-lg"
                           />
                         </div>
@@ -296,9 +296,11 @@ export default function OrdersPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex space-x-4">
                         <div className="w-20 h-20 bg-muted rounded-lg flex-shrink-0">
-                          <img
+                          <Image
                             src={order.listing.photo_urls[0]}
                             alt={order.listing.title}
+                            width={80}
+                            height={80}
                             className="w-full h-full object-cover rounded-lg"
                           />
                         </div>

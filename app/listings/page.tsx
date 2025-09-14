@@ -1,9 +1,6 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-
-// Force dynamic rendering
-export const dynamic = 'force-dynamic'
 import { Navigation } from '@/components/navigation'
 import { ListingCard } from '@/components/listing-card'
 import { Button } from '@/components/ui/button'
@@ -11,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { Search, Filter, Plus, Grid, List } from 'lucide-react'
+import { Search, Plus, Grid, List } from 'lucide-react'
 import Link from 'next/link'
 
 // Mock data - in real app, this would come from Supabase

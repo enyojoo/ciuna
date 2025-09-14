@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Heart, MessageCircle, MapPin, Star } from 'lucide-react'
+import { Heart, MessageCircle, MapPin } from 'lucide-react'
 import { formatPrice, getConditionLabel, getInitials } from '@/lib/utils'
 import type { Listing } from '@/lib/types'
 

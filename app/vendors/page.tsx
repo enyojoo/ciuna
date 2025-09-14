@@ -1,9 +1,6 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-
-// Force dynamic rendering
-export const dynamic = 'force-dynamic'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,12 +12,10 @@ import {
   Search, 
   Star, 
   MapPin, 
-  Globe, 
   Shield, 
   Store, 
   Package,
-  MessageCircle,
-  Filter
+  MessageCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import { getInitials } from '@/lib/utils'
