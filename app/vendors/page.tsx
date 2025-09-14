@@ -1,6 +1,4 @@
 'use client'
-
-import { useTranslations } from '@/lib/translations'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -105,8 +103,6 @@ const mockVendors = [
 ]
 
 export default function VendorsPage() {
-  const t = useTranslations('vendors')
-  const t = useTranslations('vendors')
 
   return (
     <div className="min-h-screen bg-background">

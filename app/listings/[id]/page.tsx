@@ -1,6 +1,5 @@
 'use client'
 
-import { useTranslations } from '@/lib/translations'
 import { notFound } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'

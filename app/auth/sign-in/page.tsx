@@ -1,5 +1,4 @@
 'use client'
-import { useTranslations } from '@/lib/translations'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,7 +10,6 @@ import Link from 'next/link'
 import { ArrowLeft, Mail, Lock, Eye } from 'lucide-react'
 
 export default function SignInPage() {
-  const t = useTranslations('auth')
 
   return (
     <div className="min-h-screen bg-background">

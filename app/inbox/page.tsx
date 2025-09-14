@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useTranslations } from '@/lib/translations'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -170,7 +169,6 @@ const mockMessages = [
 ]
 
 export default function InboxPage() {
-  const t = useTranslations('inbox')
   const [selectedConversation, setSelectedConversation] = useState<number | null>(1)
   const [searchQuery, setSearchQuery] = useState('')
   const [newMessage, setNewMessage] = useState('')

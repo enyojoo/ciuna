@@ -1,5 +1,4 @@
 'use client'
-import { useTranslations } from '@/lib/translations'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,7 +13,6 @@ import {
 import Link from 'next/link'
 
 export default function HomePage() {
-  const t = useTranslations('home')
 
   const features = [
     {
@@ -55,21 +53,21 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-              {t('hero_title')}
+              Welcome to Ciuna
             </h1>
             <p className="mt-6 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto">
-              {t('hero_description')}
+              The marketplace for foreigners living in Russia. Buy, sell, and find services in your community.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Button asChild size="lg">
                 <Link href="/listings">
-                  {t('cta.get_started')}
+                  Get Started
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
               <Button variant="outline" asChild size="lg">
                 <Link href="/vendors">
-                  {t('featured_vendors')}
+                  Featured Vendors
                 </Link>
               </Button>
             </div>
@@ -126,7 +124,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              {t('browse_categories')}
+              Browse Categories
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
               Find exactly what you&apos;re looking for

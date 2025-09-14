@@ -1,5 +1,4 @@
 'use client'
-import { useTranslations } from '@/lib/translations'
 import { Navigation } from '@/components/navigation'
 import { ListingCard } from '@/components/listing-card'
 import { Button } from '@/components/ui/button'
@@ -218,7 +217,6 @@ const categories = [
 ]
 
 export default function ListingsPage() {
-  const t = useTranslations('listings')
 
   return (
     <div className="min-h-screen bg-background">
