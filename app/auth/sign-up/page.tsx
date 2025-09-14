@@ -25,7 +25,7 @@ export default function SignUpPage() {
                 Back to home
               </Link>
             </Button>
-            <h1 className="text-3xl font-bold">{t('sign_up')}</h1>
+            <h1 className="text-3xl font-bold">Sign Up</h1>
             <p className="text-muted-foreground mt-2">
               Create your account to get started with Ciuna
             </p>
@@ -33,7 +33,7 @@ export default function SignUpPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>{t('sign_up')}</CardTitle>
+              <CardTitle>Sign Up</CardTitle>
               <CardDescription>
                 Fill in your information to create your account
               </CardDescription>
@@ -42,7 +42,7 @@ export default function SignUpPage() {
               <form className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="first_name">{t('first_name')}</Label>
+                    <Label htmlFor="first_name">First Name</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -55,7 +55,7 @@ export default function SignUpPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="last_name">{t('last_name')}</Label>
+                    <Label htmlFor="last_name">Last Name</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -70,7 +70,7 @@ export default function SignUpPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">{t('email')}</Label>
+                  <Label htmlFor="email">Email</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -84,7 +84,7 @@ export default function SignUpPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">{t('phone')}</Label>
+                  <Label htmlFor="phone">Phone</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -98,7 +98,7 @@ export default function SignUpPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="country">{t('country')}</Label>
+                    <Label htmlFor="country">Country</Label>
                     <Select>
                       <SelectTrigger>
                         <SelectValue placeholder="Select country" />
@@ -116,7 +116,7 @@ export default function SignUpPage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="city">{t('city')}</Label>
+                    <Label htmlFor="city">City</Label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -130,7 +130,7 @@ export default function SignUpPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">{t('password')}</Label>
+                  <Label htmlFor="password">Password</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -152,7 +152,7 @@ export default function SignUpPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirm_password">{t('confirm_password')}</Label>
+                  <Label htmlFor="confirm_password">Confirm Password</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -195,7 +195,7 @@ export default function SignUpPage() {
                 </div>
 
                 <Button className="w-full" type="submit">
-                  {t('sign_up')}
+                  Sign Up
                 </Button>
               </form>
 
@@ -243,9 +243,9 @@ export default function SignUpPage() {
               </div>
 
               <div className="mt-6 text-center text-sm">
-                <span className="text-muted-foreground">{t('already_have_account')} </span>
+                <span className="text-muted-foreground">Already have an account? </span>
                 <Link href="/auth/sign-in" className="font-medium hover:underline">
-                  {t('sign_in')}
+                  Sign In
                 </Link>
               </div>
             </CardContent>

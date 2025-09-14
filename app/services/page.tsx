@@ -148,7 +148,7 @@ export default function ServicesPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">{t('title')}</h1>
+          <h1 className="text-3xl font-bold">Services</h1>
           <p className="text-muted-foreground mt-2">
             Find professional services from verified providers in your community
           </p>
@@ -212,7 +212,7 @@ export default function ServicesPage() {
 
         {/* Featured Services */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">{t('featured_services')}</h2>
+          <h2 className="text-2xl font-bold mb-4">Featured Services</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {mockServices.slice(0, 3).map((service) => (
               <Card key={service.id} className="group hover:shadow-lg transition-shadow">
@@ -273,7 +273,7 @@ export default function ServicesPage() {
                   <div className="flex space-x-2">
                     <Button asChild className="flex-1">
                       <Link href={`/services/${service.id}`}>
-                        {t('view_details')}
+                        View Details
                       </Link>
                     </Button>
                     <Button variant="outline" size="icon">
@@ -288,7 +288,7 @@ export default function ServicesPage() {
 
         {/* All Services */}
         <div>
-          <h2 className="text-2xl font-bold mb-4">{t('all_services')}</h2>
+          <h2 className="text-2xl font-bold mb-4">All Services</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {mockServices.map((service) => (
               <Card key={service.id} className="group hover:shadow-lg transition-shadow">
@@ -349,7 +349,7 @@ export default function ServicesPage() {
                   <div className="flex space-x-2">
                     <Button asChild size="sm" className="flex-1">
                       <Link href={`/services/${service.id}`}>
-                        {t('book_service')}
+                        Book Service
                       </Link>
                     </Button>
                     <Button variant="outline" size="sm">

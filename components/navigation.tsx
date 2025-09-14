@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useTranslations, useLocale } from 'next-intl'
 import { useTheme } from 'next-themes'
 import { Menu, Sun, Moon, ShoppingCart, MessageCircle, User, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -29,26 +28,24 @@ interface NavigationProps {
 }
 
 export function Navigation({ user, onSignOut }: NavigationProps) {
-  const t = useTranslations('navigation')
-  const locale = useLocale()
   const { theme, setTheme } = useTheme()
   const [isOpen, setIsOpen] = useState(false)
 
   const navigation = [
-    { name: t('home'), href: '/' },
-    { name: t('listings'), href: '/listings' },
-    { name: t('vendors'), href: '/vendors' },
-    { name: t('services'), href: '/services' },
+    { name: 'Home', href: '/' },
+    { name: 'Listings', href: '/listings' },
+    { name: 'Vendors', href: '/vendors' },
+    { name: 'Services', href: '/services' },
   ]
 
   const userNavigation = [
-    { name: t('orders'), href: '/orders', icon: ShoppingCart },
-    { name: t('inbox'), href: '/inbox', icon: MessageCircle },
-    { name: t('profile'), href: '/profile', icon: User },
+    { name: 'Orders', href: '/orders', icon: ShoppingCart },
+    { name: 'Inbox', href: '/inbox', icon: MessageCircle },
+    { name: 'Profile', href: '/profile', icon: User },
   ]
 
   if (user?.role === 'ADMIN') {
-    userNavigation.push({ name: t('admin'), href: '/admin', icon: User })
+    userNavigation.push({ name: 'Admin', href: '/admin', icon: User })
   }
 
   return (
@@ -86,34 +83,6 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
             <span className="sr-only">Toggle theme</span>
           </Button>
 
-          {/* Language Selector */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                {locale.toUpperCase()}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem asChild>
-                <Link href="/" locale="en">English</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/" locale="ru">Русский</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/" locale="fr">Français</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/" locale="zh">中文</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/" locale="ar">العربية</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/" locale="es">Español</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
 
           {user ? (
             <DropdownMenu>
@@ -148,17 +117,17 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
-                  {t('sign_out')}
+                  Sign Out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
             <div className="flex items-center space-x-2">
               <Button variant="ghost" asChild>
-                <Link href="/auth/sign-in">{t('sign_in')}</Link>
+                <Link href="/auth/sign-in">Sign In</Link>
               </Button>
               <Button asChild>
-                <Link href="/auth/sign-up">{t('sign_up')}</Link>
+                <Link href="/auth/sign-up">Sign Up</Link>
               </Button>
             </div>
           )}
@@ -237,19 +206,19 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
                       }}
                     >
                       <LogOut className="mr-2 h-4 w-4" />
-                      {t('sign_out')}
+                      Sign Out
                     </Button>
                   </div>
                 ) : (
                   <div className="flex flex-col space-y-2">
                     <Button variant="ghost" asChild>
                       <Link href="/auth/sign-in" onClick={() => setIsOpen(false)}>
-                        {t('sign_in')}
+                        Sign In
                       </Link>
                     </Button>
                     <Button asChild>
                       <Link href="/auth/sign-up" onClick={() => setIsOpen(false)}>
-                        {t('sign_up')}
+                        Sign Up
                       </Link>
                     </Button>
                   </div>

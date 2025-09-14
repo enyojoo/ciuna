@@ -226,7 +226,7 @@ export default function ListingsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold">{t('title')}</h1>
+            <h1 className="text-3xl font-bold">Listings</h1>
             <p className="text-muted-foreground mt-2">
               Discover amazing items from expats in your community
             </p>
@@ -234,7 +234,7 @@ export default function ListingsPage() {
           <Button asChild className="mt-4 sm:mt-0">
             <Link href="/sell/new">
               <Plus className="h-4 w-4 mr-2" />
-              {t('create_listing')}
+              Create Listing
             </Link>
           </Button>
         </div>
@@ -247,7 +247,7 @@ export default function ListingsPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder={t('search_placeholder')}
+                  placeholder="Search for items..."
                   className="pl-10"
                 />
               </div>
@@ -255,7 +255,7 @@ export default function ListingsPage() {
               {/* Category Filter */}
               <Select>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('filter_by_category')} />
+                  <SelectValue placeholder="Filter by category" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
@@ -269,7 +269,7 @@ export default function ListingsPage() {
               {/* Condition Filter */}
               <Select>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('filter_by_condition')} />
+                  <SelectValue placeholder="Filter by condition" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="new">New</SelectItem>
@@ -282,13 +282,13 @@ export default function ListingsPage() {
               {/* Sort */}
               <Select>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('sort_by')} />
+                  <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="newest">{t('sort_newest')}</SelectItem>
-                  <SelectItem value="oldest">{t('sort_oldest')}</SelectItem>
-                  <SelectItem value="price_low">{t('sort_price_low')}</SelectItem>
-                  <SelectItem value="price_high">{t('sort_price_high')}</SelectItem>
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="oldest">Oldest</SelectItem>
+                  <SelectItem value="price_low">Price: Low to High</SelectItem>
+                  <SelectItem value="price_high">Price: High to Low</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -335,14 +335,14 @@ export default function ListingsPage() {
         ) : (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold mb-2">{t('no_listings')}</h3>
+            <h3 className="text-xl font-semibold mb-2">No listings found</h3>
             <p className="text-muted-foreground mb-6">
               Try adjusting your search criteria or create a new listing
             </p>
             <Button asChild>
               <Link href="/sell/new">
                 <Plus className="h-4 w-4 mr-2" />
-                {t('create_listing')}
+                Create Listing
               </Link>
             </Button>
           </div>

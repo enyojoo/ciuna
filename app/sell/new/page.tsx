@@ -40,7 +40,6 @@ const conditions = [
 ]
 
 export default function CreateListingPage() {
-  const t = useTranslations('create_listing')
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -96,7 +95,7 @@ export default function CreateListingPage() {
                 Back to listings
               </Link>
             </Button>
-            <h1 className="text-3xl font-bold">{t('title')}</h1>
+            <h1 className="text-3xl font-bold">Create New Listing</h1>
             <p className="text-muted-foreground mt-2">
               Create a new listing to sell your items to the expat community
             </p>
@@ -108,28 +107,28 @@ export default function CreateListingPage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Tag className="h-5 w-5 mr-2" />
-                  {t('basic_info')}
+                  Basic Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="title">{t('title_label')}</Label>
+                  <Label htmlFor="title">Title</Label>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) => handleInputChange('title', e.target.value)}
-                    placeholder={t('title_placeholder')}
+                    placeholder="Enter a descriptive title for your item"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">{t('description_label')}</Label>
+                  <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
-                    placeholder={t('description_placeholder')}
+                    placeholder="Describe your item in detail"
                     rows={4}
                     required
                   />
@@ -137,10 +136,10 @@ export default function CreateListingPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="category">{t('category_label')}</Label>
+                    <Label htmlFor="category">Category</Label>
                     <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
                       <SelectTrigger>
-                        <SelectValue placeholder={t('select_category')} />
+                        <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map((category) => (
@@ -153,7 +152,7 @@ export default function CreateListingPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="condition">{t('condition_label')}</Label>
+                    <Label htmlFor="condition">Condition</Label>
                     <Select value={formData.condition} onValueChange={(value) => handleInputChange('condition', value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select condition" />
@@ -176,7 +175,7 @@ export default function CreateListingPage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <DollarSign className="h-5 w-5 mr-2" />
-                  {t('price_label')}
+                  Price
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -188,7 +187,7 @@ export default function CreateListingPage() {
                       type="number"
                       value={formData.price}
                       onChange={(e) => handleInputChange('price', e.target.value)}
-                      placeholder={t('price_placeholder')}
+                      placeholder="Enter price in rubles"
                       className="pl-8"
                       required
                     />
@@ -206,7 +205,7 @@ export default function CreateListingPage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <MapPin className="h-5 w-5 mr-2" />
-                  {t('location_label')}
+                  Location
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -217,7 +216,7 @@ export default function CreateListingPage() {
                       id="city"
                       value={formData.city}
                       onChange={(e) => handleInputChange('city', e.target.value)}
-                      placeholder={t('city_placeholder')}
+                      placeholder="Enter city"
                       required
                     />
                   </div>
@@ -227,7 +226,7 @@ export default function CreateListingPage() {
                       id="district"
                       value={formData.district}
                       onChange={(e) => handleInputChange('district', e.target.value)}
-                      placeholder={t('district_placeholder')}
+                      placeholder="Enter district (optional)"
                     />
                   </div>
                 </div>
@@ -239,10 +238,10 @@ export default function CreateListingPage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <ImageIcon className="h-5 w-5 mr-2" />
-                  {t('photos_label')}
+                  Photos
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  {t('photos_description')}
+                  Upload up to 8 photos of your item
                 </p>
               </CardHeader>
               <CardContent>
@@ -313,10 +312,10 @@ export default function CreateListingPage() {
                 </Link>
               </Button>
               <Button type="button" variant="outline">
-                {t('save_draft')}
+                Save Draft
               </Button>
               <Button type="submit" disabled={!formData.title || !formData.description || !formData.price}>
-                {t('publish')}
+                Publish Listing
               </Button>
             </div>
           </form>

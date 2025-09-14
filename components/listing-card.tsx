@@ -1,6 +1,5 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
@@ -18,7 +17,6 @@ interface ListingCardProps {
 }
 
 export function ListingCard({ listing, onFavorite, isFavorite }: ListingCardProps) {
-  const t = useTranslations('listings')
 
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-shadow">
@@ -112,13 +110,13 @@ export function ListingCard({ listing, onFavorite, isFavorite }: ListingCardProp
           <div className="flex items-center justify-between pt-2">
             <Button variant="outline" size="sm" asChild>
               <Link href={`/listings/${listing.id}`}>
-                {t('view_details')}
+                View Details
               </Link>
             </Button>
             <Button size="sm" asChild>
               <Link href={`/listings/${listing.id}?action=message`}>
                 <MessageCircle className="h-4 w-4 mr-1" />
-                {t('contact_seller')}
+                Contact Seller
               </Link>
             </Button>
           </div>

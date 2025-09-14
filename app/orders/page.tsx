@@ -158,7 +158,7 @@ export default function OrdersPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">{t('title')}</h1>
+          <h1 className="text-3xl font-bold">My Orders</h1>
           <p className="text-muted-foreground mt-2">
             Track your purchases and sales
           </p>
@@ -168,14 +168,14 @@ export default function OrdersPage() {
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="buying" className="flex items-center space-x-2">
               <ShoppingCart className="h-4 w-4" />
-              <span>{t('buying')}</span>
+              <span>Buying</span>
               <Badge variant="secondary" className="ml-2">
                 {buyingOrders.length}
               </Badge>
             </TabsTrigger>
             <TabsTrigger value="selling" className="flex items-center space-x-2">
               <Package className="h-4 w-4" />
-              <span>{t('selling')}</span>
+              <span>Selling</span>
               <Badge variant="secondary" className="ml-2">
                 {sellingOrders.length}
               </Badge>
@@ -212,8 +212,8 @@ export default function OrdersPage() {
                             )}
                           </p>
                           <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                            <span>{t('order_id')}: #{order.id}</span>
-                            <span>{t('order_date')}: {formatDate(order.created_at)}</span>
+                            <span>Order ID: #{order.id}</span>
+                            <span>Order Date: {formatDate(order.created_at)}</span>
                           </div>
                         </div>
                       </div>
@@ -252,13 +252,13 @@ export default function OrdersPage() {
                         <Button variant="outline" size="sm" asChild>
                           <Link href={`/orders/${order.id}`}>
                             <Eye className="h-4 w-4 mr-2" />
-                            {t('view_details')}
+                            View Details
                           </Link>
                         </Button>
                         {order.status === 'DELIVERED' && (
                           <Button variant="outline" size="sm">
                             <Star className="h-4 w-4 mr-2" />
-                            {t('leave_review')}
+                            Leave Review
                           </Button>
                         )}
                         <Button variant="outline" size="sm">
@@ -314,8 +314,8 @@ export default function OrdersPage() {
                             )}
                           </p>
                           <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                            <span>{t('order_id')}: #{order.id}</span>
-                            <span>{t('order_date')}: {formatDate(order.created_at)}</span>
+                            <span>Order ID: #{order.id}</span>
+                            <span>Order Date: {formatDate(order.created_at)}</span>
                           </div>
                         </div>
                       </div>
@@ -354,7 +354,7 @@ export default function OrdersPage() {
                         <Button variant="outline" size="sm" asChild>
                           <Link href={`/orders/${order.id}`}>
                             <Eye className="h-4 w-4 mr-2" />
-                            {t('view_details')}
+                            View Details
                           </Link>
                         </Button>
                         {order.status === 'FULFILLING' && (

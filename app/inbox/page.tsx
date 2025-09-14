@@ -204,7 +204,7 @@ export default function InboxPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold">{t('title')}</h1>
+            <h1 className="text-3xl font-bold">Inbox</h1>
             <p className="text-muted-foreground mt-2">
               Connect with buyers and sellers in your community
             </p>
@@ -301,12 +301,12 @@ export default function InboxPage() {
                   ) : (
                     <div className="text-center py-12">
                       <MessageCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">{t('no_conversations')}</h3>
+                      <h3 className="text-lg font-semibold mb-2">No conversations yet</h3>
                       <p className="text-muted-foreground mb-4">
                         Start a conversation with sellers or buyers
                       </p>
                       <Button>
-                        {t('start_conversation')}
+                        Start Conversation
                       </Button>
                     </div>
                   )}
@@ -342,9 +342,9 @@ export default function InboxPage() {
                           </h3>
                           <div className="flex items-center space-x-2">
                             {currentConversation.participants[0].is_online ? (
-                              <span className="text-sm text-green-500">{t('online')}</span>
+                              <span className="text-sm text-green-500">Online</span>
                             ) : (
-                              <span className="text-sm text-muted-foreground">{t('offline')}</span>
+                              <span className="text-sm text-muted-foreground">Offline</span>
                             )}
                             {currentConversation.participants[0].verified_expat && (
                               <Badge variant="outline" className="text-xs">
@@ -388,7 +388,7 @@ export default function InboxPage() {
                                   <div className="mt-2 pt-2 border-t border-white/20">
                                     <p className="text-xs opacity-80">
                                       {message.translated_body}
-                                      <span className="ml-2 text-xs opacity-60">({t('translated')})</span>
+                                      <span className="ml-2 text-xs opacity-60">(Translated)</span>
                                     </p>
                                   </div>
                                 )}
@@ -422,7 +422,7 @@ export default function InboxPage() {
                       <Input
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder={t('type_message')}
+                        placeholder="Type a message..."
                         className="flex-1"
                       />
                       <Button type="submit" disabled={!newMessage.trim()}>

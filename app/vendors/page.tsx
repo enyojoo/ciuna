@@ -16,7 +16,6 @@ import {
   MessageCircle
 } from 'lucide-react'
 import Link from 'next/link'
-import { getInitials } from '@/lib/utils'
 
 // Mock data - in real app, this would come from Supabase
 const mockVendors = [
@@ -111,7 +110,7 @@ export default function VendorsPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">{t('title')}</h1>
+          <h1 className="text-3xl font-bold">Vendors</h1>
           <p className="text-muted-foreground mt-2">
             Discover trusted vendors in your community
           </p>
@@ -136,10 +135,10 @@ export default function VendorsPage() {
                   <SelectValue placeholder="All Vendors" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('all_vendors')}</SelectItem>
-                  <SelectItem value="local">{t('local_vendors')}</SelectItem>
-                  <SelectItem value="international">{t('international_vendors')}</SelectItem>
-                  <SelectItem value="verified">{t('verified_vendors')}</SelectItem>
+                  <SelectItem value="all">All Vendors</SelectItem>
+                  <SelectItem value="local">Local Vendors</SelectItem>
+                  <SelectItem value="international">International Vendors</SelectItem>
+                  <SelectItem value="verified">Verified Vendors</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -174,7 +173,7 @@ export default function VendorsPage() {
 
         {/* Featured Vendors */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">{t('featured_vendors')}</h2>
+          <h2 className="text-2xl font-bold mb-4">Featured Vendors</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {mockVendors.slice(0, 3).map((vendor) => (
               <Card key={vendor.id} className="group hover:shadow-lg transition-shadow">
@@ -228,7 +227,7 @@ export default function VendorsPage() {
                   <div className="flex space-x-2">
                     <Button asChild className="flex-1">
                       <Link href={`/vendors/${vendor.id}`}>
-                        {t('view_store')}
+                        View Store
                       </Link>
                     </Button>
                     <Button variant="outline" size="icon">
@@ -243,7 +242,7 @@ export default function VendorsPage() {
 
         {/* All Vendors */}
         <div>
-          <h2 className="text-2xl font-bold mb-4">{t('all_vendors')}</h2>
+          <h2 className="text-2xl font-bold mb-4">All Vendors</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {mockVendors.map((vendor) => (
               <Card key={vendor.id} className="group hover:shadow-lg transition-shadow">
@@ -297,7 +296,7 @@ export default function VendorsPage() {
                   <div className="flex space-x-2">
                     <Button asChild size="sm" className="flex-1">
                       <Link href={`/vendors/${vendor.id}`}>
-                        {t('view_store')}
+                        View Store
                       </Link>
                     </Button>
                     <Button variant="outline" size="sm">

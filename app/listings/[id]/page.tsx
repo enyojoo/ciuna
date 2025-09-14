@@ -85,7 +85,6 @@ interface ListingPageProps {
 }
 
 export default function ListingPage({ params }: ListingPageProps) {
-  const t = useTranslations('listing')
   const listingId = parseInt(params.id)
   
   // In real app, fetch from Supabase
@@ -149,7 +148,7 @@ export default function ListingPage({ params }: ListingPageProps) {
             {/* Description */}
             <Card>
               <CardHeader>
-                <CardTitle>{t('description')}</CardTitle>
+                <CardTitle>Description</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground whitespace-pre-wrap">
@@ -227,11 +226,11 @@ export default function ListingPage({ params }: ListingPageProps) {
 
                   <div className="space-y-2">
                     <Button className="w-full" size="lg">
-                      {t('buy_now')}
+                      Buy Now
                     </Button>
                     <Button variant="outline" className="w-full">
                       <MessageCircle className="h-4 w-4 mr-2" />
-                      {t('contact_seller')}
+                      Contact Seller
                     </Button>
                     <div className="flex space-x-2">
                       <Button variant="outline" className="flex-1">
@@ -254,7 +253,7 @@ export default function ListingPage({ params }: ListingPageProps) {
             {/* Seller Info */}
             <Card>
               <CardHeader>
-                <CardTitle>{t('seller')}</CardTitle>
+                <CardTitle>Seller</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -305,7 +304,7 @@ export default function ListingPage({ params }: ListingPageProps) {
             {/* Location */}
             <Card>
               <CardHeader>
-                <CardTitle>{t('location')}</CardTitle>
+                <CardTitle>Location</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">

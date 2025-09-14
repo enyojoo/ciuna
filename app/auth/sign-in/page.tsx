@@ -24,7 +24,7 @@ export default function SignInPage() {
                 Back to home
               </Link>
             </Button>
-            <h1 className="text-3xl font-bold">{t('sign_in')}</h1>
+            <h1 className="text-3xl font-bold">Sign In</h1>
             <p className="text-muted-foreground mt-2">
               Welcome back! Please sign in to your account.
             </p>
@@ -32,7 +32,7 @@ export default function SignInPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>{t('sign_in')}</CardTitle>
+              <CardTitle>Sign In</CardTitle>
               <CardDescription>
                 Enter your credentials to access your account
               </CardDescription>
@@ -40,7 +40,7 @@ export default function SignInPage() {
             <CardContent>
               <form className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">{t('email')}</Label>
+                  <Label htmlFor="email">Email</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -54,7 +54,7 @@ export default function SignInPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">{t('password')}</Label>
+                  <Label htmlFor="password">Password</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -79,16 +79,16 @@ export default function SignInPage() {
                   <div className="flex items-center space-x-2">
                     <Checkbox id="remember" />
                     <Label htmlFor="remember" className="text-sm">
-                      {t('remember_me')}
+                      Remember me
                     </Label>
                   </div>
                   <Button variant="link" className="px-0 text-sm">
-                    {t('forgot_password')}
+                    Forgot password?
                   </Button>
                 </div>
 
                 <Button className="w-full" type="submit">
-                  {t('sign_in')}
+                  Sign In
                 </Button>
               </form>
 
@@ -136,9 +136,9 @@ export default function SignInPage() {
               </div>
 
               <div className="mt-6 text-center text-sm">
-                <span className="text-muted-foreground">{t('dont_have_account')} </span>
+                <span className="text-muted-foreground">Don&apos;t have an account? </span>
                 <Link href="/auth/sign-up" className="font-medium hover:underline">
-                  {t('sign_up')}
+                  Sign Up
                 </Link>
               </div>
             </CardContent>
