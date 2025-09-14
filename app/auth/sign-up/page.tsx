@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Link from 'next/link'
-import { ArrowLeft, Mail, Lock, Eye, EyeOff, User, Phone, MapPin } from 'lucide-react'
+import { ArrowLeft, Mail, Lock, Eye, User, Phone, MapPin } from 'lucide-react'
 
 export default function SignUpPage() {
   const t = useTranslations('auth')

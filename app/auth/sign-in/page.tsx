@@ -12,8 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
-import { ArrowLeft, Mail, Lock, Eye, EyeOff } from 'lucide-react'
-import { useState } from 'react'
+import { ArrowLeft, Mail, Lock, Eye } from 'lucide-react'
 
 export default function SignInPage() {
   const t = useTranslations('auth')

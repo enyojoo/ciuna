@@ -4,6 +4,8 @@ import { useTranslations } from 'next-intl'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -22,8 +24,7 @@ import {
   XCircle,
   AlertTriangle,
   TrendingUp,
-  DollarSign,
-  MessageCircle
+  DollarSign
 } from 'lucide-react'
 import { formatPrice, formatDate, getStatusLabel } from '@/lib/utils'
 
