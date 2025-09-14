@@ -14,6 +14,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { LocationIndicator, LocationSelector } from '@/components/ui/location-selector'
+import { useFeatureAccess } from '@/lib/contexts/location-context'
+
+import { UserRole } from '@/lib/auth/access-control'
+import { NavigationItem } from '@/lib/navigation/role-navigation'
 
 interface NavigationProps {
   user?: { 
@@ -25,27 +30,32 @@ interface NavigationProps {
     last_name?: string;
   } | null
   onSignOut?: () => void
+  role?: UserRole
+  navigation?: NavigationItem[]
+  userNavigation?: NavigationItem[]
 }
 
-export function Navigation({ user, onSignOut }: NavigationProps) {
+export function Navigation({ user, onSignOut, role, navigation, userNavigation }: NavigationProps) {
   const { theme, setTheme } = useTheme()
   const [isOpen, setIsOpen] = useState(false)
+  const { canAccess } = useFeatureAccess()
 
-  const navigation = [
-    { name: 'Home', href: '/' },
-    { name: 'Listings', href: '/listings' },
-    { name: 'Vendors', href: '/vendors' },
-    { name: 'Services', href: '/services' },
-  ]
+  // Use provided navigation or fallback to default
+  const mainNavigation = navigation || [
+    { name: 'Home', href: '/', icon: Home },
+    { name: 'Listings', href: '/listings', icon: Search },
+    { name: 'Vendors', href: '/vendors', icon: Store },
+    { name: 'Services', href: '/services', icon: FileText, requiresFeature: 'services' },
+  ].filter(item => !item.requiresFeature || canAccess(item.requiresFeature))
 
-  const userNavigation = [
+  const userNav = userNavigation || [
     { name: 'Orders', href: '/orders', icon: ShoppingCart },
     { name: 'Inbox', href: '/inbox', icon: MessageCircle },
     { name: 'Profile', href: '/profile', icon: User },
   ]
 
-  if (user?.role === 'ADMIN') {
-    userNavigation.push({ name: 'Admin', href: '/admin', icon: User })
+  if (user?.role === 'ADMIN' && !userNav.find(item => item.name === 'Admin')) {
+    userNav.push({ name: 'Admin', href: '/admin', icon: Settings })
   }
 
   return (
@@ -59,19 +69,31 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className="text-sm font-medium transition-colors hover:text-primary"
-            >
-              {item.name}
-            </Link>
-          ))}
+          {mainNavigation.map((item) => {
+            const Icon = item.icon
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="text-sm font-medium transition-colors hover:text-primary flex items-center gap-1"
+              >
+                <Icon className="h-4 w-4" />
+                {item.name}
+                {item.badge && (
+                  <Badge variant="secondary" className="text-xs">
+                    {item.badge}
+                  </Badge>
+                )}
+              </Link>
+            )
+          })}
         </nav>
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center space-x-4">
+          {/* Location Selector */}
+          <LocationSelector />
+          
           {/* Theme Toggle */}
           <Button
             variant="ghost"
@@ -106,14 +128,22 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
                   </div>
                 </div>
                 <DropdownMenuSeparator />
-                {userNavigation.map((item) => (
-                  <DropdownMenuItem key={item.name} asChild>
-                    <Link href={item.href} className="flex items-center">
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {item.name}
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
+                {userNav.map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <DropdownMenuItem key={item.name} asChild>
+                      <Link href={item.href} className="flex items-center">
+                        <Icon className="mr-2 h-4 w-4" />
+                        {item.name}
+                        {item.badge && (
+                          <Badge variant="secondary" className="ml-auto text-xs">
+                            {item.badge}
+                          </Badge>
+                        )}
+                      </Link>
+                    </DropdownMenuItem>
+                  )
+                })}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
@@ -124,10 +154,10 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
           ) : (
             <div className="flex items-center space-x-2">
               <Button variant="ghost" asChild>
-                <Link href="/auth/sign-in">Sign In</Link>
+                <Link href="/user/auth/sign-in">Sign In</Link>
               </Button>
               <Button asChild>
-                <Link href="/auth/sign-up">Sign Up</Link>
+                <Link href="/user/auth/sign-up">Sign Up</Link>
               </Button>
             </div>
           )}
@@ -159,17 +189,29 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
                   </Button>
                 </div>
                 
+                {/* Mobile Location Indicator */}
+                <LocationIndicator />
+                
                 <nav className="flex flex-col space-y-2">
-                  {navigation.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="text-sm font-medium transition-colors hover:text-primary"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
+                  {mainNavigation.map((item) => {
+                    const Icon = item.icon
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="text-sm font-medium transition-colors hover:text-primary flex items-center gap-2"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <Icon className="h-4 w-4" />
+                        {item.name}
+                        {item.badge && (
+                          <Badge variant="secondary" className="text-xs">
+                            {item.badge}
+                          </Badge>
+                        )}
+                      </Link>
+                    )
+                  })}
                 </nav>
 
                 {user ? (
@@ -186,17 +228,25 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
                         <p className="text-xs text-muted-foreground">{user.email}</p>
                       </div>
                     </div>
-                    {userNavigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        {item.name}
-                      </Link>
-                    ))}
+                    {userNav.map((item) => {
+                      const Icon = item.icon
+                      return (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <Icon className="h-4 w-4" />
+                          {item.name}
+                          {item.badge && (
+                            <Badge variant="secondary" className="text-xs">
+                              {item.badge}
+                            </Badge>
+                          )}
+                        </Link>
+                      )
+                    })}
                     <Button
                       variant="ghost"
                       className="justify-start"

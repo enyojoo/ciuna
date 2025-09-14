@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from 'next-themes'
+import { LocationProvider } from '@/lib/contexts/location-context'
 import { useState } from 'react'
 
 interface ProvidersProps {
@@ -26,7 +27,9 @@ export function Providers({ children }: ProvidersProps) {
         enableSystem
         disableTransitionOnChange
       >
-        {children}
+        <LocationProvider>
+          {children}
+        </LocationProvider>
       </ThemeProvider>
     </QueryClientProvider>
   )

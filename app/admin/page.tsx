@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { GlobalSettings } from '@/components/admin/global-settings'
+import { AnalyticsDashboard } from '@/components/admin/analytics-dashboard'
+import { UserManagement } from '@/components/admin/user-management'
 import { 
   Users, 
   Package, 
@@ -18,7 +21,9 @@ import {
   XCircle,
   AlertTriangle,
   TrendingUp,
-  DollarSign
+  DollarSign,
+  Globe,
+  Settings
 } from 'lucide-react'
 import { formatPrice, formatDate, getStatusLabel } from '@/lib/utils'
 
@@ -229,13 +234,25 @@ export default function AdminPage() {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="global-settings">Global Settings</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="listings">Listings</TabsTrigger>
             <TabsTrigger value="vendors">Vendors</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
           </TabsList>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <AnalyticsDashboard />
+          </TabsContent>
+
+          {/* Global Settings Tab */}
+          <TabsContent value="global-settings" className="space-y-6">
+            <GlobalSettings />
+          </TabsContent>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
@@ -323,53 +340,7 @@ export default function AdminPage() {
 
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Users className="h-5 w-5 mr-2" />
-                  All Users
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {mockUsers.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                          <span className="text-sm font-medium">
-                            {user.first_name[0]}{user.last_name[0]}
-                          </span>
-                        </div>
-                        <div>
-                          <h4 className="font-medium">
-                            {user.first_name} {user.last_name}
-                          </h4>
-                          <p className="text-sm text-muted-foreground">{user.email}</p>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <Badge variant="outline" className="text-xs">
-                              {user.role}
-                            </Badge>
-                            {user.verified_expat && (
-                              <Badge variant="outline" className="text-xs">
-                                Verified
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium">
-                          {user.total_orders} orders • {formatPrice(user.total_spent)} spent
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Last active: {formatDate(user.last_active)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <UserManagement />
           </TabsContent>
 
           {/* Other tabs would be implemented similarly */}

@@ -12,6 +12,10 @@ export interface Profile {
   verification_status: 'PENDING' | 'APPROVED' | 'REJECTED'
   documents: Record<string, unknown> | null
   avatar_url: string | null
+  location: 'russia' | 'uk' | 'us' | 'germany' | 'france' | 'canada' | 'australia' | 'other'
+  base_currency: 'USD' | 'EUR' | 'GBP' | 'RUB' | 'CAD' | 'AUD' | 'CHF' | 'JPY'
+  currency_preferences: Record<string, unknown>
+  feature_access: Record<string, unknown>
   created_at: string
   updated_at: string | null
 }
@@ -32,6 +36,9 @@ export interface Listing {
   description: string | null
   category_id: number | null
   price: number
+  currency: 'USD' | 'EUR' | 'GBP' | 'RUB' | 'CAD' | 'AUD' | 'CHF' | 'JPY'
+  original_price?: number
+  original_currency?: string
   condition: 'NEW' | 'LIKE_NEW' | 'GOOD' | 'FAIR'
   city: string | null
   district: string | null
@@ -66,6 +73,12 @@ export interface VendorProduct {
   description: string | null
   category_id: number | null
   price_rub: number
+  currency: 'USD' | 'EUR' | 'GBP' | 'RUB' | 'CAD' | 'AUD' | 'CHF' | 'JPY'
+  price_usd?: number
+  price_eur?: number
+  price_gbp?: number
+  price_cad?: number
+  price_aud?: number
   stock_quantity: number
   photo_urls: string[]
   is_local_stock: boolean
@@ -120,6 +133,7 @@ export interface Service {
   description: string | null
   category: 'LEGAL' | 'FINANCIAL' | 'PERSONAL' | 'EVENT' | 'HEALTHCARE'
   price: number
+  currency: 'USD' | 'EUR' | 'GBP' | 'RUB' | 'CAD' | 'AUD' | 'CHF' | 'JPY'
   duration_minutes: number
   available_slots: Record<string, unknown>[]
   status: 'ACTIVE' | 'PAUSED'
@@ -202,6 +216,8 @@ export interface Payment {
   provider: 'STRIPE' | 'YOOMONEY' | 'FLUTTERWAVE' | 'CASH'
   provider_ref: string | null
   amount: number
+  currency: 'USD' | 'EUR' | 'GBP' | 'RUB' | 'CAD' | 'AUD' | 'CHF' | 'JPY'
+  exchange_rate: number
   status: 'AUTHORIZED' | 'CAPTURED' | 'CANCELLED' | 'REFUNDED'
   created_at: string
   updated_at: string | null
@@ -252,4 +268,68 @@ export interface PayoutLedger {
   amount: number
   type: 'CREDIT' | 'DEBIT'
   created_at: string
+}
+
+// New types for location and currency system
+export interface CurrencyExchangeRate {
+  id: number
+  from_currency: string
+  to_currency: string
+  rate: number
+  last_updated: string
+  created_at: string
+}
+
+export interface ShippingProvider {
+  id: number
+  name: string
+  code: string
+  countries: string[]
+  supported_currencies: string[]
+  is_active: boolean
+  created_at: string
+  updated_at: string | null
+}
+
+export interface PaymentMethod {
+  id: number
+  name: string
+  code: string
+  countries: string[]
+  supported_currencies: string[]
+  is_active: boolean
+  created_at: string
+  updated_at: string | null
+}
+
+export interface FeatureAccessRule {
+  id: number
+  location: string
+  feature_name: string
+  is_enabled: boolean
+  configuration: Record<string, unknown>
+  created_at: string
+  updated_at: string | null
+}
+
+export interface UserFeatureAccess {
+  canList: boolean
+  canSell: boolean
+  canBuy: boolean
+  localServices: boolean
+  groupBuy: boolean
+  paymentMethods: string[]
+  shippingProviders: string[]
+  maxListings?: number
+  maxProducts?: number
+  requiresVerification?: boolean
+}
+
+export interface CurrencyConversion {
+  amount: number
+  fromCurrency: string
+  toCurrency: string
+  convertedAmount: number
+  rate: number
+  lastUpdated: string
 }
