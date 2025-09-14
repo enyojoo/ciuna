@@ -3,15 +3,13 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from 'next-themes'
 import { NextIntlClientProvider } from 'next-intl'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface ProvidersProps {
   children: React.ReactNode
-  locale?: string
-  messages?: Record<string, unknown>
 }
 
-export function Providers({ children, locale = 'en', messages }: ProvidersProps) {
+export function Providers({ children }: ProvidersProps) {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
@@ -21,8 +19,32 @@ export function Providers({ children, locale = 'en', messages }: ProvidersProps)
     },
   }))
 
+  const [messages, setMessages] = useState<Record<string, unknown> | null>(null)
+
+  useEffect(() => {
+    // Load messages dynamically
+    import('../messages/en.json').then((data) => {
+      setMessages(data.default)
+    })
+  }, [])
+
+  if (!messages) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
+      </QueryClientProvider>
+    )
+  }
+
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
+    <NextIntlClientProvider locale="en" messages={messages}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider
           attribute="class"
