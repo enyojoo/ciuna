@@ -1,19 +1,20 @@
+const withNextIntl = require('next-intl/plugin')(
+  './lib/i18n.ts'
+)
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['localhost', 'example.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
   },
-  experimental: {
-    esmExternals: 'loose',
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  trailingSlash: true,
-  skipTrailingSlashRedirect: true,
-};
+  serverExternalPackages: ['@supabase/supabase-js']
+}
 
-module.exports = nextConfig;
+module.exports = withNextIntl(nextConfig)

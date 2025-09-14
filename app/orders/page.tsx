@@ -1,256 +1,389 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/auth-context';
-import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '@/lib/ui';
+import { useTranslations } from 'next-intl'
+import { getTranslations } from 'next-intl/server'
+import { Navigation } from '@/components/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
-  ShoppingBag, 
   Package, 
-  Truck, 
+  ShoppingCart, 
+  Clock, 
   CheckCircle, 
   XCircle,
-  Eye,
+  Truck,
+  Star,
   MessageCircle,
-  Star
-} from 'lucide-react';
-import { db } from '@/lib/supabase';
-import { formatPrice, formatRelativeTime } from '@/lib/utils';
-import type { Order } from '@/lib/types';
+  Eye
+} from 'lucide-react'
+import Link from 'next/link'
+import { formatPrice, getStatusLabel, formatDate } from '@/lib/utils'
 
-export default function OrdersPage() {
-  const { user } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'buying' | 'selling'>('buying');
-
-  useEffect(() => {
-    if (user) {
-      loadOrders();
+// Mock data - in real app, this would come from Supabase
+const mockOrders = [
+  {
+    id: 1,
+    type: 'buying' as const,
+    status: 'DELIVERED' as const,
+    total: 120000,
+    created_at: '2024-01-15T10:30:00Z',
+    updated_at: '2024-01-18T14:20:00Z',
+    listing: {
+      id: 1,
+      title: 'MacBook Pro 13-inch M2 Chip',
+      photo_urls: ['/api/placeholder/100/100']
+    },
+    seller: {
+      first_name: 'John',
+      last_name: 'Smith',
+      verified_expat: true
+    },
+    delivery: {
+      status: 'DELIVERED' as const,
+      tracking_code: 'RU123456789'
     }
-  }, [user, activeTab]);
-
-  const loadOrders = async () => {
-    try {
-      setLoading(true);
-      const filters = activeTab === 'buying' 
-        ? { buyer_id: user?.id }
-        : { seller_id: user?.id };
-      
-      const { data } = await db.orders.getAll(filters, 1, 50);
-      setOrders(data);
-    } catch (error) {
-      console.error('Error loading orders:', error);
-    } finally {
-      setLoading(false);
+  },
+  {
+    id: 2,
+    type: 'selling' as const,
+    status: 'FULFILLING' as const,
+    total: 25000,
+    created_at: '2024-01-14T15:45:00Z',
+    updated_at: '2024-01-16T09:30:00Z',
+    listing: {
+      id: 2,
+      title: 'IKEA Dining Table - White',
+      photo_urls: ['/api/placeholder/100/100']
+    },
+    buyer: {
+      first_name: 'Maria',
+      last_name: 'Garcia',
+      verified_expat: true
+    },
+    delivery: {
+      status: 'IN_TRANSIT' as const,
+      tracking_code: 'RU987654321'
     }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return <Package className="h-5 w-5 text-yellow-500" />;
-      case 'PAID':
-        return <CheckCircle className="h-5 w-5 text-blue-500" />;
-      case 'FULFILLING':
-        return <Truck className="h-5 w-5 text-purple-500" />;
-      case 'DELIVERED':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'CANCELLED':
-        return <XCircle className="h-5 w-5 text-red-500" />;
-      default:
-        return <ShoppingBag className="h-5 w-5 text-gray-500" />;
+  },
+  {
+    id: 3,
+    type: 'buying' as const,
+    status: 'PAID' as const,
+    total: 5000,
+    created_at: '2024-01-13T09:20:00Z',
+    updated_at: '2024-01-13T09:20:00Z',
+    listing: {
+      id: 3,
+      title: 'Russian Language Books - Complete Set',
+      photo_urls: ['/api/placeholder/100/100']
+    },
+    seller: {
+      first_name: 'Alex',
+      last_name: 'Johnson',
+      verified_expat: true
+    },
+    delivery: {
+      status: 'CREATED' as const,
+      tracking_code: null
     }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'PAID':
-        return 'bg-blue-100 text-blue-800';
-      case 'FULFILLING':
-        return 'bg-purple-100 text-purple-800';
-      case 'DELIVERED':
-        return 'bg-green-100 text-green-800';
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  },
+  {
+    id: 4,
+    type: 'selling' as const,
+    status: 'CANCELLED' as const,
+    total: 8000,
+    created_at: '2024-01-12T14:10:00Z',
+    updated_at: '2024-01-13T10:15:00Z',
+    listing: {
+      id: 4,
+      title: 'Winter Coat - Size M',
+      photo_urls: ['/api/placeholder/100/100']
+    },
+    buyer: {
+      first_name: 'Sarah',
+      last_name: 'Wilson',
+      verified_expat: true
+    },
+    delivery: {
+      status: 'RETURNED' as const,
+      tracking_code: 'RU555666777'
     }
-  };
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="space-y-6">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="animate-pulse">
-              <div className="bg-gray-200 rounded-lg h-32"></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
   }
+]
+
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'PENDING':
+      return <Clock className="h-4 w-4" />
+    case 'PAID':
+      return <CheckCircle className="h-4 w-4 text-blue-500" />
+    case 'FULFILLING':
+      return <Package className="h-4 w-4 text-orange-500" />
+    case 'DELIVERED':
+      return <CheckCircle className="h-4 w-4 text-green-500" />
+    case 'CANCELLED':
+      return <XCircle className="h-4 w-4 text-red-500" />
+    default:
+      return <Clock className="h-4 w-4" />
+  }
+}
+
+const getDeliveryStatusIcon = (status: string) => {
+  switch (status) {
+    case 'CREATED':
+      return <Package className="h-4 w-4 text-gray-500" />
+    case 'PICKED_UP':
+      return <Truck className="h-4 w-4 text-blue-500" />
+    case 'IN_TRANSIT':
+      return <Truck className="h-4 w-4 text-orange-500" />
+    case 'OUT_FOR_DELIVERY':
+      return <Truck className="h-4 w-4 text-purple-500" />
+    case 'DELIVERED':
+      return <CheckCircle className="h-4 w-4 text-green-500" />
+    case 'RETURNED':
+      return <XCircle className="h-4 w-4 text-red-500" />
+    default:
+      return <Package className="h-4 w-4 text-gray-500" />
+  }
+}
+
+export default async function OrdersPage() {
+  const t = await getTranslations('orders')
+  const buyingOrders = mockOrders.filter(order => order.type === 'buying')
+  const sellingOrders = mockOrders.filter(order => order.type === 'selling')
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Orders
-        </h1>
-        <p className="text-lg text-gray-600">
-          Track your purchases and sales
-        </p>
-      </div>
-
-      {/* Tabs */}
-      <div className="mb-8">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('buying')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'buying'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Buying ({orders.filter(o => o.buyer_id === user?.id).length})
-            </button>
-            <button
-              onClick={() => setActiveTab('selling')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'selling'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Selling ({orders.filter(o => o.seller_id === user?.id).length})
-            </button>
-          </nav>
-        </div>
-      </div>
-
-      {/* Orders List */}
-      {orders.length === 0 ? (
-        <div className="text-center py-12">
-          <ShoppingBag className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            No orders yet
-          </h3>
-          <p className="text-gray-600 mb-6">
-            {activeTab === 'buying' 
-              ? 'You haven\'t made any purchases yet.' 
-              : 'You haven\'t received any orders yet.'}
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">{t('title')}</h1>
+          <p className="text-muted-foreground mt-2">
+            Track your purchases and sales
           </p>
-          <Button asChild>
-            <a href={activeTab === 'buying' ? '/listings' : '/sell/new'}>
-              {activeTab === 'buying' ? 'Start Shopping' : 'Create Listing'}
-            </a>
-          </Button>
         </div>
-      ) : (
-        <div className="space-y-6">
-          {orders.map((order) => (
-            <Card key={order.id} className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-4">
-                      {getStatusIcon(order.status)}
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          Order #{order.id}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          {formatRelativeTime(order.created_at)}
-                        </p>
-                      </div>
-                      <Badge className={getStatusColor(order.status)}>
-                        {order.status}
-                      </Badge>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          {activeTab === 'buying' ? 'Seller' : 'Buyer'}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {activeTab === 'buying' ? 'Unknown Seller' : 'Unknown Buyer'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Total Amount</p>
-                        <p className="text-lg font-semibold text-gray-900">
-                          {formatPrice(order.total_amount_rub)}
-                        </p>
-                      </div>
-                    </div>
+        <Tabs defaultValue="buying" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="buying" className="flex items-center space-x-2">
+              <ShoppingCart className="h-4 w-4" />
+              <span>{t('buying')}</span>
+              <Badge variant="secondary" className="ml-2">
+                {buyingOrders.length}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger value="selling" className="flex items-center space-x-2">
+              <Package className="h-4 w-4" />
+              <span>{t('selling')}</span>
+              <Badge variant="secondary" className="ml-2">
+                {sellingOrders.length}
+              </Badge>
+            </TabsTrigger>
+          </TabsList>
 
-                    {/* Order Items */}
-                    <div className="flex items-center space-x-4 mb-4 p-4 bg-gray-50 rounded-lg">
-                      <div className="flex-shrink-0">
-                        <div className="h-16 w-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <Package className="h-8 w-8 text-gray-400" />
+          {/* Buying Orders */}
+          <TabsContent value="buying" className="space-y-4">
+            {buyingOrders.length > 0 ? (
+              buyingOrders.map((order) => (
+                <Card key={order.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex space-x-4">
+                        <div className="w-20 h-20 bg-muted rounded-lg flex-shrink-0">
+                          <img
+                            src={order.listing.photo_urls[0]}
+                            alt={order.listing.title}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
                         </div>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900">Order Item</h4>
-                        <p className="text-sm text-gray-600">Item details not available</p>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-lg mb-1">
+                            {order.listing.title}
+                          </h3>
+                          <p className="text-muted-foreground text-sm mb-2">
+                            Sold by {order.seller.first_name} {order.seller.last_name}
+                            {order.seller.verified_expat && (
+                              <Badge variant="outline" className="ml-2 text-xs">
+                                Verified
+                              </Badge>
+                            )}
+                          </p>
+                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                            <span>{t('order_id')}: #{order.id}</span>
+                            <span>{t('order_date')}: {formatDate(order.created_at)}</span>
+                          </div>
+                        </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium text-gray-900">
-                          {formatPrice(order.total_amount_rub)}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Vendor product section commented out - requires OrderWithRelations type */}
-
-                    {/* Delivery Info - commented out - requires OrderWithRelations type */}
-
-                    {/* Escrow Info */}
-                    <div className="mb-4 p-4 bg-green-50 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-green-900">Escrow Protection</p>
-                          <p className="text-sm text-green-800">
-                            {order.escrow_amount_rub} RUB held in escrow
-                          </p>
+                        <div className="text-2xl font-bold text-primary mb-2">
+                          {formatPrice(order.total)}
                         </div>
-                        <Badge variant="success">
-                          {order.escrow_status}
-                        </Badge>
+                        <div className="flex items-center space-x-2 mb-2">
+                          {getStatusIcon(order.status)}
+                          <Badge variant={
+                            ['DELIVERED'].includes(order.status) ? 'default' :
+                            ['CANCELLED'].includes(order.status) ? 'destructive' :
+                            'secondary'
+                          }>
+                            {getStatusLabel(order.status)}
+                          </Badge>
+                        </div>
+                        {order.delivery && (
+                          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                            {getDeliveryStatusIcon(order.delivery.status)}
+                            <span>{getStatusLabel(order.delivery.status)}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
+                    
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                      <div className="flex items-center space-x-2">
+                        {order.delivery?.tracking_code && (
+                          <span className="text-sm text-muted-foreground">
+                            Tracking: {order.delivery.tracking_code}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/orders/${order.id}`}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            {t('view_details')}
+                          </Link>
+                        </Button>
+                        {order.status === 'DELIVERED' && (
+                          <Button variant="outline" size="sm">
+                            <Star className="h-4 w-4 mr-2" />
+                            {t('leave_review')}
+                          </Button>
+                        )}
+                        <Button variant="outline" size="sm">
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          Message
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No purchases yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  Start shopping to see your orders here
+                </p>
+                <Button asChild>
+                  <Link href="/listings">Browse Listings</Link>
+                </Button>
+              </div>
+            )}
+          </TabsContent>
 
-                  {/* Actions */}
-                  <div className="flex flex-col space-y-2 ml-4">
-                    <Button variant="outline" size="sm">
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Details
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      Message
-                    </Button>
-                    {order.status === 'DELIVERED' && (
-                      <Button variant="outline" size="sm">
-                        <Star className="h-4 w-4 mr-2" />
-                        Leave Review
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+          {/* Selling Orders */}
+          <TabsContent value="selling" className="space-y-4">
+            {sellingOrders.length > 0 ? (
+              sellingOrders.map((order) => (
+                <Card key={order.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex space-x-4">
+                        <div className="w-20 h-20 bg-muted rounded-lg flex-shrink-0">
+                          <img
+                            src={order.listing.photo_urls[0]}
+                            alt={order.listing.title}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-lg mb-1">
+                            {order.listing.title}
+                          </h3>
+                          <p className="text-muted-foreground text-sm mb-2">
+                            Sold to {order.buyer.first_name} {order.buyer.last_name}
+                            {order.buyer.verified_expat && (
+                              <Badge variant="outline" className="ml-2 text-xs">
+                                Verified
+                              </Badge>
+                            )}
+                          </p>
+                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                            <span>{t('order_id')}: #{order.id}</span>
+                            <span>{t('order_date')}: {formatDate(order.created_at)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-primary mb-2">
+                          {formatPrice(order.total)}
+                        </div>
+                        <div className="flex items-center space-x-2 mb-2">
+                          {getStatusIcon(order.status)}
+                          <Badge variant={
+                            ['DELIVERED'].includes(order.status) ? 'default' :
+                            ['CANCELLED'].includes(order.status) ? 'destructive' :
+                            'secondary'
+                          }>
+                            {getStatusLabel(order.status)}
+                          </Badge>
+                        </div>
+                        {order.delivery && (
+                          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                            {getDeliveryStatusIcon(order.delivery.status)}
+                            <span>{getStatusLabel(order.delivery.status)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                      <div className="flex items-center space-x-2">
+                        {order.delivery?.tracking_code && (
+                          <span className="text-sm text-muted-foreground">
+                            Tracking: {order.delivery.tracking_code}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/orders/${order.id}`}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            {t('view_details')}
+                          </Link>
+                        </Button>
+                        {order.status === 'FULFILLING' && (
+                          <Button variant="outline" size="sm">
+                            <Truck className="h-4 w-4 mr-2" />
+                            Update Shipping
+                          </Button>
+                        )}
+                        <Button variant="outline" size="sm">
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          Message
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No sales yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  Start selling to see your orders here
+                </p>
+                <Button asChild>
+                  <Link href="/sell/new">Create Listing</Link>
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
-  );
+  )
 }

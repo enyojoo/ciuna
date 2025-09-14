@@ -1,396 +1,330 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge } from '@/lib/ui';
+import { useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { Navigation } from '@/components/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 import { 
   Upload, 
   X, 
-  MapPin, 
-  DollarSign, 
-  Tag, 
-  Image as ImageIcon,
-  Plus,
-  Minus
-} from 'lucide-react';
-import { useAuth } from '@/lib/auth-context';
-import { db } from '@/lib/supabase';
-import type { Category, Condition } from '@/lib/types';
+  Plus, 
+  ArrowLeft,
+  MapPin,
+  DollarSign,
+  Tag,
+  Image as ImageIcon
+} from 'lucide-react'
+import Link from 'next/link'
+import Image from 'next/image'
+
+const categories = [
+  { id: 1, name: "Electronics", slug: "electronics" },
+  { id: 2, name: "Furniture", slug: "furniture" },
+  { id: 3, name: "Clothing", slug: "clothing" },
+  { id: 4, name: "Books", slug: "books" },
+  { id: 5, name: "Sports", slug: "sports" },
+  { id: 6, name: "Automotive", slug: "automotive" },
+  { id: 7, name: "Home & Garden", slug: "home-garden" },
+  { id: 8, name: "Toys & Games", slug: "toys-games" }
+]
+
+const conditions = [
+  { value: "NEW", label: "New" },
+  { value: "LIKE_NEW", label: "Like New" },
+  { value: "GOOD", label: "Good" },
+  { value: "FAIR", label: "Fair" }
+]
 
 export default function CreateListingPage() {
-  const { user, profile } = useAuth();
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const t = useTranslations('create_listing')
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category_id: '',
-    price_rub: '',
-    condition: 'GOOD' as Condition,
+    category: '',
+    condition: '',
+    price: '',
     city: '',
-    district: '',
-    photo_urls: [] as string[],
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+    district: ''
+  })
+  const [photos, setPhotos] = useState<string[]>([])
+  const [isUploading, setIsUploading] = useState(false)
 
-  useEffect(() => {
-    if (!user) {
-      router.push('/auth/signin');
-      return;
-    }
-    loadCategories();
-  }, [user, router]);
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }
 
-  const loadCategories = async () => {
-    try {
-      const data = await db.categories.getAll();
-      setCategories(data);
-    } catch (error) {
-      console.error('Error loading categories:', error);
-    }
-  };
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files) return
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
-  };
+    setIsUploading(true)
+    // In real app, upload to Supabase Storage
+    setTimeout(() => {
+      const newPhotos = Array.from(files).map((_, index) => 
+        `/api/placeholder/400/300?text=Photo+${photos.length + index + 1}`
+      )
+      setPhotos(prev => [...prev, ...newPhotos])
+      setIsUploading(false)
+    }, 1000)
+  }
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      // In a real app, you would upload to Supabase Storage here
-      const newImages = Array.from(files).map(file => URL.createObjectURL(file));
-      setFormData(prev => ({
-        ...prev,
-        photo_urls: [...prev.photo_urls, ...newImages]
-      }));
-    }
-  };
+  const removePhoto = (index: number) => {
+    setPhotos(prev => prev.filter((_, i) => i !== index))
+  }
 
-  const removeImage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      photo_urls: prev.photo_urls.filter((_, i) => i !== index)
-    }));
-  };
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
-    }
-    if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
-    }
-    if (!formData.category_id) {
-      newErrors.category_id = 'Category is required';
-    }
-    if (!formData.price_rub || isNaN(Number(formData.price_rub)) || Number(formData.price_rub) <= 0) {
-      newErrors.price_rub = 'Valid price is required';
-    }
-    if (!formData.city.trim()) {
-      newErrors.city = 'City is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // In a real app, you would upload images to Supabase Storage first
-      const listingData = {
-        ...formData,
-        price_rub: parseInt(formData.price_rub),
-        category_id: formData.category_id,
-        seller_id: user?.id || '',
-        status: 'ACTIVE' as const,
-        currency: 'RUB' as const,
-        is_negotiable: true,
-        tags: [],
-      };
-
-      const listing = await db.listings.create(listingData);
-      router.push(`/listings/${listing.id}`);
-    } catch (error) {
-      console.error('Error creating listing:', error);
-      setErrors({ submit: 'Failed to create listing. Please try again.' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const conditions: { value: Condition; label: string }[] = [
-    { value: 'NEW', label: 'New' },
-    { value: 'LIKE_NEW', label: 'Like New' },
-    { value: 'GOOD', label: 'Good' },
-    { value: 'FAIR', label: 'Fair' },
-  ];
-
-  if (!user) {
-    return null; // Will redirect
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    // In real app, submit to Supabase
+    console.log('Submitting listing:', { ...formData, photos })
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Create New Listing
-        </h1>
-        <p className="text-lg text-gray-600">
-          Sell your items to fellow expats in Russia
-        </p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <Button variant="ghost" asChild className="mb-4">
+              <Link href="/listings">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to listings
+              </Link>
+            </Button>
+            <h1 className="text-3xl font-bold">{t('title')}</h1>
+            <p className="text-muted-foreground mt-2">
+              Create a new listing to sell your items to the expat community
+            </p>
+          </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Listing Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {errors.submit && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-                {errors.submit}
-              </div>
-            )}
-
-            {/* Title */}
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                Title *
-              </label>
-              <Input
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                placeholder="What are you selling?"
-                className={errors.title ? 'border-red-300' : ''}
-              />
-              {errors.title && (
-                <p className="mt-1 text-sm text-red-600">{errors.title}</p>
-              )}
-            </div>
-
-            {/* Description */}
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                Description *
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows={4}
-                placeholder="Describe your item in detail..."
-                className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.description ? 'border-red-300' : ''
-                }`}
-              />
-              {errors.description && (
-                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
-              )}
-            </div>
-
-            {/* Category and Condition */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 mb-2">
-                  Category *
-                </label>
-                <select
-                  id="category_id"
-                  name="category_id"
-                  value={formData.category_id}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.category_id ? 'border-red-300' : ''
-                  }`}
-                >
-                  <option value="">Select a category</option>
-                  {categories.map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-                {errors.category_id && (
-                  <p className="mt-1 text-sm text-red-600">{errors.category_id}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="condition" className="block text-sm font-medium text-gray-700 mb-2">
-                  Condition
-                </label>
-                <select
-                  id="condition"
-                  name="condition"
-                  value={formData.condition}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  {conditions.map(condition => (
-                    <option key={condition.value} value={condition.value}>
-                      {condition.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Price */}
-            <div>
-              <label htmlFor="price_rub" className="block text-sm font-medium text-gray-700 mb-2">
-                Price (RUB) *
-              </label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <Input
-                  id="price_rub"
-                  name="price_rub"
-                  type="number"
-                  value={formData.price_rub}
-                  onChange={handleChange}
-                  placeholder="0"
-                  className={`pl-10 ${errors.price_rub ? 'border-red-300' : ''}`}
-                />
-              </div>
-              {errors.price_rub && (
-                <p className="mt-1 text-sm text-red-600">{errors.price_rub}</p>
-              )}
-            </div>
-
-            {/* Location */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
-                  City *
-                </label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Basic Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Tag className="h-5 w-5 mr-2" />
+                  {t('basic_info')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="title">{t('title_label')}</Label>
                   <Input
-                    id="city"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    placeholder="Moscow, St. Petersburg, etc."
-                    className={`pl-10 ${errors.city ? 'border-red-300' : ''}`}
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => handleInputChange('title', e.target.value)}
+                    placeholder={t('title_placeholder')}
+                    required
                   />
                 </div>
-                {errors.city && (
-                  <p className="mt-1 text-sm text-red-600">{errors.city}</p>
-                )}
-              </div>
 
-              <div>
-                <label htmlFor="district" className="block text-sm font-medium text-gray-700 mb-2">
-                  District (Optional)
-                </label>
-                <Input
-                  id="district"
-                  name="district"
-                  value={formData.district}
-                  onChange={handleChange}
-                  placeholder="Arbat, Nevsky Prospekt, etc."
-                />
-              </div>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">{t('description_label')}</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    placeholder={t('description_placeholder')}
+                    rows={4}
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="category">{t('category_label')}</Label>
+                    <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('select_category')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.slug}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="condition">{t('condition_label')}</Label>
+                    <Select value={formData.condition} onValueChange={(value) => handleInputChange('condition', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select condition" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {conditions.map((condition) => (
+                          <SelectItem key={condition.value} value={condition.value}>
+                            {condition.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Price */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <DollarSign className="h-5 w-5 mr-2" />
+                  {t('price_label')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price in Russian Rubles</Label>
+                  <div className="relative">
+                    <Input
+                      id="price"
+                      type="number"
+                      value={formData.price}
+                      onChange={(e) => handleInputChange('price', e.target.value)}
+                      placeholder={t('price_placeholder')}
+                      className="pl-8"
+                      required
+                    />
+                    <span className="absolute left-3 top-3 text-muted-foreground">₽</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Enter the price in Russian rubles. You can also accept other currencies.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Location */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <MapPin className="h-5 w-5 mr-2" />
+                  {t('location_label')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Input
+                      id="city"
+                      value={formData.city}
+                      onChange={(e) => handleInputChange('city', e.target.value)}
+                      placeholder={t('city_placeholder')}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="district">District (Optional)</Label>
+                    <Input
+                      id="district"
+                      value={formData.district}
+                      onChange={(e) => handleInputChange('district', e.target.value)}
+                      placeholder={t('district_placeholder')}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Photos */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Photos
-              </label>
-              <div className="space-y-4">
-                {/* Upload Button */}
-                <div className="flex items-center justify-center w-full">
-                  <label
-                    htmlFor="photos"
-                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-                  >
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <ImageIcon className="w-8 h-8 mb-4 text-gray-500" />
-                      <p className="mb-2 text-sm text-gray-500">
-                        <span className="font-semibold">Click to upload</span> or drag and drop
-                      </p>
-                      <p className="text-xs text-gray-500">PNG, JPG up to 10MB each</p>
-                    </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <ImageIcon className="h-5 w-5 mr-2" />
+                  {t('photos_label')}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {t('photos_description')}
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Upload Area */}
+                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
                     <input
-                      id="photos"
                       type="file"
                       multiple
                       accept="image/*"
-                      onChange={handleImageUpload}
+                      onChange={handlePhotoUpload}
                       className="hidden"
+                      id="photo-upload"
+                      disabled={isUploading || photos.length >= 8}
                     />
-                  </label>
-                </div>
-
-                {/* Image Preview */}
-                {formData.photo_urls.length > 0 && (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {formData.photo_urls.map((url, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={url}
-                          alt={`Upload ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
+                    <label
+                      htmlFor="photo-upload"
+                      className={`cursor-pointer ${isUploading || photos.length >= 8 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-lg font-medium mb-2">
+                        {isUploading ? 'Uploading...' : 'Click to upload photos'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {photos.length >= 8 ? 'Maximum 8 photos reached' : 'PNG, JPG up to 10MB each'}
+                      </p>
+                    </label>
                   </div>
-                )}
-              </div>
-            </div>
 
-            {/* Submit Button */}
-            <div className="flex justify-end space-x-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-              >
-                Cancel
+                  {/* Photo Grid */}
+                  {photos.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {photos.map((photo, index) => (
+                        <div key={index} className="relative aspect-square group">
+                          <Image
+                            src={photo}
+                            alt={`Upload ${index + 1}`}
+                            fill
+                            className="object-cover rounded-lg"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removePhoto(index)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                          {index === 0 && (
+                            <Badge className="absolute bottom-2 left-2">
+                              Main photo
+                            </Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-end">
+              <Button type="button" variant="outline" asChild>
+                <Link href="/listings">
+                  Cancel
+                </Link>
               </Button>
-              <Button
-                type="submit"
-                disabled={loading}
-              >
-                {loading ? 'Creating...' : 'Create Listing'}
+              <Button type="button" variant="outline">
+                {t('save_draft')}
+              </Button>
+              <Button type="submit" disabled={!formData.title || !formData.description || !formData.price}>
+                {t('publish')}
               </Button>
             </div>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
-  );
+  )
 }

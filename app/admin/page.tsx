@@ -1,525 +1,415 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Tabs, TabsContent, TabsList, TabsTrigger } from '@/lib/ui';
-import AnalyticsDashboard from '@/components/analytics-dashboard';
+import { useTranslations } from 'next-intl'
+import { getTranslations } from 'next-intl/server'
+import { Navigation } from '@/components/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Users, 
+  Package, 
   Store, 
   Wrench, 
-  Shield, 
-  CheckCircle, 
-  XCircle, 
+  ShoppingCart, 
   BarChart3,
-  TrendingUp,
+  Shield,
+  Clock,
+  CheckCircle,
+  XCircle,
   AlertTriangle,
-  Eye
-} from 'lucide-react';
-import { db } from '@/lib/supabase';
-import { formatPrice, formatRelativeTime } from '@/lib/utils';
-import type { Profile } from '@/lib/types';
+  TrendingUp,
+  DollarSign,
+  MessageCircle
+} from 'lucide-react'
+import { formatPrice, formatDate, getStatusLabel } from '@/lib/utils'
 
-export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState('overview');
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    pendingVerifications: 0,
-    totalVendors: 0,
-    pendingVendors: 0,
-    totalServices: 0,
-    pendingServices: 0,
-    totalListings: 0,
-    pendingListings: 0,
-    totalRevenue: 0,
-    monthlyRevenue: 0,
-  });
-  const [pendingVerifications, setPendingVerifications] = useState<any[]>([]);
-  const [pendingVendors, setPendingVendors] = useState<any[]>([]);
-  const [pendingServices, setPendingServices] = useState<any[]>([]);
-  const [recentListings, setRecentListings] = useState<any[]>([]);
+// Mock data - in real app, this would come from Supabase
+const mockStats = {
+  totalUsers: 1247,
+  totalListings: 3421,
+  totalVendors: 156,
+  totalServices: 89,
+  totalOrders: 2893,
+  totalRevenue: 12500000,
+  pendingApprovals: 23,
+  activeConversations: 156
+}
 
-  useEffect(() => {
-    loadAdminData();
-  }, []);
-
-  const loadAdminData = async () => {
-    try {
-      setLoading(true);
-      
-      // Load pending verifications
-      const verifications = await db.profiles.getAll();
-      setPendingVerifications(verifications.filter((p: any) => p.verification_status === 'PENDING'));
-
-      // Load pending vendors
-      const vendors = await db.vendors.getAll();
-      setPendingVendors(vendors.data?.filter((v: any) => v.status === 'PENDING') || []);
-
-      // Load pending services
-      const services = await db.serviceProviders.getAll();
-      setPendingServices(services.filter((s: any) => s.status === 'PENDING'));
-
-      // Load recent listings
-      const listings = await db.listings.getAll();
-      setRecentListings(listings.data?.filter((l: any) => l.status === 'PENDING_REVIEW') || []);
-
-      // Calculate stats
-      setStats({
-        totalUsers: 1250,
-        pendingVerifications: verifications.filter((p: any) => p.verification_status === 'PENDING').length,
-        totalVendors: 180,
-        pendingVendors: vendors.data?.filter((v: any) => v.status === 'PENDING').length || 0,
-        totalServices: 420,
-        pendingServices: services.filter((s: any) => s.status === 'PENDING').length,
-        totalListings: 3400,
-        pendingListings: listings.data?.filter((l: any) => l.status === 'PENDING_REVIEW').length || 0,
-        totalRevenue: 2500000,
-        monthlyRevenue: 450000,
-      });
-    } catch (error) {
-      console.error('Error loading admin data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleApproveVerification = async (profileId: string) => {
-    try {
-      await db.profiles.update(profileId, { verification_status: 'APPROVED' });
-      loadAdminData();
-    } catch (error) {
-      console.error('Error approving verification:', error);
-    }
-  };
-
-  const handleRejectVerification = async (profileId: string) => {
-    try {
-      await db.profiles.update(profileId, { verification_status: 'REJECTED' });
-      loadAdminData();
-    } catch (error) {
-      console.error('Error rejecting verification:', error);
-    }
-  };
-
-  const handleApproveVendor = async (vendorId: string) => {
-    try {
-      await db.vendors.update(vendorId, { status: 'ACTIVE' });
-      loadAdminData();
-    } catch (error) {
-      console.error('Error approving vendor:', error);
-    }
-  };
-
-  const handleRejectVendor = async (vendorId: string) => {
-    try {
-      await db.vendors.update(vendorId, { status: 'SUSPENDED' });
-      loadAdminData();
-    } catch (error) {
-      console.error('Error rejecting vendor:', error);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-32 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+const mockPendingApprovals = [
+  {
+    id: 1,
+    type: 'listing' as const,
+    title: 'iPhone 15 Pro Max - Brand New',
+    user: {
+      first_name: 'John',
+      last_name: 'Smith',
+      email: 'john.smith@example.com'
+    },
+    created_at: '2024-01-15T10:30:00Z',
+    status: 'PENDING_REVIEW' as const
+  },
+  {
+    id: 2,
+    type: 'vendor' as const,
+    title: 'Tech Gadgets Store',
+    user: {
+      first_name: 'Maria',
+      last_name: 'Garcia',
+      email: 'maria.garcia@example.com'
+    },
+    created_at: '2024-01-14T15:45:00Z',
+    status: 'PENDING' as const
+  },
+  {
+    id: 3,
+    type: 'service' as const,
+    title: 'Legal Consultation Services',
+    user: {
+      first_name: 'David',
+      last_name: 'Wilson',
+      email: 'david.wilson@example.com'
+    },
+    created_at: '2024-01-13T09:20:00Z',
+    status: 'PENDING' as const
   }
+]
+
+const mockRecentActivity = [
+  {
+    id: 1,
+    type: 'order' as const,
+    description: 'New order #1234 - MacBook Pro sale',
+    user: 'John Smith',
+    amount: 120000,
+    created_at: '2024-01-15T14:30:00Z'
+  },
+  {
+    id: 2,
+    type: 'listing' as const,
+    description: 'New listing created - Winter Coat',
+    user: 'Maria Garcia',
+    amount: 8000,
+    created_at: '2024-01-15T12:15:00Z'
+  },
+  {
+    id: 3,
+    type: 'vendor' as const,
+    description: 'New vendor registered - Electronics Store',
+    user: 'David Wilson',
+    amount: null,
+    created_at: '2024-01-15T10:45:00Z'
+  },
+  {
+    id: 4,
+    type: 'service' as const,
+    description: 'Service booking - Legal Consultation',
+    user: 'Sarah Brown',
+    amount: 5000,
+    created_at: '2024-01-15T09:30:00Z'
+  }
+]
+
+const mockUsers = [
+  {
+    id: 1,
+    first_name: 'John',
+    last_name: 'Smith',
+    email: 'john.smith@example.com',
+    role: 'USER' as const,
+    verified_expat: true,
+    created_at: '2024-01-10T10:30:00Z',
+    last_active: '2024-01-15T14:30:00Z',
+    total_orders: 5,
+    total_spent: 150000
+  },
+  {
+    id: 2,
+    first_name: 'Maria',
+    last_name: 'Garcia',
+    email: 'maria.garcia@example.com',
+    role: 'VENDOR' as const,
+    verified_expat: true,
+    created_at: '2024-01-08T15:45:00Z',
+    last_active: '2024-01-15T12:15:00Z',
+    total_orders: 12,
+    total_spent: 250000
+  },
+  {
+    id: 3,
+    first_name: 'David',
+    last_name: 'Wilson',
+    email: 'david.wilson@example.com',
+    role: 'USER' as const,
+    verified_expat: false,
+    created_at: '2024-01-12T09:20:00Z',
+    last_active: '2024-01-15T10:45:00Z',
+    total_orders: 2,
+    total_spent: 15000
+  }
+]
+
+export default async function AdminPage() {
+  const t = await getTranslations('admin')
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Admin Dashboard
-        </h1>
-        <p className="text-lg text-gray-600">
-          Manage users, vendors, services, and platform operations
-        </p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">{t('title')}</h1>
+          <p className="text-muted-foreground mt-2">
+            Manage your marketplace platform
+          </p>
+        </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="ciuna-gradient text-white">
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Users className="h-8 w-8 mr-4" />
-              <div>
-                <p className="text-sm opacity-90">Total Users</p>
-                <p className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</p>
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Users</p>
+                  <p className="text-2xl font-bold">{mockStats.totalUsers.toLocaleString()}</p>
+                </div>
+                <Users className="h-8 w-8 text-muted-foreground" />
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Shield className="h-8 w-8 mr-4" />
-              <div>
-                <p className="text-sm opacity-90">Pending Verifications</p>
-                <p className="text-2xl font-bold">{stats.pendingVerifications}</p>
+              <div className="flex items-center mt-2">
+                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                <span className="text-sm text-green-500">+12% from last month</span>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Store className="h-8 w-8 mr-4" />
-              <div>
-                <p className="text-sm opacity-90">Active Vendors</p>
-                <p className="text-2xl font-bold">{stats.totalVendors}</p>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Listings</p>
+                  <p className="text-2xl font-bold">{mockStats.totalListings.toLocaleString()}</p>
+                </div>
+                <Package className="h-8 w-8 text-muted-foreground" />
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <BarChart3 className="h-8 w-8 mr-4" />
-              <div>
-                <p className="text-sm opacity-90">Monthly Revenue</p>
-                <p className="text-2xl font-bold">{formatPrice(stats.monthlyRevenue)}</p>
+              <div className="flex items-center mt-2">
+                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                <span className="text-sm text-green-500">+8% from last month</span>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
+                  <p className="text-2xl font-bold">{formatPrice(mockStats.totalRevenue)}</p>
+                </div>
+                <DollarSign className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <div className="flex items-center mt-2">
+                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                <span className="text-sm text-green-500">+15% from last month</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Pending Approvals</p>
+                  <p className="text-2xl font-bold">{mockStats.pendingApprovals}</p>
+                </div>
+                <AlertTriangle className="h-8 w-8 text-orange-500" />
+              </div>
+              <div className="flex items-center mt-2">
+                <Clock className="h-4 w-4 text-orange-500 mr-1" />
+                <span className="text-sm text-orange-500">Requires attention</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="listings">Listings</TabsTrigger>
+            <TabsTrigger value="vendors">Vendors</TabsTrigger>
+            <TabsTrigger value="services">Services</TabsTrigger>
+          </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Pending Approvals */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Shield className="h-5 w-5 mr-2" />
+                    {t('pending_approvals')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {mockPendingApprovals.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex-1">
+                          <h4 className="font-medium">{item.title}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {item.user.first_name} {item.user.last_name} • {item.user.email}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatDate(item.created_at)}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={
+                            item.status === 'PENDING' ? 'secondary' : 'destructive'
+                          }>
+                            {getStatusLabel(item.status)}
+                          </Badge>
+                          <div className="flex space-x-1">
+                            <Button size="sm" variant="outline">
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="outline">
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Recent Activity */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <BarChart3 className="h-5 w-5 mr-2" />
+                    Recent Activity
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {mockRecentActivity.map((activity) => (
+                      <div key={activity.id} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                            {activity.type === 'order' && <ShoppingCart className="h-4 w-4" />}
+                            {activity.type === 'listing' && <Package className="h-4 w-4" />}
+                            {activity.type === 'vendor' && <Store className="h-4 w-4" />}
+                            {activity.type === 'service' && <Wrench className="h-4 w-4" />}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{activity.description}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {activity.user} • {formatDate(activity.created_at)}
+                            </p>
+                          </div>
+                        </div>
+                        {activity.amount && (
+                          <span className="text-sm font-medium text-primary">
+                            {formatPrice(activity.amount)}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </TabsContent>
 
-      {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="verifications">Verifications</TabsTrigger>
-          <TabsTrigger value="vendors">Vendors</TabsTrigger>
-          <TabsTrigger value="services">Services</TabsTrigger>
-          <TabsTrigger value="listings">Listings</TabsTrigger>
-        </TabsList>
-
-        {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-6">
-          <AnalyticsDashboard isAdmin={true} />
-        </TabsContent>
-
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Users Tab */}
+          <TabsContent value="users" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <TrendingUp className="h-5 w-5 mr-2" />
-                  Platform Statistics
+                  <Users className="h-5 w-5 mr-2" />
+                  All Users
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Total Revenue</span>
-                    <span className="font-semibold">{formatPrice(stats.totalRevenue)}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Active Listings</span>
-                    <span className="font-semibold">{stats.totalListings}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Verified Services</span>
-                    <span className="font-semibold">{stats.totalServices}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Pending Reviews</span>
-                    <span className="font-semibold text-orange-600">{stats.pendingListings}</span>
-                  </div>
+                  {mockUsers.map((user) => (
+                    <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                          <span className="text-sm font-medium">
+                            {user.first_name[0]}{user.last_name[0]}
+                          </span>
+                        </div>
+                        <div>
+                          <h4 className="font-medium">
+                            {user.first_name} {user.last_name}
+                          </h4>
+                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Badge variant="outline" className="text-xs">
+                              {user.role}
+                            </Badge>
+                            {user.verified_expat && (
+                              <Badge variant="outline" className="text-xs">
+                                Verified
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium">
+                          {user.total_orders} orders • {formatPrice(user.total_spent)} spent
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Last active: {formatDate(user.last_active)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
 
+          {/* Other tabs would be implemented similarly */}
+          <TabsContent value="listings">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <AlertTriangle className="h-5 w-5 mr-2" />
-                  Pending Actions
-                </CardTitle>
+                <CardTitle>Listings Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
-                    <span className="text-orange-800">User Verifications</span>
-                    <Badge variant="destructive">{stats.pendingVerifications}</Badge>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                    <span className="text-blue-800">Vendor Applications</span>
-                    <Badge variant="secondary">{stats.pendingVendors}</Badge>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-                    <span className="text-purple-800">Service Applications</span>
-                    <Badge variant="secondary">{stats.pendingServices}</Badge>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
-                    <span className="text-yellow-800">Listing Reviews</span>
-                    <Badge variant="outline">{stats.pendingListings}</Badge>
-                  </div>
-                </div>
+                <p className="text-muted-foreground">Listings management interface would go here.</p>
               </CardContent>
             </Card>
-          </div>
-        </TabsContent>
+          </TabsContent>
 
-        {/* Verifications Tab */}
-        <TabsContent value="verifications" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Pending User Verifications</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {pendingVerifications.length === 0 ? (
-                <div className="text-center py-8">
-                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                  <p className="text-gray-600">No pending verifications</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {pendingVerifications.map((profile) => (
-                    <div key={profile.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                          <span className="font-semibold">{profile.email.charAt(0)}</span>
-                        </div>
-                        <div>
-                          <p className="font-semibold">{profile.email}</p>
-                          <p className="text-sm text-gray-600">
-                            {profile.country_of_origin} • {profile.city}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Applied {formatRelativeTime(profile.created_at)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          onClick={() => handleApproveVerification(profile.id)}
-                          className="bg-green-500 hover:bg-green-600"
-                        >
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRejectVerification(profile.id)}
-                          className="border-red-500 text-red-500 hover:bg-red-50"
-                        >
-                          <XCircle className="h-4 w-4 mr-1" />
-                          Reject
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+          <TabsContent value="vendors">
+            <Card>
+              <CardHeader>
+                <CardTitle>Vendors Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Vendors management interface would go here.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        {/* Vendors Tab */}
-        <TabsContent value="vendors" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Pending Vendor Applications</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {pendingVendors.length === 0 ? (
-                <div className="text-center py-8">
-                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                  <p className="text-gray-600">No pending vendor applications</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {pendingVendors.map((vendor) => (
-                    <div key={vendor.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <Store className="h-6 w-6 text-gray-500" />
-                        </div>
-                        <div>
-                          <p className="font-semibold">{vendor.name}</p>
-                          <p className="text-sm text-gray-600">
-                            {vendor.city}, {vendor.country} • {vendor.type}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Applied {formatRelativeTime(vendor.created_at)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          onClick={() => handleApproveVendor(vendor.id)}
-                          className="bg-green-500 hover:bg-green-600"
-                        >
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRejectVendor(vendor.id)}
-                          className="border-red-500 text-red-500 hover:bg-red-50"
-                        >
-                          <XCircle className="h-4 w-4 mr-1" />
-                          Reject
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Services Tab */}
-        <TabsContent value="services" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Pending Service Applications</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {pendingServices.length === 0 ? (
-                <div className="text-center py-8">
-                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                  <p className="text-gray-600">No pending service applications</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {pendingServices.map((provider) => (
-                    <div key={provider.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <Wrench className="h-6 w-6 text-gray-500" />
-                        </div>
-                        <div>
-                          <p className="font-semibold">{provider.name}</p>
-                          <p className="text-sm text-gray-600">
-                            {provider.skills.join(', ')}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Applied {formatRelativeTime(provider.created_at)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          className="bg-green-500 hover:bg-green-600"
-                        >
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-red-500 text-red-500 hover:bg-red-50"
-                        >
-                          <XCircle className="h-4 w-4 mr-1" />
-                          Reject
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Listings Tab */}
-        <TabsContent value="listings" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Pending Listing Reviews</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {recentListings.length === 0 ? (
-                <div className="text-center py-8">
-                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                  <p className="text-gray-600">No pending listing reviews</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {recentListings.map((listing) => (
-                    <div key={listing.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                          {listing.photo_urls && listing.photo_urls.length > 0 ? (
-                            <img
-                              src={listing.photo_urls[0]}
-                              alt={listing.title}
-                              className="w-full h-full object-cover rounded-lg"
-                            />
-                          ) : (
-                            <span className="text-2xl">📦</span>
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-semibold">{listing.title}</p>
-                          <p className="text-sm text-gray-600">
-                            {formatPrice(listing.price_rub)} • {listing.city}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            by {listing.seller.email} • {formatRelativeTime(listing.created_at)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          className="bg-green-500 hover:bg-green-600"
-                        >
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-red-500 text-red-500 hover:bg-red-50"
-                        >
-                          <XCircle className="h-4 w-4 mr-1" />
-                          Reject
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="services">
+            <Card>
+              <CardHeader>
+                <CardTitle>Services Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Services management interface would go here.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
-  );
+  )
 }

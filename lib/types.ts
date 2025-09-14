@@ -1,222 +1,255 @@
-import { z } from "zod"
+export interface Profile {
+  id: string
+  email: string | null
+  first_name: string | null
+  last_name: string | null
+  role: 'USER' | 'VENDOR' | 'COURIER' | 'ADMIN'
+  country_of_origin: string | null
+  city: string | null
+  district: string | null
+  phone: string | null
+  verified_expat: boolean
+  verification_status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  documents: Record<string, unknown> | null
+  avatar_url: string | null
+  created_at: string
+  updated_at: string | null
+}
 
-// User and Profile types
-export const ProfileSchema = z.object({
-  id: z.string().uuid(),
-  user_id: z.string().uuid(),
-  email: z.string().email(),
-  full_name: z.string().optional(),
-  avatar_url: z.string().url().optional(),
-  phone: z.string().optional(),
-  bio: z.string().optional(),
-  location: z.string().optional(),
-  language: z.string().default("en"),
-  currency: z.string().default("USD"),
-  is_verified: z.boolean().default(false),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
-})
+export interface Category {
+  id: number
+  name: string
+  slug: string
+  parent_id: number | null
+  created_at: string
+  updated_at: string | null
+}
 
-export type Profile = z.infer<typeof ProfileSchema>
+export interface Listing {
+  id: number
+  seller_id: string
+  title: string
+  description: string | null
+  category_id: number | null
+  price: number
+  condition: 'NEW' | 'LIKE_NEW' | 'GOOD' | 'FAIR'
+  city: string | null
+  district: string | null
+  photo_urls: string[]
+  status: 'ACTIVE' | 'PAUSED' | 'SOLD' | 'PENDING_REVIEW'
+  created_at: string
+  updated_at: string | null
+  seller?: Profile
+  category?: Category
+}
 
-// Listing types
-export const ListingSchema = z.object({
-  id: z.string().uuid(),
-  user_id: z.string().uuid(),
-  title: z.string(),
-  description: z.string(),
-  price: z.number().positive(),
-  currency: z.string().default("USD"),
-  category_id: z.string().uuid(),
-  condition: z.enum(["new", "like_new", "good", "fair", "poor"]),
-  images: z.array(z.string().url()),
-  location: z.string(),
-  is_active: z.boolean().default(true),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
-})
+export interface Vendor {
+  id: number
+  owner_id: string
+  name: string
+  description: string | null
+  logo_url: string | null
+  country: string | null
+  city: string | null
+  verified: boolean
+  type: 'LOCAL' | 'INTERNATIONAL'
+  status: 'ACTIVE' | 'SUSPENDED'
+  created_at: string
+  updated_at: string | null
+  owner?: Profile
+}
 
-export type Listing = z.infer<typeof ListingSchema>
+export interface VendorProduct {
+  id: number
+  vendor_id: number
+  name: string
+  description: string | null
+  category_id: number | null
+  price_rub: number
+  stock_quantity: number
+  photo_urls: string[]
+  is_local_stock: boolean
+  is_dropship: boolean
+  status: 'ACTIVE' | 'OUT_OF_STOCK' | 'DISABLED'
+  created_at: string
+  updated_at: string | null
+  vendor?: Vendor
+  category?: Category
+}
 
-export const ListingFiltersSchema = z.object({
-  category: z.string().optional(),
-  min_price: z.number().positive().optional(),
-  max_price: z.number().positive().optional(),
-  condition: z.enum(["new", "like_new", "good", "fair", "poor"]).optional(),
-  location: z.string().optional(),
-  search: z.string().optional(),
-})
+export interface GroupBuyDeal {
+  id: number
+  vendor_product_id: number
+  min_quantity: number
+  discount_percentage: number
+  expires_at: string
+  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
+  created_at: string
+  updated_at: string | null
+  vendor_product?: VendorProduct
+}
 
-export type ListingFilters = z.infer<typeof ListingFiltersSchema>
+export interface GroupBuyOrder {
+  id: number
+  deal_id: number
+  buyer_id: string
+  quantity: number
+  created_at: string
+  deal?: GroupBuyDeal
+  buyer?: Profile
+}
 
-// Service types
-export const ServiceSchema = z.object({
-  id: z.string().uuid(),
-  provider_id: z.string().uuid(),
-  title: z.string(),
-  description: z.string(),
-  price: z.number().positive(),
-  currency: z.string().default("USD"),
-  category_id: z.string().uuid(),
-  duration: z.number().positive().optional(), // in minutes
-  location: z.string(),
-  is_active: z.boolean().default(true),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
-})
+export interface ServiceProvider {
+  id: number
+  profile_id: string
+  name: string | null
+  bio: string | null
+  skills: string[]
+  credentials: Record<string, unknown> | null
+  verified: boolean
+  status: 'ACTIVE' | 'SUSPENDED'
+  created_at: string
+  updated_at: string | null
+  profile?: Profile
+}
 
-export type Service = z.infer<typeof ServiceSchema>
+export interface Service {
+  id: number
+  provider_id: number
+  title: string
+  description: string | null
+  category: 'LEGAL' | 'FINANCIAL' | 'PERSONAL' | 'EVENT' | 'HEALTHCARE'
+  price: number
+  duration_minutes: number
+  available_slots: Record<string, unknown>[]
+  status: 'ACTIVE' | 'PAUSED'
+  created_at: string
+  updated_at: string | null
+  provider?: ServiceProvider
+}
 
-export const ServiceFiltersSchema = z.object({
-  category: z.string().optional(),
-  min_price: z.number().positive().optional(),
-  max_price: z.number().positive().optional(),
-  location: z.string().optional(),
-  search: z.string().optional(),
-})
+export interface ServiceBooking {
+  id: number
+  service_id: number
+  client_id: string
+  scheduled_at: string
+  status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'
+  escrow_status: 'HELD' | 'RELEASED' | 'REFUNDED'
+  created_at: string
+  updated_at: string | null
+  service?: Service
+  client?: Profile
+}
 
-export type ServiceFilters = z.infer<typeof ServiceFiltersSchema>
+export interface Conversation {
+  id: number
+  created_by: string
+  created_at: string
+  participants?: Profile[]
+  messages?: Message[]
+}
 
-// Vendor types
-export const VendorSchema = z.object({
-  id: z.string().uuid(),
-  user_id: z.string().uuid(),
-  business_name: z.string(),
-  description: z.string(),
-  category: z.string(),
-  location: z.string(),
-  phone: z.string().optional(),
-  email: z.string().email().optional(),
-  website: z.string().url().optional(),
-  rating: z.number().min(0).max(5).default(0),
-  review_count: z.number().default(0),
-  is_verified: z.boolean().default(false),
-  is_active: z.boolean().default(true),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
-})
+export interface Message {
+  id: number
+  conversation_id: number
+  sender_id: string
+  body: string
+  translated_body: string | null
+  source_lang: string | null
+  target_lang: string | null
+  created_at: string
+  sender?: Profile
+}
 
-export type Vendor = z.infer<typeof VendorSchema>
+export interface Address {
+  id: number
+  user_id: string
+  line1: string | null
+  line2: string | null
+  city: string | null
+  district: string | null
+  postal_code: string | null
+  country_code: string | null
+  note: string | null
+  created_at: string
+  updated_at: string | null
+}
 
-// Order types
-export const OrderSchema = z.object({
-  id: z.string().uuid(),
-  buyer_id: z.string().uuid(),
-  seller_id: z.string().uuid(),
-  listing_id: z.string().uuid().optional(),
-  service_id: z.string().uuid().optional(),
-  total_amount: z.number().positive(),
-  currency: z.string().default("USD"),
-  status: z.enum(["pending", "confirmed", "shipped", "delivered", "cancelled"]),
-  payment_status: z.enum(["pending", "paid", "failed", "refunded"]),
-  shipping_address: z.string().optional(),
-  notes: z.string().optional(),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
-})
+export interface Order {
+  id: number
+  buyer_id: string
+  seller_id: string
+  listing_id: number | null
+  vendor_product_id: number | null
+  service_booking_id: number | null
+  escrow_status: 'HELD' | 'RELEASED' | 'REFUNDED'
+  payment_id: number | null
+  delivery_id: number | null
+  status: 'PENDING' | 'PAID' | 'FULFILLING' | 'DELIVERED' | 'CANCELLED'
+  created_at: string
+  updated_at: string | null
+  buyer?: Profile
+  seller?: Profile
+  listing?: Listing
+  vendor_product?: VendorProduct
+  service_booking?: ServiceBooking
+  payment?: Payment
+  delivery?: Delivery
+}
 
-export type Order = z.infer<typeof OrderSchema>
+export interface Payment {
+  id: number
+  provider: 'STRIPE' | 'YOOMONEY' | 'FLUTTERWAVE' | 'CASH'
+  provider_ref: string | null
+  amount: number
+  status: 'AUTHORIZED' | 'CAPTURED' | 'CANCELLED' | 'REFUNDED'
+  created_at: string
+  updated_at: string | null
+}
 
-// Category types
-export const CategorySchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  description: z.string().optional(),
-  parent_id: z.string().uuid().optional(),
-  icon: z.string().optional(),
-  is_active: z.boolean().default(true),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
-})
+export interface Review {
+  id: number
+  order_id: number
+  reviewer_id: string
+  reviewee_id: string
+  rating: number
+  comment: string | null
+  created_at: string
+  reviewer?: Profile
+  reviewee?: Profile
+}
 
-export type Category = z.infer<typeof CategorySchema>
+export interface Delivery {
+  id: number
+  order_id: number
+  pickup_address_id: number | null
+  dropoff_address_id: number | null
+  timeslot_start: string | null
+  timeslot_end: string | null
+  cod: boolean
+  status: 'CREATED' | 'PICKED_UP' | 'IN_TRANSIT' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'RETURNED'
+  tracking_code: string | null
+  created_at: string
+  updated_at: string | null
+  pickup_address?: Address
+  dropoff_address?: Address
+}
 
-// Condition enum
-export type Condition = "new" | "like_new" | "good" | "fair" | "poor"
+export interface IntlShipmentQuote {
+  id: number
+  from_country: string | null
+  to_country: string
+  volumetric_weight_kg: number | null
+  base_cost: number | null
+  duty_estimate: number | null
+  created_at: string
+}
 
-// Notification types
-export const NotificationTypeSchema = z.enum([
-  "order_created",
-  "order_confirmed",
-  "order_shipped",
-  "order_delivered",
-  "order_cancelled",
-  "message_received",
-  "listing_approved",
-  "listing_rejected",
-  "payment_received",
-  "payment_failed",
-])
-
-export type NotificationType = z.infer<typeof NotificationTypeSchema>
-
-export const NotificationChannelSchema = z.enum(["email", "push", "sms"])
-
-export type NotificationChannel = z.infer<typeof NotificationChannelSchema>
-
-export const NotificationStatusSchema = z.enum(["unread", "read", "archived"])
-
-export type NotificationStatus = z.infer<typeof NotificationStatusSchema>
-
-// Search types
-export const SearchResultSchema = z.object({
-  id: z.string(),
-  type: z.enum(["listing", "service", "vendor"]),
-  title: z.string(),
-  description: z.string(),
-  price: z.number().optional(),
-  currency: z.string().optional(),
-  location: z.string().optional(),
-  image: z.string().url().optional(),
-  rating: z.number().optional(),
-  created_at: z.string().datetime(),
-})
-
-export type SearchResult = z.infer<typeof SearchResultSchema>
-
-export const SearchSuggestionSchema = z.object({
-  id: z.string(),
-  text: z.string(),
-  type: z.enum(["category", "location", "keyword"]),
-})
-
-export type SearchSuggestion = z.infer<typeof SearchSuggestionSchema>
-
-export const SearchFilterSchema = z.object({
-  field: z.string(),
-  value: z.string(),
-  label: z.string(),
-})
-
-export type SearchFilter = z.infer<typeof SearchFilterSchema>
-
-// Message types
-export const MessageSchema = z.object({
-  id: z.string().uuid(),
-  conversation_id: z.string().uuid(),
-  sender_id: z.string().uuid(),
-  content: z.string(),
-  message_type: z.enum(["text", "image", "file"]).default("text"),
-  is_read: z.boolean().default(false),
-  created_at: z.string().datetime(),
-})
-
-export type Message = z.infer<typeof MessageSchema>
-
-export const ConversationSchema = z.object({
-  id: z.string().uuid(),
-  participant_ids: z.array(z.string().uuid()),
-  last_message: MessageSchema.optional(),
-  unread_count: z.number().default(0),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
-})
-
-export type Conversation = z.infer<typeof ConversationSchema>
-
-// Currency types
-export const CurrencyCodeSchema = z.enum([
-  "USD", "EUR", "GBP", "JPY", "CAD", "AUD", "CHF", "CNY", "RUB", "BRL", "INR", "KRW", "MXN", "SGD", "HKD", "NOK", "SEK", "DKK", "PLN", "CZK", "HUF", "ILS", "CLP", "PHP", "AED", "SAR", "QAR", "KWD", "BHD", "OMR", "JOD", "LBP", "EGP", "ZAR", "NGN", "KES", "GHS", "MAD", "TND", "DZD", "ETB", "UGX", "TZS", "ZMW", "BWP", "SZL", "LSL", "NAD", "AOA", "MZN", "MGA", "KMF", "SCR", "MUR", "SLL", "GMD", "GNF", "LRD", "CDF", "RWF", "BIF", "DJF", "SOS", "ERN", "STN", "CVE", "XOF", "XAF", "XPF"
-])
-
-export type CurrencyCode = z.infer<typeof CurrencyCodeSchema>
+export interface PayoutLedger {
+  id: number
+  user_id: string
+  order_id: number
+  amount: number
+  type: 'CREDIT' | 'DEBIT'
+  created_at: string
+}

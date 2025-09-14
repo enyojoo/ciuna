@@ -1,39 +1,38 @@
-'use client';
+'use client'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { useState } from 'react';
-import { AuthProvider } from '@/lib/auth-context';
-import { I18nProvider } from '@/contexts/i18n-context';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ThemeProvider } from 'next-themes'
+import { NextIntlClientProvider } from 'next-intl'
+import { useState } from 'react'
 
-export function Providers({ children, userId }: { children: React.ReactNode; userId?: string }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 60 * 1000, // 1 minute
-            retry: (failureCount, error: unknown) => {
-              // Don't retry on 4xx errors
-              if (error && typeof error === 'object' && 'status' in error && 
-                  typeof error.status === 'number' && error.status >= 400 && error.status < 500) {
-                return false;
-              }
-              return failureCount < 3;
-            },
-          },
-        },
-      })
-  );
+interface ProvidersProps {
+  children: React.ReactNode
+  locale?: string
+  messages?: Record<string, unknown>
+}
+
+export function Providers({ children, locale = 'en', messages }: ProvidersProps) {
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000, // 1 minute
+        retry: 1,
+      },
+    },
+  }))
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <I18nProvider userId={userId}>
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
           {children}
-        </I18nProvider>
-      </AuthProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
-  );
+        </ThemeProvider>
+      </QueryClientProvider>
+    </NextIntlClientProvider>
+  )
 }

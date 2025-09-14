@@ -1,296 +1,265 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Button, Avatar, Badge } from '@ciuna/ui';
-import { 
-  Menu, 
-  X, 
-  Search, 
-  ShoppingCart, 
-  Heart, 
-  MessageCircle, 
-  User,
-  LogOut,
-  Settings,
-  Package,
-  Store,
-  Wrench,
-  BarChart3,
-  Calendar,
-  CreditCard,
-  Shield,
-  Eye
-} from 'lucide-react';
-import { useAuth } from '@/lib/auth-context';
-import { cn } from '@/lib/utils';
-import LanguageSelector from './language-selector';
-import CurrencySelector from './currency-selector';
+import { useState } from 'react'
+import Link from 'next/link'
+import { useTranslations, useLocale } from 'next-intl'
+import { useTheme } from 'next-themes'
+import { Menu, X, Sun, Moon, ShoppingCart, MessageCircle, User, LogOut } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { cn } from '@/lib/utils'
 
-export function Navigation() {
-  const [isOpen, setIsOpen] = useState(false);
-  const { user, profile, signOut } = useAuth();
-  const pathname = usePathname();
+interface NavigationProps {
+  user?: { 
+    email?: string; 
+    name?: string; 
+    role?: string; 
+    avatar_url?: string | null;
+    first_name?: string;
+    last_name?: string;
+  } | null
+  onSignOut?: () => void
+}
+
+export function Navigation({ user, onSignOut }: NavigationProps) {
+  const t = useTranslations('navigation')
+  const locale = useLocale()
+  const { theme, setTheme } = useTheme()
+  const [isOpen, setIsOpen] = useState(false)
 
   const navigation = [
-    { name: 'Home', href: '/', icon: null },
-    { name: 'Search', href: '/search', icon: Search },
-    { name: 'Listings', href: '/listings', icon: Package },
-    { name: 'Vendors', href: '/vendors', icon: Store },
-    { name: 'Services', href: '/services', icon: Wrench },
-  ];
+    { name: t('home'), href: '/' },
+    { name: t('listings'), href: '/listings' },
+    { name: t('vendors'), href: '/vendors' },
+    { name: t('services'), href: '/services' },
+  ]
 
   const userNavigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
-    { name: 'Orders', href: '/orders', icon: ShoppingCart },
-    { name: 'Inbox', href: '/inbox', icon: MessageCircle },
-    { name: 'Favorites', href: '/favorites', icon: Heart },
-    { name: 'Settings', href: '/settings', icon: User },
-    { name: 'Payments', href: '/payments', icon: CreditCard },
-    { name: 'Security', href: '/security', icon: Shield },
-    { name: 'Privacy', href: '/privacy', icon: Eye },
-  ];
+    { name: t('orders'), href: '/orders', icon: ShoppingCart },
+    { name: t('inbox'), href: '/inbox', icon: MessageCircle },
+    { name: t('profile'), href: '/profile', icon: User },
+  ]
 
-  const vendorNavigation = [
-    { name: 'Dashboard', href: '/vendor-dashboard', icon: BarChart3 },
-    { name: 'Products', href: '/vendor-dashboard/products', icon: Package },
-    { name: 'Orders', href: '/vendor-dashboard/orders', icon: ShoppingCart },
-  ];
-
-  const providerNavigation = [
-    { name: 'Dashboard', href: '/provider-dashboard', icon: BarChart3 },
-    { name: 'Services', href: '/provider-dashboard/services', icon: Wrench },
-    { name: 'Bookings', href: '/provider-dashboard/bookings', icon: Calendar },
-  ];
-
-  const isActive = (href: string) => {
-    if (href === '/') {
-      return pathname === '/';
-    }
-    return pathname.startsWith(href);
-  };
+  if (user?.role === 'ADMIN') {
+    userNavigation.push({ name: t('admin'), href: '/admin', icon: User })
+  }
 
   return (
-    <nav className="bg-white shadow-lg sticky top-0 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">C</span>
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between">
+        {/* Logo */}
+        <Link href="/" className="flex items-center space-x-2">
+          <div className="h-8 w-8 rounded bg-primary" />
+          <span className="text-xl font-bold">Ciuna</span>
+        </Link>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center space-x-6">
+          {navigation.map((item) => (
+            <Link
+              key={item.name}
+              href={item.href}
+              className="text-sm font-medium transition-colors hover:text-primary"
+            >
+              {item.name}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Desktop Actions */}
+        <div className="hidden md:flex items-center space-x-4">
+          {/* Theme Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          >
+            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
+          </Button>
+
+          {/* Language Selector */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                {locale.toUpperCase()}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem asChild>
+                <Link href="/" locale="en">English</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/" locale="ru">Русский</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/" locale="fr">Français</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/" locale="zh">中文</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/" locale="ar">العربية</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/" locale="es">Español</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.avatar_url || undefined} alt={user.name} />
+                    <AvatarFallback>
+                      {user.first_name?.[0]}{user.last_name?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <div className="flex items-center justify-start gap-2 p-2">
+                  <div className="flex flex-col space-y-1 leading-none">
+                    <p className="font-medium">{user.first_name} {user.last_name}</p>
+                    <p className="w-[200px] truncate text-sm text-muted-foreground">
+                      {user.email}
+                    </p>
+                  </div>
+                </div>
+                <DropdownMenuSeparator />
+                {userNavigation.map((item) => (
+                  <DropdownMenuItem key={item.name} asChild>
+                    <Link href={item.href} className="flex items-center">
+                      <item.icon className="mr-2 h-4 w-4" />
+                      {item.name}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={onSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  {t('sign_out')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <Button variant="ghost" asChild>
+                <Link href="/auth/sign-in">{t('sign_in')}</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/auth/sign-up">{t('sign_up')}</Link>
+              </Button>
             </div>
-            <span className="text-xl font-bold text-gray-900">Ciuna</span>
-          </Link>
+          )}
+        </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  'flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors',
-                  isActive(item.href)
-                    ? 'text-blue-600 bg-blue-50'
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                )}
-              >
-                {item.icon && <item.icon className="h-4 w-4" />}
-                <span>{item.name}</span>
-              </Link>
-            ))}
-          </div>
-
-          {/* Search Bar */}
-          <div className="hidden lg:flex flex-1 max-w-md mx-8">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search products, services..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-
-          {/* Right Side */}
-          <div className="flex items-center space-x-4">
-            {/* Language & Currency Selectors */}
-            <div className="hidden lg:flex items-center space-x-2">
-              <LanguageSelector variant="button" showFlag={true} showNativeName={false} />
-              <CurrencySelector variant="button" showSymbol={true} />
-            </div>
-
-            {/* Mobile Search */}
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Search className="h-5 w-5" />
-            </Button>
-
-            {user ? (
-              <>
-                {/* User Navigation */}
-                <div className="hidden md:flex items-center space-x-2">
-                  {userNavigation.map((item) => (
+        {/* Mobile Navigation */}
+        <div className="md:hidden">
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <div className="flex flex-col space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="h-6 w-6 rounded bg-primary" />
+                    <span className="text-lg font-bold">Ciuna</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  >
+                    <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                    <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                  </Button>
+                </div>
+                
+                <nav className="flex flex-col space-y-2">
+                  {navigation.map((item) => (
                     <Link
                       key={item.name}
                       href={item.href}
-                      className={cn(
-                        'flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors',
-                        isActive(item.href)
-                          ? 'text-blue-600 bg-blue-50'
-                          : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                      )}
+                      className="text-sm font-medium transition-colors hover:text-primary"
+                      onClick={() => setIsOpen(false)}
                     >
-                      <item.icon className="h-4 w-4" />
-                      <span className="hidden lg:inline">{item.name}</span>
+                      {item.name}
                     </Link>
                   ))}
-                </div>
+                </nav>
 
-                {/* Vendor/Provider Navigation */}
-                {profile?.role === 'VENDOR' && (
-                  <div className="hidden lg:flex items-center space-x-2">
-                    {vendorNavigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className={cn(
-                          'flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors',
-                          isActive(item.href)
-                            ? 'text-green-600 bg-green-50'
-                            : 'text-gray-700 hover:text-green-600 hover:bg-gray-50'
-                        )}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.name}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-
-                {profile?.role === 'USER' && profile?.verified_expat && (
-                  <div className="hidden lg:flex items-center space-x-2">
-                    {providerNavigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className={cn(
-                          'flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors',
-                          isActive(item.href)
-                            ? 'text-purple-600 bg-purple-50'
-                            : 'text-gray-700 hover:text-purple-600 hover:bg-gray-50'
-                        )}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.name}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-
-                {/* User Menu */}
-                <div className="relative">
-                  <Button variant="ghost" size="icon" className="rounded-full">
-                    <Avatar
-                      src={profile?.avatar_url || undefined}
-                      fallback={profile?.email?.charAt(0) || 'U'}
-                      size="sm"
-                    />
-                  </Button>
-                </div>
-
-                {/* Sell Button */}
-                <Button asChild>
-                  <Link href="/sell/new">
-                    Sell
-                  </Link>
-                </Button>
-              </>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" asChild>
-                  <Link href="/auth/signin">Sign In</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/auth/signup">Sign Up</Link>
-                </Button>
-              </div>
-            )}
-
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => setIsOpen(!isOpen)}
-            >
-              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {isOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4">
-            <div className="space-y-2">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    'flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium',
-                    isActive(item.href)
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                  )}
-                  onClick={() => setIsOpen(false)}
-                >
-                  {item.icon && <item.icon className="h-4 w-4" />}
-                  <span>{item.name}</span>
-                </Link>
-              ))}
-              
-              {user && (
-                <>
-                  <div className="border-t border-gray-200 pt-2 mt-2">
+                {user ? (
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex items-center space-x-2 p-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.avatar_url || undefined} alt={user.name} />
+                        <AvatarFallback>
+                          {user.first_name?.[0]}{user.last_name?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <p className="text-sm font-medium">{user.first_name} {user.last_name}</p>
+                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                      </div>
+                    </div>
                     {userNavigation.map((item) => (
                       <Link
                         key={item.name}
                         href={item.href}
-                        className={cn(
-                          'flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium',
-                          isActive(item.href)
-                            ? 'text-blue-600 bg-blue-50'
-                            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                        )}
+                        className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
                         onClick={() => setIsOpen(false)}
                       >
                         <item.icon className="h-4 w-4" />
-                        <span>{item.name}</span>
+                        {item.name}
                       </Link>
                     ))}
-                  </div>
-                  
-                  <div className="border-t border-gray-200 pt-2 mt-2">
                     <Button
                       variant="ghost"
-                      className="w-full justify-start"
+                      className="justify-start"
                       onClick={() => {
-                        signOut();
-                        setIsOpen(false);
+                        onSignOut?.()
+                        setIsOpen(false)
                       }}
                     >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Sign Out
+                      <LogOut className="mr-2 h-4 w-4" />
+                      {t('sign_out')}
                     </Button>
                   </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
+                ) : (
+                  <div className="flex flex-col space-y-2">
+                    <Button variant="ghost" asChild>
+                      <Link href="/auth/sign-in" onClick={() => setIsOpen(false)}>
+                        {t('sign_in')}
+                      </Link>
+                    </Button>
+                    <Button asChild>
+                      <Link href="/auth/sign-up" onClick={() => setIsOpen(false)}>
+                        {t('sign_up')}
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
-    </nav>
-  );
+    </header>
+  )
 }
