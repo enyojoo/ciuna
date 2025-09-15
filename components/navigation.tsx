@@ -46,9 +46,9 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
   const mainNavigation = navigation || [
     { name: 'Home', href: '/', icon: Home },
     { name: 'Listings', href: '/listings', icon: Search },
+    { name: 'Services', href: '/services', icon: FileText },
     { name: 'Vendors', href: '/vendors', icon: Store },
-    { name: 'Services', href: '/services', icon: FileText, requiresFeature: 'services' },
-  ].filter(item => !item.requiresFeature || canAccess(item.requiresFeature))
+  ]
 
   const baseUserNav = userNavigation || [
     { name: 'Orders', href: '/orders', icon: ShoppingCart },
@@ -66,7 +66,7 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
       <div className="container flex h-16 items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center space-x-2">
+        <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
           <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-sm" />
           <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">Ciuna</span>
         </Link>
@@ -77,23 +77,23 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search for items, services, or vendors..."
-              className="pl-10 pr-4 py-2 border-2 focus:border-primary"
+              className="pl-10 pr-20 py-2 h-10 border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary"
             />
-            <Button size="sm" className="absolute right-1 top-1/2 transform -translate-y-1/2">
+            <Button size="sm" className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 px-3">
               Search
             </Button>
           </div>
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="hidden md:flex items-center space-x-1">
           {mainNavigation.map((item) => {
             const Icon = item.icon
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-sm font-medium transition-colors hover:text-primary flex items-center gap-1 px-3 py-2 rounded-md hover:bg-muted/50"
+                className="text-sm font-medium transition-colors hover:text-primary flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-muted/50"
               >
                 <Icon className="h-4 w-4" />
                 {item.name}
@@ -108,14 +108,12 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
         </nav>
 
         {/* Desktop Actions */}
-        <div className="hidden md:flex items-center space-x-4">
-          {/* Location Selector */}
-          <LocationSelector />
-          
+        <div className="hidden md:flex items-center space-x-2">
           {/* Theme Toggle */}
           <Button
             variant="ghost"
             size="icon"
+            className="h-9 w-9"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           >
             <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -212,12 +210,9 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search items, services..."
-                    className="pl-10 pr-4 py-2"
+                    className="pl-10 pr-4 py-2 h-10"
                   />
                 </div>
-                
-                {/* Mobile Location Indicator */}
-                <LocationIndicator />
                 
                 <nav className="flex flex-col space-y-2">
                   {mainNavigation.map((item) => {
