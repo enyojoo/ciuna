@@ -228,6 +228,106 @@ export default function HomePage() {
     }
   ]
 
+  // Vendor products mock data
+  const vendorProducts = [
+    {
+      id: 1,
+      title: "iPhone 15 Pro Max - 256GB",
+      price: 120000,
+      currency: "RUB",
+      condition: "NEW",
+      image: "/api/placeholder/300/200",
+      vendor: {
+        name: "Expat Electronics Store",
+        verified: true,
+        rating: 4.8,
+        city: "Moscow"
+      },
+      category: "Electronics",
+      inStock: true
+    },
+    {
+      id: 2,
+      title: "MacBook Air M2 - 512GB",
+      price: 150000,
+      currency: "RUB",
+      condition: "NEW",
+      image: "/api/placeholder/300/200",
+      vendor: {
+        name: "Expat Electronics Store",
+        verified: true,
+        rating: 4.8,
+        city: "Moscow"
+      },
+      category: "Electronics",
+      inStock: true
+    },
+    {
+      id: 3,
+      title: "IKEA HEMNES Dresser - White",
+      price: 25000,
+      currency: "RUB",
+      condition: "NEW",
+      image: "/api/placeholder/300/200",
+      vendor: {
+        name: "Moscow Furniture Hub",
+        verified: true,
+        rating: 4.6,
+        city: "Moscow"
+      },
+      category: "Furniture",
+      inStock: true
+    },
+    {
+      id: 4,
+      title: "Designer Winter Coat - Size M",
+      price: 18000,
+      currency: "RUB",
+      condition: "NEW",
+      image: "/api/placeholder/300/200",
+      vendor: {
+        name: "Fashion Forward",
+        verified: true,
+        rating: 4.7,
+        city: "Moscow"
+      },
+      category: "Clothing",
+      inStock: true
+    },
+    {
+      id: 5,
+      title: "Russian Language Learning Set",
+      price: 3500,
+      currency: "RUB",
+      condition: "NEW",
+      image: "/api/placeholder/300/200",
+      vendor: {
+        name: "International Books & Media",
+        verified: false,
+        rating: 4.9,
+        city: "St. Petersburg"
+      },
+      category: "Books",
+      inStock: true
+    },
+    {
+      id: 6,
+      title: "Samsung Galaxy S24 Ultra",
+      price: 95000,
+      currency: "RUB",
+      condition: "NEW",
+      image: "/api/placeholder/300/200",
+      vendor: {
+        name: "Expat Electronics Store",
+        verified: true,
+        rating: 4.8,
+        city: "Moscow"
+      },
+      category: "Electronics",
+      inStock: false
+    }
+  ]
+
   const stats = [
     { label: 'Active Expats', value: '12,500+', icon: Users },
     { label: 'Live Listings', value: '8,900+', icon: ShoppingBag },
@@ -351,6 +451,115 @@ export default function HomePage() {
                       <MessageCircle className="h-3 w-3 mr-1" />
                       Contact
                     </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Vendor Products Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
+                Products from Vendors
+              </h2>
+              <p className="mt-4 text-lg text-muted-foreground text-balance">
+                Discover new products from trusted local and international vendors
+              </p>
+            </div>
+            <Button variant="outline" asChild>
+              <Link href="/vendors">
+                View All Products
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+            {vendorProducts.map((product) => (
+              <Card key={product.id} className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <div className="relative aspect-square overflow-hidden">
+                  <Image
+                    src={product.image}
+                    alt={product.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute top-2 left-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {product.condition}
+                    </Badge>
+                  </div>
+                  {!product.inStock && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <Badge variant="destructive" className="text-xs">
+                        Out of Stock
+                      </Badge>
+                    </div>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background"
+                  >
+                    <Heart className="h-4 w-4" />
+                  </Button>
+                </div>
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    {/* Product Title */}
+                    <h3 className="font-semibold line-clamp-2 group-hover:text-primary transition-colors text-sm">
+                      {product.title}
+                    </h3>
+
+                    {/* Price */}
+                    <div className="text-lg font-bold text-primary">
+                      {product.price.toLocaleString()}₽
+                    </div>
+
+                    {/* Category */}
+                    <Badge variant="outline" className="text-xs">
+                      {product.category}
+                    </Badge>
+
+                    {/* Vendor Info */}
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-medium truncate">
+                          {product.vendor.name}
+                        </span>
+                        {product.vendor.verified && (
+                          <Shield className="h-3 w-3 text-green-500 flex-shrink-0" />
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                        <span className="text-xs text-muted-foreground">
+                          {product.vendor.rating}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          • {product.vendor.city}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex space-x-2 pt-2">
+                      <Button 
+                        size="sm" 
+                        className="flex-1 h-8"
+                        disabled={!product.inStock}
+                      >
+                        {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                      </Button>
+                      <Button variant="outline" size="sm" className="h-8">
+                        <MessageCircle className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
