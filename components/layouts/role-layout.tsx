@@ -105,9 +105,11 @@ export function RoleLayout({ children, role }: RoleLayoutProps) {
         
         {/* Main content area */}
         <main className="flex-1 w-full md:w-auto">
-          <div className="container mx-auto px-4 py-6">
+          <div className="container py-8">
             <Breadcrumbs pathname={pathname} role={role} />
-            {children}
+            <div className="mt-6">
+              {children}
+            </div>
           </div>
         </main>
       </div>
