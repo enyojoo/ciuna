@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useTheme } from 'next-themes'
-import { Menu, Sun, Moon, ShoppingCart, MessageCircle, User, LogOut, Home, Search, Store, FileText, Settings } from 'lucide-react'
+import { Menu, Sun, Moon, ShoppingCart, MessageCircle, User, LogOut, Home, Search, Store, FileText, Settings, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -43,8 +43,8 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
 
   // Use provided navigation or fallback to default
   const mainNavigation = navigation || [
-    { name: 'Home', href: '/', icon: Home },
-    { name: 'Listings', href: '/listings', icon: Search },
+    { name: 'Browse', href: '/listings', icon: Search },
+    { name: 'Sell', href: '/sell/new', icon: Plus },
     { name: 'Vendors', href: '/vendors', icon: Store },
     { name: 'Services', href: '/services', icon: FileText, requiresFeature: 'services' },
   ].filter(item => !item.requiresFeature || canAccess(item.requiresFeature))
@@ -71,14 +71,14 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="hidden md:flex items-center space-x-8">
           {mainNavigation.map((item) => {
             const Icon = item.icon
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-sm font-medium transition-colors hover:text-primary flex items-center gap-1"
+                className="text-sm font-medium transition-colors hover:text-primary flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/5"
               >
                 <Icon className="h-4 w-4" />
                 {item.name}

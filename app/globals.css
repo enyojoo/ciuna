@@ -14,35 +14,35 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 98%; /* A very light, almost white gray */
-    --foreground: 224 71% 4%; /* A deep, dark blue for text */
+    --background: 0 0% 100%; /* Pure white for clean marketplace feel */
+    --foreground: 222 84% 5%; /* Darker text for better contrast */
 
     --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
+    --card-foreground: 222 84% 5%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
+    --popover-foreground: 222 84% 5%;
 
-    --primary: 244 81% 59%; /* A vibrant, sleek blue */
+    --primary: 221 83% 53%; /* More vibrant blue for marketplace */
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 220 13% 91%;
-    --secondary-foreground: 224 71% 4%;
+    --secondary: 210 40% 98%; /* Lighter secondary for better hierarchy */
+    --secondary-foreground: 222 84% 5%;
 
-    --muted: 220 13% 91%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 210 40% 96%; /* Softer muted background */
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 220 13% 91%;
-    --accent-foreground: 224 71% 4%;
+    --accent: 210 40% 98%;
+    --accent-foreground: 222 84% 5%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 244 81% 59%;
+    --border: 214 32% 91%; /* Softer borders */
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem; /* Slightly smaller radius for modern look */
 
     /* Chart colors for data visualization */
     --chart-1: 244 81% 59%;
