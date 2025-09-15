@@ -1,4 +1,3 @@
-
 export type UserRole = 'USER' | 'VENDOR' | 'COURIER' | 'ADMIN'
 
 export interface AccessControl {
