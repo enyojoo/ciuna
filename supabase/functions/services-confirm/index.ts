@@ -77,7 +77,7 @@ serve(async (req) => {
     }
 
     // Create or update order for this service booking
-    const { data: existingOrder, error: orderCheckError } = await supabase
+    const { data: existingOrder } = await supabase
       .from('orders')
       .select('id')
       .eq('service_booking_id', booking_id)

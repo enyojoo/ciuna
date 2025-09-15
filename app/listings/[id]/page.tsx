@@ -1,5 +1,3 @@
-'use client'
-
 import { notFound } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
@@ -79,13 +77,14 @@ const mockReviews = [
 ]
 
 interface ListingPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
-export default function ListingPage({ params }: ListingPageProps) {
-  const listingId = parseInt(params.id)
+export default async function ListingPage({ params }: ListingPageProps) {
+  const { id } = await params
+  const listingId = parseInt(id)
   
   // In real app, fetch from Supabase
   if (listingId !== 1) {

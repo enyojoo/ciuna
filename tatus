@@ -1,0 +1,5 @@
+[33m2945584[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m fix: resolve all build warnings and errors
+[33m8ad0d8d[m Fix Vercel deployment errors: resolve TypeScript and ESLint issues
+[33mc57580f[m feat: Complete role-based marketplace with responsive design
+[33m1d4614e[m Fix deployment errors: Remove next-intl translation system
+[33m53003df[m Remove all translation features for now

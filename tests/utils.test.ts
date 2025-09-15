@@ -13,13 +13,13 @@ import {
 describe('Utils', () => {
   describe('formatPrice', () => {
     it('should format price in rubles by default', () => {
-      expect(formatPrice(1000)).toBe('1 000 ₽')
-      expect(formatPrice(50000)).toBe('50 000 ₽')
+      expect(formatPrice(1000)).toBe('1\u00A0000\u00A0₽')
+      expect(formatPrice(50000)).toBe('50\u00A0000\u00A0₽')
     })
 
     it('should format price in different currencies', () => {
-      expect(formatPrice(100, 'USD')).toBe('$100')
-      expect(formatPrice(100, 'EUR')).toBe('100 €')
+      expect(formatPrice(100, 'USD')).toBe('100\u00A0$')
+      expect(formatPrice(100, 'EUR')).toBe('100\u00A0€')
     })
   })
 
