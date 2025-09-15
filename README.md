@@ -35,35 +35,35 @@ A production-ready Next.js 14 marketplace platform for expats living in Eastern 
 
 ### 1. Clone and Install
 
-```bash
+\`\`\`bash
 git clone <repository-url>
 cd ciuna
 npm install
-```
+\`\`\`
 
 ### 2. Environment Setup
 
 Copy the environment template:
 
-```bash
+\`\`\`bash
 cp env.example .env.local
-```
+\`\`\`
 
 Fill in your Supabase credentials:
 
-```env
+\`\`\`env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 INTERNAL_SIGNING_SECRET=your_long_random_string_here
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-```
+\`\`\`
 
 ### 3. Database Setup
 
 Run the database migrations:
 
-```bash
+\`\`\`bash
 # If using Supabase CLI
 supabase db reset
 
@@ -71,21 +71,21 @@ supabase db reset
 # 1. supabase/migrations/001_initial_schema.sql
 # 2. supabase/migrations/002_rls_policies.sql
 # 3. supabase/migrations/003_storage_policies.sql
-```
+\`\`\`
 
 Seed the database with sample data:
 
-```bash
+\`\`\`bash
 # If using Supabase CLI
 supabase db seed
 
 # Or manually run:
 # supabase/seed/001_initial_data.sql
-```
+\`\`\`
 
 ### 4. Deploy Edge Functions
 
-```bash
+\`\`\`bash
 # Deploy all Edge Functions
 supabase functions deploy payments-authorize
 supabase functions deploy payments-capture
@@ -93,19 +93,19 @@ supabase functions deploy payments-refund
 supabase functions deploy shipping-quote
 supabase functions deploy groupbuy-close
 supabase functions deploy services-confirm
-```
+\`\`\`
 
 ### 5. Start Development Server
 
-```bash
+\`\`\`bash
 npm run dev
-```
+\`\`\`
 
 Visit [http://localhost:3000](http://localhost:3000) to see the application.
 
 ## 📁 Project Structure
 
-```
+\`\`\`
 ciuna/
 ├── app/                    # Next.js App Router pages
 │   ├── auth/              # Authentication pages
@@ -136,7 +136,7 @@ ciuna/
 ├── tests/
 │   └── e2e/             # Playwright E2E tests
 └── public/              # Static assets
-```
+\`\`\`
 
 ## 🗄 Database Schema
 
@@ -222,9 +222,9 @@ Language switching is available in the navigation header.
 
 ### E2E Tests (Playwright)
 
-```bash
+\`\`\`bash
 npm run e2e
-```
+\`\`\`
 
 Key test scenarios:
 - User registration and authentication
@@ -236,9 +236,9 @@ Key test scenarios:
 
 ### Unit Tests (Vitest)
 
-```bash
+\`\`\`bash
 npm run test
-```
+\`\`\`
 
 Tests cover:
 - Utility functions
@@ -257,13 +257,13 @@ Tests cover:
 
 ### Environment Variables for Production
 
-```env
+\`\`\`env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 INTERNAL_SIGNING_SECRET=your_production_secret
 NEXT_PUBLIC_SITE_URL=https://your-domain.vercel.app
-```
+\`\`\`
 
 ### Supabase Configuration
 
@@ -290,7 +290,7 @@ NEXT_PUBLIC_SITE_URL=https://your-domain.vercel.app
 
 ## 🔧 Development Scripts
 
-```bash
+\`\`\`bash
 # Development
 npm run dev          # Start development server
 npm run build        # Build for production
@@ -307,7 +307,7 @@ npm run e2e          # Run E2E tests
 # Database
 npm run db:reset     # Reset database (Supabase CLI)
 npm run db:seed      # Seed database (Supabase CLI)
-```
+\`\`\`
 
 ## 🤝 Contributing
 

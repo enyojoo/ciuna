@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     title: 'Ciuna - Expat Marketplace in Russia',
     description: 'The marketplace for foreigners living in Russia',
   },
+    generator: 'v0.app'
 }
 
 export default function RootLayout({
