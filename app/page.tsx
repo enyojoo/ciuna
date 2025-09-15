@@ -20,22 +20,9 @@ import {
   Filter,
   Grid3X3,
   List,
-  Smartphone,
-  Sofa,
-  Shirt,
-  BookOpen,
-  Gamepad2,
-  Car,
-  Home,
-  Baby,
-  Music,
-  Camera,
-  Laptop,
-  Headphones
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { CategoryCard } from '@/components/category-card'
 
 export default function HomePage() {
 
@@ -111,128 +98,6 @@ export default function HomePage() {
     }
   ]
 
-  const categories = [
-    { 
-      id: 1,
-      name: "Electronics", 
-      slug: "electronics",
-      icon: Smartphone, 
-      listingCount: 1247, 
-      productCount: 89,
-      color: "#3b82f6",
-      description: "Phones, laptops, gadgets and more"
-    },
-    { 
-      id: 2,
-      name: "Furniture", 
-      slug: "furniture",
-      icon: Sofa, 
-      listingCount: 892, 
-      productCount: 156,
-      color: "#10b981",
-      description: "Home and office furniture"
-    },
-    { 
-      id: 3,
-      name: "Clothing", 
-      slug: "clothing",
-      icon: Shirt, 
-      listingCount: 2156, 
-      productCount: 234,
-      color: "#ec4899",
-      description: "Fashion for all seasons"
-    },
-    { 
-      id: 4,
-      name: "Books", 
-      slug: "books",
-      icon: BookOpen, 
-      listingCount: 543, 
-      productCount: 67,
-      color: "#f59e0b",
-      description: "Educational and leisure reading"
-    },
-    { 
-      id: 5,
-      name: "Sports", 
-      slug: "sports",
-      icon: Gamepad2, 
-      listingCount: 678, 
-      productCount: 45,
-      color: "#f97316",
-      description: "Fitness and outdoor equipment"
-    },
-    { 
-      id: 6,
-      name: "Automotive", 
-      slug: "automotive",
-      icon: Car, 
-      listingCount: 234, 
-      productCount: 23,
-      color: "#6b7280",
-      description: "Cars, parts and accessories"
-    },
-    { 
-      id: 7,
-      name: "Home & Garden", 
-      slug: "home-garden",
-      icon: Home, 
-      listingCount: 1456, 
-      productCount: 178,
-      color: "#8b5cf6",
-      description: "Everything for your home"
-    },
-    { 
-      id: 8,
-      name: "Baby & Kids", 
-      slug: "baby-kids",
-      icon: Baby, 
-      listingCount: 789, 
-      productCount: 123,
-      color: "#06b6d4",
-      description: "Items for children and families"
-    },
-    { 
-      id: 9,
-      name: "Music & Arts", 
-      slug: "music-arts",
-      icon: Music, 
-      listingCount: 456, 
-      productCount: 34,
-      color: "#ef4444",
-      description: "Instruments, art supplies and more"
-    },
-    { 
-      id: 10,
-      name: "Photography", 
-      slug: "photography",
-      icon: Camera, 
-      listingCount: 234, 
-      productCount: 56,
-      color: "#84cc16",
-      description: "Cameras, lenses and accessories"
-    },
-    { 
-      id: 11,
-      name: "Computers", 
-      slug: "computers",
-      icon: Laptop, 
-      listingCount: 567, 
-      productCount: 78,
-      color: "#6366f1",
-      description: "Laptops, desktops and components"
-    },
-    { 
-      id: 12,
-      name: "Audio", 
-      slug: "audio",
-      icon: Headphones, 
-      listingCount: 345, 
-      productCount: 45,
-      color: "#14b8a6",
-      description: "Headphones, speakers and audio gear"
-    }
-  ]
 
   // Featured services mock data
   const featuredServices = [
@@ -298,63 +163,8 @@ export default function HomePage() {
     }
   ]
 
-  // Featured vendors mock data
-  const featuredVendors = [
-    {
-      id: 1,
-      name: "Expat Electronics Store",
-      description: "Your one-stop shop for electronics and gadgets. We specialize in bringing international brands to Russia.",
-      logo: "🛍️",
-      type: "INTERNATIONAL",
-      verified: true,
-      rating: 4.8,
-      reviews: 128,
-      products: 45,
-      city: "Moscow",
-      country: "United States"
-    },
-    {
-      id: 2,
-      name: "Moscow Furniture Hub",
-      description: "Quality furniture for expats. From IKEA to custom pieces, we have everything for your home.",
-      logo: "🪑",
-      type: "LOCAL",
-      verified: true,
-      rating: 4.6,
-      reviews: 89,
-      products: 32,
-      city: "Moscow",
-      country: "Russia"
-    },
-    {
-      id: 3,
-      name: "International Books & Media",
-      description: "Books, magazines, and media in multiple languages. Perfect for expats missing home.",
-      logo: "📚",
-      type: "INTERNATIONAL",
-      verified: false,
-      rating: 4.9,
-      reviews: 203,
-      products: 156,
-      city: "St. Petersburg",
-      country: "United Kingdom"
-    },
-    {
-      id: 4,
-      name: "Fashion Forward",
-      description: "Trendy clothing and accessories for the modern expat. International styles, local prices.",
-      logo: "👗",
-      type: "INTERNATIONAL",
-      verified: true,
-      rating: 4.7,
-      reviews: 156,
-      products: 78,
-      city: "Moscow",
-      country: "France"
-    }
-  ]
 
-  // Vendor products mock data
+  // Vendor products mock data - matching listings count (6 items)
   const vendorProducts = [
     {
       id: 1,
@@ -693,57 +503,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Categories Section */}
-      <section className="py-16 bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
-              Shop by Category
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground text-balance">
-              Browse both used listings and new products from vendors in every category
-            </p>
-          </div>
-          
-          {/* Featured Categories */}
-          <div className="mb-12">
-            <h3 className="text-xl font-semibold mb-6 text-center">Popular Categories</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {categories.slice(0, 4).map((category) => (
-                <CategoryCard key={category.id} category={category} variant="featured" />
-              ))}
-            </div>
-          </div>
-
-          {/* All Categories Grid */}
-          <div className="mb-8">
-            <h3 className="text-xl font-semibold mb-6 text-center">All Categories</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-              {categories.map((category) => (
-                <CategoryCard key={category.id} category={category} variant="compact" />
-              ))}
-            </div>
-          </div>
-
-          {/* Category Stats */}
-          <div className="bg-background rounded-lg p-6 border">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-              <div>
-                <div className="text-2xl font-bold text-primary">12,000+</div>
-                <div className="text-sm text-muted-foreground">Total Listings</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-primary">1,200+</div>
-                <div className="text-sm text-muted-foreground">Vendor Products</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-primary">12</div>
-                <div className="text-sm text-muted-foreground">Categories</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Featured Services Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">
@@ -836,91 +595,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Vendors Section */}
-      <section className="py-16 bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-12">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
-                Featured Vendors
-              </h2>
-              <p className="mt-4 text-lg text-muted-foreground text-balance">
-                Trusted local and international vendors serving the expat community
-              </p>
-            </div>
-            <Button variant="outline" asChild>
-              <Link href="/vendors">
-                View All Vendors
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredVendors.map((vendor) => (
-              <Card key={vendor.id} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {/* Vendor Header */}
-                    <div className="flex items-start space-x-3">
-                      <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-2xl">
-                        {vendor.logo}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-lg line-clamp-2 mb-1">
-                          {vendor.name}
-                        </h3>
-                        <div className="flex items-center space-x-2">
-                          <Badge 
-                            variant={vendor.type === 'LOCAL' ? 'secondary' : 'default'} 
-                            className="text-xs"
-                          >
-                            {vendor.type === 'LOCAL' ? 'Local' : 'International'}
-                          </Badge>
-                          {vendor.verified && (
-                            <Shield className="h-3 w-3 text-green-500" />
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {vendor.description}
-                    </p>
-
-                    {/* Stats */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center space-x-1">
-                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                          <span className="font-medium">{vendor.rating}</span>
-                          <span className="text-muted-foreground">({vendor.reviews})</span>
-                        </div>
-                        <span className="text-muted-foreground">{vendor.products} products</span>
-                      </div>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <MapPin className="h-3 w-3 mr-1" />
-                        <span>{vendor.city}, {vendor.country}</span>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex space-x-2 pt-2">
-                      <Button size="sm" className="flex-1">
-                        View Store
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <MessageCircle className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-primary/10 via-background to-secondary/10">

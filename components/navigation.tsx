@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Menu, ShoppingCart, MessageCircle, User, LogOut, Home, Search, Store, FileText, Settings } from 'lucide-react'
+import { Menu, ShoppingCart, MessageCircle, User, LogOut, Home, Search, Store, FileText, Settings, Grid3X3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -44,6 +44,7 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
   const mainNavigation = navigation || [
     { name: 'Home', href: '/', icon: Home },
     { name: 'Listings', href: '/listings', icon: Search },
+    { name: 'Categories', href: '/categories', icon: Grid3X3 },
     { name: 'Services', href: '/services', icon: FileText },
     { name: 'Vendors', href: '/vendors', icon: Store },
   ]
