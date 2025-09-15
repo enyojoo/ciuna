@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { Search, Plus, Grid, List, Filter } from 'lucide-react'
+import { Search, Plus, Grid, List } from 'lucide-react'
 import Link from 'next/link'
 
 // Mock data - in real app, this would come from Supabase
@@ -254,171 +254,104 @@ export default function ListingsPage() {
       
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-            <div>
-              <h1 className="text-4xl font-bold tracking-tight">Browse Listings</h1>
-              <p className="text-muted-foreground mt-2 text-lg">
-                Discover amazing items from expats in your community
-              </p>
-            </div>
-            <Button asChild size="lg" className="mt-4 sm:mt-0">
-              <Link href="/sell/new">
-                <Plus className="h-4 w-4 mr-2" />
-                Sell Something
-              </Link>
-            </Button>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">Listings</h1>
+            <p className="text-muted-foreground mt-2">
+              Discover amazing items from expats in your community
+            </p>
           </div>
-          
-          {/* Quick Search Bar */}
-          <div className="max-w-2xl">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search for items, brands, or categories..."
-                className="pl-10 h-12 text-base"
-              />
-            </div>
-          </div>
+          <Button asChild className="mt-4 sm:mt-0">
+            <Link href="/sell/new">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Listing
+            </Link>
+          </Button>
         </div>
 
-        {/* Advanced Filters */}
-        <Card className="mb-8 shadow-sm">
+        {/* Filters */}
+        <Card className="mb-8">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold">Filters</h3>
-              <Button variant="ghost" size="sm">
-                <Filter className="h-4 w-4 mr-2" />
-                Advanced
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              {/* Category Filter */}
-              <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">Category</label>
-                <Select>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="All Categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.slug}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search for items..."
+                  className="pl-10"
+                />
               </div>
+
+              {/* Category Filter */}
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.slug}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               {/* Condition Filter */}
-              <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">Condition</label>
-                <Select>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="Any Condition" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="new">New</SelectItem>
-                    <SelectItem value="like_new">Like New</SelectItem>
-                    <SelectItem value="good">Good</SelectItem>
-                    <SelectItem value="fair">Fair</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Price Range */}
-              <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">Price Range</label>
-                <Select>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="Any Price" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="under_1000">Under 1,000₽</SelectItem>
-                    <SelectItem value="1000_5000">1,000₽ - 5,000₽</SelectItem>
-                    <SelectItem value="5000_10000">5,000₽ - 10,000₽</SelectItem>
-                    <SelectItem value="10000_50000">10,000₽ - 50,000₽</SelectItem>
-                    <SelectItem value="over_50000">Over 50,000₽</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Location */}
-              <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">Location</label>
-                <Select>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="Any Location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="moscow">Moscow</SelectItem>
-                    <SelectItem value="st-petersburg">St. Petersburg</SelectItem>
-                    <SelectItem value="other">Other Cities</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by condition" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="new">New</SelectItem>
+                  <SelectItem value="like_new">Like New</SelectItem>
+                  <SelectItem value="good">Good</SelectItem>
+                  <SelectItem value="fair">Fair</SelectItem>
+                </SelectContent>
+              </Select>
 
               {/* Sort */}
-              <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">Sort By</label>
-                <Select>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="Newest First" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Newest First</SelectItem>
-                    <SelectItem value="oldest">Oldest First</SelectItem>
-                    <SelectItem value="price_low">Price: Low to High</SelectItem>
-                    <SelectItem value="price_high">Price: High to Low</SelectItem>
-                    <SelectItem value="popular">Most Popular</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="oldest">Oldest</SelectItem>
+                  <SelectItem value="price_low">Price: Low to High</SelectItem>
+                  <SelectItem value="price_high">Price: High to Low</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Active Filters */}
-            <div className="flex flex-wrap gap-2 mt-6">
-              <span className="text-sm text-muted-foreground mr-2">Active filters:</span>
-              <Badge variant="secondary" className="cursor-pointer hover:bg-secondary/80">
+            <div className="flex flex-wrap gap-2 mt-4">
+              <Badge variant="secondary" className="cursor-pointer">
                 Electronics ×
               </Badge>
-              <Badge variant="secondary" className="cursor-pointer hover:bg-secondary/80">
+              <Badge variant="secondary" className="cursor-pointer">
                 Moscow ×
               </Badge>
-              <Badge variant="secondary" className="cursor-pointer hover:bg-secondary/80">
+              <Badge variant="secondary" className="cursor-pointer">
                 Under 50,000₽ ×
               </Badge>
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                Clear all
-              </Button>
             </div>
           </CardContent>
         </Card>
 
         {/* Results Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-          <div className="flex items-center space-x-6">
-            <div>
-              <h2 className="text-2xl font-bold">{mockListings.length} listings found</h2>
-              <p className="text-sm text-muted-foreground">in Moscow, Russia</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" className="h-8">
-                <Grid className="h-4 w-4 mr-1" />
-                Grid
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-muted-foreground">
+              {mockListings.length} listings found
+            </span>
+            <div className="flex items-center space-x-1">
+              <Button variant="outline" size="sm">
+                <Grid className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="sm" className="h-8">
-                <List className="h-4 w-4 mr-1" />
-                List
+              <Button variant="outline" size="sm">
+                <List className="h-4 w-4" />
               </Button>
             </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              More Filters
-            </Button>
           </div>
         </div>
 

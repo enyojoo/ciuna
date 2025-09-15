@@ -110,9 +110,9 @@ export default function VendorsPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold tracking-tight">Vendors & Stores</h1>
-          <p className="text-muted-foreground mt-2 text-lg">
-            Discover trusted vendors and stores in your community
+          <h1 className="text-3xl font-bold">Vendors</h1>
+          <p className="text-muted-foreground mt-2">
+            Discover trusted vendors in your community
           </p>
         </div>
 
@@ -172,88 +172,69 @@ export default function VendorsPage() {
         </Card>
 
         {/* Featured Vendors */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-3xl font-bold">Featured Stores</h2>
-            <Button variant="outline">
-              View All Featured
-            </Button>
-          </div>
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-4">Featured Vendors</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {mockVendors.slice(0, 3).map((vendor) => (
-              <Card key={vendor.id} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-                <div className="relative">
-                  {/* Store Header */}
-                  <div className="h-24 bg-gradient-to-r from-primary/10 to-secondary/10 flex items-center justify-center">
+              <Card key={vendor.id} className="group hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
-                      <Avatar className="h-16 w-16 border-4 border-white shadow-lg">
+                      <Avatar className="h-12 w-12">
                         <AvatarImage src={vendor.logo_url} />
-                        <AvatarFallback className="bg-primary text-white">
-                          <Store className="h-8 w-8" />
+                        <AvatarFallback>
+                          <Store className="h-6 w-6" />
                         </AvatarFallback>
                       </Avatar>
+                      <div>
+                        <CardTitle className="text-lg">{vendor.name}</CardTitle>
+                        <div className="flex items-center space-x-2 mt-1">
+                          {vendor.verified && (
+                            <Badge variant="outline" className="text-xs">
+                              <Shield className="h-3 w-3 mr-1" />
+                              Verified
+                            </Badge>
+                          )}
+                          <Badge variant={vendor.type === 'LOCAL' ? 'secondary' : 'default'} className="text-xs">
+                            {vendor.type === 'LOCAL' ? 'Local' : 'International'}
+                          </Badge>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                    {vendor.description}
+                  </p>
                   
-                  {/* Store Info */}
-                  <CardContent className="p-6">
-                    <div className="text-center mb-4">
-                      <CardTitle className="text-xl mb-2">{vendor.name}</CardTitle>
-                      <div className="flex items-center justify-center space-x-2 mb-3">
-                        {vendor.verified && (
-                          <Badge variant="outline" className="text-xs">
-                            <Shield className="h-3 w-3 mr-1" />
-                            Verified
-                          </Badge>
-                        )}
-                        <Badge variant={vendor.type === 'LOCAL' ? 'secondary' : 'default'} className="text-xs">
-                          {vendor.type === 'LOCAL' ? 'Local' : 'International'}
-                        </Badge>
-                      </div>
-                      <p className="text-muted-foreground text-sm line-clamp-2">
-                        {vendor.description}
-                      </p>
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      <span>{vendor.city}, {vendor.country}</span>
                     </div>
-                    
-                    <div className="space-y-3 mb-6">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center text-muted-foreground">
-                          <MapPin className="h-4 w-4 mr-2" />
-                          <span>{vendor.city}</span>
-                        </div>
-                        <div className="flex items-center text-muted-foreground">
-                          <Package className="h-4 w-4 mr-2" />
-                          <span>{vendor.product_count} items</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-center">
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < Math.floor(vendor.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <span className="ml-2 text-sm font-medium">{vendor.rating}</span>
-                        <span className="text-muted-foreground ml-1 text-sm">({vendor.review_count})</span>
-                      </div>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Package className="h-4 w-4 mr-2" />
+                      <span>{vendor.product_count} products</span>
                     </div>
+                    <div className="flex items-center text-sm">
+                      <Star className="h-4 w-4 mr-1 text-yellow-400 fill-current" />
+                      <span className="font-medium">{vendor.rating}</span>
+                      <span className="text-muted-foreground ml-1">({vendor.review_count} reviews)</span>
+                    </div>
+                  </div>
 
-                    <div className="flex space-x-2">
-                      <Button asChild className="flex-1">
-                        <Link href={`/vendors/${vendor.id}`}>
-                          Visit Store
-                        </Link>
-                      </Button>
-                      <Button variant="outline" size="icon">
-                        <MessageCircle className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </div>
+                  <div className="flex space-x-2">
+                    <Button asChild className="flex-1">
+                      <Link href={`/vendors/${vendor.id}`}>
+                        View Store
+                      </Link>
+                    </Button>
+                    <Button variant="outline" size="icon">
+                      <MessageCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
               </Card>
             ))}
           </div>
