@@ -62,12 +62,12 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
       <div className="container flex h-16 items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2">
-          <div className="h-8 w-8 rounded bg-primary" />
-          <span className="text-xl font-bold">Ciuna</span>
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-sm" />
+          <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">Ciuna</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -179,8 +179,8 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
               <div className="flex flex-col space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <div className="h-6 w-6 rounded bg-primary" />
-                    <span className="text-lg font-bold">Ciuna</span>
+                    <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-sm" />
+                    <span className="text-lg font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">Ciuna</span>
                   </div>
                   <Button
                     variant="ghost"

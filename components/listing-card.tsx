@@ -19,7 +19,7 @@ interface ListingCardProps {
 export function ListingCard({ listing, onFavorite, isFavorite }: ListingCardProps) {
 
   return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-shadow">
+    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
       <div className="relative aspect-square overflow-hidden">
         {listing.photo_urls && listing.photo_urls.length > 0 ? (
           <Image
