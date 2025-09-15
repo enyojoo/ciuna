@@ -1,5 +1,4 @@
 'use client'
-import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -20,10 +19,23 @@ import {
   Wrench,
   Filter,
   Grid3X3,
-  List
+  List,
+  Smartphone,
+  Sofa,
+  Shirt,
+  BookOpen,
+  Gamepad2,
+  Car,
+  Home,
+  Baby,
+  Music,
+  Camera,
+  Laptop,
+  Headphones
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { CategoryCard } from '@/components/category-card'
 
 export default function HomePage() {
 
@@ -100,12 +112,126 @@ export default function HomePage() {
   ]
 
   const categories = [
-    { name: "Electronics", icon: "📱", count: 1247, color: "bg-blue-100 text-blue-600" },
-    { name: "Furniture", icon: "🪑", count: 892, color: "bg-green-100 text-green-600" },
-    { name: "Clothing", icon: "👕", count: 2156, color: "bg-pink-100 text-pink-600" },
-    { name: "Books", icon: "📚", count: 543, color: "bg-yellow-100 text-yellow-600" },
-    { name: "Sports", icon: "⚽", count: 678, color: "bg-orange-100 text-orange-600" },
-    { name: "Automotive", icon: "🚗", count: 234, color: "bg-gray-100 text-gray-600" }
+    { 
+      id: 1,
+      name: "Electronics", 
+      slug: "electronics",
+      icon: Smartphone, 
+      listingCount: 1247, 
+      productCount: 89,
+      color: "#3b82f6",
+      description: "Phones, laptops, gadgets and more"
+    },
+    { 
+      id: 2,
+      name: "Furniture", 
+      slug: "furniture",
+      icon: Sofa, 
+      listingCount: 892, 
+      productCount: 156,
+      color: "#10b981",
+      description: "Home and office furniture"
+    },
+    { 
+      id: 3,
+      name: "Clothing", 
+      slug: "clothing",
+      icon: Shirt, 
+      listingCount: 2156, 
+      productCount: 234,
+      color: "#ec4899",
+      description: "Fashion for all seasons"
+    },
+    { 
+      id: 4,
+      name: "Books", 
+      slug: "books",
+      icon: BookOpen, 
+      listingCount: 543, 
+      productCount: 67,
+      color: "#f59e0b",
+      description: "Educational and leisure reading"
+    },
+    { 
+      id: 5,
+      name: "Sports", 
+      slug: "sports",
+      icon: Gamepad2, 
+      listingCount: 678, 
+      productCount: 45,
+      color: "#f97316",
+      description: "Fitness and outdoor equipment"
+    },
+    { 
+      id: 6,
+      name: "Automotive", 
+      slug: "automotive",
+      icon: Car, 
+      listingCount: 234, 
+      productCount: 23,
+      color: "#6b7280",
+      description: "Cars, parts and accessories"
+    },
+    { 
+      id: 7,
+      name: "Home & Garden", 
+      slug: "home-garden",
+      icon: Home, 
+      listingCount: 1456, 
+      productCount: 178,
+      color: "#8b5cf6",
+      description: "Everything for your home"
+    },
+    { 
+      id: 8,
+      name: "Baby & Kids", 
+      slug: "baby-kids",
+      icon: Baby, 
+      listingCount: 789, 
+      productCount: 123,
+      color: "#06b6d4",
+      description: "Items for children and families"
+    },
+    { 
+      id: 9,
+      name: "Music & Arts", 
+      slug: "music-arts",
+      icon: Music, 
+      listingCount: 456, 
+      productCount: 34,
+      color: "#ef4444",
+      description: "Instruments, art supplies and more"
+    },
+    { 
+      id: 10,
+      name: "Photography", 
+      slug: "photography",
+      icon: Camera, 
+      listingCount: 234, 
+      productCount: 56,
+      color: "#84cc16",
+      description: "Cameras, lenses and accessories"
+    },
+    { 
+      id: 11,
+      name: "Computers", 
+      slug: "computers",
+      icon: Laptop, 
+      listingCount: 567, 
+      productCount: 78,
+      color: "#6366f1",
+      description: "Laptops, desktops and components"
+    },
+    { 
+      id: 12,
+      name: "Audio", 
+      slug: "audio",
+      icon: Headphones, 
+      listingCount: 345, 
+      productCount: 45,
+      color: "#14b8a6",
+      description: "Headphones, speakers and audio gear"
+    }
   ]
 
   // Featured services mock data
@@ -337,7 +463,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
       
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary/5 via-background to-secondary/5 py-16 px-4 sm:px-6 lg:px-8">
@@ -573,25 +698,49 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
-              Browse by Category
+              Shop by Category
             </h2>
             <p className="mt-4 text-lg text-muted-foreground text-balance">
-              Discover items in your favorite categories
+              Browse both used listings and new products from vendors in every category
             </p>
           </div>
           
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-            {categories.map((category) => (
-              <Card key={category.name} className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
-                <CardContent className="p-6 text-center">
-                  <div className={`w-16 h-16 rounded-full ${category.color} flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}>
-                    <span className="text-2xl">{category.icon}</span>
-                  </div>
-                  <div className="font-semibold text-lg mb-1">{category.name}</div>
-                  <div className="text-sm text-muted-foreground">{category.count} items</div>
-                </CardContent>
-              </Card>
-            ))}
+          {/* Featured Categories */}
+          <div className="mb-12">
+            <h3 className="text-xl font-semibold mb-6 text-center">Popular Categories</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {categories.slice(0, 4).map((category) => (
+                <CategoryCard key={category.id} category={category} variant="featured" />
+              ))}
+            </div>
+          </div>
+
+          {/* All Categories Grid */}
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold mb-6 text-center">All Categories</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {categories.map((category) => (
+                <CategoryCard key={category.id} category={category} variant="compact" />
+              ))}
+            </div>
+          </div>
+
+          {/* Category Stats */}
+          <div className="bg-background rounded-lg p-6 border">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+              <div>
+                <div className="text-2xl font-bold text-primary">12,000+</div>
+                <div className="text-sm text-muted-foreground">Total Listings</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-primary">1,200+</div>
+                <div className="text-sm text-muted-foreground">Vendor Products</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-primary">12</div>
+                <div className="text-sm text-muted-foreground">Categories</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -803,64 +952,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-muted/50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-sm" />
-                <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">Ciuna</span>
-              </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                The trusted marketplace for expats living in Russia. Buy, sell, and connect with your community.
-              </p>
-              <div className="flex space-x-2">
-                {['EN', 'RU', 'FR', 'ZH', 'AR', 'ES'].map((lang) => (
-                  <Badge key={lang} variant="secondary" className="text-xs">
-                    {lang}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Marketplace</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/listings" className="hover:text-foreground transition-colors">Browse Listings</Link></li>
-                <li><Link href="/sell/new" className="hover:text-foreground transition-colors">Sell Items</Link></li>
-                <li><Link href="/vendors" className="hover:text-foreground transition-colors">Vendors</Link></li>
-                <li><Link href="/services" className="hover:text-foreground transition-colors">Services</Link></li>
-                <li><Link href="/categories" className="hover:text-foreground transition-colors">Categories</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Community</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/about" className="hover:text-foreground transition-colors">About Us</Link></li>
-                <li><Link href="/safety" className="hover:text-foreground transition-colors">Safety Guidelines</Link></li>
-                <li><Link href="/help" className="hover:text-foreground transition-colors">Help Center</Link></li>
-                <li><Link href="/contact" className="hover:text-foreground transition-colors">Contact Us</Link></li>
-                <li><Link href="/blog" className="hover:text-foreground transition-colors">Expat Blog</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Legal</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link></li>
-                <li><Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/cookies" className="hover:text-foreground transition-colors">Cookie Policy</Link></li>
-                <li><Link href="/refund" className="hover:text-foreground transition-colors">Refund Policy</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm text-muted-foreground">&copy; 2024 Ciuna. All rights reserved.</p>
-            <div className="flex items-center space-x-4 mt-4 md:mt-0">
-              <span className="text-sm text-muted-foreground">Made with ❤️ for the expat community</span>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }
