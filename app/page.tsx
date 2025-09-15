@@ -108,6 +108,126 @@ export default function HomePage() {
     { name: "Automotive", icon: "🚗", count: 234, color: "bg-gray-100 text-gray-600" }
   ]
 
+  // Featured services mock data
+  const featuredServices = [
+    {
+      id: 1,
+      title: "Immigration Consultation",
+      description: "Professional help with visa extensions, work permits, and residency issues.",
+      category: "LEGAL",
+      price: 5000,
+      duration: "60 min",
+      provider: {
+        name: "Sarah Wilson Legal Services",
+        verified: true,
+        rating: 4.9,
+        reviews: 47,
+        city: "Moscow"
+      }
+    },
+    {
+      id: 2,
+      title: "Russian Language Tutoring",
+      description: "One-on-one Russian language lessons tailored for expats. All levels welcome.",
+      category: "PERSONAL",
+      price: 2500,
+      duration: "60 min",
+      provider: {
+        name: "Elena Petrov Language School",
+        verified: true,
+        rating: 4.8,
+        reviews: 89,
+        city: "St. Petersburg"
+      }
+    },
+    {
+      id: 3,
+      title: "Financial Planning Session",
+      description: "Personal financial planning for expats in Russia. Help with banking and investments.",
+      category: "FINANCIAL",
+      price: 4000,
+      duration: "90 min",
+      provider: {
+        name: "Michael Brown Financial Consulting",
+        verified: true,
+        rating: 4.7,
+        reviews: 32,
+        city: "Moscow"
+      }
+    },
+    {
+      id: 4,
+      title: "Event Planning & Coordination",
+      description: "Full-service event planning for expat community events and parties.",
+      category: "EVENT",
+      price: 15000,
+      duration: "120 min",
+      provider: {
+        name: "Expat Events Moscow",
+        verified: true,
+        rating: 4.6,
+        reviews: 23,
+        city: "Moscow"
+      }
+    }
+  ]
+
+  // Featured vendors mock data
+  const featuredVendors = [
+    {
+      id: 1,
+      name: "Expat Electronics Store",
+      description: "Your one-stop shop for electronics and gadgets. We specialize in bringing international brands to Russia.",
+      logo: "🛍️",
+      type: "INTERNATIONAL",
+      verified: true,
+      rating: 4.8,
+      reviews: 128,
+      products: 45,
+      city: "Moscow",
+      country: "United States"
+    },
+    {
+      id: 2,
+      name: "Moscow Furniture Hub",
+      description: "Quality furniture for expats. From IKEA to custom pieces, we have everything for your home.",
+      logo: "🪑",
+      type: "LOCAL",
+      verified: true,
+      rating: 4.6,
+      reviews: 89,
+      products: 32,
+      city: "Moscow",
+      country: "Russia"
+    },
+    {
+      id: 3,
+      name: "International Books & Media",
+      description: "Books, magazines, and media in multiple languages. Perfect for expats missing home.",
+      logo: "📚",
+      type: "INTERNATIONAL",
+      verified: false,
+      rating: 4.9,
+      reviews: 203,
+      products: 156,
+      city: "St. Petersburg",
+      country: "United Kingdom"
+    },
+    {
+      id: 4,
+      name: "Fashion Forward",
+      description: "Trendy clothing and accessories for the modern expat. International styles, local prices.",
+      logo: "👗",
+      type: "INTERNATIONAL",
+      verified: true,
+      rating: 4.7,
+      reviews: 156,
+      products: 78,
+      city: "Moscow",
+      country: "France"
+    }
+  ]
+
   const stats = [
     { label: 'Active Expats', value: '12,500+', icon: Users },
     { label: 'Live Listings', value: '8,900+', icon: ShoppingBag },
@@ -267,78 +387,179 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Services Section */}
+      {/* Featured Services Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
-              Professional Services
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground text-balance">
-              Find trusted professionals in your expat community
-            </p>
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
+                Featured Services
+              </h2>
+              <p className="mt-4 text-lg text-muted-foreground text-balance">
+                Professional services from trusted providers in your expat community
+              </p>
+            </div>
+            <Button variant="outline" asChild>
+              <Link href="/services">
+                View All Services
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <Wrench className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg">Legal Services</h3>
-                    <p className="text-sm text-muted-foreground">Immigration, visas, legal advice</p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">From 5,000₽</span>
-                  <Button size="sm" variant="outline">
-                    Browse Services
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredServices.map((service) => (
+              <Card key={service.id} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {/* Service Header */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg line-clamp-2 mb-2">
+                          {service.title}
+                        </h3>
+                        <Badge variant="outline" className="text-xs">
+                          {service.category}
+                        </Badge>
+                      </div>
+                      {service.provider.verified && (
+                        <Shield className="h-5 w-5 text-green-500 flex-shrink-0" />
+                      )}
+                    </div>
 
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
-                    <Users className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg">Language Learning</h3>
-                    <p className="text-sm text-muted-foreground">Russian lessons, tutoring</p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">From 2,500₽</span>
-                  <Button size="sm" variant="outline">
-                    Browse Services
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                    {/* Description */}
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {service.description}
+                    </p>
 
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
-                    <MessageCircle className="h-6 w-6 text-purple-600" />
+                    {/* Provider Info */}
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-sm font-medium text-primary">
+                            {service.provider.name.split(' ').map(n => n[0]).join('')}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{service.provider.name}</p>
+                          <div className="flex items-center space-x-1">
+                            <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                            <span className="text-xs text-muted-foreground">
+                              {service.provider.rating} ({service.provider.reviews})
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        <span>{service.provider.city}</span>
+                      </div>
+                    </div>
+
+                    {/* Price and Duration */}
+                    <div className="flex items-center justify-between pt-2 border-t">
+                      <div>
+                        <div className="text-xl font-bold text-primary">
+                          {service.price.toLocaleString()}₽
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {service.duration}
+                        </div>
+                      </div>
+                      <Button size="sm" className="h-8">
+                        Book Now
+                      </Button>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-lg">Event Planning</h3>
-                    <p className="text-sm text-muted-foreground">Parties, gatherings, events</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Vendors Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
+                Featured Vendors
+              </h2>
+              <p className="mt-4 text-lg text-muted-foreground text-balance">
+                Trusted local and international vendors serving the expat community
+              </p>
+            </div>
+            <Button variant="outline" asChild>
+              <Link href="/vendors">
+                View All Vendors
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredVendors.map((vendor) => (
+              <Card key={vendor.id} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {/* Vendor Header */}
+                    <div className="flex items-start space-x-3">
+                      <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-2xl">
+                        {vendor.logo}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-lg line-clamp-2 mb-1">
+                          {vendor.name}
+                        </h3>
+                        <div className="flex items-center space-x-2">
+                          <Badge 
+                            variant={vendor.type === 'LOCAL' ? 'secondary' : 'default'} 
+                            className="text-xs"
+                          >
+                            {vendor.type === 'LOCAL' ? 'Local' : 'International'}
+                          </Badge>
+                          {vendor.verified && (
+                            <Shield className="h-3 w-3 text-green-500" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {vendor.description}
+                    </p>
+
+                    {/* Stats */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center space-x-1">
+                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                          <span className="font-medium">{vendor.rating}</span>
+                          <span className="text-muted-foreground">({vendor.reviews})</span>
+                        </div>
+                        <span className="text-muted-foreground">{vendor.products} products</span>
+                      </div>
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        <span>{vendor.city}, {vendor.country}</span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex space-x-2 pt-2">
+                      <Button size="sm" className="flex-1">
+                        View Store
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <MessageCircle className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">From 15,000₽</span>
-                  <Button size="sm" variant="outline">
-                    Browse Services
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
