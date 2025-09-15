@@ -29,7 +29,7 @@ export function ResponsiveGrid({
     xl: 'gap-8'
   }
 
-  const colClasses = {
+  const colClasses: Record<number, string> = {
     1: 'grid-cols-1',
     2: 'grid-cols-2',
     3: 'grid-cols-3',
@@ -38,12 +38,16 @@ export function ResponsiveGrid({
     6: 'grid-cols-6'
   }
 
+  const getColClass = (col: number | undefined, fallback: number = 1): string => {
+    return colClasses[col || fallback] || colClasses[fallback]
+  }
+
   const responsiveClasses = [
-    colClasses[cols.default || 1],
-    cols.sm && `sm:${colClasses[cols.sm]}`,
-    cols.md && `md:${colClasses[cols.md]}`,
-    cols.lg && `lg:${colClasses[cols.lg]}`,
-    cols.xl && `xl:${colClasses[cols.xl]}`
+    getColClass(cols.default, 1),
+    cols.sm && `sm:${getColClass(cols.sm)}`,
+    cols.md && `md:${getColClass(cols.md)}`,
+    cols.lg && `lg:${getColClass(cols.lg)}`,
+    cols.xl && `xl:${getColClass(cols.xl)}`
   ].filter(Boolean).join(' ')
 
   return (

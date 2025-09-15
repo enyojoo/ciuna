@@ -80,7 +80,7 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
               >
                 <Icon className="h-4 w-4" />
                 {item.name}
-                {item.badge && (
+                {'badge' in item && item.badge && (
                   <Badge variant="secondary" className="text-xs">
                     {item.badge}
                   </Badge>
@@ -136,7 +136,7 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
                       <Link href={item.href} className="flex items-center">
                         <Icon className="mr-2 h-4 w-4" />
                         {item.name}
-                        {item.badge && (
+                        {'badge' in item && item.badge && (
                           <Badge variant="secondary" className="ml-auto text-xs">
                             {item.badge}
                           </Badge>
@@ -205,7 +205,7 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
                       >
                         <Icon className="h-4 w-4" />
                         {item.name}
-                        {item.badge && (
+                        {'badge' in item && item.badge && (
                           <Badge variant="secondary" className="text-xs">
                             {item.badge}
                           </Badge>
@@ -240,7 +240,7 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
                         >
                           <Icon className="h-4 w-4" />
                           {item.name}
-                          {item.badge && (
+                          {'badge' in item && item.badge && (
                             <Badge variant="secondary" className="text-xs">
                               {item.badge}
                             </Badge>

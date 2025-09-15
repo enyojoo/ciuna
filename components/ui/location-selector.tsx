@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { useLocation, useFeatureAccess } from '@/lib/contexts/location-context'
 import { getLocationDisplay } from '@/lib/location'
-import { UserLocation, SupportedCurrency } from '@/lib/currency'
+import { SupportedCurrency } from '@/lib/currency'
+import { UserLocation } from '@/lib/location'
 import { MapPin, DollarSign, CheckCircle, XCircle } from 'lucide-react'
 
 interface LocationSelectorProps {

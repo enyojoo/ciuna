@@ -1,4 +1,3 @@
-import { UserLocation } from '@/lib/currency'
 
 export type UserRole = 'USER' | 'VENDOR' | 'COURIER' | 'ADMIN'
 
@@ -21,7 +20,7 @@ export interface AccessControl {
   canManageSettings?: boolean
 }
 
-export const getRoleFeatures = (role: UserRole, _location: UserLocation): AccessControl => {
+export const getRoleFeatures = (role: UserRole): AccessControl => {
   const baseFeatures = {
     canBuy: true,
     canMessage: true,
@@ -125,8 +124,8 @@ export const canAccessRoute = (userRole: UserRole, route: string): boolean => {
   return allowedRoutes.some(prefix => route.startsWith(prefix))
 }
 
-export const canAccessFeature = (userRole: UserRole, feature: keyof AccessControl, location: UserLocation): boolean => {
-  const features = getRoleFeatures(userRole, location)
+export const canAccessFeature = (userRole: UserRole, feature: keyof AccessControl): boolean => {
+  const features = getRoleFeatures(userRole)
   return features[feature] || false
 }
 

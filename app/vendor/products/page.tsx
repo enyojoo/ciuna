@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { RoleLayout } from '@/components/layouts/role-layout'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -196,10 +197,11 @@ export default function VendorProducts() {
             return (
               <Card key={product.id} className="overflow-hidden">
                 <div className="aspect-square bg-muted relative">
-                  <img
+                  <Image
                     src={product.image}
                     alt={product.name}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
                   />
                   <div className="absolute top-2 right-2">
                     <Badge variant={getStatusColor(product.status)}>

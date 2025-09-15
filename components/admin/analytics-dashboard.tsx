@@ -14,7 +14,6 @@ import {
   CreditCard,
   Package
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/currency'
 
 interface AnalyticsData {

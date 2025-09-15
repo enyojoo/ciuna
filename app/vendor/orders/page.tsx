@@ -19,7 +19,7 @@ import {
   Printer
 } from 'lucide-react'
 import { UserRole } from '@/lib/auth/access-control'
-import { formatCurrency } from '@/lib/currency'
+import { formatCurrency, SupportedCurrency } from '@/lib/currency'
 import { useState } from 'react'
 
 export default function VendorOrders() {
@@ -41,7 +41,7 @@ export default function VendorOrders() {
         { name: 'Wireless Mouse', quantity: 1, price: 2000 }
       ],
       total: 47000,
-      currency: 'RUB',
+      currency: 'RUB' as SupportedCurrency,
       status: 'processing',
       paymentStatus: 'paid',
       shippingAddress: 'Arbat Street 15, Moscow, Russia',
@@ -61,7 +61,7 @@ export default function VendorOrders() {
         { name: 'iPhone 15 Pro', quantity: 1, price: 35000 }
       ],
       total: 35000,
-      currency: 'RUB',
+      currency: 'RUB' as SupportedCurrency,
       status: 'shipped',
       paymentStatus: 'paid',
       shippingAddress: 'Tverskaya Street 25, Moscow, Russia',
@@ -82,7 +82,7 @@ export default function VendorOrders() {
         { name: 'Gaming Desk', quantity: 1, price: 12000 }
       ],
       total: 20000,
-      currency: 'RUB',
+      currency: 'RUB' as SupportedCurrency,
       status: 'delivered',
       paymentStatus: 'paid',
       shippingAddress: 'Red Square 1, Moscow, Russia',
@@ -102,7 +102,7 @@ export default function VendorOrders() {
         { name: 'Wireless Headphones', quantity: 2, price: 5000 }
       ],
       total: 10000,
-      currency: 'RUB',
+      currency: 'RUB' as SupportedCurrency,
       status: 'cancelled',
       paymentStatus: 'refunded',
       shippingAddress: 'Nevsky Prospect 50, St. Petersburg, Russia',

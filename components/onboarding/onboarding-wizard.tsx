@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -23,17 +22,10 @@ import { getOnboardingSteps, getOnboardingProgress } from '@/lib/onboarding/role
 
 interface OnboardingWizardProps {
   role: UserRole
-  user: {
-    id: string
-    first_name?: string
-    last_name?: string
-    email?: string
-    location?: string
-  }
   onComplete: () => void
 }
 
-export function OnboardingWizard({ role, user, onComplete }: OnboardingWizardProps) {
+export function OnboardingWizard({ role, onComplete }: OnboardingWizardProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [completedSteps, setCompletedSteps] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -124,31 +116,31 @@ export function OnboardingWizard({ role, user, onComplete }: OnboardingWizardPro
             {/* Step Content */}
             <div className="space-y-6">
               {currentStepData.id === 'profile' && (
-                <ProfileStep user={user} />
+                <ProfileStep />
               )}
               {currentStepData.id === 'location' && (
-                <LocationStep user={user} />
+                <LocationStep />
               )}
               {currentStepData.id === 'preferences' && (
-                <PreferencesStep user={user} />
+                <PreferencesStep />
               )}
               {currentStepData.id === 'store' && (
-                <StoreStep user={user} />
+                <StoreStep />
               )}
               {currentStepData.id === 'verification' && (
-                <VerificationStep user={user} />
+                <VerificationStep />
               )}
               {currentStepData.id === 'payment' && (
-                <PaymentStep user={user} />
+                <PaymentStep />
               )}
               {currentStepData.id === 'documents' && (
-                <DocumentsStep user={user} />
+                <DocumentsStep />
               )}
               {currentStepData.id === 'availability' && (
-                <AvailabilityStep user={user} />
+                <AvailabilityStep />
               )}
               {currentStepData.id === 'permissions' && (
-                <PermissionsStep user={user} />
+                <PermissionsStep />
               )}
             </div>
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,8 +22,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { currencyService } from '@/lib/currency'
-import { SupportedCurrency } from '@/lib/currency'
+import { currencyService, SupportedCurrency, CURRENCY_SYMBOLS } from '@/lib/currency'
 import { FeatureAccessRule, ShippingProvider, PaymentMethod, CurrencyExchangeRate } from '@/lib/types'
 
 interface GlobalSettingsProps {
@@ -64,11 +63,47 @@ export function GlobalSettings({ className = '' }: GlobalSettingsProps) {
 
   const supabase = createClient()
 
-  useEffect(() => {
-    loadAllData()
-  }, [loadAllData])
+  const loadExchangeRates = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('currency_exchange_rates')
+      .select('*')
+      .order('from_currency', { ascending: true })
 
-  const loadAllData = async () => {
+    if (error) throw error
+    setExchangeRates(data || [])
+  }, [supabase])
+
+  const loadFeatureRules = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('feature_access_rules')
+      .select('*')
+      .order('location', { ascending: true })
+
+    if (error) throw error
+    setFeatureRules(data || [])
+  }, [supabase])
+
+  const loadShippingProviders = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('shipping_providers')
+      .select('*')
+      .order('name', { ascending: true })
+
+    if (error) throw error
+    setShippingProviders(data || [])
+  }, [supabase])
+
+  const loadPaymentMethods = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('payment_methods')
+      .select('*')
+      .order('name', { ascending: true })
+
+    if (error) throw error
+    setPaymentMethods(data || [])
+  }, [supabase])
+
+  const loadAllData = useCallback(async () => {
     setIsLoading(true)
     setError(null)
 
@@ -85,47 +120,12 @@ export function GlobalSettings({ className = '' }: GlobalSettingsProps) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [loadExchangeRates, loadFeatureRules, loadShippingProviders, loadPaymentMethods])
 
-  const loadExchangeRates = async () => {
-    const { data, error } = await supabase
-      .from('currency_exchange_rates')
-      .select('*')
-      .order('from_currency', { ascending: true })
+  useEffect(() => {
+    loadAllData()
+  }, [loadAllData])
 
-    if (error) throw error
-    setExchangeRates(data || [])
-  }
-
-  const loadFeatureRules = async () => {
-    const { data, error } = await supabase
-      .from('feature_access_rules')
-      .select('*')
-      .order('location', { ascending: true })
-
-    if (error) throw error
-    setFeatureRules(data || [])
-  }
-
-  const loadShippingProviders = async () => {
-    const { data, error } = await supabase
-      .from('shipping_providers')
-      .select('*')
-      .order('name', { ascending: true })
-
-    if (error) throw error
-    setShippingProviders(data || [])
-  }
-
-  const loadPaymentMethods = async () => {
-    const { data, error } = await supabase
-      .from('payment_methods')
-      .select('*')
-      .order('name', { ascending: true })
-
-    if (error) throw error
-    setPaymentMethods(data || [])
-  }
 
   const updateExchangeRate = async (rate: CurrencyExchangeRate) => {
     const { error } = await supabase
@@ -308,7 +308,7 @@ export function GlobalSettings({ className = '' }: GlobalSettingsProps) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.keys(currencyService.CURRENCY_SYMBOLS).map(currency => (
+                      {Object.keys(CURRENCY_SYMBOLS).map(currency => (
                         <SelectItem key={currency} value={currency}>{currency}</SelectItem>
                       ))}
                     </SelectContent>
@@ -319,7 +319,7 @@ export function GlobalSettings({ className = '' }: GlobalSettingsProps) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.keys(currencyService.CURRENCY_SYMBOLS).map(currency => (
+                      {Object.keys(CURRENCY_SYMBOLS).map(currency => (
                         <SelectItem key={currency} value={currency}>{currency}</SelectItem>
                       ))}
                     </SelectContent>
@@ -349,7 +349,7 @@ export function GlobalSettings({ className = '' }: GlobalSettingsProps) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {Object.entries(currencyService.CURRENCY_SYMBOLS).map(([currency, symbol]) => {
+                  {Object.entries(CURRENCY_SYMBOLS).map(([currency, symbol]) => {
                     const rateCount = exchangeRates.filter(r => r.from_currency === currency).length
                     return (
                       <div key={currency} className="flex items-center justify-between p-2 border rounded">
@@ -406,7 +406,6 @@ export function GlobalSettings({ className = '' }: GlobalSettingsProps) {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setEditingRule(rule)}
                       >
                         <Edit className="h-3 w-3" />
                       </Button>

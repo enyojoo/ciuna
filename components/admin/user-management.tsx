@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,7 +20,10 @@ import {
   CheckCircle,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { Profile, UserLocation, SupportedCurrency } from '@/lib/types'
+import { Profile } from '@/lib/types'
+import { UserLocation } from '@/lib/location'
+import { SupportedCurrency } from '@/lib/currency'
+import { UserRole } from '@/lib/auth/access-control'
 
 interface UserManagementProps {
   className?: string
@@ -36,11 +39,7 @@ export function UserManagement({ className = '' }: UserManagementProps) {
 
   const supabase = createClient()
 
-  useEffect(() => {
-    loadUsers()
-  }, [loadUsers])
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     setIsLoading(true)
     try {
       const { data, error } = await supabase
@@ -55,7 +54,11 @@ export function UserManagement({ className = '' }: UserManagementProps) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [supabase])
+
+  useEffect(() => {
+    loadUsers()
+  }, [loadUsers])
 
   const updateUser = async (userId: string, updates: Partial<Profile>) => {
     try {
@@ -366,7 +369,7 @@ export function UserManagement({ className = '' }: UserManagementProps) {
                       <Select
                         value={editingUser.role}
                         onValueChange={(value) => 
-                          setEditingUser(prev => prev ? { ...prev, role: value as string } : null)
+                          setEditingUser(prev => prev ? { ...prev, role: value as UserRole } : null)
                         }
                       >
                         <SelectTrigger>
@@ -399,7 +402,7 @@ export function UserManagement({ className = '' }: UserManagementProps) {
                       <Select
                         value={editingUser.verification_status}
                         onValueChange={(value) => 
-                          setEditingUser(prev => prev ? { ...prev, verification_status: value as string } : null)
+                          setEditingUser(prev => prev ? { ...prev, verification_status: value as 'PENDING' | 'APPROVED' | 'REJECTED' } : null)
                         }
                       >
                         <SelectTrigger className="w-32">

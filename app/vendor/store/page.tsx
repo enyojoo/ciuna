@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { RoleLayout } from '@/components/layouts/role-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -90,10 +91,11 @@ export default function VendorStore() {
         <Card>
           <div className="relative">
             <div className="h-48 bg-muted relative">
-              <img
+              <Image
                 src={formData.coverImage}
                 alt="Store cover"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
               />
               {isEditing && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -106,10 +108,11 @@ export default function VendorStore() {
             </div>
             <div className="absolute bottom-0 left-6 transform translate-y-1/2">
               <div className="h-24 w-24 rounded-full border-4 border-background bg-muted overflow-hidden">
-                <img
+                <Image
                   src={formData.logo}
                   alt="Store logo"
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
                 {isEditing && (
                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center">

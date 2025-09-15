@@ -34,7 +34,7 @@ interface RoleDashboardProps {
 }
 
 export function RoleDashboard({ role, user, children }: RoleDashboardProps) {
-  const features = getRoleFeatures(role, user.location as string || 'other')
+  const features = getRoleFeatures(role)
   const quickActions = getQuickActions(role)
   const onboardingProgress = getOnboardingProgress(role, user.completed_steps || [])
   const nextStep = getNextOnboardingStep(role, user.completed_steps || [])

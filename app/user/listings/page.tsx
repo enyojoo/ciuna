@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { RoleLayout } from '@/components/layouts/role-layout'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -112,10 +113,11 @@ export default function UserListings() {
           {listings.map((listing) => (
             <Card key={listing.id} className="overflow-hidden">
               <div className="aspect-video bg-muted relative">
-                <img
+                <Image
                   src={listing.image}
                   alt={listing.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
                 <div className="absolute top-2 right-2">
                   {getStatusBadge(listing.status)}

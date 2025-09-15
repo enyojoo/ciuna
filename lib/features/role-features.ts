@@ -1,5 +1,4 @@
 import { UserRole } from '@/lib/auth/access-control'
-import { UserLocation } from '@/lib/currency'
 
 export interface RoleFeatures {
   // Core marketplace features
@@ -43,7 +42,7 @@ export interface RoleFeatures {
   canManagePlatform: boolean
 }
 
-export const getRoleFeatures = (role: UserRole, _location: UserLocation): RoleFeatures => {
+export const getRoleFeatures = (role: UserRole): RoleFeatures => {
   const baseFeatures: RoleFeatures = {
     // Core marketplace features
     canBuy: true,
@@ -141,13 +140,13 @@ export const getRoleFeatures = (role: UserRole, _location: UserLocation): RoleFe
   }
 }
 
-export const canAccessFeature = (role: UserRole, feature: keyof RoleFeatures, location: UserLocation): boolean => {
-  const features = getRoleFeatures(role, location)
+export const canAccessFeature = (role: UserRole, feature: keyof RoleFeatures): boolean => {
+  const features = getRoleFeatures(role)
   return features[feature] || false
 }
 
-export const getAvailableFeatures = (role: UserRole, location: UserLocation): string[] => {
-  const features = getRoleFeatures(role, location)
+export const getAvailableFeatures = (role: UserRole): string[] => {
+  const features = getRoleFeatures(role)
   return Object.entries(features)
     .filter(([, enabled]) => enabled)
     .map(([feature]) => feature)

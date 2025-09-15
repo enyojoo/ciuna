@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -38,13 +38,7 @@ export function PriceDisplay({
     lg: 'text-lg font-semibold'
   }
 
-  useEffect(() => {
-    if (originalCurrency !== userCurrency && showConversion) {
-      loadConversion()
-    }
-  }, [amount, originalCurrency, userCurrency, showConversion, loadConversion])
-
-  const loadConversion = async () => {
+  const loadConversion = useCallback(async () => {
     setIsLoading(true)
     setError(null)
     
@@ -57,7 +51,13 @@ export function PriceDisplay({
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [amount, originalCurrency, userCurrency])
+
+  useEffect(() => {
+    if (originalCurrency !== userCurrency && showConversion) {
+      loadConversion()
+    }
+  }, [amount, originalCurrency, userCurrency, showConversion, loadConversion])
 
   const formatAmount = (amount: number, currency: SupportedCurrency) => {
     return formatCurrency(amount, currency)
@@ -139,15 +139,7 @@ export function PriceSelector({
   const [conversion, setConversion] = useState<CurrencyConversion | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  useEffect(() => {
-    if (selectedCurrency !== originalCurrency) {
-      loadConversion()
-    } else {
-      setConversion(null)
-    }
-  }, [amount, originalCurrency, selectedCurrency, loadConversion])
-
-  const loadConversion = async () => {
+  const loadConversion = useCallback(async () => {
     setIsLoading(true)
     try {
       const result = await convertCurrency(amount, originalCurrency, selectedCurrency)
@@ -157,7 +149,15 @@ export function PriceSelector({
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [amount, originalCurrency, selectedCurrency])
+
+  useEffect(() => {
+    if (selectedCurrency !== originalCurrency) {
+      loadConversion()
+    } else {
+      setConversion(null)
+    }
+  }, [amount, originalCurrency, selectedCurrency, loadConversion])
 
   const handleCurrencyChange = (currency: string) => {
     const newCurrency = currency as SupportedCurrency

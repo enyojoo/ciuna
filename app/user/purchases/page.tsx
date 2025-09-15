@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { RoleLayout } from '@/components/layouts/role-layout'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -169,10 +170,12 @@ export default function UserPurchases() {
                   <div className="space-y-2">
                     {purchase.items.map((item, index) => (
                       <div key={index} className="flex items-center gap-4 p-3 border rounded-lg">
-                        <img
+                        <Image
                           src={item.image}
                           alt={item.title}
-                          className="w-12 h-12 object-cover rounded"
+                          width={48}
+                          height={48}
+                          className="object-cover rounded"
                         />
                         <div className="flex-1">
                           <h4 className="font-medium">{item.title}</h4>

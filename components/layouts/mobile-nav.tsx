@@ -10,21 +10,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { 
   Menu,
   X,
-  Home,
-  BarChart3,
-  Package,
-  ShoppingCart,
-  Heart,
-  Store,
-  TrendingUp,
-  Truck,
-  DollarSign,
-  Users,
-  Settings,
-  Shield,
-  FileText,
-  Search,
-  MapPin
+  Settings
 } from 'lucide-react'
 import { UserRole } from '@/lib/auth/access-control'
 import { NavigationItem } from '@/lib/navigation/role-navigation'
@@ -39,26 +25,6 @@ export function MobileNav({ role, navigation, quickActions }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
 
-  const getIcon = (iconName: string) => {
-    const icons: Record<string, React.ComponentType<{ className?: string }>> = {
-      Home,
-      Search,
-      Package,
-      ShoppingCart,
-      Heart,
-      BarChart3,
-      Store,
-      TrendingUp,
-      Truck,
-      DollarSign,
-      Users,
-      Settings,
-      Shield,
-      FileText,
-      MapPin
-    }
-    return icons[iconName] || Home
-  }
 
   const getRoleColor = (role: UserRole) => {
     const colors = {
@@ -112,7 +78,7 @@ export function MobileNav({ role, navigation, quickActions }: MobileNavProps) {
                 <h3 className="text-sm font-medium text-muted-foreground mb-3">Main</h3>
                 <nav className="space-y-1">
                   {navigation.map((item) => {
-                    const Icon = getIcon(item.icon)
+                    const Icon = item.icon
                     const isActive = pathname === item.href
                     
                     return (
@@ -146,7 +112,7 @@ export function MobileNav({ role, navigation, quickActions }: MobileNavProps) {
                   <h3 className="text-sm font-medium text-muted-foreground mb-3">Quick Actions</h3>
                   <nav className="space-y-1">
                     {quickActions.map((action) => {
-                      const Icon = getIcon(action.icon)
+                      const Icon = action.icon
                       
                       return (
                         <Link

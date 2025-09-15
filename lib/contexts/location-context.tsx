@@ -2,7 +2,9 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { UserLocation, SupportedCurrency, UserFeatureAccess } from '@/lib/types'
+import { UserFeatureAccess } from '@/lib/types'
+import { UserLocation } from '@/lib/location'
+import { SupportedCurrency } from '@/lib/currency'
 import { locationService } from '@/lib/location'
 
 interface LocationContextType {
