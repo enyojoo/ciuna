@@ -3,45 +3,116 @@ import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import { 
-  ShoppingBag, 
-  Users, 
-  Wrench, 
+  Search, 
+  MapPin, 
+  Star, 
+  Heart, 
+  MessageCircle, 
   ArrowRight,
-  MessageCircle
+  TrendingUp,
+  Clock,
+  Shield,
+  Globe,
+  Users,
+  ShoppingBag,
+  Wrench,
+  Filter,
+  Grid3X3,
+  List
 } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function HomePage() {
 
-  const features = [
+  // Featured listings mock data
+  const featuredListings = [
     {
-      icon: ShoppingBag,
-      title: 'Marketplace',
-      description: 'Buy and sell items with other expats in your community'
+      id: 1,
+      title: "MacBook Pro M2 - Like New",
+      price: 120000,
+      currency: "RUB",
+      condition: "LIKE_NEW",
+      city: "Moscow",
+      district: "Arbat",
+      photo_urls: ["/api/placeholder/300/200"],
+      seller: {
+        first_name: "John",
+        last_name: "Smith",
+        verified_expat: true,
+        country_of_origin: "US"
+      },
+      created_at: "2024-01-15T10:30:00Z"
     },
     {
-      icon: Users,
-      title: 'Vendors',
-      description: 'Connect with local and international vendors'
+      id: 2,
+      title: "IKEA Dining Set - White",
+      price: 25000,
+      currency: "RUB",
+      condition: "GOOD",
+      city: "St. Petersburg",
+      district: "Nevsky Prospekt",
+      photo_urls: ["/api/placeholder/300/200"],
+      seller: {
+        first_name: "Maria",
+        last_name: "Garcia",
+        verified_expat: true,
+        country_of_origin: "ES"
+      },
+      created_at: "2024-01-14T15:45:00Z"
     },
     {
-      icon: Wrench,
-      title: 'Services',
-      description: 'Find and book services from verified providers'
+      id: 3,
+      title: "Russian Language Books Set",
+      price: 5000,
+      currency: "RUB",
+      condition: "NEW",
+      city: "Moscow",
+      district: "Khamovniki",
+      photo_urls: ["/api/placeholder/300/200"],
+      seller: {
+        first_name: "Alex",
+        last_name: "Johnson",
+        verified_expat: true,
+        country_of_origin: "CA"
+      },
+      created_at: "2024-01-13T09:20:00Z"
     },
     {
-      icon: MessageCircle,
-      title: 'Community',
-      description: 'Chat with sellers and get support in multiple languages'
+      id: 4,
+      title: "Winter Coat - Size M",
+      price: 8000,
+      currency: "RUB",
+      condition: "GOOD",
+      city: "Moscow",
+      district: "Tverskaya",
+      photo_urls: ["/api/placeholder/300/200"],
+      seller: {
+        first_name: "Sarah",
+        last_name: "Wilson",
+        verified_expat: true,
+        country_of_origin: "GB"
+      },
+      created_at: "2024-01-12T14:10:00Z"
     }
   ]
 
+  const categories = [
+    { name: "Electronics", icon: "📱", count: 1247, color: "bg-blue-100 text-blue-600" },
+    { name: "Furniture", icon: "🪑", count: 892, color: "bg-green-100 text-green-600" },
+    { name: "Clothing", icon: "👕", count: 2156, color: "bg-pink-100 text-pink-600" },
+    { name: "Books", icon: "📚", count: 543, color: "bg-yellow-100 text-yellow-600" },
+    { name: "Sports", icon: "⚽", count: 678, color: "bg-orange-100 text-orange-600" },
+    { name: "Automotive", icon: "🚗", count: 234, color: "bg-gray-100 text-gray-600" }
+  ]
+
   const stats = [
-    { label: 'Active Users', value: '10,000+' },
-    { label: 'Listings', value: '50,000+' },
-    { label: 'Countries', value: '50+' },
-    { label: 'Languages', value: '6' }
+    { label: 'Active Expats', value: '12,500+', icon: Users },
+    { label: 'Live Listings', value: '8,900+', icon: ShoppingBag },
+    { label: 'Cities', value: '15+', icon: MapPin },
+    { label: 'Languages', value: '6', icon: Globe }
   ]
 
   return (
@@ -49,69 +120,118 @@ export default function HomePage() {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-gradient-to-br from-primary/5 via-background to-secondary/5 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold tracking-tight sm:text-6xl text-balance">
-              Welcome to Ciuna
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold tracking-tight sm:text-6xl text-balance mb-6">
+              Your <span className="text-primary">Expat Marketplace</span> in Russia
             </h1>
-            <p className="mt-6 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto text-balance">
-              The marketplace for foreigners living in Russia. Buy, sell, and find services in your community.
+            <p className="text-xl leading-8 text-muted-foreground max-w-3xl mx-auto text-balance mb-8">
+              Buy, sell, and discover amazing items from fellow expats. Connect with trusted vendors and find the services you need.
             </p>
-            <div className="mt-10 flex items-center justify-center gap-x-6">
-              <Button asChild size="lg">
-                <Link href="/listings">
-                  Get Started
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button variant="outline" asChild size="lg">
-                <Link href="/vendors">
-                  Featured Vendors
-                </Link>
-              </Button>
+            
+            {/* Search Bar */}
+            <div className="max-w-2xl mx-auto mb-8">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  placeholder="Search for items, services, or vendors..."
+                  className="pl-12 pr-4 py-6 text-lg border-2 focus:border-primary"
+                />
+                <Button size="lg" className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                  Search
+                </Button>
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+              {stats.map((stat) => {
+                const Icon = stat.icon
+                return (
+                  <div key={stat.label} className="text-center">
+                    <div className="flex items-center justify-center mb-2">
+                      <Icon className="h-6 w-6 text-primary mr-2" />
+                      <div className="text-2xl font-bold text-primary">{stat.value}</div>
+                    </div>
+                    <div className="text-sm text-muted-foreground">{stat.label}</div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-muted/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-3xl font-bold text-primary">{stat.value}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
+      {/* Featured Listings Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
-              Everything you need in one place
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground text-balance">
-              From buying and selling to finding services, we&apos;ve got you covered
-            </p>
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight">Featured Listings</h2>
+              <p className="text-muted-foreground mt-2">Handpicked items from our expat community</p>
+            </div>
+            <Button variant="outline" asChild>
+              <Link href="/listings">
+                View All
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
           </div>
           
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
-            {features.map((feature) => (
-              <Card key={feature.title} className="text-center">
-                <CardHeader>
-                  <div className="mx-auto h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <feature.icon className="h-6 w-6 text-primary" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredListings.map((listing) => (
+              <Card key={listing.id} className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <div className="relative aspect-square overflow-hidden">
+                  <Image
+                    src={listing.photo_urls[0]}
+                    alt={listing.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute top-2 left-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {listing.condition.replace('_', ' ')}
+                    </Badge>
                   </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>{feature.description}</CardDescription>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background"
+                  >
+                    <Heart className="h-4 w-4" />
+                  </Button>
+                </div>
+                <CardContent className="p-4">
+                  <h3 className="font-semibold line-clamp-2 group-hover:text-primary transition-colors mb-2">
+                    {listing.title}
+                  </h3>
+                  <div className="text-xl font-bold text-primary mb-2">
+                    {listing.price.toLocaleString()}₽
+                  </div>
+                  <div className="flex items-center text-sm text-muted-foreground mb-3">
+                    <MapPin className="h-3 w-3 mr-1" />
+                    <span>{listing.city}, {listing.district}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-xs font-medium text-primary">
+                          {listing.seller.first_name[0]}{listing.seller.last_name[0]}
+                        </span>
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {listing.seller.first_name}
+                      </span>
+                      {listing.seller.verified_expat && (
+                        <Shield className="h-3 w-3 text-green-500" />
+                      )}
+                    </div>
+                    <Button size="sm" variant="outline">
+                      <MessageCircle className="h-3 w-3 mr-1" />
+                      Contact
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -120,30 +240,26 @@ export default function HomePage() {
       </section>
 
       {/* Categories Section */}
-      <section className="py-20 bg-muted/50">
+      <section className="py-16 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
-              Browse Categories
+              Browse by Category
             </h2>
             <p className="mt-4 text-lg text-muted-foreground text-balance">
-              Find exactly what you&apos;re looking for
+              Discover items in your favorite categories
             </p>
           </div>
           
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-            {[
-              'Electronics',
-              'Furniture',
-              'Clothing',
-              'Books',
-              'Sports',
-              'Automotive'
-            ].map((category) => (
-              <Card key={category} className="cursor-pointer hover:shadow-md transition-shadow">
+            {categories.map((category) => (
+              <Card key={category.name} className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
                 <CardContent className="p-6 text-center">
-                  <div className="text-2xl mb-2">📱</div>
-                  <div className="font-medium">{category}</div>
+                  <div className={`w-16 h-16 rounded-full ${category.color} flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}>
+                    <span className="text-2xl">{category.icon}</span>
+                  </div>
+                  <div className="font-semibold text-lg mb-1">{category.name}</div>
+                  <div className="text-sm text-muted-foreground">{category.count} items</div>
                 </CardContent>
               </Card>
             ))}
@@ -151,25 +267,106 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Services Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
+              Professional Services
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground text-balance">
+              Find trusted professionals in your expat community
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <Wrench className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">Legal Services</h3>
+                    <p className="text-sm text-muted-foreground">Immigration, visas, legal advice</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">From 5,000₽</span>
+                  <Button size="sm" variant="outline">
+                    Browse Services
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
+                    <Users className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">Language Learning</h3>
+                    <p className="text-sm text-muted-foreground">Russian lessons, tutoring</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">From 2,500₽</span>
+                  <Button size="sm" variant="outline">
+                    Browse Services
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                    <MessageCircle className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">Event Planning</h3>
+                    <p className="text-sm text-muted-foreground">Parties, gatherings, events</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">From 15,000₽</span>
+                  <Button size="sm" variant="outline">
+                    Browse Services
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center">
+      <section className="py-20 bg-gradient-to-r from-primary/10 via-background to-secondary/10">
+        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
-            Ready to get started?
+            Join the Expat Community
           </h2>
           <p className="mt-4 text-lg text-muted-foreground text-balance">
-            Join thousands of expats who are already using Ciuna to buy, sell, and connect
+            Connect with fellow expats, buy and sell items, and find the services you need in Russia
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg">
-              <Link href="/auth/sign-up">
-                Create your account
+              <Link href="/user/auth/sign-up">
+                Start Selling
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
             <Button variant="outline" asChild size="lg">
               <Link href="/listings">
-                Browse listings
+                Browse Listings
+              </Link>
+            </Button>
+            <Button variant="outline" asChild size="lg">
+              <Link href="/services">
+                Find Services
               </Link>
             </Button>
           </div>
@@ -182,34 +379,13 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <div className="h-6 w-6 rounded bg-primary" />
-                <span className="text-lg font-bold">Ciuna</span>
+                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-sm" />
+                <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">Ciuna</span>
               </div>
-              <p className="text-sm text-muted-foreground">
-                The marketplace for expats in Russia
+              <p className="text-sm text-muted-foreground mb-4">
+                The trusted marketplace for expats living in Russia. Buy, sell, and connect with your community.
               </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Marketplace</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/listings" className="hover:text-foreground">Browse Listings</Link></li>
-                <li><Link href="/sell" className="hover:text-foreground">Sell Items</Link></li>
-                <li><Link href="/vendors" className="hover:text-foreground">Vendors</Link></li>
-                <li><Link href="/services" className="hover:text-foreground">Services</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Support</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/help" className="hover:text-foreground">Help Center</Link></li>
-                <li><Link href="/contact" className="hover:text-foreground">Contact Us</Link></li>
-                <li><Link href="/safety" className="hover:text-foreground">Safety</Link></li>
-                <li><Link href="/terms" className="hover:text-foreground">Terms</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Languages</h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex space-x-2">
                 {['EN', 'RU', 'FR', 'ZH', 'AR', 'ES'].map((lang) => (
                   <Badge key={lang} variant="secondary" className="text-xs">
                     {lang}
@@ -217,9 +393,41 @@ export default function HomePage() {
                 ))}
               </div>
             </div>
+            <div>
+              <h3 className="font-semibold mb-4">Marketplace</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link href="/listings" className="hover:text-foreground transition-colors">Browse Listings</Link></li>
+                <li><Link href="/sell/new" className="hover:text-foreground transition-colors">Sell Items</Link></li>
+                <li><Link href="/vendors" className="hover:text-foreground transition-colors">Vendors</Link></li>
+                <li><Link href="/services" className="hover:text-foreground transition-colors">Services</Link></li>
+                <li><Link href="/categories" className="hover:text-foreground transition-colors">Categories</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4">Community</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link href="/about" className="hover:text-foreground transition-colors">About Us</Link></li>
+                <li><Link href="/safety" className="hover:text-foreground transition-colors">Safety Guidelines</Link></li>
+                <li><Link href="/help" className="hover:text-foreground transition-colors">Help Center</Link></li>
+                <li><Link href="/contact" className="hover:text-foreground transition-colors">Contact Us</Link></li>
+                <li><Link href="/blog" className="hover:text-foreground transition-colors">Expat Blog</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4">Legal</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link></li>
+                <li><Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/cookies" className="hover:text-foreground transition-colors">Cookie Policy</Link></li>
+                <li><Link href="/refund" className="hover:text-foreground transition-colors">Refund Policy</Link></li>
+              </ul>
+            </div>
           </div>
-          <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-            <p>&copy; 2024 Ciuna. All rights reserved.</p>
+          <div className="mt-8 pt-8 border-t flex flex-col md:flex-row justify-between items-center">
+            <p className="text-sm text-muted-foreground">&copy; 2024 Ciuna. All rights reserved.</p>
+            <div className="flex items-center space-x-4 mt-4 md:mt-0">
+              <span className="text-sm text-muted-foreground">Made with ❤️ for the expat community</span>
+            </div>
           </div>
         </div>
       </footer>

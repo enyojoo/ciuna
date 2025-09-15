@@ -7,6 +7,7 @@ import { Menu, Sun, Moon, ShoppingCart, MessageCircle, User, LogOut, Home, Searc
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Input } from '@/components/ui/input'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,6 +71,20 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
           <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">Ciuna</span>
         </Link>
 
+        {/* Desktop Search Bar */}
+        <div className="hidden md:flex flex-1 max-w-2xl mx-8">
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search for items, services, or vendors..."
+              className="pl-10 pr-4 py-2 border-2 focus:border-primary"
+            />
+            <Button size="sm" className="absolute right-1 top-1/2 transform -translate-y-1/2">
+              Search
+            </Button>
+          </div>
+        </div>
+
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
           {mainNavigation.map((item) => {
@@ -78,7 +93,7 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-sm font-medium transition-colors hover:text-primary flex items-center gap-1"
+                className="text-sm font-medium transition-colors hover:text-primary flex items-center gap-1 px-3 py-2 rounded-md hover:bg-muted/50"
               >
                 <Icon className="h-4 w-4" />
                 {item.name}
@@ -192,6 +207,15 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
                   </Button>
                 </div>
                 
+                {/* Mobile Search Bar */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search items, services..."
+                    className="pl-10 pr-4 py-2"
+                  />
+                </div>
+                
                 {/* Mobile Location Indicator */}
                 <LocationIndicator />
                 
@@ -202,7 +226,7 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
                       <Link
                         key={item.name}
                         href={item.href}
-                        className="text-sm font-medium transition-colors hover:text-primary flex items-center gap-2"
+                        className="text-sm font-medium transition-colors hover:text-primary flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted/50"
                         onClick={() => setIsOpen(false)}
                       >
                         <Icon className="h-4 w-4" />

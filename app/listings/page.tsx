@@ -269,86 +269,118 @@ export default function ListingsPage() {
           </Button>
         </div>
 
-        {/* Filters */}
+        {/* Enhanced Filters */}
         <Card className="mb-8">
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {/* Search */}
+            <div className="space-y-4">
+              {/* Main Search Bar */}
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
-                  placeholder="Search for items..."
-                  className="pl-10"
+                  placeholder="Search for items, brands, or sellers..."
+                  className="pl-12 pr-4 py-3 text-lg border-2 focus:border-primary"
                 />
+                <Button className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                  Search
+                </Button>
               </div>
 
-              {/* Category Filter */}
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.slug}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* Filter Row */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* Category Filter */}
+                <Select>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.slug}>
+                        <div className="flex items-center space-x-2">
+                          <span>📱</span>
+                          <span>{category.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-              {/* Condition Filter */}
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by condition" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="like_new">Like New</SelectItem>
-                  <SelectItem value="good">Good</SelectItem>
-                  <SelectItem value="fair">Fair</SelectItem>
-                </SelectContent>
-              </Select>
+                {/* Condition Filter */}
+                <Select>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="All Conditions" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new">🆕 New</SelectItem>
+                    <SelectItem value="like_new">✨ Like New</SelectItem>
+                    <SelectItem value="good">👍 Good</SelectItem>
+                    <SelectItem value="fair">⚠️ Fair</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              {/* Sort */}
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="oldest">Oldest</SelectItem>
-                  <SelectItem value="price_low">Price: Low to High</SelectItem>
-                  <SelectItem value="price_high">Price: High to Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                {/* Price Range */}
+                <Select>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Price Range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Any Price</SelectItem>
+                    <SelectItem value="under-10000">Under 10,000₽</SelectItem>
+                    <SelectItem value="10000-50000">10,000₽ - 50,000₽</SelectItem>
+                    <SelectItem value="50000-100000">50,000₽ - 100,000₽</SelectItem>
+                    <SelectItem value="over-100000">Over 100,000₽</SelectItem>
+                  </SelectContent>
+                </Select>
 
-            {/* Active Filters */}
-            <div className="flex flex-wrap gap-2 mt-4">
-              <Badge variant="secondary" className="cursor-pointer">
-                Electronics ×
-              </Badge>
-              <Badge variant="secondary" className="cursor-pointer">
-                Moscow ×
-              </Badge>
-              <Badge variant="secondary" className="cursor-pointer">
-                Under 50,000₽ ×
-              </Badge>
+                {/* Sort */}
+                <Select>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">🕒 Newest First</SelectItem>
+                    <SelectItem value="price_low">💰 Price: Low to High</SelectItem>
+                    <SelectItem value="price_high">💎 Price: High to Low</SelectItem>
+                    <SelectItem value="distance">📍 Distance</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Active Filters */}
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary" className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors">
+                  Electronics ×
+                </Badge>
+                <Badge variant="secondary" className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors">
+                  Moscow ×
+                </Badge>
+                <Badge variant="secondary" className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors">
+                  Under 50,000₽ ×
+                </Badge>
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  Clear all filters
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Results Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-muted-foreground">
+            <span className="text-lg font-semibold">
               {mockListings.length} listings found
             </span>
+            <Badge variant="outline" className="text-sm">
+              in Moscow
+            </Badge>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-muted-foreground">View:</span>
             <div className="flex items-center space-x-1">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="h-9">
                 <Grid className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="h-9">
                 <List className="h-4 w-4" />
               </Button>
             </div>
@@ -358,23 +390,32 @@ export default function ListingsPage() {
         {/* Listings Grid */}
         {mockListings.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {mockListings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
+            {mockListings.map((listing, index) => (
+              <ListingCard 
+                key={listing.id} 
+                listing={listing} 
+                variant={index < 2 ? 'featured' : 'default'}
+              />
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold mb-2">No listings found</h3>
-            <p className="text-muted-foreground mb-6">
+          <div className="text-center py-16">
+            <div className="text-8xl mb-6">🔍</div>
+            <h3 className="text-2xl font-semibold mb-3">No listings found</h3>
+            <p className="text-muted-foreground mb-8 text-lg">
               Try adjusting your search criteria or create a new listing
             </p>
-            <Button asChild>
-              <Link href="/sell/new">
-                <Plus className="h-4 w-4 mr-2" />
-                Create Listing
-              </Link>
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button asChild size="lg">
+                <Link href="/sell/new">
+                  <Plus className="h-5 w-5 mr-2" />
+                  Create Listing
+                </Link>
+              </Button>
+              <Button variant="outline" size="lg" onClick={() => window.location.reload()}>
+                Clear Filters
+              </Button>
+            </div>
           </div>
         )}
 
