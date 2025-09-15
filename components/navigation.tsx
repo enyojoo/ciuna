@@ -49,12 +49,14 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
     { name: 'Services', href: '/services', icon: FileText, requiresFeature: 'services' },
   ].filter(item => !item.requiresFeature || canAccess(item.requiresFeature))
 
-  const userNav = userNavigation || [
+  const baseUserNav = userNavigation || [
     { name: 'Orders', href: '/orders', icon: ShoppingCart },
     { name: 'Inbox', href: '/inbox', icon: MessageCircle },
     { name: 'Profile', href: '/profile', icon: User },
   ]
 
+  // Add admin navigation if user is admin
+  const userNav = [...baseUserNav]
   if (user?.role === 'ADMIN' && !userNav.find(item => item.name === 'Admin')) {
     userNav.push({ name: 'Admin', href: '/admin', icon: Settings })
   }

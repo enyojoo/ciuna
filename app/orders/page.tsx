@@ -204,8 +204,8 @@ export default function OrdersPage() {
                             {order.listing.title}
                           </h3>
                           <p className="text-muted-foreground text-sm mb-2">
-                            Sold by {order.seller.first_name} {order.seller.last_name}
-                            {order.seller.verified_expat && (
+                            Sold by {order.seller?.first_name} {order.seller?.last_name}
+                            {order.seller?.verified_expat && (
                               <Badge variant="outline" className="ml-2 text-xs">
                                 Verified
                               </Badge>
@@ -306,8 +306,8 @@ export default function OrdersPage() {
                             {order.listing.title}
                           </h3>
                           <p className="text-muted-foreground text-sm mb-2">
-                            Sold to {order.buyer.first_name} {order.buyer.last_name}
-                            {order.buyer.verified_expat && (
+                            Sold to {order.buyer?.first_name} {order.buyer?.last_name}
+                            {order.buyer?.verified_expat && (
                               <Badge variant="outline" className="ml-2 text-xs">
                                 Verified
                               </Badge>
