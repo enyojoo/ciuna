@@ -1,7 +1,6 @@
 'use client'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ThemeProvider } from 'next-themes'
 import { LocationProvider } from '@/lib/contexts/location-context'
 import { useState } from 'react'
 
@@ -21,16 +20,9 @@ export function Providers({ children }: ProvidersProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
-        <LocationProvider>
-          {children}
-        </LocationProvider>
-      </ThemeProvider>
+      <LocationProvider>
+        {children}
+      </LocationProvider>
     </QueryClientProvider>
   )
 }

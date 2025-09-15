@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useTheme } from 'next-themes'
-import { Menu, Sun, Moon, ShoppingCart, MessageCircle, User, LogOut, Home, Search, Store, FileText, Settings } from 'lucide-react'
+import { Menu, ShoppingCart, MessageCircle, User, LogOut, Home, Search, Store, FileText, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -38,7 +37,6 @@ interface NavigationProps {
 }
 
 export function Navigation({ user, onSignOut, navigation, userNavigation }: NavigationProps) {
-  const { theme, setTheme } = useTheme()
   const [isOpen, setIsOpen] = useState(false)
   const { canAccess } = useFeatureAccess()
 
@@ -109,17 +107,6 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center space-x-2">
-          {/* Theme Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          >
-            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
-          </Button>
 
 
           {user ? (
@@ -190,19 +177,9 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
             </SheetTrigger>
             <SheetContent side="right" className="w-[300px] sm:w-[400px]">
               <div className="flex flex-col space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-sm" />
-                    <span className="text-lg font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">Ciuna</span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                  >
-                    <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                    <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                  </Button>
+                <div className="flex items-center space-x-2">
+                  <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-sm" />
+                  <span className="text-lg font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">Ciuna</span>
                 </div>
                 
                 {/* Mobile Search Bar */}
