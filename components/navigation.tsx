@@ -217,35 +217,29 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
               <Link href="/help" className="text-gray-600 hover:text-gray-900">
                 Help
               </Link>
-              <Link href="/catalogs" className="text-gray-600 hover:text-gray-900">
-                Catalogs
-              </Link>
-              <Link href="/ihelp" className="text-gray-600 hover:text-gray-900">
-                #iHelp
-        </Link>
             </div>
 
             {/* Right side - User actions */}
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/sell/new" className="flex items-center space-x-1">
-                  <Plus className="h-4 w-4" />
-                  <span>Create Listing</span>
-                </Link>
-              </Button>
-              <Link href="/my-listings" className="text-gray-600 hover:text-gray-900 flex items-center space-x-1">
-                <FileText className="h-4 w-4" />
-                <span>My Listings</span>
-              </Link>
-              
-              {/* Auth in top bar */}
               {user ? (
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">Welcome, {user.first_name}</span>
-                  <Button variant="ghost" size="sm" onClick={onSignOut}>
-                    Sign Out
+                <>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/sell/new" className="flex items-center space-x-1">
+                      <Plus className="h-4 w-4" />
+                      <span>Create Listing</span>
+                    </Link>
                   </Button>
-                </div>
+                  <Link href="/my-listings" className="text-gray-600 hover:text-gray-900 flex items-center space-x-1">
+                    <FileText className="h-4 w-4" />
+                    <span>My Listings</span>
+                  </Link>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">Welcome, {user.first_name}</span>
+                    <Button variant="ghost" size="sm" onClick={onSignOut}>
+                      Sign Out
+                    </Button>
+                  </div>
+                </>
               ) : (
                 <div className="flex items-center space-x-2">
                   <Button variant="ghost" size="sm" asChild>
@@ -265,15 +259,14 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
             <Image
               src="/Ciuna logo.svg"
               alt="Ciuna Logo"
-              width={32}
-              height={32}
-              className="h-8 w-8"
+              width={40}
+              height={40}
+              className="h-10 w-10"
             />
-            <span className="text-2xl font-bold text-gray-900">Ciuna</span>
           </Link>
 
           {/* Categories Button */}
@@ -486,15 +479,14 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
             </SheetTrigger>
             <SheetContent side="right" className="w-[300px] sm:w-[400px]">
               <div className="flex flex-col space-y-4">
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center">
                     <Image
                       src="/Ciuna logo.svg"
                       alt="Ciuna Logo"
-                      width={24}
-                      height={24}
-                      className="h-6 w-6"
+                      width={32}
+                      height={32}
+                      className="h-8 w-8"
                     />
-                    <span className="text-lg font-bold text-gray-900">Ciuna</span>
                   </div>
 
                   {/* Mobile Search Bar */}
