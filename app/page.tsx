@@ -541,11 +541,11 @@ export default function HomePage() {
               {canScrollLeft && (
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-sm hover:bg-gray-50 border-gray-200 h-10"
+                  size="icon"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-sm hover:bg-gray-50 border-gray-200 w-8 h-8"
                   onClick={scrollLeft}
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-3 w-3" />
                 </Button>
               )}
               
@@ -553,11 +553,11 @@ export default function HomePage() {
               {canScrollRight && (
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-sm hover:bg-gray-50 border-gray-200 h-10"
+                  size="icon"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-sm hover:bg-gray-50 border-gray-200 w-8 h-8"
                   onClick={scrollRight}
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-3 w-3" />
                 </Button>
               )}
 
@@ -662,10 +662,9 @@ export default function HomePage() {
               <Card key={vendor.id} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <CardContent className="p-4">
                   <div className="space-y-3">
-                    {/* Vendor Header with Logo and Info */}
-                    <div className="flex items-start space-x-3">
-                      {/* Small Circular Brand Logo */}
-                      <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                    {/* Centered Vendor Logo */}
+                    <div className="flex justify-center mb-3">
+                      <div className="relative w-16 h-16 rounded-full overflow-hidden">
                         <Image
                           src={vendor.image}
                           alt={vendor.name}
@@ -673,26 +672,26 @@ export default function HomePage() {
                           className="object-cover"
                         />
                       </div>
+                    </div>
 
-                      {/* Vendor Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between">
-                          <h3 className="font-semibold text-base line-clamp-1">
-                            {vendor.name}
-                          </h3>
-                          {vendor.verified && (
-                            <Shield className="h-4 w-4 text-green-500 flex-shrink-0" />
-                          )}
-                        </div>
-                        
-                        <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                          {vendor.description}
-                        </p>
-
-                        <Badge variant="outline" className="text-xs w-fit mt-2">
-                          {vendor.category}
-                        </Badge>
+                    {/* Vendor Info */}
+                    <div className="text-center space-y-2">
+                      <div className="flex items-center justify-center space-x-2">
+                        <h3 className="font-semibold text-base line-clamp-1">
+                          {vendor.name}
+                        </h3>
+                        {vendor.verified && (
+                          <Shield className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        )}
                       </div>
+                      
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {vendor.description}
+                      </p>
+
+                      <Badge variant="outline" className="text-xs w-fit">
+                        {vendor.category}
+                      </Badge>
                     </div>
 
                     {/* Rating and Location */}

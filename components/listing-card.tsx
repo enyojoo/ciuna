@@ -84,15 +84,17 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
           
-          {/* Type Badge */}
-          <div className="absolute top-2 right-12">
-            <Badge 
-              variant={isProduct ? "secondary" : "outline"} 
-              className="text-xs"
-            >
-              {isProduct ? 'New' : isJob ? 'Job' : isService ? 'Service' : 'Used'}
-          </Badge>
-        </div>
+          {/* Type Badge - Hide for services */}
+          {!isService && (
+            <div className="absolute top-2 right-12">
+              <Badge 
+                variant={isProduct ? "secondary" : "outline"} 
+                className="text-xs"
+              >
+                {isProduct ? 'New' : isJob ? 'Job' : 'Used'}
+              </Badge>
+            </div>
+          )}
 
           {/* Out of Stock Overlay for Products */}
           {!isListing && !item.inStock && (
