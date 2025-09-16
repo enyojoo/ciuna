@@ -1,7 +1,7 @@
 'use client'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
 import { 
   MapPin, 
   Star, 
@@ -499,6 +499,21 @@ export default function HomePage() {
     }
   ]
 
+  // Transform services to ListingCard format
+  const transformedServices = featuredServices.map(service => ({
+    id: service.id,
+    title: service.title,
+    price: service.price,
+    currency: "RUB",
+    condition: "SERVICE",
+    type: "service" as const,
+    city: service.provider.city,
+    photo_urls: ["/api/placeholder/300/200"],
+    provider: service.provider,
+    duration: service.duration,
+    created_at: "2024-01-15T10:30:00Z"
+  }))
+
   return (
     <div className="min-h-screen bg-background">
       
@@ -521,23 +536,35 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           {/* Category Slider */}
           <div className="mb-8">
-            <div className="flex items-center justify-center space-x-4">
+            <div className="relative">
               {/* Left scroll button */}
               {canScrollLeft && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex-shrink-0 bg-white shadow-sm hover:bg-gray-50 border-gray-200"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-sm hover:bg-gray-50 border-gray-200 h-10"
                   onClick={scrollLeft}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
               )}
               
+              {/* Right scroll button */}
+              {canScrollRight && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-sm hover:bg-gray-50 border-gray-200 h-10"
+                  onClick={scrollRight}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              )}
+
               {/* Category badges container */}
               <div 
                 ref={scrollContainerRef}
-                className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide max-w-4xl"
+                className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
                 {categories.map((category) => {
@@ -559,18 +586,6 @@ export default function HomePage() {
                   )
                 })}
               </div>
-
-              {/* Right scroll button */}
-              {canScrollRight && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-shrink-0 bg-white shadow-sm hover:bg-gray-50 border-gray-200"
-                  onClick={scrollRight}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              )}
             </div>
           </div>
 
@@ -615,71 +630,8 @@ export default function HomePage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {featuredServices.map((service) => (
-              <Card key={service.id} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    {/* Service Header */}
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-base line-clamp-2 mb-1">
-                          {service.title}
-                        </h3>
-                        <Badge variant="outline" className="text-xs">
-                          {service.category}
-                        </Badge>
-                      </div>
-                      {service.provider.verified && (
-                        <Shield className="h-4 w-4 text-green-500 flex-shrink-0" />
-                      )}
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {service.description}
-                    </p>
-
-                    {/* Provider Info */}
-                    <div className="flex items-center space-x-2">
-                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-xs font-medium text-primary">
-                          {service.provider.name.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{service.provider.name}</p>
-                        <div className="flex items-center space-x-1">
-                          <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                          <span className="text-xs text-muted-foreground">
-                            {service.provider.rating} ({service.provider.reviews})
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Location */}
-                    <div className="flex items-center text-xs text-muted-foreground">
-                      <MapPin className="h-3 w-3 mr-1" />
-                      <span>{service.provider.city}</span>
-                    </div>
-          
-                    {/* Price and Action */}
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <div>
-                        <div className="text-lg font-bold text-primary">
-                          {service.price.toLocaleString()}₽
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {service.duration}
-                        </div>
-                      </div>
-                      <Button size="sm" className="h-8 px-3">
-                        Book
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            {transformedServices.map((service) => (
+              <ListingCard key={service.id} item={service} />
             ))}
           </div>
         </div>
@@ -710,52 +662,55 @@ export default function HomePage() {
               <Card key={vendor.id} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <CardContent className="p-4">
                   <div className="space-y-3">
-                    {/* Vendor Image */}
-                    <div className="relative aspect-square overflow-hidden rounded-lg mb-3">
-                      <Image
-                        src={vendor.image}
-                        alt={vendor.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+                    {/* Vendor Header with Logo and Info */}
+                    <div className="flex items-start space-x-3">
+                      {/* Small Circular Brand Logo */}
+                      <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                        <Image
+                          src={vendor.image}
+                          alt={vendor.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+
+                      {/* Vendor Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between">
+                          <h3 className="font-semibold text-base line-clamp-1">
+                            {vendor.name}
+                          </h3>
+                          {vendor.verified && (
+                            <Shield className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          )}
+                        </div>
+                        
+                        <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                          {vendor.description}
+                        </p>
+
+                        <Badge variant="outline" className="text-xs w-fit mt-2">
+                          {vendor.category}
+                        </Badge>
+                      </div>
                     </div>
 
-                    {/* Vendor Info */}
-                    <div className="space-y-2">
-                      <div className="flex items-start justify-between">
-                        <h3 className="font-semibold text-base line-clamp-1">
-                          {vendor.name}
-                        </h3>
-                        {vendor.verified && (
-                          <Shield className="h-4 w-4 text-green-500 flex-shrink-0" />
-                        )}
+                    {/* Rating and Location */}
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <div className="flex items-center space-x-1">
+                        <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                        <span>{vendor.rating} ({vendor.reviews})</span>
                       </div>
-                      
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {vendor.description}
-                      </p>
-
-                      <Badge variant="outline" className="text-xs w-fit">
-                        {vendor.category}
-                      </Badge>
-
-                      {/* Rating and Location */}
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <div className="flex items-center space-x-1">
-                          <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                          <span>{vendor.rating} ({vendor.reviews})</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <MapPin className="h-3 w-3" />
-                          <span>{vendor.city}</span>
-                        </div>
+                      <div className="flex items-center space-x-1">
+                        <MapPin className="h-3 w-3" />
+                        <span>{vendor.city}</span>
                       </div>
+                    </div>
 
-                      {/* Stats */}
-                      <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
-                        <span>{vendor.products_count} products</span>
-                        <span>Since {vendor.established}</span>
-                      </div>
+                    {/* Stats */}
+                    <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
+                      <span>{vendor.products_count} products</span>
+                      <span>Since {vendor.established}</span>
                     </div>
 
                     {/* Action Button */}
