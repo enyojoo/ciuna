@@ -13,6 +13,11 @@ export const metadata: Metadata = {
   description: 'The marketplace for foreigners living in Russia. Buy, sell, and find services in your community.',
   keywords: ['expat', 'marketplace', 'russia', 'buy', 'sell', 'services'],
   authors: [{ name: 'Ciuna Team' }],
+  icons: {
+    icon: '/Ciuna Favicon.svg',
+    shortcut: '/Ciuna Favicon.svg',
+    apple: '/Ciuna Favicon.svg',
+  },
   openGraph: {
     title: 'Ciuna - Expat Marketplace in Russia',
     description: 'The marketplace for foreigners living in Russia',

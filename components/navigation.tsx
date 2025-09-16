@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { 
   Menu, 
   ShoppingCart, 
@@ -265,12 +266,13 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-            <div className="flex items-center space-x-1">
-              <div className="w-6 h-6 rounded-full bg-orange-500"></div>
-              <div className="w-6 h-6 rounded-full bg-blue-500"></div>
-              <div className="w-6 h-6 rounded-full bg-green-500"></div>
-              <div className="w-6 h-6 rounded-full bg-red-500"></div>
-            </div>
+            <Image
+              src="/Ciuna logo.svg"
+              alt="Ciuna Logo"
+              width={32}
+              height={32}
+              className="h-8 w-8"
+            />
             <span className="text-2xl font-bold text-gray-900">Ciuna</span>
           </Link>
 
@@ -485,12 +487,13 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
             <SheetContent side="right" className="w-[300px] sm:w-[400px]">
               <div className="flex flex-col space-y-4">
                   <div className="flex items-center space-x-2">
-                    <div className="flex items-center space-x-1">
-                      <div className="w-4 h-4 rounded-full bg-orange-500"></div>
-                      <div className="w-4 h-4 rounded-full bg-blue-500"></div>
-                      <div className="w-4 h-4 rounded-full bg-green-500"></div>
-                      <div className="w-4 h-4 rounded-full bg-red-500"></div>
-                    </div>
+                    <Image
+                      src="/Ciuna logo.svg"
+                      alt="Ciuna Logo"
+                      width={24}
+                      height={24}
+                      className="h-6 w-6"
+                    />
                     <span className="text-lg font-bold text-gray-900">Ciuna</span>
                   </div>
 
