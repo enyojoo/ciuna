@@ -60,17 +60,9 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
   const imageUrl = isListing || isJob || isService ? item.photo_urls?.[0] : item.image
   const imageAlt = item.title
 
-  // Determine the link based on item type
+  // All items use the listings route
   const getItemLink = () => {
-    if (isProduct) {
-      return `/products/${item.id}`
-    } else if (isJob) {
-      return `/jobs/${item.id}`
-    } else if (isService) {
-      return `/services/${item.id}`
-    } else {
-      return `/listings/${item.id}`
-    }
+    return `/listings/${item.id}`
   }
 
   return (
