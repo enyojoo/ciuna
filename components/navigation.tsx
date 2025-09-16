@@ -204,7 +204,7 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
       {/* Top Bar */}
       <div className="border-b border-gray-200 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-8 text-sm">
+          <div className="flex items-center justify-between h-10 text-sm">
             {/* Left side - Business links */}
             <div className="flex items-center space-x-6">
               <Link href="/business" className="text-gray-600 hover:text-gray-900">
@@ -408,7 +408,7 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
           </div>
 
           {/* User Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
             {user ? (
               <>
                 <Button variant="ghost" size="icon" className="relative">
@@ -470,11 +470,7 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
                   </DropdownMenuContent>
                 </DropdownMenu>
               </>
-            ) : (
-              <div className="text-sm text-gray-500">
-                Sign in to access your account
-              </div>
-            )}
+            ) : null}
           </div>
 
           {/* Mobile Menu */}
@@ -526,68 +522,68 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
                   })}
                   </div>
 
-                 {user ? (
-                   <div className="flex flex-col space-y-2">
-                     <div className="flex items-center space-x-2 p-2">
-                       <Avatar className="h-8 w-8">
-                         <AvatarImage src={user.avatar_url || undefined} alt={user.name} />
-                         <AvatarFallback>
-                           {user.first_name?.[0]}{user.last_name?.[0]}
-                         </AvatarFallback>
-                       </Avatar>
-                       <div className="flex flex-col">
-                         <p className="text-sm font-medium">{user.first_name} {user.last_name}</p>
-                         <p className="text-xs text-muted-foreground">{user.email}</p>
-                       </div>
-                     </div>
-                     {userNav.map((item) => {
-                       const Icon = item.icon
-                       return (
-                         <Link
-                           key={item.name}
-                           href={item.href}
-                           className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
-                           onClick={() => setIsOpen(false)}
-                         >
-                           <Icon className="h-4 w-4" />
-                           {item.name}
-                           {'badge' in item && item.badge && (
-                             <Badge variant="secondary" className="text-xs">
-                               {item.badge}
-                             </Badge>
-                           )}
-                         </Link>
-                       )
-                     })}
-                     <Button
-                       variant="ghost"
-                       className="justify-start"
-                       onClick={() => {
-                         onSignOut?.()
-                         setIsOpen(false)
-                       }}
-                     >
-                       <LogOut className="mr-2 h-4 w-4" />
-                       Sign Out
-                     </Button>
-                   </div>
-                 ) : (
-                   <div className="flex flex-col space-y-2">
+                {user ? (
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex items-center space-x-2 p-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.avatar_url || undefined} alt={user.name} />
+                        <AvatarFallback>
+                          {user.first_name?.[0]}{user.last_name?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <p className="text-sm font-medium">{user.first_name} {user.last_name}</p>
+                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                      </div>
+                    </div>
+                    {userNav.map((item) => {
+                      const Icon = item.icon
+                      return (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <Icon className="h-4 w-4" />
+                          {item.name}
+                          {'badge' in item && item.badge && (
+                            <Badge variant="secondary" className="text-xs">
+                              {item.badge}
+                            </Badge>
+                          )}
+                        </Link>
+                      )
+                    })}
+                    <Button
+                      variant="ghost"
+                      className="justify-start"
+                      onClick={() => {
+                        onSignOut?.()
+                        setIsOpen(false)
+                      }}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col space-y-2">
                      <div className="text-sm text-gray-500 mb-2">
                        Sign in to access your account
                      </div>
-                     <Button variant="ghost" asChild>
+                    <Button variant="ghost" asChild>
                        <Link href="/user/auth/sign-in" onClick={() => setIsOpen(false)}>
-                         Sign In
-                       </Link>
-                     </Button>
+                        Sign In
+                      </Link>
+                    </Button>
                      <Button asChild className="bg-blue-600 hover:bg-blue-700">
                        <Link href="/user/auth/sign-up" onClick={() => setIsOpen(false)}>
-                         Sign Up
-                       </Link>
-                     </Button>
-                   </div>
-                 )}
+                        Sign Up
+                      </Link>
+                    </Button>
+                  </div>
+                )}
               </div>
             </SheetContent>
           </Sheet>
