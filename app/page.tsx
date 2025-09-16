@@ -521,34 +521,23 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           {/* Category Slider */}
           <div className="mb-8">
-            <div className="relative">
+            <div className="flex items-center justify-center space-x-4">
               {/* Left scroll button */}
               {canScrollLeft && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md hover:bg-gray-50"
+                  className="flex-shrink-0 bg-white shadow-sm hover:bg-gray-50 border-gray-200"
                   onClick={scrollLeft}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
               )}
               
-              {/* Right scroll button */}
-              {canScrollRight && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md hover:bg-gray-50"
-                  onClick={scrollRight}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              )}
-
+              {/* Category badges container */}
               <div 
                 ref={scrollContainerRef}
-                className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide"
+                className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide max-w-4xl"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
                 {categories.map((category) => {
@@ -570,6 +559,18 @@ export default function HomePage() {
                   )
                 })}
               </div>
+
+              {/* Right scroll button */}
+              {canScrollRight && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-shrink-0 bg-white shadow-sm hover:bg-gray-50 border-gray-200"
+                  onClick={scrollRight}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
 

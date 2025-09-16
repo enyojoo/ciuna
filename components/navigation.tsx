@@ -313,9 +313,15 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
               onClick={() => setIsCategoryOpen(!isCategoryOpen)}
             >
               {isCategoryOpen ? (
-                <X className="h-4 w-4" />
+                <>
+                  <X className="h-4 w-4 mr-2" />
+                  All Categories
+                </>
               ) : (
-                <Grid3X3 className="h-4 w-4" />
+                <>
+                  <Grid3X3 className="h-4 w-4 mr-2" />
+                  All Categories
+                </>
               )}
             </Button>
 
