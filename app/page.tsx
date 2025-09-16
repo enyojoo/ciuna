@@ -6,12 +6,88 @@ import {
   MapPin, 
   Star, 
   ArrowRight,
-  Shield
+  Shield,
+  Car,
+  Home,
+  Briefcase,
+  Paintbrush,
+  Shirt,
+  Sofa,
+  Smartphone,
+  Gamepad2,
+  Cat
 } from 'lucide-react'
 import Link from 'next/link'
 import { ListingCard } from '@/components/listing-card'
 
 export default function HomePage() {
+
+  // Categories data - same as navigation
+  const categories = [
+    {
+      id: 1,
+      name: 'Transport',
+      icon: Car,
+      color: 'text-green-600',
+      slug: 'transport'
+    },
+    {
+      id: 2,
+      name: 'Real Estate',
+      icon: Home,
+      color: 'text-blue-600',
+      slug: 'real-estate'
+    },
+    {
+      id: 3,
+      name: 'Jobs',
+      icon: Briefcase,
+      color: 'text-purple-600',
+      slug: 'jobs'
+    },
+    {
+      id: 4,
+      name: 'Services',
+      icon: Paintbrush,
+      color: 'text-orange-600',
+      slug: 'services'
+    },
+    {
+      id: 5,
+      name: 'Personal Items',
+      icon: Shirt,
+      color: 'text-pink-600',
+      slug: 'personal-items'
+    },
+    {
+      id: 6,
+      name: 'Home & Garden',
+      icon: Sofa,
+      color: 'text-green-600',
+      slug: 'home-garden'
+    },
+    {
+      id: 7,
+      name: 'Electronics',
+      icon: Smartphone,
+      color: 'text-blue-600',
+      slug: 'electronics'
+    },
+    {
+      id: 8,
+      name: 'Hobbies & Recreation',
+      icon: Gamepad2,
+      color: 'text-yellow-600',
+      slug: 'hobbies-recreation'
+    },
+    {
+      id: 9,
+      name: 'Animals',
+      icon: Cat,
+      color: 'text-orange-600',
+      slug: 'animals'
+    }
+  ]
 
   // Unified listings data - mixing both ads and products
   const unifiedListings: Array<{
@@ -355,6 +431,31 @@ export default function HomePage() {
       {/* Listings Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
+          {/* Category Badges */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-4">Browse by Category</h2>
+            <div className="flex flex-wrap gap-3">
+              {categories.map((category) => {
+                const Icon = category.icon
+                return (
+                  <Link
+                    key={category.id}
+                    href={`/categories/${category.slug}`}
+                    className="group"
+                  >
+                    <Badge 
+                      variant="outline" 
+                      className="flex items-center space-x-2 px-4 py-2 h-10 hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer"
+                    >
+                      <Icon className={`h-4 w-4 ${category.color} group-hover:text-primary-foreground`} />
+                      <span className="text-sm font-medium">{category.name}</span>
+                    </Badge>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+
           {/* 4 columns x 3 rows grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {unifiedListings.map((item) => (

@@ -69,16 +69,15 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
           className="object-cover group-hover:scale-105 transition-transform duration-300"
         />
         
-        {/* Condition Badge */}
-        <div className="absolute top-2 left-2">
+        {/* Type Badge */}
+        <div className="absolute top-2 right-12">
           <Badge 
-            variant={isListing ? "secondary" : "default"} 
+            variant={isProduct ? "secondary" : "outline"} 
             className="text-xs"
           >
-            {item.condition}
+            {isProduct ? 'New' : isJob ? 'Job' : isService ? 'Service' : 'Used'}
           </Badge>
         </div>
-
 
         {/* Out of Stock Overlay for Products */}
         {!isListing && !item.inStock && (
@@ -175,11 +174,13 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
             className="flex-1 h-8"
             disabled={isProduct && !item.inStock}
           >
-            <MessageCircle className="h-3 w-3 mr-1" />
-            {isProduct ? (item.inStock ? 'Buy Now' : 'Out of Stock') : 
-             isJob ? 'Apply' : 
-             isService ? 'Book' : 
-             'Contact'}
+            {isProduct ? (item.inStock ? 'Add to Cart' : 'Out of Stock') : 
+             isJob ? 'Apply Now' : 
+             isService ? 'Book Now' : 
+             'Contact Seller'}
+          </Button>
+          <Button variant="outline" size="sm" className="h-8">
+            <MessageCircle className="h-3 w-3" />
           </Button>
         </div>
       </CardContent>
