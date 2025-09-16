@@ -301,9 +301,9 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
             <Image
               src="/Ciuna logo.svg"
               alt="Ciuna Logo"
-              width={48}
+              width={120}
               height={48}
-              className="h-12 w-12"
+              className="h-12 w-auto object-contain"
             />
           </Link>
 
@@ -521,9 +521,9 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
                     <Image
                       src="/Ciuna logo.svg"
                       alt="Ciuna Logo"
-                      width={40}
+                      width={100}
                       height={40}
-                      className="h-10 w-10"
+                      className="h-10 w-auto object-contain"
                     />
                   </div>
 
