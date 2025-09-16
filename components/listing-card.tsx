@@ -24,6 +24,7 @@ interface ListingCardProps {
       last_name: string
       verified_expat: boolean
       country_of_origin: string
+      profile_image?: string
     }
     created_at?: string
     // For products
@@ -33,17 +34,20 @@ interface ListingCardProps {
       verified: boolean
       rating: number
       city: string
+      profile_image?: string
     }
     inStock?: boolean
     // For jobs
     company?: string
     employment_type?: string
+    company_logo?: string
     // For services
     provider?: {
       name: string
       verified: boolean
       rating: number
       city: string
+      profile_image?: string
     }
     duration?: string
   }
@@ -129,6 +133,25 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
               {isProduct ? (
                 // Product vendor info
                 <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
+                    {item.vendor?.profile_image ? (
+                      <Image
+                        src={item.vendor.profile_image}
+                        alt={item.vendor.name}
+                        width={24}
+                        height={24}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Image
+                        src="/placeholder-user.jpg"
+                        alt="User placeholder"
+                        width={24}
+                        height={24}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </div>
                   <span className="text-sm font-medium truncate">
                     {item.vendor?.name}
                   </span>
@@ -139,6 +162,25 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
               ) : isService ? (
                 // Service provider info
                 <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
+                    {item.provider?.profile_image ? (
+                      <Image
+                        src={item.provider.profile_image}
+                        alt={item.provider.name}
+                        width={24}
+                        height={24}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Image
+                        src="/placeholder-user.jpg"
+                        alt="User placeholder"
+                        width={24}
+                        height={24}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </div>
                   <span className="text-sm font-medium truncate">
                     {item.provider?.name}
                   </span>
@@ -149,6 +191,25 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
               ) : isJob ? (
                 // Job company info
                 <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
+                    {item.company_logo ? (
+                      <Image
+                        src={item.company_logo}
+                        alt={item.company || 'Company'}
+                        width={24}
+                        height={24}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Image
+                        src="/placeholder-user.jpg"
+                        alt="Company placeholder"
+                        width={24}
+                        height={24}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </div>
                   <span className="text-sm font-medium truncate">
                     {item.company}
                   </span>
@@ -156,6 +217,25 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
               ) : (
                 // Listing seller info
                 <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
+                    {item.seller?.profile_image ? (
+                      <Image
+                        src={item.seller.profile_image}
+                        alt={`${item.seller.first_name} ${item.seller.last_name}`}
+                        width={24}
+                        height={24}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Image
+                        src="/placeholder-user.jpg"
+                        alt="User placeholder"
+                        width={24}
+                        height={24}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </div>
                   <span className="text-sm font-medium truncate">
                     {item.seller?.first_name} {item.seller?.last_name}
               </span>
