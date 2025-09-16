@@ -118,6 +118,19 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
 
         <CardContent className="p-4 flex flex-col flex-1">
           <div className="space-y-3 flex-1">
+          {/* Date and Location */}
+          <div className="flex items-center space-x-1">
+            <Clock className="h-3 w-3 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">
+              {item.created_at ? new Date(item.created_at).toLocaleDateString() : ''}
+            </span>
+            <span className="text-xs text-muted-foreground">•</span>
+            <MapPin className="h-3 w-3 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">
+              {item.city}
+            </span>
+          </div>
+
           {/* Title */}
             <h3 className="font-semibold line-clamp-2 group-hover:text-primary transition-colors text-sm">
               {item.title}
@@ -125,7 +138,7 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
 
           {/* Price */}
           <div className="text-lg font-bold text-primary">
-              {item.price.toLocaleString()}₽
+              {isService ? 'From ' : ''}{item.price.toLocaleString()}₽
           </div>
 
             {/* Seller/Vendor/Provider Info */}
@@ -244,19 +257,6 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
               )}
             </div>
           )}
-
-              {/* Date and Location */}
-              <div className="flex items-center space-x-1">
-                <Clock className="h-3 w-3 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">
-                  {item.created_at ? new Date(item.created_at).toLocaleDateString() : ''}
-                </span>
-                <span className="text-xs text-muted-foreground">•</span>
-                <MapPin className="h-3 w-3 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">
-                  {item.city}
-                </span>
-              </div>
             </div>
           </div>
 
