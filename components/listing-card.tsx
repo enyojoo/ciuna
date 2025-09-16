@@ -84,8 +84,7 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
           {!isService && (
             <div className="absolute top-2 right-12">
               <Badge 
-                variant={isProduct ? "secondary" : "outline"} 
-                className="text-xs"
+                className="text-xs bg-primary text-primary-foreground border-primary"
               >
                 {isProduct ? 'New' : isJob ? 'Job' : 'Used'}
               </Badge>
@@ -101,19 +100,17 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
         </div>
           )}
 
-        {/* Favorite Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background/80 hover:scale-110 transition-all duration-200"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              onFavorite?.(item.id)
-            }}
-          >
-            <Heart className={`h-4 w-4 transition-all duration-200 ${isFavorite ? 'fill-primary text-primary' : 'text-gray-500 hover:text-primary'}`} />
-        </Button>
+        {/* Favorite Icon */}
+        <div
+          className="absolute top-2 right-2 h-8 w-8 flex items-center justify-center cursor-pointer hover:scale-110 transition-all duration-200"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            onFavorite?.(item.id)
+          }}
+        >
+          <Heart className={`h-4 w-4 transition-all duration-200 ${isFavorite ? 'fill-primary text-primary' : 'text-gray-500 hover:text-primary'}`} />
+        </div>
       </div>
 
         <CardContent className="p-4 flex flex-col flex-1">
