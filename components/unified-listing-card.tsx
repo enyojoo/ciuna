@@ -72,7 +72,7 @@ export function UnifiedListingCard({ item, onFavorite, isFavorite }: UnifiedList
             variant={isListing ? "outline" : "secondary"} 
             className="text-xs"
           >
-            {isListing ? 'P2P Listing' : 'Vendor Product'}
+            {isListing ? 'Used' : 'New'}
           </Badge>
         </div>
 
@@ -178,7 +178,7 @@ export function UnifiedListingCard({ item, onFavorite, isFavorite }: UnifiedList
               className="flex-1 h-8"
               disabled={!isListing && !item.inStock}
             >
-              {isListing ? 'Contact Seller' : (item.inStock ? 'Buy Now' : 'Out of Stock')}
+              {isListing ? 'Contact Seller' : (item.inStock ? 'Add to Cart' : 'Out of Stock')}
             </Button>
             <Button variant="outline" size="sm" className="h-8">
               <MessageCircle className="h-3 w-3" />

@@ -55,10 +55,10 @@ import { UserRole } from '@/lib/auth/access-control'
 import { NavigationItem } from '@/lib/navigation/role-navigation'
 
 interface NavigationProps {
-  user?: {
-    email?: string;
-    name?: string;
-    role?: string;
+  user?: { 
+    email?: string; 
+    name?: string; 
+    role?: string; 
     avatar_url?: string | null;
     first_name?: string;
     last_name?: string;
@@ -221,7 +221,7 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
               </Link>
               <Link href="/ihelp" className="text-gray-600 hover:text-gray-900">
                 #iHelp
-              </Link>
+        </Link>
             </div>
 
             {/* Right side - User actions */}
@@ -236,6 +236,25 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
                 <FileText className="h-4 w-4" />
                 <span>My Listings</span>
               </Link>
+              
+              {/* Auth in top bar */}
+              {user ? (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">Welcome, {user.first_name}</span>
+                  <Button variant="ghost" size="sm" onClick={onSignOut}>
+                    Sign Out
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/user/auth/sign-in">Sign In</Link>
+                  </Button>
+                  <Button size="sm" asChild className="bg-blue-600 hover:bg-blue-700">
+                    <Link href="/user/auth/sign-up">Sign Up</Link>
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -327,19 +346,65 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search listings, services, products..."
+                placeholder="Search by ads..."
                 className="pl-10 pr-20 py-2 h-10 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
               <Button className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 px-4 bg-blue-600 hover:bg-blue-700">
                 Find
-              </Button>
+          </Button>
             </div>
           </div>
 
-          {/* Location */}
-          <div className="flex items-center space-x-1 text-gray-600">
-            <MapPin className="h-4 w-4" />
-            <span className="text-sm font-medium">Moscow</span>
+          {/* Location Dropdown */}
+          <div className="relative">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center space-x-1 text-gray-600 hover:text-gray-900">
+                  <MapPin className="h-4 w-4" />
+                  <span className="text-sm font-medium">Moscow</span>
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-48" align="end">
+                <div className="p-2">
+                  <h4 className="font-medium text-gray-900 mb-2">Select City</h4>
+                  <div className="space-y-1">
+                    <DropdownMenuItem className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4 text-blue-600" />
+                      <span>Moscow</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <span>St. Petersburg</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <span>Novosibirsk</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <span>Yekaterinburg</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <span>Kazan</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <span>Nizhny Novgorod</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <span>Chelyabinsk</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <span>Samara</span>
+                    </DropdownMenuItem>
+                  </div>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* User Actions */}
@@ -406,28 +471,23 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
                 </DropdownMenu>
               </>
             ) : (
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" asChild>
-                  <Link href="/user/auth/sign-in">Sign In</Link>
-                </Button>
-                <Button asChild className="bg-blue-600 hover:bg-blue-700">
-                  <Link href="/user/auth/sign-up">Sign Up</Link>
-                </Button>
+              <div className="text-sm text-gray-500">
+                Sign in to access your account
               </div>
             )}
           </div>
 
           {/* Mobile Menu */}
-          <div className="md:hidden">
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                <div className="flex flex-col space-y-4">
+        <div className="md:hidden">
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <div className="flex flex-col space-y-4">
                   <div className="flex items-center space-x-2">
                     <div className="flex items-center space-x-1">
                       <div className="w-4 h-4 rounded-full bg-red-500"></div>
@@ -442,92 +502,95 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
-                      placeholder="Search listings, services..."
+                      placeholder="Search items, services..."
                       className="pl-10 pr-4 py-2 h-10"
                     />
-                  </div>
-
+                </div>
+                
                   {/* Mobile Categories */}
                   <div className="space-y-2">
                     <h3 className="font-semibold text-gray-900">Categories</h3>
                     {categories.slice(0, 6).map((category) => {
                       const Icon = category.icon
-                      return (
-                        <Link
+                    return (
+                      <Link
                           key={category.id}
                           href={`/categories/${category.name.toLowerCase()}`}
                           className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded"
-                          onClick={() => setIsOpen(false)}
-                        >
+                        onClick={() => setIsOpen(false)}
+                      >
                           <Icon className={`h-5 w-5 ${category.color}`} />
                           <span className="text-sm font-medium text-gray-900">{category.name}</span>
-                        </Link>
-                      )
-                    })}
+                      </Link>
+                    )
+                  })}
                   </div>
 
-                  {user ? (
-                    <div className="flex flex-col space-y-2">
-                      <div className="flex items-center space-x-2 p-2">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={user.avatar_url || undefined} alt={user.name} />
-                          <AvatarFallback>
-                            {user.first_name?.[0]}{user.last_name?.[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                          <p className="text-sm font-medium">{user.first_name} {user.last_name}</p>
-                          <p className="text-xs text-muted-foreground">{user.email}</p>
-                        </div>
-                      </div>
-                      {userNav.map((item) => {
-                        const Icon = item.icon
-                        return (
-                          <Link
-                            key={item.name}
-                            href={item.href}
-                            className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
-                            onClick={() => setIsOpen(false)}
-                          >
-                            <Icon className="h-4 w-4" />
-                            {item.name}
-                            {'badge' in item && item.badge && (
-                              <Badge variant="secondary" className="text-xs">
-                                {item.badge}
-                              </Badge>
-                            )}
-                          </Link>
-                        )
-                      })}
-                      <Button
-                        variant="ghost"
-                        className="justify-start"
-                        onClick={() => {
-                          onSignOut?.()
-                          setIsOpen(false)
-                        }}
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Sign Out
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col space-y-2">
-                      <Button variant="ghost" asChild>
-                        <Link href="/user/auth/sign-in" onClick={() => setIsOpen(false)}>
-                          Sign In
-                        </Link>
-                      </Button>
-                      <Button asChild className="bg-blue-600 hover:bg-blue-700">
-                        <Link href="/user/auth/sign-up" onClick={() => setIsOpen(false)}>
-                          Sign Up
-                        </Link>
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </SheetContent>
-            </Sheet>
+                 {user ? (
+                   <div className="flex flex-col space-y-2">
+                     <div className="flex items-center space-x-2 p-2">
+                       <Avatar className="h-8 w-8">
+                         <AvatarImage src={user.avatar_url || undefined} alt={user.name} />
+                         <AvatarFallback>
+                           {user.first_name?.[0]}{user.last_name?.[0]}
+                         </AvatarFallback>
+                       </Avatar>
+                       <div className="flex flex-col">
+                         <p className="text-sm font-medium">{user.first_name} {user.last_name}</p>
+                         <p className="text-xs text-muted-foreground">{user.email}</p>
+                       </div>
+                     </div>
+                     {userNav.map((item) => {
+                       const Icon = item.icon
+                       return (
+                         <Link
+                           key={item.name}
+                           href={item.href}
+                           className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
+                           onClick={() => setIsOpen(false)}
+                         >
+                           <Icon className="h-4 w-4" />
+                           {item.name}
+                           {'badge' in item && item.badge && (
+                             <Badge variant="secondary" className="text-xs">
+                               {item.badge}
+                             </Badge>
+                           )}
+                         </Link>
+                       )
+                     })}
+                     <Button
+                       variant="ghost"
+                       className="justify-start"
+                       onClick={() => {
+                         onSignOut?.()
+                         setIsOpen(false)
+                       }}
+                     >
+                       <LogOut className="mr-2 h-4 w-4" />
+                       Sign Out
+                     </Button>
+                   </div>
+                 ) : (
+                   <div className="flex flex-col space-y-2">
+                     <div className="text-sm text-gray-500 mb-2">
+                       Sign in to access your account
+                     </div>
+                     <Button variant="ghost" asChild>
+                       <Link href="/user/auth/sign-in" onClick={() => setIsOpen(false)}>
+                         Sign In
+                       </Link>
+                     </Button>
+                     <Button asChild className="bg-blue-600 hover:bg-blue-700">
+                       <Link href="/user/auth/sign-up" onClick={() => setIsOpen(false)}>
+                         Sign Up
+                       </Link>
+                     </Button>
+                   </div>
+                 )}
+              </div>
+            </SheetContent>
+          </Sheet>
           </div>
         </div>
       </div>
