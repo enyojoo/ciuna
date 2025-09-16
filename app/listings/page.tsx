@@ -1,5 +1,5 @@
 'use client'
-import { UnifiedListingCard } from '@/components/unified-listing-card'
+import { ListingCard } from '@/components/listing-card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -389,7 +389,7 @@ export default function ListingsPage() {
         {mockListings.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {mockListings.map((listing) => (
-              <UnifiedListingCard 
+              <ListingCard 
                 key={listing.id} 
                 item={{
                   id: listing.id,

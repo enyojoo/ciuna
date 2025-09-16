@@ -6,13 +6,10 @@ import {
   MapPin, 
   Star, 
   ArrowRight,
-  Shield,
-  Globe,
-  Users,
-  ShoppingBag
+  Shield
 } from 'lucide-react'
 import Link from 'next/link'
-import { UnifiedListingCard } from '@/components/unified-listing-card'
+import { ListingCard } from '@/components/listing-card'
 
 export default function HomePage() {
 
@@ -337,12 +334,6 @@ export default function HomePage() {
 
 
 
-  const stats = [
-    { label: 'Active Expats', value: '12,500+', icon: Users },
-    { label: 'Live Listings', value: '8,900+', icon: ShoppingBag },
-    { label: 'Cities', value: '15+', icon: MapPin },
-    { label: 'Languages', value: '6', icon: Globe }
-  ]
 
   return (
     <div className="min-h-screen bg-background">
@@ -352,27 +343,11 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold tracking-tight sm:text-6xl text-balance mb-6">
-              Your <span className="text-primary">Expat Marketplace</span> in Russia
+              #1 <span className="text-primary">Expat Marketplace</span> in Russia
             </h1>
             <p className="text-xl leading-8 text-muted-foreground max-w-3xl mx-auto text-balance mb-8">
               Buy, sell, and discover amazing items from fellow expats. Connect with trusted vendors and find the services you need.
             </p>
-          </div>
-
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-            {stats.map((stat) => {
-              const Icon = stat.icon
-              return (
-              <div key={stat.label} className="text-center">
-                  <div className="flex items-center justify-center mb-2">
-                    <Icon className="h-6 w-6 text-primary mr-2" />
-                    <div className="text-2xl font-bold text-primary">{stat.value}</div>
-                  </div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
-              </div>
-              )
-            })}
           </div>
         </div>
       </section>
@@ -383,7 +358,7 @@ export default function HomePage() {
           {/* 4 columns x 3 rows grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {unifiedListings.map((item) => (
-              <UnifiedListingCard key={item.id} item={item} />
+              <ListingCard key={item.id} item={item} />
             ))}
           </div>
           
@@ -460,15 +435,15 @@ export default function HomePage() {
                             <span className="text-xs text-muted-foreground">
                               {service.provider.rating} ({service.provider.reviews})
                             </span>
-                          </div>
-                        </div>
-                      </div>
+                  </div>
+          </div>
+        </div>
                       <div className="flex items-center text-xs text-muted-foreground">
                         <MapPin className="h-3 w-3 mr-1" />
                         <span>{service.provider.city}</span>
                       </div>
-                    </div>
-
+          </div>
+          
                     {/* Price and Duration */}
                     <div className="flex items-center justify-between pt-2 border-t">
                       <div>

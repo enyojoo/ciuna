@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { 
@@ -56,6 +56,21 @@ interface NavigationProps {
 export function Navigation({ user, onSignOut }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
+  const categoryDropdownRef = useRef<HTMLDivElement>(null)
+
+  // Close category dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+        setIsCategoryOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   const userNav = [
     { name: 'My Ads', href: '/my-ads', icon: FileText },
@@ -290,7 +305,7 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
           </Link>
 
           {/* Categories Button */}
-          <div className="relative">
+          <div className="relative" ref={categoryDropdownRef}>
             <Button
               variant="outline"
               className="bg-primary text-primary-foreground border-primary hover:bg-primary/90 hover:text-primary-foreground px-6 py-2 h-10"

@@ -15,7 +15,7 @@ import {
   ArrowLeft
 } from 'lucide-react'
 import Link from 'next/link'
-import { UnifiedListingCard } from '@/components/unified-listing-card'
+import { ListingCard } from '@/components/listing-card'
 
 // Category data - in real app, this would come from Supabase
 const categories = [
@@ -455,7 +455,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
               {viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {mockListings.map((item) => (
-                    <UnifiedListingCard key={item.id} item={item} />
+                    <ListingCard key={item.id} item={item} />
                   ))}
                 </div>
               ) : (
