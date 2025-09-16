@@ -6,14 +6,10 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Search, 
-  Filter, 
   Grid, 
   List, 
-  Star, 
-  MapPin, 
   Heart,
   ChevronRight,
   ArrowLeft
@@ -281,7 +277,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
         <div className="container mx-auto px-4 py-16">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-foreground mb-4">Category Not Found</h1>
-            <p className="text-muted-foreground mb-8">The category you're looking for doesn't exist.</p>
+            <p className="text-muted-foreground mb-8">The category you&apos;re looking for doesn&apos;t exist.</p>
             <Button asChild>
               <Link href="/">
                 <ArrowLeft className="h-4 w-4 mr-2" />
