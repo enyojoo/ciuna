@@ -23,11 +23,41 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { UnifiedListingCard } from '@/components/unified-listing-card'
 
 export default function HomePage() {
 
-  // Featured listings mock data
-  const featuredListings = [
+  // Unified listings data - mixing both ads and products
+  const unifiedListings: Array<{
+    id: number
+    title: string
+    price: number
+    currency: string
+    condition: string
+    type: 'listing' | 'product'
+    // For listings
+    city?: string
+    district?: string
+    photo_urls?: string[]
+    seller?: {
+      first_name: string
+      last_name: string
+      verified_expat: boolean
+      country_of_origin: string
+    }
+    created_at?: string
+    // For products
+    image?: string
+    vendor?: {
+      name: string
+      verified: boolean
+      rating: number
+      city: string
+    }
+    category?: string
+    inStock?: boolean
+  }> = [
+    // Used items (ads)
     {
       id: 1,
       title: "MacBook Pro M2 - Like New",
@@ -43,10 +73,30 @@ export default function HomePage() {
         verified_expat: true,
         country_of_origin: "US"
       },
-      created_at: "2024-01-15T10:30:00Z"
+      created_at: "2024-01-15T10:30:00Z",
+      type: "listing"
     },
+    // New product from vendor
     {
       id: 2,
+      title: "iPhone 15 Pro Max - 256GB",
+      price: 120000,
+      currency: "RUB",
+      condition: "NEW",
+      image: "/api/placeholder/300/200",
+      vendor: {
+        name: "Expat Electronics Store",
+        verified: true,
+        rating: 4.8,
+        city: "Moscow"
+      },
+      category: "Electronics",
+      inStock: true,
+      type: "product"
+    },
+    // Used item (ad)
+    {
+      id: 3,
       title: "IKEA Dining Set - White",
       price: 25000,
       currency: "RUB",
@@ -60,10 +110,30 @@ export default function HomePage() {
         verified_expat: true,
         country_of_origin: "ES"
       },
-      created_at: "2024-01-14T15:45:00Z"
+      created_at: "2024-01-14T15:45:00Z",
+      type: "listing"
     },
+    // New product from vendor
     {
-      id: 3,
+      id: 4,
+      title: "MacBook Air M2 - 512GB",
+      price: 150000,
+      currency: "RUB",
+      condition: "NEW",
+      image: "/api/placeholder/300/200",
+      vendor: {
+        name: "Expat Electronics Store",
+        verified: true,
+        rating: 4.8,
+        city: "Moscow"
+      },
+      category: "Electronics",
+      inStock: true,
+      type: "product"
+    },
+    // Used item (ad)
+    {
+      id: 5,
       title: "Russian Language Books Set",
       price: 5000,
       currency: "RUB",
@@ -77,10 +147,30 @@ export default function HomePage() {
         verified_expat: true,
         country_of_origin: "CA"
       },
-      created_at: "2024-01-13T09:20:00Z"
+      created_at: "2024-01-13T09:20:00Z",
+      type: "listing"
     },
+    // New product from vendor
     {
-      id: 4,
+      id: 6,
+      title: "IKEA HEMNES Dresser - White",
+      price: 25000,
+      currency: "RUB",
+      condition: "NEW",
+      image: "/api/placeholder/300/200",
+      vendor: {
+        name: "Moscow Furniture Hub",
+        verified: true,
+        rating: 4.6,
+        city: "Moscow"
+      },
+      category: "Furniture",
+      inStock: true,
+      type: "product"
+    },
+    // Used item (ad)
+    {
+      id: 7,
       title: "Winter Coat - Size M",
       price: 8000,
       currency: "RUB",
@@ -94,7 +184,100 @@ export default function HomePage() {
         verified_expat: true,
         country_of_origin: "GB"
       },
-      created_at: "2024-01-12T14:10:00Z"
+      created_at: "2024-01-12T14:10:00Z",
+      type: "listing"
+    },
+    // New product from vendor
+    {
+      id: 8,
+      title: "Designer Winter Coat - Size M",
+      price: 18000,
+      currency: "RUB",
+      condition: "NEW",
+      image: "/api/placeholder/300/200",
+      vendor: {
+        name: "Fashion Forward",
+        verified: true,
+        rating: 4.7,
+        city: "Moscow"
+      },
+      category: "Clothing",
+      inStock: true,
+      type: "product"
+    },
+    // Used item (ad)
+    {
+      id: 9,
+      title: "Gaming Chair - Black",
+      price: 15000,
+      currency: "RUB",
+      condition: "EXCELLENT",
+      city: "Moscow",
+      district: "Zamoskvorechye",
+      photo_urls: ["/api/placeholder/300/200"],
+      seller: {
+        first_name: "Tom",
+        last_name: "Wilson",
+        verified_expat: true,
+        country_of_origin: "Canada"
+      },
+      created_at: "2024-01-11T11:30:00Z",
+      type: "listing"
+    },
+    // New product from vendor
+    {
+      id: 10,
+      title: "Russian Language Learning Set",
+      price: 3500,
+      currency: "RUB",
+      condition: "NEW",
+      image: "/api/placeholder/300/200",
+      vendor: {
+        name: "International Books & Media",
+        verified: false,
+        rating: 4.9,
+        city: "St. Petersburg"
+      },
+      category: "Books",
+      inStock: true,
+      type: "product"
+    },
+    // Used item (ad)
+    {
+      id: 11,
+      title: "Samsung Galaxy S23 - 128GB",
+      price: 45000,
+      currency: "RUB",
+      condition: "LIKE_NEW",
+      city: "Moscow",
+      district: "Presnensky",
+      photo_urls: ["/api/placeholder/300/200"],
+      seller: {
+        first_name: "Sarah",
+        last_name: "Brown",
+        verified_expat: true,
+        country_of_origin: "Australia"
+      },
+      created_at: "2024-01-10T14:15:00Z",
+      type: "listing"
+    },
+    // New product from vendor
+    {
+      id: 12,
+      title: "Samsung Galaxy S24 Ultra",
+      price: 95000,
+      currency: "RUB",
+      condition: "NEW",
+      image: "/api/placeholder/300/200",
+      vendor: {
+        name: "Expat Electronics Store",
+        verified: true,
+        rating: 4.8,
+        city: "Moscow"
+      },
+      category: "Electronics",
+      inStock: false,
+      type: "product"
     }
   ]
 
@@ -164,105 +347,6 @@ export default function HomePage() {
   ]
 
 
-  // Vendor products mock data - matching listings count (6 items)
-  const vendorProducts = [
-    {
-      id: 1,
-      title: "iPhone 15 Pro Max - 256GB",
-      price: 120000,
-      currency: "RUB",
-      condition: "NEW",
-      image: "/api/placeholder/300/200",
-      vendor: {
-        name: "Expat Electronics Store",
-        verified: true,
-        rating: 4.8,
-        city: "Moscow"
-      },
-      category: "Electronics",
-      inStock: true
-    },
-    {
-      id: 2,
-      title: "MacBook Air M2 - 512GB",
-      price: 150000,
-      currency: "RUB",
-      condition: "NEW",
-      image: "/api/placeholder/300/200",
-      vendor: {
-        name: "Expat Electronics Store",
-        verified: true,
-        rating: 4.8,
-        city: "Moscow"
-      },
-      category: "Electronics",
-      inStock: true
-    },
-    {
-      id: 3,
-      title: "IKEA HEMNES Dresser - White",
-      price: 25000,
-      currency: "RUB",
-      condition: "NEW",
-      image: "/api/placeholder/300/200",
-      vendor: {
-        name: "Moscow Furniture Hub",
-        verified: true,
-        rating: 4.6,
-        city: "Moscow"
-      },
-      category: "Furniture",
-      inStock: true
-    },
-    {
-      id: 4,
-      title: "Designer Winter Coat - Size M",
-      price: 18000,
-      currency: "RUB",
-      condition: "NEW",
-      image: "/api/placeholder/300/200",
-      vendor: {
-        name: "Fashion Forward",
-        verified: true,
-        rating: 4.7,
-        city: "Moscow"
-      },
-      category: "Clothing",
-      inStock: true
-    },
-    {
-      id: 5,
-      title: "Russian Language Learning Set",
-      price: 3500,
-      currency: "RUB",
-      condition: "NEW",
-      image: "/api/placeholder/300/200",
-      vendor: {
-        name: "International Books & Media",
-        verified: false,
-        rating: 4.9,
-        city: "St. Petersburg"
-      },
-      category: "Books",
-      inStock: true
-    },
-    {
-      id: 6,
-      title: "Samsung Galaxy S24 Ultra",
-      price: 95000,
-      currency: "RUB",
-      condition: "NEW",
-      image: "/api/placeholder/300/200",
-      vendor: {
-        name: "Expat Electronics Store",
-        verified: true,
-        rating: 4.8,
-        city: "Moscow"
-      },
-      category: "Electronics",
-      inStock: false
-    }
-  ]
 
   const stats = [
     { label: 'Active Expats', value: '12,500+', icon: Users },
@@ -295,7 +379,7 @@ export default function HomePage() {
                 />
                 <Button size="lg" className="absolute right-2 top-1/2 transform -translate-y-1/2">
                   Search
-                </Button>
+              </Button>
               </div>
             </div>
 
@@ -318,186 +402,37 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Listings Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight">Featured Listings</h2>
-              <p className="text-muted-foreground mt-2">Handpicked items from our expat community</p>
-            </div>
-            <Button variant="outline" asChild>
-              <Link href="/listings">
-                View All
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredListings.map((listing) => (
-              <Card key={listing.id} className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <div className="relative aspect-square overflow-hidden">
-                  <Image
-                    src={listing.photo_urls[0]}
-                    alt={listing.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute top-2 left-2">
-                    <Badge variant="secondary" className="text-xs">
-                      {listing.condition.replace('_', ' ')}
-                    </Badge>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background"
-                  >
-                    <Heart className="h-4 w-4" />
-                  </Button>
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold line-clamp-2 group-hover:text-primary transition-colors mb-2">
-                    {listing.title}
-                  </h3>
-                  <div className="text-xl font-bold text-primary mb-2">
-                    {listing.price.toLocaleString()}₽
-                  </div>
-                  <div className="flex items-center text-sm text-muted-foreground mb-3">
-                    <MapPin className="h-3 w-3 mr-1" />
-                    <span>{listing.city}, {listing.district}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-xs font-medium text-primary">
-                          {listing.seller.first_name[0]}{listing.seller.last_name[0]}
-                        </span>
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        {listing.seller.first_name}
-                      </span>
-                      {listing.seller.verified_expat && (
-                        <Shield className="h-3 w-3 text-green-500" />
-                      )}
-                    </div>
-                    <Button size="sm" variant="outline">
-                      <MessageCircle className="h-3 w-3 mr-1" />
-                      Contact
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Vendor Products Section */}
+      {/* Listings for You Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-12">
             <div>
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
-                Products from Vendors
+                Listings for You
               </h2>
               <p className="mt-4 text-lg text-muted-foreground text-balance">
-                Discover new products from trusted local and international vendors
+                A curated mix of used items from expats and new products from trusted vendors
               </p>
             </div>
             <Button variant="outline" asChild>
-              <Link href="/vendors">
-                View All Products
+              <Link href="/listings">
+                View All Listings
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </div>
           
+          {/* First Row - 6 items */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-6">
+            {unifiedListings.slice(0, 6).map((item) => (
+              <UnifiedListingCard key={item.id} item={item} />
+            ))}
+          </div>
+
+          {/* Second Row - 6 items */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-            {vendorProducts.map((product) => (
-              <Card key={product.id} className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <div className="relative aspect-square overflow-hidden">
-                  <Image
-                    src={product.image}
-                    alt={product.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute top-2 left-2">
-                    <Badge variant="secondary" className="text-xs">
-                      {product.condition}
-                    </Badge>
-                  </div>
-                  {!product.inStock && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                      <Badge variant="destructive" className="text-xs">
-                        Out of Stock
-                      </Badge>
-                    </div>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background"
-                  >
-                    <Heart className="h-4 w-4" />
-                  </Button>
-                </div>
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    {/* Product Title */}
-                    <h3 className="font-semibold line-clamp-2 group-hover:text-primary transition-colors text-sm">
-                      {product.title}
-                    </h3>
-
-                    {/* Price */}
-                    <div className="text-lg font-bold text-primary">
-                      {product.price.toLocaleString()}₽
-                    </div>
-
-                    {/* Category */}
-                    <Badge variant="outline" className="text-xs">
-                      {product.category}
-                    </Badge>
-
-                    {/* Vendor Info */}
-                    <div className="space-y-1">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium truncate">
-                          {product.vendor.name}
-                        </span>
-                        {product.vendor.verified && (
-                          <Shield className="h-3 w-3 text-green-500 flex-shrink-0" />
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                        <span className="text-xs text-muted-foreground">
-                          {product.vendor.rating}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          • {product.vendor.city}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex space-x-2 pt-2">
-                      <Button 
-                        size="sm" 
-                        className="flex-1 h-8"
-                        disabled={!product.inStock}
-                      >
-                        {product.inStock ? 'Add to Cart' : 'Out of Stock'}
-                      </Button>
-                      <Button variant="outline" size="sm" className="h-8">
-                        <MessageCircle className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            {unifiedListings.slice(6, 12).map((item) => (
+              <UnifiedListingCard key={item.id} item={item} />
             ))}
           </div>
         </div>
@@ -509,10 +444,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-12">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
                 Featured Services
-              </h2>
-              <p className="mt-4 text-lg text-muted-foreground text-balance">
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground text-balance">
                 Professional services from trusted providers in your expat community
               </p>
             </div>
