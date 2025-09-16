@@ -283,7 +283,7 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
                   <Button variant="ghost" size="sm" asChild>
                     <Link href="/user/auth/sign-in">Sign In</Link>
                   </Button>
-                  <Button size="sm" asChild className="bg-blue-600 hover:bg-blue-700">
+                  <Button size="sm" asChild className="bg-primary hover:bg-primary/90">
                     <Link href="/user/auth/sign-up">Sign Up</Link>
                   </Button>
                 </div>
@@ -311,7 +311,7 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
           <div className="relative">
             <Button
               variant="outline"
-              className="bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:text-white px-6 py-2 h-10"
+              className="bg-primary text-primary-foreground border-primary hover:bg-primary/90 hover:text-primary-foreground px-6 py-2 h-10"
               onClick={() => setIsCategoryOpen(!isCategoryOpen)}
             >
               <Grid3X3 className="h-4 w-4 mr-2" />
@@ -353,7 +353,7 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
                 placeholder="Search for items, services, or vendors..."
                 className="pl-12 pr-24 py-3 h-12 text-base border-2 border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary rounded-lg"
               />
-              <Button size="lg" className="absolute right-2 top-1/2 transform -translate-y-1/2 h-10 px-6">
+              <Button size="lg" className="absolute right-2 top-1/2 transform -translate-y-1/2 h-10 px-6 bg-primary hover:bg-primary/90">
                 Search
               </Button>
             </div>

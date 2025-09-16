@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 
 export function Footer() {
@@ -10,8 +11,14 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-sm" />
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">Ciuna</span>
+              <Image
+                src="/Ciuna logo.svg"
+                alt="Ciuna Logo"
+                width={32}
+                height={32}
+                className="h-8 w-auto object-contain"
+              />
+              <span className="text-xl font-bold text-foreground">Ciuna</span>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
               The trusted marketplace for expats living in Russia. Buy, sell, and connect with your community.
