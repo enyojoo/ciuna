@@ -370,7 +370,7 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-48" align="end">
                 <div className="p-2">
-                  <h4 className="font-medium text-gray-900 mb-2">Select Location</h4>
+                  <h4 className="font-medium text-gray-900 mb-2">Change City</h4>
                   <div className="space-y-1">
                     <DropdownMenuItem className="flex items-center space-x-2">
                       <MapPin className="h-4 w-4 text-primary" />

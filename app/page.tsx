@@ -20,8 +20,42 @@ import {
 import Link from 'next/link'
 import Image from 'next/image'
 import { ListingCard } from '@/components/listing-card'
+import { useState, useRef, useEffect } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 export default function HomePage() {
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+  const checkScrollButtons = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current
+      setCanScrollLeft(scrollLeft > 0)
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1)
+    }
+  }
+
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -200, behavior: 'smooth' })
+    }
+  }
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 200, behavior: 'smooth' })
+    }
+  }
+
+  useEffect(() => {
+    checkScrollButtons()
+    const scrollContainer = scrollContainerRef.current
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', checkScrollButtons)
+      return () => scrollContainer.removeEventListener('scroll', checkScrollButtons)
+    }
+  }, [])
 
   // Categories data - same as navigation
   const categories = [
@@ -469,9 +503,9 @@ export default function HomePage() {
     <div className="min-h-screen bg-background">
       
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary/5 via-background to-secondary/5 pt-16 pb-8 px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-gradient-to-br from-primary/5 via-background to-secondary/5 pt-16 pb-4 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8">
+          <div className="text-center mb-4">
             <h1 className="text-4xl font-bold tracking-tight sm:text-6xl text-balance mb-6">
               #1 <span className="text-primary">Expat Marketplace</span> in Russia
             </h1>
@@ -483,21 +517,40 @@ export default function HomePage() {
       </section>
 
       {/* Listings Section */}
-      <section className="pt-8 pb-16 px-4 sm:px-6 lg:px-8">
+      <section className="pt-2 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Category Slider */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">Categories</h2>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/categories">
-                  View All
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
             <div className="relative">
-              <div className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
+              {/* Left scroll button */}
+              {canScrollLeft && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md hover:bg-gray-50"
+                  onClick={scrollLeft}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+              )}
+              
+              {/* Right scroll button */}
+              {canScrollRight && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md hover:bg-gray-50"
+                  onClick={scrollRight}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              )}
+
+              <div 
+                ref={scrollContainerRef}
+                className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
                 {categories.map((category) => {
                   const Icon = category.icon
                   return (
@@ -513,7 +566,7 @@ export default function HomePage() {
                         <Icon className={`h-4 w-4 ${category.color} group-hover:text-primary-foreground`} />
                         <span className="text-sm font-medium">{category.name}</span>
                       </Badge>
-                </Link>
+                    </Link>
                   )
                 })}
               </div>
