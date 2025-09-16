@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -258,18 +258,42 @@ const mockListings = [
 ]
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 export default function CategoryPage({ params }: CategoryPageProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [sortBy, setSortBy] = useState('newest')
   const [priceRange, setPriceRange] = useState('all')
+  const [slug, setSlug] = useState<string>('')
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const getSlug = async () => {
+      const resolvedParams = await params
+      setSlug(resolvedParams.slug)
+      setIsLoading(false)
+    }
+    getSlug()
+  }, [params])
 
   // Find the category by slug
-  const category = categories.find(cat => cat.slug === params.slug)
+  const category = categories.find(cat => cat.slug === slug)
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading category...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
   
   if (!category) {
     return (

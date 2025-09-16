@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { UserRole } from '@/lib/auth/access-control'
-import { getNavigationByRole, getUserNavigation, getQuickActions } from '@/lib/navigation/role-navigation'
+import { getNavigationByRole, getQuickActions } from '@/lib/navigation/role-navigation'
 import { Navigation } from '@/components/navigation'
 import { Sidebar } from '@/components/layouts/sidebar'
 import { MobileNav } from '@/components/layouts/mobile-nav'
@@ -71,7 +71,6 @@ export function RoleLayout({ children, role }: RoleLayoutProps) {
   }
 
   const navigation = getNavigationByRole(role)
-  const userNavigation = getUserNavigation(role)
   const quickActions = getQuickActions(role)
 
   return (
@@ -79,9 +78,6 @@ export function RoleLayout({ children, role }: RoleLayoutProps) {
       <Navigation 
         user={user} 
         onSignOut={handleSignOut}
-        role={role}
-        navigation={navigation}
-        userNavigation={userNavigation}
       />
       
       <div className="flex">
