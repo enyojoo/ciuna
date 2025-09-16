@@ -2,9 +2,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
 import { 
-  Search, 
   MapPin, 
   Star, 
   ArrowRight,
@@ -359,65 +357,44 @@ export default function HomePage() {
             <p className="text-xl leading-8 text-muted-foreground max-w-3xl mx-auto text-balance mb-8">
               Buy, sell, and discover amazing items from fellow expats. Connect with trusted vendors and find the services you need.
             </p>
-            
-            {/* Search Bar */}
-            <div className="max-w-2xl mx-auto mb-8">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  placeholder="Search for items, services, or vendors..."
-                  className="pl-12 pr-4 py-6 text-lg border-2 focus:border-primary"
-                />
-                <Button size="lg" className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                  Search
-              </Button>
-            </div>
           </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-              {stats.map((stat) => {
-                const Icon = stat.icon
-                return (
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+            {stats.map((stat) => {
+              const Icon = stat.icon
+              return (
               <div key={stat.label} className="text-center">
-                    <div className="flex items-center justify-center mb-2">
-                      <Icon className="h-6 w-6 text-primary mr-2" />
-                      <div className="text-2xl font-bold text-primary">{stat.value}</div>
-                    </div>
+                  <div className="flex items-center justify-center mb-2">
+                    <Icon className="h-6 w-6 text-primary mr-2" />
+                    <div className="text-2xl font-bold text-primary">{stat.value}</div>
+                  </div>
                 <div className="text-sm text-muted-foreground">{stat.label}</div>
               </div>
-                )
-              })}
-            </div>
+              )
+            })}
           </div>
         </div>
       </section>
 
-      {/* Listings for You Section */}
+      {/* Listings Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-12">
-            <div>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
-                Listings for You
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground text-balance">
-                A curated mix of used items from expats and new products from trusted vendors
-              </p>
-            </div>
+          {/* 4 columns x 3 rows grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {unifiedListings.map((item) => (
+              <UnifiedListingCard key={item.id} item={item} />
+            ))}
+          </div>
+          
+          {/* View All Listings Button */}
+          <div className="text-center">
             <Button variant="outline" asChild>
               <Link href="/listings">
                 View All Listings
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-          </div>
-          
-          {/* 4 columns x 3 rows grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {unifiedListings.map((item) => (
-              <UnifiedListingCard key={item.id} item={item} />
-            ))}
           </div>
         </div>
       </section>

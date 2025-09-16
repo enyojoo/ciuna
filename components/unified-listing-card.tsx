@@ -13,8 +13,8 @@ interface UnifiedListingCardProps {
     price: number
     currency: string
     condition: string
-    type: 'listing' | 'product'
-    // For listings
+    type: 'listing' | 'product' | 'job' | 'service'
+    // For listings (used items, job ads, services)
     city?: string
     district?: string
     photo_urls?: string[]
@@ -33,8 +33,18 @@ interface UnifiedListingCardProps {
       rating: number
       city: string
     }
-    category?: string
     inStock?: boolean
+    // For jobs
+    company?: string
+    employment_type?: string
+    // For services
+    provider?: {
+      name: string
+      verified: boolean
+      rating: number
+      city: string
+    }
+    duration?: string
   }
   onFavorite?: (itemId: number) => void
   isFavorite?: boolean
@@ -42,7 +52,11 @@ interface UnifiedListingCardProps {
 
 export function UnifiedListingCard({ item, onFavorite, isFavorite }: UnifiedListingCardProps) {
   const isListing = item.type === 'listing'
-  const imageUrl = isListing ? item.photo_urls?.[0] : item.image
+  const isProduct = item.type === 'product'
+  const isJob = item.type === 'job'
+  const isService = item.type === 'service'
+  
+  const imageUrl = isListing || isJob || isService ? item.photo_urls?.[0] : item.image
   const imageAlt = item.title
 
   return (
@@ -68,10 +82,10 @@ export function UnifiedListingCard({ item, onFavorite, isFavorite }: UnifiedList
         {/* Type Badge */}
         <div className="absolute top-2 right-12">
           <Badge 
-            variant={isListing ? "outline" : "secondary"} 
+            variant={isProduct ? "secondary" : "outline"} 
             className="text-xs"
           >
-            {isListing ? 'Used' : 'New'}
+            {isProduct ? 'New' : isJob ? 'Job' : isService ? 'Service' : 'Used'}
           </Badge>
         </div>
 
@@ -107,26 +121,9 @@ export function UnifiedListingCard({ item, onFavorite, isFavorite }: UnifiedList
             {item.price.toLocaleString()}₽
           </div>
 
-          {/* Category for Products */}
-          {!isListing && item.category && (
-            <Badge variant="outline" className="text-xs">
-              {item.category}
-            </Badge>
-          )}
-
-          {/* Seller/Vendor Info */}
+          {/* Seller/Vendor/Provider Info */}
           <div className="space-y-1">
-            {isListing ? (
-              // Listing seller info
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium truncate">
-                  {item.seller?.first_name} {item.seller?.last_name}
-                </span>
-                {item.seller?.verified_expat && (
-                  <Shield className="h-3 w-3 text-green-500 flex-shrink-0" />
-                )}
-              </div>
-            ) : (
+            {isProduct ? (
               // Product vendor info
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-medium truncate">
@@ -136,24 +133,38 @@ export function UnifiedListingCard({ item, onFavorite, isFavorite }: UnifiedList
                   <Shield className="h-3 w-3 text-green-500 flex-shrink-0" />
                 )}
               </div>
+            ) : isService ? (
+              // Service provider info
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium truncate">
+                  {item.provider?.name}
+                </span>
+                {item.provider?.verified && (
+                  <Shield className="h-3 w-3 text-green-500 flex-shrink-0" />
+                )}
+              </div>
+            ) : isJob ? (
+              // Job company info
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium truncate">
+                  {item.company}
+                </span>
+              </div>
+            ) : (
+              // Listing seller info
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium truncate">
+                  {item.seller?.first_name} {item.seller?.last_name}
+                </span>
+                {item.seller?.verified_expat && (
+                  <Shield className="h-3 w-3 text-green-500 flex-shrink-0" />
+                )}
+              </div>
             )}
 
             {/* Rating and Location */}
             <div className="flex items-center space-x-1">
-              {isListing ? (
-                // Listing info
-                <>
-                  <Clock className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">
-                    {item.created_at ? new Date(item.created_at).toLocaleDateString() : ''}
-                  </span>
-                  <span className="text-xs text-muted-foreground">•</span>
-                  <MapPin className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">
-                    {item.city}, {item.district}
-                  </span>
-                </>
-              ) : (
+              {isProduct ? (
                 // Product info
                 <>
                   <Star className="h-3 w-3 text-yellow-400 fill-current" />
@@ -166,6 +177,45 @@ export function UnifiedListingCard({ item, onFavorite, isFavorite }: UnifiedList
                     {item.vendor?.city}
                   </span>
                 </>
+              ) : isService ? (
+                // Service info
+                <>
+                  <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                  <span className="text-xs text-muted-foreground">
+                    {item.provider?.rating}
+                  </span>
+                  <span className="text-xs text-muted-foreground">•</span>
+                  <MapPin className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">
+                    {item.city}
+                  </span>
+                </>
+              ) : isJob ? (
+                // Job info
+                <>
+                  <Clock className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">
+                    {item.employment_type}
+                  </span>
+                  <span className="text-xs text-muted-foreground">•</span>
+                  <MapPin className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">
+                    {item.city}
+                  </span>
+                </>
+              ) : (
+                // Listing info
+                <>
+                  <Clock className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">
+                    {item.created_at ? new Date(item.created_at).toLocaleDateString() : ''}
+                  </span>
+                  <span className="text-xs text-muted-foreground">•</span>
+                  <MapPin className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">
+                    {item.city}, {item.district}
+                  </span>
+                </>
               )}
             </div>
           </div>
@@ -175,9 +225,12 @@ export function UnifiedListingCard({ item, onFavorite, isFavorite }: UnifiedList
             <Button 
               size="sm" 
               className="flex-1 h-8"
-              disabled={!isListing && !item.inStock}
+              disabled={isProduct && !item.inStock}
             >
-              {isListing ? 'Contact Seller' : (item.inStock ? 'Add to Cart' : 'Out of Stock')}
+              {isProduct ? (item.inStock ? 'Add to Cart' : 'Out of Stock') : 
+               isJob ? 'Apply Now' : 
+               isService ? 'Book Now' : 
+               'Contact Seller'}
             </Button>
             <Button variant="outline" size="sm" className="h-8">
               <MessageCircle className="h-3 w-3" />

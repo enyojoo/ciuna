@@ -10,15 +10,14 @@ export function Footer() {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <div className="flex items-center space-x-2 mb-4">
+            <div className="flex items-center mb-4">
               <Image
                 src="/Ciuna logo.svg"
                 alt="Ciuna Logo"
-                width={32}
-                height={32}
-                className="h-8 w-auto object-contain"
+                width={24}
+                height={24}
+                className="h-6 w-auto object-contain"
               />
-              <span className="text-xl font-bold text-foreground">Ciuna</span>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
               The trusted marketplace for expats living in Russia. Buy, sell, and connect with your community.

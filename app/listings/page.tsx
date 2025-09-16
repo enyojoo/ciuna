@@ -254,9 +254,9 @@ export default function ListingsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold">Listings</h1>
+            <h1 className="text-3xl font-bold">Listings for You</h1>
             <p className="text-muted-foreground mt-2">
-              Discover amazing items from expats in your community
+              A curated mix of used items from expats and new products from trusted vendors
             </p>
           </div>
           <Button asChild className="mt-4 sm:mt-0">
