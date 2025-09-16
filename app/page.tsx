@@ -21,6 +21,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 export default function HomePage() {
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
+  const [favorites, setFavorites] = useState<Set<number>>(new Set())
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const checkScrollButtons = () => {
@@ -41,6 +42,18 @@ export default function HomePage() {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({ left: 200, behavior: 'smooth' })
     }
+  }
+
+  const handleFavorite = (itemId: number) => {
+    setFavorites(prev => {
+      const newFavorites = new Set(prev)
+      if (newFavorites.has(itemId)) {
+        newFavorites.delete(itemId)
+      } else {
+        newFavorites.add(itemId)
+      }
+      return newFavorites
+    })
   }
 
   useEffect(() => {
@@ -584,7 +597,12 @@ export default function HomePage() {
           {/* 4 columns x 3 rows grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {unifiedListings.map((item) => (
-              <ListingCard key={item.id} item={item} />
+              <ListingCard 
+                key={item.id} 
+                item={item} 
+                onFavorite={handleFavorite}
+                isFavorite={favorites.has(item.id)}
+              />
             ))}
           </div>
           
@@ -623,7 +641,12 @@ export default function HomePage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {transformedServices.map((service) => (
-              <ListingCard key={service.id} item={service} />
+              <ListingCard 
+                key={service.id} 
+                item={service} 
+                onFavorite={handleFavorite}
+                isFavorite={favorites.has(service.id)}
+              />
             ))}
           </div>
         </div>
