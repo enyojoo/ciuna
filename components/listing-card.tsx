@@ -133,21 +133,21 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
               {isProduct ? (
                 // Product vendor info
                 <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border-2 border-primary">
                     {item.vendor?.profile_image ? (
                       <Image
                         src={item.vendor.profile_image}
                         alt={item.vendor.name}
-                        width={24}
-                        height={24}
+                        width={32}
+                        height={32}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <Image
                         src="/placeholder-user.jpg"
                         alt="User placeholder"
-                        width={24}
-                        height={24}
+                        width={32}
+                        height={32}
                         className="w-full h-full object-cover"
                       />
                     )}
@@ -162,21 +162,21 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
               ) : isService ? (
                 // Service provider info
                 <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border-2 border-primary">
                     {item.provider?.profile_image ? (
                       <Image
                         src={item.provider.profile_image}
                         alt={item.provider.name}
-                        width={24}
-                        height={24}
+                        width={32}
+                        height={32}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <Image
                         src="/placeholder-user.jpg"
                         alt="User placeholder"
-                        width={24}
-                        height={24}
+                        width={32}
+                        height={32}
                         className="w-full h-full object-cover"
                       />
                     )}
@@ -191,21 +191,21 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
               ) : isJob ? (
                 // Job company info
                 <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border-2 border-primary">
                     {item.company_logo ? (
                       <Image
                         src={item.company_logo}
                         alt={item.company || 'Company'}
-                        width={24}
-                        height={24}
+                        width={32}
+                        height={32}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <Image
                         src="/placeholder-user.jpg"
                         alt="Company placeholder"
-                        width={24}
-                        height={24}
+                        width={32}
+                        height={32}
                         className="w-full h-full object-cover"
                       />
                     )}
@@ -217,21 +217,21 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
               ) : (
                 // Listing seller info
                 <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border-2 border-primary">
                     {item.seller?.profile_image ? (
                       <Image
                         src={item.seller.profile_image}
                         alt={`${item.seller.first_name} ${item.seller.last_name}`}
-                        width={24}
-                        height={24}
+                        width={32}
+                        height={32}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <Image
                         src="/placeholder-user.jpg"
                         alt="User placeholder"
-                        width={24}
-                        height={24}
+                        width={32}
+                        height={32}
                         className="w-full h-full object-cover"
                       />
                     )}
