@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import { 
   Search, 
   Grid, 
@@ -15,6 +16,7 @@ import {
   ArrowLeft
 } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ListingCard } from '@/components/listing-card'
 
 // Category data - in real app, this would come from Supabase
@@ -163,7 +165,8 @@ const mockListings = [
       first_name: "John",
       last_name: "Smith",
       verified_expat: true,
-      country_of_origin: "US"
+      country_of_origin: "US",
+      profile_image: "/api/placeholder/300/200"
     },
     created_at: "2024-01-15T10:30:00Z",
     type: "listing" as const
@@ -179,7 +182,8 @@ const mockListings = [
       name: "Expat Electronics Store",
       verified: true,
       rating: 4.8,
-      city: "Moscow"
+      city: "Moscow",
+      profile_image: "/api/placeholder/300/200"
     },
     category: "Electronics",
     inStock: true,
@@ -198,7 +202,8 @@ const mockListings = [
       first_name: "Maria",
       last_name: "Garcia",
       verified_expat: true,
-      country_of_origin: "ES"
+      country_of_origin: "ES",
+      profile_image: "/api/placeholder/300/200"
     },
     created_at: "2024-01-14T15:45:00Z",
     type: "listing" as const
@@ -233,7 +238,8 @@ const mockListings = [
       first_name: "Alex",
       last_name: "Johnson",
       verified_expat: true,
-      country_of_origin: "CA"
+      country_of_origin: "CA",
+      profile_image: "/api/placeholder/300/200"
     },
     created_at: "2024-01-13T09:20:00Z",
     type: "listing" as const
@@ -249,11 +255,43 @@ const mockListings = [
       name: "Moscow Furniture Hub",
       verified: true,
       rating: 4.6,
-      city: "Moscow"
+      city: "Moscow",
+      profile_image: "/api/placeholder/300/200"
     },
     category: "Furniture",
     inStock: true,
     type: "product" as const
+  },
+  {
+    id: 7,
+    title: "Senior Software Engineer",
+    price: 0,
+    currency: "RUB",
+    condition: "NEW",
+    city: "Moscow",
+    company: "TechCorp Russia",
+    company_logo: "/api/placeholder/300/200",
+    employment_type: "Full-time",
+    created_at: "2024-01-12T14:30:00Z",
+    type: "job" as const
+  },
+  {
+    id: 8,
+    title: "Russian Language Tutoring",
+    price: 2000,
+    currency: "RUB",
+    condition: "NEW",
+    city: "Moscow",
+    provider: {
+      name: "Maria Petrov",
+      verified: true,
+      rating: 4.9,
+      city: "Moscow",
+      profile_image: "/api/placeholder/300/200"
+    },
+    duration: "1 hour",
+    created_at: "2024-01-11T09:15:00Z",
+    type: "service" as const
   }
 ]
 
@@ -266,9 +304,13 @@ interface CategoryPageProps {
 export default function CategoryPage({ params }: CategoryPageProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [sortBy, setSortBy] = useState('newest')
-  const [priceRange, setPriceRange] = useState('all')
+  const [minPrice, setMinPrice] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
+  const [filterNew, setFilterNew] = useState(false)
+  const [filterUsed, setFilterUsed] = useState(false)
   const [slug, setSlug] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
+  const [favorites, setFavorites] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     const getSlug = async () => {
@@ -278,6 +320,18 @@ export default function CategoryPage({ params }: CategoryPageProps) {
     }
     getSlug()
   }, [params])
+
+  const handleFavorite = (itemId: number) => {
+    setFavorites(prev => {
+      const newFavorites = new Set(prev)
+      if (newFavorites.has(itemId)) {
+        newFavorites.delete(itemId)
+      } else {
+        newFavorites.add(itemId)
+      }
+      return newFavorites
+    })
+  }
 
   // Find the category by slug
   const category = categories.find(cat => cat.slug === slug)
@@ -342,8 +396,6 @@ export default function CategoryPage({ params }: CategoryPageProps) {
               </p>
               <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                 <span>{mockListings.length} items available</span>
-                <span>•</span>
-                <span>Updated daily</span>
               </div>
             </div>
           </div>
@@ -379,21 +431,82 @@ export default function CategoryPage({ params }: CategoryPageProps) {
             <Card>
               <CardContent className="p-6">
                 <h3 className="font-semibold text-foreground mb-4">Filters</h3>
-                <div className="space-y-4">
+                <div className="space-y-6">
+                  {/* Price Range */}
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Price Range</label>
-                    <Select value={priceRange} onValueChange={setPriceRange}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Prices</SelectItem>
-                        <SelectItem value="0-10000">Under 10,000₽</SelectItem>
-                        <SelectItem value="10000-50000">10,000₽ - 50,000₽</SelectItem>
-                        <SelectItem value="50000-100000">50,000₽ - 100,000₽</SelectItem>
-                        <SelectItem value="100000+">Over 100,000₽</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <label className="text-sm font-medium text-foreground mb-3 block">Price Range</label>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">Min Price (₽)</label>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          value={minPrice}
+                          onChange={(e) => setMinPrice(e.target.value)}
+                          className="text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">Max Price (₽)</label>
+                        <Input
+                          type="number"
+                          placeholder="No limit"
+                          value={maxPrice}
+                          onChange={(e) => setMaxPrice(e.target.value)}
+                          className="text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Condition Filters */}
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-3 block">Condition</label>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="filter-new"
+                          checked={filterNew}
+                          onCheckedChange={(checked) => setFilterNew(checked as boolean)}
+                        />
+                        <label
+                          htmlFor="filter-new"
+                          className="text-sm text-foreground cursor-pointer"
+                        >
+                          New
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="filter-used"
+                          checked={filterUsed}
+                          onCheckedChange={(checked) => setFilterUsed(checked as boolean)}
+                        />
+                        <label
+                          htmlFor="filter-used"
+                          className="text-sm text-foreground cursor-pointer"
+                        >
+                          Used
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Clear Filters */}
+                  <div className="pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        setMinPrice('')
+                        setMaxPrice('')
+                        setFilterNew(false)
+                        setFilterUsed(false)
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -455,40 +568,159 @@ export default function CategoryPage({ params }: CategoryPageProps) {
               {viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {mockListings.map((item) => (
-                    <ListingCard key={item.id} item={item} />
+                    <ListingCard 
+                      key={item.id} 
+                      item={item} 
+                      onFavorite={handleFavorite}
+                      isFavorite={favorites.has(item.id)}
+                    />
                   ))}
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {mockListings.map((item) => (
-                    <Card key={item.id} className="p-4">
-                      <div className="flex space-x-4">
-                        <div className="w-24 h-24 bg-muted rounded-lg flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-foreground mb-2">{item.title}</h3>
-                          <p className="text-2xl font-bold text-primary mb-2">
-                            {item.price.toLocaleString()}₽
-                          </p>
-                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                            <span>{item.condition.replace('_', ' ')}</span>
-                            {item.type === 'listing' ? (
-                              <span>{item.city}, {item.district}</span>
-                            ) : (
-                              <span>{item.vendor?.name}</span>
-                            )}
+                  {mockListings.map((item) => {
+                    const isListing = item.type === 'listing'
+                    const isProduct = item.type === 'product'
+                    const isJob = item.type === 'job'
+                    const isService = item.type === 'service'
+                    const imageUrl = isListing || isJob || isService ? item.photo_urls?.[0] : item.image
+                    const imageAlt = item.title
+                    
+                    return (
+                      <Card key={item.id} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                        <CardContent className="p-6">
+                          <div className="flex space-x-6">
+                            {/* Image */}
+                            <div className="relative w-32 h-32 bg-muted rounded-lg flex-shrink-0 overflow-hidden">
+                              <Image
+                                src={imageUrl || '/api/placeholder/300/200'}
+                                alt={imageAlt}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                              
+                              {/* Type Badge - Hide for services */}
+                              {!isService && (
+                                <div className="absolute top-2 right-2">
+                                  <Badge 
+                                    className="text-xs bg-primary text-primary-foreground border-primary"
+                                  >
+                                    {isProduct ? 'New' : isJob ? 'Job' : 'Used'}
+                                  </Badge>
+                                </div>
+                              )}
+
+                              {/* Favorite Icon */}
+                              <div
+                                className="absolute top-2 left-2 h-6 w-6 flex items-center justify-center cursor-pointer hover:scale-110 transition-all duration-200"
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  handleFavorite(item.id)
+                                }}
+                              >
+                                <Heart className={`h-5 w-5 transition-all duration-200 ${favorites.has(item.id) ? 'fill-primary text-primary' : 'text-gray-500 hover:text-primary'}`} />
+                              </div>
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              {/* Date and Location */}
+                              <div className="flex items-center space-x-1 mb-2">
+                                <span className="text-xs text-muted-foreground">
+                                  {item.created_at ? new Date(item.created_at).toLocaleDateString() : ''}
+                                </span>
+                                <span className="text-xs text-muted-foreground">•</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {item.city}
+                                </span>
+                              </div>
+
+                              {/* Title */}
+                              <h3 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                                {item.title}
+                              </h3>
+
+                              {/* Price */}
+                              <div className="text-xl font-bold text-primary mb-3">
+                                {isService ? <span className="text-sm font-normal text-black">From </span> : ''}{item.price.toLocaleString()}₽
+                              </div>
+
+                              {/* Seller/Vendor/Provider Info */}
+                              <div className="flex items-center space-x-2 mb-4">
+                                <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 border-2 border-primary">
+                                  {isProduct && item.vendor?.profile_image ? (
+                                    <Image
+                                      src={item.vendor.profile_image}
+                                      alt={item.vendor.name}
+                                      width={24}
+                                      height={24}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : isService && item.provider?.profile_image ? (
+                                    <Image
+                                      src={item.provider.profile_image}
+                                      alt={item.provider.name}
+                                      width={24}
+                                      height={24}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : isJob && item.company_logo ? (
+                                    <Image
+                                      src={item.company_logo}
+                                      alt={item.company || 'Company'}
+                                      width={24}
+                                      height={24}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : isListing && item.seller?.profile_image ? (
+                                    <Image
+                                      src={item.seller.profile_image}
+                                      alt={`${item.seller.first_name} ${item.seller.last_name}`}
+                                      width={24}
+                                      height={24}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <Image
+                                      src="/placeholder-user.jpg"
+                                      alt="User placeholder"
+                                      width={24}
+                                      height={24}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  )}
+                                </div>
+                                <span className="text-sm font-medium truncate">
+                                  {isProduct ? item.vendor?.name :
+                                   isService ? item.provider?.name :
+                                   isJob ? item.company :
+                                   `${item.seller?.first_name} ${item.seller?.last_name}`}
+                                </span>
+                                {(isProduct && item.vendor?.verified) || 
+                                 (isService && item.provider?.verified) || 
+                                 (isListing && item.seller?.verified_expat) ? (
+                                  <div className="w-3 h-3 bg-green-500 rounded-full flex-shrink-0" />
+                                ) : null}
+                              </div>
+
+                              {/* Action Button */}
+                              <Button 
+                                size="sm" 
+                                className="w-full"
+                                disabled={isProduct && !item.inStock}
+                              >
+                                {isProduct ? (item.inStock ? 'Add to Cart' : 'Out of Stock') : 
+                                 isJob ? 'Apply Now' : 
+                                 isService ? 'Book Now' : 
+                                 'Contact Seller'}
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex flex-col space-y-2">
-                          <Button variant="outline" size="sm">
-                            <Heart className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm">
-                            {item.type === 'listing' ? 'Contact' : 'Add to Cart'}
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
                 </div>
               )}
             </div>

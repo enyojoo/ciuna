@@ -1,7 +1,6 @@
 'use client'
 
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { 
   Car, 
   Home, 
@@ -12,8 +11,7 @@ import {
   Smartphone, 
   Gamepad2, 
   Cat,
-  ChevronRight,
-  Search
+  ChevronRight
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -28,8 +26,7 @@ const categories = [
     bgColor: 'bg-blue-50',
     description: 'Cars, motorcycles, trucks, and transportation-related items',
     listingCount: 1247,
-    productCount: 89,
-    featured: true
+    productCount: 89
   },
   {
     id: 2,
@@ -40,8 +37,7 @@ const categories = [
     bgColor: 'bg-green-50',
     description: 'Apartments, houses, commercial properties, and land',
     listingCount: 892,
-    productCount: 156,
-    featured: true
+    productCount: 156
   },
   {
     id: 3,
@@ -52,8 +48,7 @@ const categories = [
     bgColor: 'bg-purple-50',
     description: 'Employment opportunities across various industries',
     listingCount: 456,
-    productCount: 0,
-    featured: false
+    productCount: 0
   },
   {
     id: 4,
@@ -64,8 +59,7 @@ const categories = [
     bgColor: 'bg-orange-50',
     description: 'Professional services for the expat community',
     listingCount: 234,
-    productCount: 67,
-    featured: true
+    productCount: 67
   },
   {
     id: 5,
@@ -76,8 +70,7 @@ const categories = [
     bgColor: 'bg-pink-50',
     description: 'Clothing, accessories, and personal belongings',
     listingCount: 1234,
-    productCount: 345,
-    featured: false
+    productCount: 345
   },
   {
     id: 6,
@@ -88,8 +81,7 @@ const categories = [
     bgColor: 'bg-green-50',
     description: 'Furniture, appliances, and home improvement items',
     listingCount: 789,
-    productCount: 234,
-    featured: false
+    productCount: 234
   },
   {
     id: 7,
@@ -100,8 +92,7 @@ const categories = [
     bgColor: 'bg-blue-50',
     description: 'Phones, computers, audio equipment, and gadgets',
     listingCount: 567,
-    productCount: 345,
-    featured: true
+    productCount: 345
   },
   {
     id: 8,
@@ -112,8 +103,7 @@ const categories = [
     bgColor: 'bg-yellow-50',
     description: 'Sports, music, books, and recreational activities',
     listingCount: 456,
-    productCount: 123,
-    featured: false
+    productCount: 123
   },
   {
     id: 9,
@@ -124,14 +114,11 @@ const categories = [
     bgColor: 'bg-orange-50',
     description: 'Pets, pet supplies, and animal-related items',
     listingCount: 234,
-    productCount: 45,
-    featured: false
+    productCount: 45
   }
 ]
 
 export default function CategoriesPage() {
-  const featuredCategories = categories.filter(cat => cat.featured)
-  const otherCategories = categories.filter(cat => !cat.featured)
 
   return (
     <div className="min-h-screen bg-background">
@@ -146,51 +133,30 @@ export default function CategoriesPage() {
               Discover items and services across all categories in our expat marketplace
             </p>
           </div>
-
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto mb-8">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search categories..."
-                className="w-full pl-12 pr-4 py-3 text-base border-2 border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary rounded-lg bg-background"
-              />
-            </div>
-          </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-12">
-        {/* Featured Categories */}
-        <div className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-foreground">Featured Categories</h2>
-            <Badge variant="secondary" className="text-sm">
-              Most Popular
-            </Badge>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredCategories.map((category) => {
-              const Icon = category.icon
-              return (
-                <Link key={category.id} href={`/categories/${category.slug}`}>
-                  <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer overflow-hidden">
-                    <CardContent className="p-0">
-                      <div className={`${category.bgColor} p-8 text-center`}>
-                        <div className="flex justify-center mb-4">
-                          <div className={`p-4 rounded-full ${category.bgColor} border-2 border-white shadow-lg`}>
-                            <Icon className={`h-8 w-8 ${category.color}`} />
-                          </div>
-                        </div>
-                        <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+        {/* Categories Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {categories.map((category) => {
+            const Icon = category.icon
+            return (
+              <Link key={category.id} href={`/categories/${category.slug}`}>
+                <Card className="group hover:shadow-md transition-all duration-200 hover:-translate-y-1 cursor-pointer">
+                  <CardContent className="p-6">
+                    <div className="flex items-center space-x-4">
+                      <div className={`p-3 rounded-lg ${category.bgColor} flex-shrink-0`}>
+                        <Icon className={`h-6 w-6 ${category.color}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors mb-1">
                           {category.name}
                         </h3>
-                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                        <p className="text-sm text-muted-foreground mb-2 line-clamp-1">
                           {category.description}
                         </p>
-                        <div className="flex justify-center space-x-4 text-xs text-muted-foreground">
+                        <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                           <span>{category.listingCount} listings</span>
                           {category.productCount > 0 && (
                             <>
@@ -200,60 +166,13 @@ export default function CategoriesPage() {
                           )}
                         </div>
                       </div>
-                      <div className="p-4 border-t bg-background">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-foreground">Browse Category</span>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* All Categories */}
-        <div>
-          <h2 className="text-3xl font-bold text-foreground mb-8">All Categories</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {otherCategories.map((category) => {
-              const Icon = category.icon
-              return (
-                <Link key={category.id} href={`/categories/${category.slug}`}>
-                  <Card className="group hover:shadow-md transition-all duration-200 hover:-translate-y-1 cursor-pointer">
-                    <CardContent className="p-6">
-                      <div className="flex items-center space-x-4">
-                        <div className={`p-3 rounded-lg ${category.bgColor} flex-shrink-0`}>
-                          <Icon className={`h-6 w-6 ${category.color}`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors mb-1">
-                            {category.name}
-                          </h3>
-                          <p className="text-sm text-muted-foreground mb-2 line-clamp-1">
-                            {category.description}
-                          </p>
-                          <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                            <span>{category.listingCount} listings</span>
-                            {category.productCount > 0 && (
-                              <>
-                                <span>•</span>
-                                <span>{category.productCount} products</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              )
-            })}
-          </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )
+          })}
         </div>
 
         {/* Stats Section */}
