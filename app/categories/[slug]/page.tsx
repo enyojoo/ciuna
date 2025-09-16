@@ -13,7 +13,8 @@ import {
   List, 
   Heart,
   ChevronRight,
-  ArrowLeft
+  ArrowLeft,
+  Shield
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -598,29 +599,6 @@ export default function CategoryPage({ params }: CategoryPageProps) {
                                 fill
                                 className="object-cover group-hover:scale-105 transition-transform duration-300"
                               />
-                              
-                              {/* Type Badge - Hide for services */}
-                              {!isService && (
-                                <div className="absolute top-2 right-2">
-                                  <Badge 
-                                    className="text-xs bg-primary text-primary-foreground border-primary"
-                                  >
-                                    {isProduct ? 'New' : isJob ? 'Job' : 'Used'}
-                                  </Badge>
-                                </div>
-                              )}
-
-                              {/* Favorite Icon */}
-                              <div
-                                className="absolute top-2 left-2 h-6 w-6 flex items-center justify-center cursor-pointer hover:scale-110 transition-all duration-200"
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  handleFavorite(item.id)
-                                }}
-                              >
-                                <Heart className={`h-5 w-5 transition-all duration-200 ${favorites.has(item.id) ? 'fill-primary text-primary' : 'text-gray-500 hover:text-primary'}`} />
-                              </div>
                             </div>
 
                             {/* Content */}
@@ -700,14 +678,37 @@ export default function CategoryPage({ params }: CategoryPageProps) {
                                 {(isProduct && item.vendor?.verified) || 
                                  (isService && item.provider?.verified) || 
                                  (isListing && item.seller?.verified_expat) ? (
-                                  <div className="w-3 h-3 bg-green-500 rounded-full flex-shrink-0" />
+                                  <Shield className="h-3 w-3 text-green-500 flex-shrink-0" />
                                 ) : null}
+                              </div>
+                            </div>
+
+                            {/* Right Side - Badge, Favorite, Action Button */}
+                            <div className="flex flex-col items-end space-y-3">
+                              {/* Type Badge - Hide for services */}
+                              {!isService && (
+                                <Badge 
+                                  className="text-xs bg-primary text-primary-foreground border-primary"
+                                >
+                                  {isProduct ? 'New' : isJob ? 'Job' : 'Used'}
+                                </Badge>
+                              )}
+
+                              {/* Favorite Icon */}
+                              <div
+                                className="h-6 w-6 flex items-center justify-center cursor-pointer hover:scale-110 transition-all duration-200"
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  handleFavorite(item.id)
+                                }}
+                              >
+                                <Heart className={`h-5 w-5 transition-all duration-200 ${favorites.has(item.id) ? 'fill-primary text-primary' : 'text-gray-500 hover:text-primary'}`} />
                               </div>
 
                               {/* Action Button */}
                               <Button 
                                 size="sm" 
-                                className="w-full"
                                 disabled={isProduct && !item.inStock}
                               >
                                 {isProduct ? (item.inStock ? 'Add to Cart' : 'Out of Stock') : 
