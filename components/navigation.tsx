@@ -321,53 +321,24 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
 
             {/* Category Dropdown */}
             {isCategoryOpen && (
-              <div className="absolute top-full left-0 mt-2 w-[800px] bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                <div className="flex">
-                  {/* Left Column - Main Categories */}
-                  <div className="w-1/3 border-r border-gray-200">
-                    <div className="p-4">
-                      <h3 className="font-semibold text-gray-900 mb-3">Categories</h3>
-                      <div className="space-y-1">
-                        {categories.map((category) => {
-                          const Icon = category.icon
-                          return (
-                            <div key={category.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded cursor-pointer">
-                              <div className="flex items-center space-x-3">
-                                <Icon className={`h-5 w-5 ${category.color}`} />
-                                <span className="text-sm font-medium text-gray-900">{category.name}</span>
-                              </div>
-                              <ChevronRight className="h-4 w-4 text-gray-400" />
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Column - Subcategories */}
-                  <div className="w-2/3 p-4">
-                    <h3 className="font-semibold text-gray-900 mb-3">Transport</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Transport</h4>
-                        <div className="space-y-1">
-                          <Link href="/categories/transport/cars" className="block text-sm text-gray-600 hover:text-blue-600">Cars</Link>
-                          <Link href="/categories/transport/motorcycles" className="block text-sm text-gray-600 hover:text-blue-600">Motorcycles</Link>
-                          <Link href="/categories/transport/trucks" className="block text-sm text-gray-600 hover:text-blue-600">Trucks</Link>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Services</h4>
-                        <div className="bg-blue-50 p-3 rounded-lg">
-                          <div className="space-y-1">
-                            <Link href="/services/car-valuation" className="block text-sm text-blue-600 hover:text-blue-700">Car Valuation</Link>
-                            <Link href="/services/car-history" className="block text-sm text-blue-600 hover:text-blue-700">Car History Check</Link>
-                            <Link href="/services/insurance" className="block text-sm text-blue-600 hover:text-blue-700">Insurance</Link>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+              <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                <div className="p-4">
+                  <h3 className="font-semibold text-gray-900 mb-3">Categories</h3>
+                  <div className="space-y-1">
+                    {categories.map((category) => {
+                      const Icon = category.icon
+                      return (
+                        <Link
+                          key={category.id}
+                          href={`/categories/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
+                          className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+                          onClick={() => setIsCategoryOpen(false)}
+                        >
+                          <Icon className={`h-5 w-5 ${category.color}`} />
+                          <span className="text-sm font-medium text-gray-900">{category.name}</span>
+                        </Link>
+                      )
+                    })}
                   </div>
                 </div>
               </div>
