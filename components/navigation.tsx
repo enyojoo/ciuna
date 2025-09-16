@@ -377,14 +377,14 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
           {/* Search Bar */}
           <div className="flex-1 max-w-2xl mx-8">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder="Search by ads..."
-                className="pl-10 pr-20 py-2 h-10 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                placeholder="Search for items, services, or vendors..."
+                className="pl-12 pr-24 py-3 h-12 text-base border-2 border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary rounded-lg"
               />
-              <Button className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 px-4 bg-blue-600 hover:bg-blue-700">
-                Find
-          </Button>
+              <Button size="lg" className="absolute right-2 top-1/2 transform -translate-y-1/2 h-10 px-6">
+                Search
+              </Button>
             </div>
           </div>
 
@@ -529,10 +529,10 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
 
                   {/* Mobile Search Bar */}
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
-                      placeholder="Search items, services..."
-                      className="pl-10 pr-4 py-2 h-10"
+                      placeholder="Search for items, services, or vendors..."
+                      className="pl-12 pr-4 py-3 h-12 text-base border-2 border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary rounded-lg"
                     />
                 </div>
                 
