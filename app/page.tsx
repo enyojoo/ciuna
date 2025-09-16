@@ -422,16 +422,9 @@ export default function HomePage() {
             </Button>
           </div>
           
-          {/* First Row - 6 items */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-6">
-            {unifiedListings.slice(0, 6).map((item) => (
-              <UnifiedListingCard key={item.id} item={item} />
-            ))}
-          </div>
-
-          {/* Second Row - 6 items */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-            {unifiedListings.slice(6, 12).map((item) => (
+          {/* 4 columns x 3 rows grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {unifiedListings.map((item) => (
               <UnifiedListingCard key={item.id} item={item} />
             ))}
           </div>
