@@ -229,12 +229,12 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/sell/new" className="flex items-center space-x-1">
                   <Plus className="h-4 w-4" />
-                  <span>Place an Ad</span>
+                  <span>Create Listing</span>
                 </Link>
               </Button>
-              <Link href="/my-ads" className="text-gray-600 hover:text-gray-900 flex items-center space-x-1">
+              <Link href="/my-listings" className="text-gray-600 hover:text-gray-900 flex items-center space-x-1">
                 <FileText className="h-4 w-4" />
-                <span>My Ads</span>
+                <span>My Listings</span>
               </Link>
             </div>
           </div>
@@ -327,7 +327,7 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search by ads..."
+                placeholder="Search listings, services, products..."
                 className="pl-10 pr-20 py-2 h-10 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
               <Button className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 px-4 bg-blue-600 hover:bg-blue-700">
@@ -442,7 +442,7 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
-                      placeholder="Search items, services..."
+                      placeholder="Search listings, services..."
                       className="pl-10 pr-4 py-2 h-10"
                     />
                   </div>

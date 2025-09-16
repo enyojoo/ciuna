@@ -14,7 +14,7 @@ export function Footer() {
               <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">Ciuna</span>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
-              The trusted marketplace for expats living in Russia. Buy, sell, and connect with your community.
+              The trusted listing marketplace for expats living in Russia. List your items and services, discover what you need, and connect with your community.
             </p>
             <div className="flex space-x-2">
               {['EN', 'RU', 'FR', 'ZH', 'AR', 'ES'].map((lang) => (
@@ -28,7 +28,7 @@ export function Footer() {
             <h3 className="font-semibold mb-4">Marketplace</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/listings" className="hover:text-foreground transition-colors">Browse Listings</Link></li>
-              <li><Link href="/sell/new" className="hover:text-foreground transition-colors">Sell Items</Link></li>
+              <li><Link href="/sell/new" className="hover:text-foreground transition-colors">Create Listing</Link></li>
               <li><Link href="/vendors" className="hover:text-foreground transition-colors">Vendors</Link></li>
               <li><Link href="/services" className="hover:text-foreground transition-colors">Services</Link></li>
               <li><Link href="/categories" className="hover:text-foreground transition-colors">Categories</Link></li>

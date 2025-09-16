@@ -350,7 +350,7 @@ export default function HomePage() {
 
   const stats = [
     { label: 'Active Expats', value: '12,500+', icon: Users },
-    { label: 'Live Listings', value: '8,900+', icon: ShoppingBag },
+    { label: 'Active Listings', value: '8,900+', icon: ShoppingBag },
     { label: 'Cities', value: '15+', icon: MapPin },
     { label: 'Languages', value: '6', icon: Globe }
   ]
@@ -363,10 +363,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold tracking-tight sm:text-6xl text-balance mb-6">
-              Your <span className="text-primary">Expat Marketplace</span> in Russia
+              Your <span className="text-primary">Expat Listing Marketplace</span> in Russia
             </h1>
             <p className="text-xl leading-8 text-muted-foreground max-w-3xl mx-auto text-balance mb-8">
-              Buy, sell, and discover amazing items from fellow expats. Connect with trusted vendors and find the services you need.
+              List your items and services, discover what you need from fellow expats, and connect with trusted vendors in your community.
             </p>
             
             {/* Search Bar */}
@@ -374,7 +374,7 @@ export default function HomePage() {
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
-                  placeholder="Search for items, services, or vendors..."
+                  placeholder="Search listings, services, or products..."
                   className="pl-12 pr-4 py-6 text-lg border-2 focus:border-primary"
                 />
                 <Button size="lg" className="absolute right-2 top-1/2 transform -translate-y-1/2">
@@ -408,11 +408,11 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-12">
             <div>
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
-                Listings for You
+              Listings for You
             </h2>
             <p className="mt-4 text-lg text-muted-foreground text-balance">
-                A curated mix of used items from expats and new products from trusted vendors
-              </p>
+              Discover used items from fellow expats and new products from trusted vendors
+            </p>
             </div>
             <Button variant="outline" asChild>
               <Link href="/listings">
@@ -527,16 +527,16 @@ export default function HomePage() {
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-primary/10 via-background to-secondary/10">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
-            Join the Expat Community
-          </h2>
-          <p className="mt-4 text-lg text-muted-foreground text-balance">
-            Connect with fellow expats, buy and sell items, and find the services you need in Russia
-          </p>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
+              Join the Expat Community
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground text-balance">
+              Connect with fellow expats, list your items and services, and find everything you need in Russia
+            </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg">
               <Link href="/user/auth/sign-up">
-                Start Selling
+                Create Your First Listing
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
