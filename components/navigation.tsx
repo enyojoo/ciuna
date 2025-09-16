@@ -266,10 +266,10 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
             <div className="flex items-center space-x-1">
-              <div className="w-6 h-6 rounded-full bg-red-500"></div>
-              <div className="w-6 h-6 rounded-full bg-green-500"></div>
-              <div className="w-6 h-6 rounded-full bg-blue-500"></div>
               <div className="w-6 h-6 rounded-full bg-orange-500"></div>
+              <div className="w-6 h-6 rounded-full bg-blue-500"></div>
+              <div className="w-6 h-6 rounded-full bg-green-500"></div>
+              <div className="w-6 h-6 rounded-full bg-red-500"></div>
             </div>
             <span className="text-2xl font-bold text-gray-900">Ciuna</span>
           </Link>
@@ -486,10 +486,10 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
               <div className="flex flex-col space-y-4">
                   <div className="flex items-center space-x-2">
                     <div className="flex items-center space-x-1">
-                      <div className="w-4 h-4 rounded-full bg-red-500"></div>
-                      <div className="w-4 h-4 rounded-full bg-green-500"></div>
-                      <div className="w-4 h-4 rounded-full bg-blue-500"></div>
                       <div className="w-4 h-4 rounded-full bg-orange-500"></div>
+                      <div className="w-4 h-4 rounded-full bg-blue-500"></div>
+                      <div className="w-4 h-4 rounded-full bg-green-500"></div>
+                      <div className="w-4 h-4 rounded-full bg-red-500"></div>
                     </div>
                     <span className="text-lg font-bold text-gray-900">Ciuna</span>
                   </div>
