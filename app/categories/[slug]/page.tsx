@@ -407,27 +407,6 @@ export default function CategoryPage({ params }: CategoryPageProps) {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
           <div className="lg:w-64 space-y-6">
-            {/* Subcategories */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-foreground mb-4">Subcategories</h3>
-                <div className="space-y-2">
-                  {category.subcategories.map((sub) => (
-                    <Link
-                      key={sub.slug}
-                      href={`/categories/${category.slug}/${sub.slug}`}
-                      className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                    >
-                      <span className="text-sm text-foreground">{sub.name}</span>
-                      <Badge variant="secondary" className="text-xs">
-                        {sub.count}
-                      </Badge>
-                    </Link>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Filters */}
             <Card>
               <CardContent className="p-6">
@@ -438,20 +417,20 @@ export default function CategoryPage({ params }: CategoryPageProps) {
                     <label className="text-sm font-medium text-foreground mb-3 block">Price Range</label>
                     <div className="space-y-3">
                       <div>
-                        <label className="text-xs text-muted-foreground mb-1 block">Min Price (₽)</label>
+                        <label className="text-xs text-muted-foreground mb-1 block">Min Price</label>
                         <Input
                           type="number"
-                          placeholder="0"
+                          placeholder="From"
                           value={minPrice}
                           onChange={(e) => setMinPrice(e.target.value)}
                           className="text-sm"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-muted-foreground mb-1 block">Max Price (₽)</label>
+                        <label className="text-xs text-muted-foreground mb-1 block">Max Price</label>
                         <Input
                           type="number"
-                          placeholder="No limit"
+                          placeholder="To"
                           value={maxPrice}
                           onChange={(e) => setMaxPrice(e.target.value)}
                           className="text-sm"
