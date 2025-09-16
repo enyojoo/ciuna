@@ -233,12 +233,50 @@ export function Navigation({ user, onSignOut, navigation, userNavigation }: Navi
                     <FileText className="h-4 w-4" />
                     <span>My Listings</span>
                   </Link>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">Welcome, {user.first_name}</span>
-                    <Button variant="ghost" size="sm" onClick={onSignOut}>
-                      Sign Out
-                    </Button>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={user.avatar_url || undefined} alt={user.name} />
+                          <AvatarFallback>
+                            {user.first_name?.[0]}{user.last_name?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                      <div className="flex items-center justify-start gap-2 p-2">
+                        <div className="flex flex-col space-y-1 leading-none">
+                          <p className="font-medium">{user.first_name} {user.last_name}</p>
+                          <p className="w-[200px] truncate text-sm text-muted-foreground">
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+                      <DropdownMenuSeparator />
+                      {userNav.map((item) => {
+                        const Icon = item.icon
+                        return (
+                          <DropdownMenuItem key={item.name} asChild>
+                            <Link href={item.href} className="flex items-center">
+                              <Icon className="mr-2 h-4 w-4" />
+                              {item.name}
+                              {'badge' in item && item.badge && (
+                                <Badge variant="secondary" className="ml-auto text-xs">
+                                  {item.badge}
+                                </Badge>
+                              )}
+                            </Link>
+                          </DropdownMenuItem>
+                        )
+                      })}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={onSignOut}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign Out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </>
               ) : (
                 <div className="flex items-center space-x-2">
