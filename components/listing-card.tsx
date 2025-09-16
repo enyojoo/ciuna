@@ -105,14 +105,14 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background"
+          className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background/90 hover:scale-110 transition-all duration-200"
             onClick={(e) => {
               e.preventDefault()
               e.stopPropagation()
               onFavorite?.(item.id)
             }}
           >
-            <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
+            <Heart className={`h-4 w-4 transition-all duration-200 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-500 hover:text-red-500'}`} />
         </Button>
       </div>
 
