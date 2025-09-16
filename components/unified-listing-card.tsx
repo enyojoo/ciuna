@@ -46,6 +46,23 @@ export function UnifiedListingCard({ item, onFavorite, isFavorite }: UnifiedList
   const imageUrl = isListing ? item.photo_urls?.[0] : item.image
   const imageAlt = item.title
 
+  // Get seller/vendor info consistently
+  const sellerName = isListing 
+    ? `${item.seller?.first_name} ${item.seller?.last_name}` 
+    : item.vendor?.name
+  const isVerified = isListing 
+    ? item.seller?.verified_expat 
+    : item.vendor?.verified
+  const location = isListing 
+    ? `${item.city}, ${item.district}` 
+    : item.vendor?.city
+  const rating = isListing 
+    ? null 
+    : item.vendor?.rating
+  const datePosted = isListing 
+    ? item.created_at 
+    : null
+
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
       <div className="relative aspect-square overflow-hidden">
@@ -58,25 +75,22 @@ export function UnifiedListingCard({ item, onFavorite, isFavorite }: UnifiedList
         
         {/* Condition Badge */}
         <div className="absolute top-2 left-2">
-          <Badge 
-            variant={isListing ? "secondary" : "default"} 
-            className="text-xs"
-          >
-            {item.condition}
+          <Badge variant="secondary" className="text-xs">
+            {item.condition.replace('_', ' ')}
           </Badge>
         </div>
 
         {/* Type Badge */}
         <div className="absolute top-2 right-12">
           <Badge 
-            variant={isListing ? "outline" : "secondary"} 
+            variant={isListing ? "outline" : "default"} 
             className="text-xs"
           >
             {isListing ? 'Used' : 'New'}
           </Badge>
         </div>
 
-        {/* Out of Stock Overlay for Products */}
+        {/* Out of Stock Overlay */}
         {!isListing && !item.inStock && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <Badge variant="destructive" className="text-xs">
@@ -108,8 +122,8 @@ export function UnifiedListingCard({ item, onFavorite, isFavorite }: UnifiedList
             {item.price.toLocaleString()}₽
           </div>
 
-          {/* Category for Products */}
-          {!isListing && item.category && (
+          {/* Category Badge */}
+          {item.category && (
             <Badge variant="outline" className="text-xs">
               {item.category}
             </Badge>
@@ -117,57 +131,39 @@ export function UnifiedListingCard({ item, onFavorite, isFavorite }: UnifiedList
 
           {/* Seller/Vendor Info */}
           <div className="space-y-1">
-            {isListing ? (
-              // Listing seller info
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium truncate">
-                  {item.seller?.first_name} {item.seller?.last_name}
-                </span>
-                {item.seller?.verified_expat && (
-                  <Shield className="h-3 w-3 text-green-500 flex-shrink-0" />
-                )}
-              </div>
-            ) : (
-              // Product vendor info
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium truncate">
-                  {item.vendor?.name}
-                </span>
-                {item.vendor?.verified && (
-                  <Shield className="h-3 w-3 text-green-500 flex-shrink-0" />
-                )}
-              </div>
-            )}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium truncate">
+                {sellerName}
+              </span>
+              {isVerified && (
+                <Shield className="h-3 w-3 text-green-500 flex-shrink-0" />
+              )}
+            </div>
 
             {/* Rating and Location */}
             <div className="flex items-center space-x-1">
-              {isListing ? (
-                // Listing info
-                <>
-                  <Clock className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">
-                    {item.created_at ? new Date(item.created_at).toLocaleDateString() : ''}
-                  </span>
-                  <span className="text-xs text-muted-foreground">•</span>
-                  <MapPin className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">
-                    {item.city}, {item.district}
-                  </span>
-                </>
-              ) : (
-                // Product info
+              {rating && (
                 <>
                   <Star className="h-3 w-3 text-yellow-400 fill-current" />
                   <span className="text-xs text-muted-foreground">
-                    {item.vendor?.rating}
+                    {rating}
                   </span>
                   <span className="text-xs text-muted-foreground">•</span>
-                  <MapPin className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">
-                    {item.vendor?.city}
-                  </span>
                 </>
               )}
+              {datePosted && (
+                <>
+                  <Clock className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(datePosted).toLocaleDateString()}
+                  </span>
+                  <span className="text-xs text-muted-foreground">•</span>
+                </>
+              )}
+              <MapPin className="h-3 w-3 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">
+                {location}
+              </span>
             </div>
           </div>
 

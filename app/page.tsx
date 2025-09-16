@@ -380,21 +380,21 @@ export default function HomePage() {
                 <Button size="lg" className="absolute right-2 top-1/2 transform -translate-y-1/2">
                   Search
               </Button>
-              </div>
             </div>
+          </div>
 
             {/* Quick Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
               {stats.map((stat) => {
                 const Icon = stat.icon
                 return (
-                  <div key={stat.label} className="text-center">
+              <div key={stat.label} className="text-center">
                     <div className="flex items-center justify-center mb-2">
                       <Icon className="h-6 w-6 text-primary mr-2" />
                       <div className="text-2xl font-bold text-primary">{stat.value}</div>
                     </div>
-                    <div className="text-sm text-muted-foreground">{stat.label}</div>
-                  </div>
+                <div className="text-sm text-muted-foreground">{stat.label}</div>
+              </div>
                 )
               })}
             </div>
@@ -407,10 +407,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-12">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
                 Listings for You
-              </h2>
-              <p className="mt-4 text-lg text-muted-foreground text-balance">
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground text-balance">
                 A curated mix of used items from expats and new products from trusted vendors
               </p>
             </div>
