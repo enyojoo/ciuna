@@ -30,7 +30,7 @@ export function VendorCard({ vendor }: VendorCardProps) {
         <div className="space-y-3">
           {/* Centered Vendor Logo */}
           <div className="flex justify-center mb-3">
-            <div className="relative w-16 h-16 rounded-full overflow-hidden">
+            <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-primary">
               <Image
                 src={vendor.image}
                 alt={vendor.name}
