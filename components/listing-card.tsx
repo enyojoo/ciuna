@@ -3,7 +3,7 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Heart, MessageCircle, Shield, MapPin, Clock } from 'lucide-react'
+import { Heart, Shield, MapPin, Clock } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -181,10 +181,10 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
           </div>
 
           {/* Actions - Always at bottom */}
-          <div className="flex space-x-2 pt-4 mt-auto">
+          <div className="pt-4 mt-auto">
             <Button 
               size="sm" 
-              className="flex-1 h-8"
+              className="w-full h-8"
               disabled={isProduct && !item.inStock}
               onClick={(e) => {
                 e.preventDefault()
@@ -195,17 +195,6 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
                isJob ? 'Apply Now' : 
                isService ? 'Book Now' : 
                'Contact Seller'}
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-8"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-              }}
-            >
-              <MessageCircle className="h-3 w-3" />
             </Button>
         </div>
       </CardContent>
