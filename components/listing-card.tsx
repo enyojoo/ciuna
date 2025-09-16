@@ -85,16 +85,16 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
               >
                 {isProduct ? 'New' : isJob ? 'Job' : 'Used'}
               </Badge>
-            </div>
-          )}
-
+          </div>
+        )}
+        
           {/* Out of Stock Overlay for Products */}
           {!isListing && !item.inStock && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
               <Badge variant="destructive" className="text-xs">
                 Out of Stock
-              </Badge>
-            </div>
+          </Badge>
+        </div>
           )}
 
         {/* Favorite Button */}
