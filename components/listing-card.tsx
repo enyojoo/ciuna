@@ -138,7 +138,7 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
 
           {/* Price */}
           <div className="text-lg font-bold text-primary">
-              {isService ? 'From ' : ''}{item.price.toLocaleString()}₽
+              {isService ? <span className="text-sm font-normal">From </span> : ''}{item.price.toLocaleString()}₽
           </div>
 
             {/* Seller/Vendor/Provider Info */}
