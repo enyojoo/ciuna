@@ -18,6 +18,7 @@ import {
   Cat
 } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ListingCard } from '@/components/listing-card'
 
 export default function HomePage() {
@@ -408,16 +409,69 @@ export default function HomePage() {
     }
   ]
 
-
-
+  // Featured vendors mock data
+  const featuredVendors = [
+    {
+      id: 1,
+      name: "Expat Electronics Store",
+      description: "Premium electronics and gadgets for expats in Russia",
+      category: "Electronics",
+      rating: 4.8,
+      reviews: 127,
+      city: "Moscow",
+      verified: true,
+      image: "/api/placeholder/300/200",
+      products_count: 45,
+      established: "2020"
+    },
+    {
+      id: 2,
+      name: "International Books & Media",
+      description: "Books, magazines, and educational materials in multiple languages",
+      category: "Books & Media",
+      rating: 4.9,
+      reviews: 89,
+      city: "St. Petersburg",
+      verified: true,
+      image: "/api/placeholder/300/200",
+      products_count: 32,
+      established: "2019"
+    },
+    {
+      id: 3,
+      name: "Moscow Furniture Hub",
+      description: "Quality furniture and home decor for expat homes",
+      category: "Home & Garden",
+      rating: 4.6,
+      reviews: 156,
+      city: "Moscow",
+      verified: true,
+      image: "/api/placeholder/300/200",
+      products_count: 28,
+      established: "2021"
+    },
+    {
+      id: 4,
+      name: "Expat Fashion Boutique",
+      description: "Trendy clothing and accessories for international residents",
+      category: "Fashion",
+      rating: 4.7,
+      reviews: 203,
+      city: "Moscow",
+      verified: false,
+      image: "/api/placeholder/300/200",
+      products_count: 67,
+      established: "2022"
+    }
+  ]
 
   return (
     <div className="min-h-screen bg-background">
       
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary/5 via-background to-secondary/5 py-16 px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-gradient-to-br from-primary/5 via-background to-secondary/5 pt-16 pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <h1 className="text-4xl font-bold tracking-tight sm:text-6xl text-balance mb-6">
               #1 <span className="text-primary">Expat Marketplace</span> in Russia
             </h1>
@@ -429,30 +483,40 @@ export default function HomePage() {
       </section>
 
       {/* Listings Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
+      <section className="pt-8 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          {/* Category Badges */}
+          {/* Category Slider */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-4">Browse by Category</h2>
-            <div className="flex flex-wrap gap-3">
-              {categories.map((category) => {
-                const Icon = category.icon
-                return (
-                  <Link
-                    key={category.id}
-                    href={`/categories/${category.slug}`}
-                    className="group"
-                  >
-                    <Badge 
-                      variant="outline" 
-                      className="flex items-center space-x-2 px-4 py-2 h-10 hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer"
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">Categories</h2>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/categories">
+                  View All
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+            <div className="relative">
+              <div className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
+                {categories.map((category) => {
+                  const Icon = category.icon
+                  return (
+                    <Link
+                      key={category.id}
+                      href={`/categories/${category.slug}`}
+                      className="group flex-shrink-0"
                     >
-                      <Icon className={`h-4 w-4 ${category.color} group-hover:text-primary-foreground`} />
-                      <span className="text-sm font-medium">{category.name}</span>
-                    </Badge>
-                  </Link>
-                )
-              })}
+                      <Badge 
+                        variant="outline" 
+                        className="flex items-center space-x-2 px-4 py-2 h-10 hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer whitespace-nowrap"
+                      >
+                        <Icon className={`h-4 w-4 ${category.color} group-hover:text-primary-foreground`} />
+                        <span className="text-sm font-medium">{category.name}</span>
+                      </Badge>
+                </Link>
+                  )
+                })}
+              </div>
             </div>
           </div>
 
@@ -496,15 +560,15 @@ export default function HomePage() {
             </Button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {featuredServices.map((service) => (
               <Card key={service.id} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <CardContent className="p-6">
-                  <div className="space-y-4">
+                <CardContent className="p-4">
+                  <div className="space-y-3">
                     {/* Service Header */}
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg line-clamp-2 mb-2">
+                        <h3 className="font-semibold text-base line-clamp-2 mb-1">
                           {service.title}
                         </h3>
                         <Badge variant="outline" className="text-xs">
@@ -512,7 +576,7 @@ export default function HomePage() {
                         </Badge>
                       </div>
                       {service.provider.verified && (
-                        <Shield className="h-5 w-5 text-green-500 flex-shrink-0" />
+                        <Shield className="h-4 w-4 text-green-500 flex-shrink-0" />
                       )}
                     </div>
 
@@ -522,41 +586,41 @@ export default function HomePage() {
                     </p>
 
                     {/* Provider Info */}
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <span className="text-sm font-medium text-primary">
-                            {service.provider.name.split(' ').map(n => n[0]).join('')}
+                    <div className="flex items-center space-x-2">
+                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-xs font-medium text-primary">
+                          {service.provider.name.split(' ').map(n => n[0]).join('')}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{service.provider.name}</p>
+                        <div className="flex items-center space-x-1">
+                          <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                          <span className="text-xs text-muted-foreground">
+                            {service.provider.rating} ({service.provider.reviews})
                           </span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{service.provider.name}</p>
-                          <div className="flex items-center space-x-1">
-                            <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                            <span className="text-xs text-muted-foreground">
-                              {service.provider.rating} ({service.provider.reviews})
-                            </span>
-                  </div>
-          </div>
-        </div>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <MapPin className="h-3 w-3 mr-1" />
-                        <span>{service.provider.city}</span>
                       </div>
-          </div>
+                    </div>
+
+                    {/* Location */}
+                    <div className="flex items-center text-xs text-muted-foreground">
+                      <MapPin className="h-3 w-3 mr-1" />
+                      <span>{service.provider.city}</span>
+                    </div>
           
-                    {/* Price and Duration */}
+                    {/* Price and Action */}
                     <div className="flex items-center justify-between pt-2 border-t">
                       <div>
-                        <div className="text-xl font-bold text-primary">
+                        <div className="text-lg font-bold text-primary">
                           {service.price.toLocaleString()}₽
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {service.duration}
                         </div>
                       </div>
-                      <Button size="sm" className="h-8">
-                        Book Now
+                      <Button size="sm" className="h-8 px-3">
+                        Book
                       </Button>
                     </div>
                   </div>
@@ -567,6 +631,90 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Featured Vendors Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-12">
+            <div>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
+                Featured Vendors
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground text-balance">
+                Trusted vendors offering quality products for the expat community
+              </p>
+            </div>
+            <Button variant="outline" asChild>
+              <Link href="/vendors">
+                View All Vendors
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredVendors.map((vendor) => (
+              <Card key={vendor.id} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    {/* Vendor Image */}
+                    <div className="relative aspect-square overflow-hidden rounded-lg mb-3">
+                      <Image
+                        src={vendor.image}
+                        alt={vendor.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+
+                    {/* Vendor Info */}
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between">
+                        <h3 className="font-semibold text-base line-clamp-1">
+                          {vendor.name}
+                        </h3>
+                        {vendor.verified && (
+                          <Shield className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        )}
+                      </div>
+                      
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {vendor.description}
+                      </p>
+
+                      <Badge variant="outline" className="text-xs w-fit">
+                        {vendor.category}
+                      </Badge>
+
+                      {/* Rating and Location */}
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <div className="flex items-center space-x-1">
+                          <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                          <span>{vendor.rating} ({vendor.reviews})</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <MapPin className="h-3 w-3" />
+                          <span>{vendor.city}</span>
+                        </div>
+                      </div>
+
+                      {/* Stats */}
+                      <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
+                        <span>{vendor.products_count} products</span>
+                        <span>Since {vendor.established}</span>
+                      </div>
+                    </div>
+
+                    {/* Action Button */}
+                    <Button size="sm" className="w-full h-8">
+                      Visit Store
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-primary/10 via-background to-secondary/10">

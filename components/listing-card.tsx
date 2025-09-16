@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Heart, MessageCircle, Shield, MapPin, Clock } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 
 interface ListingCardProps {
   item: {
@@ -59,131 +60,162 @@ export function ListingCard({ item, onFavorite, isFavorite }: ListingCardProps) 
   const imageUrl = isListing || isJob || isService ? item.photo_urls?.[0] : item.image
   const imageAlt = item.title
 
+  // Determine the link based on item type
+  const getItemLink = () => {
+    if (isProduct) {
+      return `/products/${item.id}`
+    } else if (isJob) {
+      return `/jobs/${item.id}`
+    } else if (isService) {
+      return `/services/${item.id}`
+    } else {
+      return `/listings/${item.id}`
+    }
+  }
+
   return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
+    <Link href={getItemLink()} className="block">
+      <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
       <div className="relative aspect-square overflow-hidden">
-        <Image
-          src={imageUrl || '/api/placeholder/300/200'}
-          alt={imageAlt}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
-        />
-        
-        {/* Type Badge */}
-        <div className="absolute top-2 right-12">
-          <Badge 
-            variant={isProduct ? "secondary" : "outline"} 
-            className="text-xs"
-          >
-            {isProduct ? 'New' : isJob ? 'Job' : isService ? 'Service' : 'Used'}
+          <Image
+            src={imageUrl || '/api/placeholder/300/200'}
+            alt={imageAlt}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+          
+          {/* Type Badge */}
+          <div className="absolute top-2 right-12">
+            <Badge 
+              variant={isProduct ? "secondary" : "outline"} 
+              className="text-xs"
+            >
+              {isProduct ? 'New' : isJob ? 'Job' : isService ? 'Service' : 'Used'}
           </Badge>
         </div>
 
-        {/* Out of Stock Overlay for Products */}
-        {!isListing && !item.inStock && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <Badge variant="destructive" className="text-xs">
-              Out of Stock
-            </Badge>
-          </div>
-        )}
+          {/* Out of Stock Overlay for Products */}
+          {!isListing && !item.inStock && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <Badge variant="destructive" className="text-xs">
+                Out of Stock
+              </Badge>
+            </div>
+          )}
 
         {/* Favorite Button */}
         <Button
           variant="ghost"
           size="icon"
           className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background"
-          onClick={() => onFavorite?.(item.id)}
-        >
-          <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onFavorite?.(item.id)
+            }}
+          >
+            <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
         </Button>
       </div>
 
-      <CardContent className="p-4 flex flex-col flex-1">
-        <div className="space-y-3 flex-1">
+        <CardContent className="p-4 flex flex-col flex-1">
+          <div className="space-y-3 flex-1">
           {/* Title */}
-          <h3 className="font-semibold line-clamp-2 group-hover:text-primary transition-colors text-sm">
-            {item.title}
+            <h3 className="font-semibold line-clamp-2 group-hover:text-primary transition-colors text-sm">
+              {item.title}
           </h3>
 
           {/* Price */}
           <div className="text-lg font-bold text-primary">
-            {item.price.toLocaleString()}₽
+              {item.price.toLocaleString()}₽
           </div>
 
-          {/* Seller/Vendor/Provider Info */}
-          <div className="space-y-1">
-            {isProduct ? (
-              // Product vendor info
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium truncate">
-                  {item.vendor?.name}
-                </span>
-                {item.vendor?.verified && (
-                  <Shield className="h-3 w-3 text-green-500 flex-shrink-0" />
-                )}
-              </div>
-            ) : isService ? (
-              // Service provider info
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium truncate">
-                  {item.provider?.name}
-                </span>
-                {item.provider?.verified && (
-                  <Shield className="h-3 w-3 text-green-500 flex-shrink-0" />
-                )}
-              </div>
-            ) : isJob ? (
-              // Job company info
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium truncate">
-                  {item.company}
-                </span>
-              </div>
-            ) : (
-              // Listing seller info
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium truncate">
-                  {item.seller?.first_name} {item.seller?.last_name}
-                </span>
-                {item.seller?.verified_expat && (
-                  <Shield className="h-3 w-3 text-green-500 flex-shrink-0" />
-                )}
-              </div>
-            )}
+            {/* Seller/Vendor/Provider Info */}
+            <div className="space-y-1">
+              {isProduct ? (
+                // Product vendor info
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium truncate">
+                    {item.vendor?.name}
+                  </span>
+                  {item.vendor?.verified && (
+                    <Shield className="h-3 w-3 text-green-500 flex-shrink-0" />
+                  )}
+            </div>
+              ) : isService ? (
+                // Service provider info
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium truncate">
+                    {item.provider?.name}
+                  </span>
+                  {item.provider?.verified && (
+                    <Shield className="h-3 w-3 text-green-500 flex-shrink-0" />
+                  )}
+                </div>
+              ) : isJob ? (
+                // Job company info
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium truncate">
+                    {item.company}
+                  </span>
+                </div>
+              ) : (
+                // Listing seller info
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium truncate">
+                    {item.seller?.first_name} {item.seller?.last_name}
+              </span>
+                  {item.seller?.verified_expat && (
+                    <Shield className="h-3 w-3 text-green-500 flex-shrink-0" />
+              )}
+            </div>
+          )}
 
-            {/* Date and Location */}
-            <div className="flex items-center space-x-1">
-              <Clock className="h-3 w-3 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">
-                {item.created_at ? new Date(item.created_at).toLocaleDateString() : ''}
-              </span>
-              <span className="text-xs text-muted-foreground">•</span>
-              <MapPin className="h-3 w-3 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">
-                {item.city}
-              </span>
+              {/* Date and Location */}
+              <div className="flex items-center space-x-1">
+                <Clock className="h-3 w-3 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  {item.created_at ? new Date(item.created_at).toLocaleDateString() : ''}
+                </span>
+                <span className="text-xs text-muted-foreground">•</span>
+                <MapPin className="h-3 w-3 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  {item.city}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Actions - Always at bottom */}
-        <div className="flex space-x-2 pt-4 mt-auto">
-          <Button 
-            size="sm" 
-            className="flex-1 h-8"
-            disabled={isProduct && !item.inStock}
-          >
-            {isProduct ? (item.inStock ? 'Add to Cart' : 'Out of Stock') : 
-             isJob ? 'Apply Now' : 
-             isService ? 'Book Now' : 
-             'Contact Seller'}
-          </Button>
-          <Button variant="outline" size="sm" className="h-8">
-            <MessageCircle className="h-3 w-3" />
-          </Button>
+          {/* Actions - Always at bottom */}
+          <div className="flex space-x-2 pt-4 mt-auto">
+            <Button 
+              size="sm" 
+              className="flex-1 h-8"
+              disabled={isProduct && !item.inStock}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+              }}
+            >
+              {isProduct ? (item.inStock ? 'Add to Cart' : 'Out of Stock') : 
+               isJob ? 'Apply Now' : 
+               isService ? 'Book Now' : 
+               'Contact Seller'}
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+              }}
+            >
+              <MessageCircle className="h-3 w-3" />
+            </Button>
         </div>
       </CardContent>
     </Card>
+    </Link>
   )
 }

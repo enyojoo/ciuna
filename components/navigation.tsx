@@ -18,6 +18,7 @@ import {
   Bell,
   MapPin,
   ChevronDown,
+  X,
   Car,
   Home,
   Briefcase,
@@ -42,10 +43,10 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 
 interface NavigationProps {
-  user?: {
-    email?: string;
-    name?: string;
-    role?: string;
+  user?: { 
+    email?: string; 
+    name?: string; 
+    role?: string; 
     avatar_url?: string | null;
     first_name?: string;
     last_name?: string;
@@ -210,7 +211,7 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
               </Link>
               <Link href="/careers" className="text-gray-600 hover:text-gray-900">
                 Careers at Ciuna
-              </Link>
+        </Link>
               <Link href="/help" className="text-gray-600 hover:text-gray-900">
                 Help
               </Link>
@@ -225,66 +226,66 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
                       <Plus className="h-4 w-4" />
                       <span>Create Listing</span>
                     </Link>
-                  </Button>
+          </Button>
                   <Link href="/my-listings" className="text-gray-600 hover:text-gray-900 flex items-center space-x-1">
                     <FileText className="h-4 w-4" />
                     <span>My Listings</span>
                   </Link>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={user.avatar_url || undefined} alt={user.name} />
-                          <AvatarFallback>
-                            {user.first_name?.[0]}{user.last_name?.[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="end" forceMount>
-                      <div className="flex items-center justify-start gap-2 p-2">
-                        <div className="flex flex-col space-y-1 leading-none">
-                          <p className="font-medium">{user.first_name} {user.last_name}</p>
-                          <p className="w-[200px] truncate text-sm text-muted-foreground">
-                            {user.email}
-                          </p>
-                        </div>
-                      </div>
-                      <DropdownMenuSeparator />
-                      {userNav.map((item) => {
-                        const Icon = item.icon
-                        return (
-                          <DropdownMenuItem key={item.name} asChild>
-                            <Link href={item.href} className="flex items-center">
-                              <Icon className="mr-2 h-4 w-4" />
-                              {item.name}
-                              {'badge' in item && item.badge && (
-                                <Badge variant="secondary" className="ml-auto text-xs">
-                                  {item.badge}
-                                </Badge>
-                              )}
-                            </Link>
-                          </DropdownMenuItem>
-                        )
-                      })}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={onSignOut}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Sign Out
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href="/user/auth/sign-in">Sign In</Link>
-                  </Button>
-                  <Button size="sm" asChild className="bg-primary hover:bg-primary/90">
-                    <Link href="/user/auth/sign-up">Sign Up</Link>
-                  </Button>
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.avatar_url || undefined} alt={user.name} />
+                    <AvatarFallback>
+                      {user.first_name?.[0]}{user.last_name?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <div className="flex items-center justify-start gap-2 p-2">
+                  <div className="flex flex-col space-y-1 leading-none">
+                    <p className="font-medium">{user.first_name} {user.last_name}</p>
+                    <p className="w-[200px] truncate text-sm text-muted-foreground">
+                      {user.email}
+                    </p>
+                  </div>
                 </div>
-              )}
+                <DropdownMenuSeparator />
+                {userNav.map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <DropdownMenuItem key={item.name} asChild>
+                      <Link href={item.href} className="flex items-center">
+                        <Icon className="mr-2 h-4 w-4" />
+                        {item.name}
+                        {'badge' in item && item.badge && (
+                          <Badge variant="secondary" className="ml-auto text-xs">
+                            {item.badge}
+                          </Badge>
+                        )}
+                      </Link>
+                    </DropdownMenuItem>
+                  )
+                })}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={onSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+                </>
+          ) : (
+            <div className="flex items-center space-x-2">
+                  <Button variant="ghost" size="sm" asChild>
+                <Link href="/user/auth/sign-in">Sign In</Link>
+              </Button>
+                  <Button size="sm" asChild className="bg-primary hover:bg-primary/90">
+                <Link href="/user/auth/sign-up">Sign Up</Link>
+              </Button>
+            </div>
+          )}
             </div>
           </div>
         </div>
@@ -311,16 +312,17 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
               className="bg-primary text-primary-foreground border-primary hover:bg-primary/90 hover:text-primary-foreground px-6 py-2 h-10"
               onClick={() => setIsCategoryOpen(!isCategoryOpen)}
             >
-              <Grid3X3 className="h-4 w-4 mr-2" />
-              All Categories
-              <ChevronDown className="h-4 w-4 ml-2" />
+              {isCategoryOpen ? (
+                <X className="h-4 w-4" />
+              ) : (
+                <Grid3X3 className="h-4 w-4" />
+              )}
             </Button>
 
             {/* Category Dropdown */}
             {isCategoryOpen && (
               <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                 <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-3">Categories</h3>
                   <div className="space-y-1">
                     {categories.map((category) => {
                       const Icon = category.icon
@@ -361,17 +363,17 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center space-x-1 text-gray-600 hover:text-gray-900">
-                  <MapPin className="h-4 w-4" />
+                  <MapPin className="h-4 w-4 text-primary" />
                   <span className="text-sm font-medium">Moscow</span>
                   <ChevronDown className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-48" align="end">
                 <div className="p-2">
-                  <h4 className="font-medium text-gray-900 mb-2">Select City</h4>
+                  <h4 className="font-medium text-gray-900 mb-2">Select Location</h4>
                   <div className="space-y-1">
                     <DropdownMenuItem className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4 text-blue-600" />
+                      <MapPin className="h-4 w-4 text-primary" />
                       <span>Moscow</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem className="flex items-center space-x-2">
@@ -472,7 +474,7 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
                 </DropdownMenu>
               </>
             ) : null}
-          </div>
+        </div>
 
           {/* Mobile Menu */}
         <div className="md:hidden">
@@ -506,7 +508,6 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
                 
                   {/* Mobile Categories */}
                   <div className="space-y-2">
-                    <h3 className="font-semibold text-gray-900">Categories</h3>
                     {categories.slice(0, 6).map((category) => {
                       const Icon = category.icon
                     return (
