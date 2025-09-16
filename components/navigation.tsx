@@ -10,7 +10,6 @@ import {
   User, 
   LogOut, 
   Search, 
-  Store, 
   FileText, 
   Settings, 
   Grid3X3,
@@ -19,23 +18,14 @@ import {
   Bell,
   MapPin,
   ChevronDown,
-  ChevronRight,
   Car,
   Home,
   Briefcase,
   Paintbrush,
   Shirt,
-  Box,
-  Wrench,
   Smartphone,
   Gamepad2,
   Cat,
-  BookOpen,
-  Music,
-  Camera,
-  Laptop,
-  Headphones,
-  Baby,
   Sofa
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -50,39 +40,31 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { useFeatureAccess } from '@/lib/contexts/location-context'
-
-import { UserRole } from '@/lib/auth/access-control'
-import { NavigationItem } from '@/lib/navigation/role-navigation'
 
 interface NavigationProps {
-  user?: { 
-    email?: string; 
-    name?: string; 
-    role?: string; 
+  user?: {
+    email?: string;
+    name?: string;
+    role?: string;
     avatar_url?: string | null;
     first_name?: string;
     last_name?: string;
   } | null
   onSignOut?: () => void
-  role?: UserRole
-  navigation?: NavigationItem[]
-  userNavigation?: NavigationItem[]
 }
 
-export function Navigation({ user, onSignOut, navigation, userNavigation }: NavigationProps) {
+export function Navigation({ user, onSignOut }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
-  const { canAccess } = useFeatureAccess()
 
-  const baseUserNav = userNavigation || [
+  const userNav = [
+    { name: 'My Ads', href: '/my-ads', icon: FileText },
     { name: 'Orders', href: '/orders', icon: ShoppingCart },
-    { name: 'Inbox', href: '/inbox', icon: MessageCircle },
+    { name: 'Inbox', href: '/inbox', icon: MessageCircle, badge: 3 },
     { name: 'Profile', href: '/profile', icon: User },
+    { name: 'Settings', href: '/settings', icon: Settings },
   ]
 
-  // Add admin navigation if user is admin
-  const userNav = [...baseUserNav]
   if (user?.role === 'ADMIN' && !userNav.find(item => item.name === 'Admin')) {
     userNav.push({ name: 'Admin', href: '/admin', icon: Settings })
   }

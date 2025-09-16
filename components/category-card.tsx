@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { LucideIcon } from 'lucide-react'
-import { forwardRef } from 'react'
 
 interface CategoryCardProps {
   category: {

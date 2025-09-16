@@ -1,28 +1,19 @@
 'use client'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { 
   Search, 
   MapPin, 
   Star, 
-  Heart, 
-  MessageCircle, 
   ArrowRight,
-  TrendingUp,
-  Clock,
   Shield,
   Globe,
   Users,
-  ShoppingBag,
-  Wrench,
-  Filter,
-  Grid3X3,
-  List,
+  ShoppingBag
 } from 'lucide-react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { UnifiedListingCard } from '@/components/unified-listing-card'
 
 export default function HomePage() {

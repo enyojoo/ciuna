@@ -1,5 +1,5 @@
 'use client'
-import { ListingCard } from '@/components/listing-card'
+import { UnifiedListingCard } from '@/components/unified-listing-card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -388,11 +388,27 @@ export default function ListingsPage() {
         {/* Listings Grid */}
         {mockListings.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {mockListings.map((listing, index) => (
-              <ListingCard 
+            {mockListings.map((listing) => (
+              <UnifiedListingCard 
                 key={listing.id} 
-                listing={listing} 
-                variant={index < 2 ? 'featured' : 'default'}
+                item={{
+                  id: listing.id,
+                  title: listing.title,
+                  price: listing.price,
+                  currency: listing.currency,
+                  condition: listing.condition,
+                  type: 'listing' as const,
+                  city: listing.city,
+                  district: listing.district,
+                  photo_urls: listing.photo_urls,
+                  seller: {
+                    first_name: listing.seller.first_name,
+                    last_name: listing.seller.last_name,
+                    verified_expat: listing.seller.verified_expat,
+                    country_of_origin: listing.seller.country_of_origin
+                  },
+                  created_at: listing.created_at
+                }}
               />
             ))}
           </div>

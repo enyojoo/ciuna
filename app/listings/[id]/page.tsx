@@ -96,8 +96,6 @@ export default async function ListingPage({ params }: ListingPageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
-      
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
