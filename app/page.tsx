@@ -568,7 +568,7 @@ export default function HomePage() {
                   return (
                     <Link
                       key={category.id}
-                      href={`/categories/${category.slug}`}
+                      href={category.name === 'Services' ? '/services' : `/categories/${category.slug}`}
                       className="group flex-shrink-0"
                     >
                       <div className="flex items-center space-x-2 px-4 py-2 h-10 rounded-full border border-gray-200 hover:border-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200 cursor-pointer whitespace-nowrap">
