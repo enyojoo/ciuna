@@ -23,6 +23,7 @@ const mockServices = [
     currency: 'RUB',
     condition: 'NEW',
     city: 'Moscow',
+    category: 'legal',
     photo_urls: ['/api/placeholder/300/200'],
     provider: {
       name: 'Sarah Wilson Legal Services',
@@ -42,6 +43,7 @@ const mockServices = [
     currency: 'RUB',
     condition: 'NEW',
     city: 'Moscow',
+    category: 'business',
     photo_urls: ['/api/placeholder/300/200'],
     provider: {
       name: 'Michael Brown Financial Consulting',
@@ -61,6 +63,7 @@ const mockServices = [
     currency: 'RUB',
     condition: 'NEW',
     city: 'St. Petersburg',
+    category: 'language',
     photo_urls: ['/api/placeholder/300/200'],
     provider: {
       name: 'Elena Petrov Language School',
@@ -80,6 +83,7 @@ const mockServices = [
     currency: 'RUB',
     condition: 'NEW',
     city: 'Moscow',
+    category: 'business',
     photo_urls: ['/api/placeholder/300/200'],
     provider: {
       name: 'Expat Events Moscow',
@@ -99,6 +103,7 @@ const mockServices = [
     currency: 'RUB',
     condition: 'NEW',
     city: 'Moscow',
+    category: 'business',
     photo_urls: ['/api/placeholder/300/200'],
     provider: {
       name: 'International Medical Center',
@@ -118,6 +123,7 @@ const mockServices = [
     currency: 'RUB',
     condition: 'NEW',
     city: 'Moscow',
+    category: 'home',
     photo_urls: ['/api/placeholder/300/200'],
     provider: {
       name: 'Clean Home Services',
@@ -146,7 +152,7 @@ export default function ServicesPage() {
   const [sortBy, setSortBy] = useState('newest')
   const [minPrice, setMinPrice] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('all')
   const [favorites, setFavorites] = useState<Set<number>>(new Set())
 
   const handleFavorite = (itemId: number) => {
@@ -160,6 +166,24 @@ export default function ServicesPage() {
       return newFavorites
     })
   }
+
+  // Filter services based on selected filters
+  const filteredServices = mockServices.filter(service => {
+    // Category filter
+    if (selectedCategory !== 'all' && service.category !== selectedCategory) {
+      return false
+    }
+    
+    // Price filter
+    if (minPrice && service.price < parseInt(minPrice)) {
+      return false
+    }
+    if (maxPrice && service.price > parseInt(maxPrice)) {
+      return false
+    }
+    
+    return true
+  })
 
   return (
     <div className="min-h-screen bg-background">
@@ -221,7 +245,7 @@ export default function ServicesPage() {
                         <SelectValue placeholder="All Categories" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Categories</SelectItem>
+                        <SelectItem value="all">All Categories</SelectItem>
                         {categories.map((category) => (
                           <SelectItem key={category.value} value={category.value}>
                             {category.label}
@@ -240,7 +264,7 @@ export default function ServicesPage() {
                       onClick={() => {
                         setMinPrice('')
                         setMaxPrice('')
-                        setSelectedCategory('')
+                        setSelectedCategory('all')
                       }}
                     >
                       Clear Filters
@@ -306,7 +330,7 @@ export default function ServicesPage() {
 
               {viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {mockServices.map((service) => (
+                  {filteredServices.map((service) => (
                     <ListingCard 
                       key={service.id} 
                       item={service} 
@@ -317,7 +341,7 @@ export default function ServicesPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {mockServices.map((service) => (
+                  {filteredServices.map((service) => (
                     <Card key={service.id} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                       <CardContent className="p-6">
                         <div className="flex space-x-6">
