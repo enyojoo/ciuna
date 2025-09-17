@@ -1,132 +1,134 @@
 'use client'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { 
   Search, 
-  Star, 
-  Clock, 
-  MapPin, 
-  Shield, 
-  MessageCircle
+  Grid, 
+  List,
+  Heart,
+  Shield
 } from 'lucide-react'
-import Link from 'next/link'
-import { getInitials, formatPrice, getServiceCategoryLabel } from '@/lib/utils'
+import Image from 'next/image'
+import { ListingCard } from '@/components/listing-card'
 
 // Mock data - in real app, this would come from Supabase
 const mockServices = [
   {
     id: 1,
     title: 'Immigration Consultation',
-    description: 'Professional help with visa extensions, work permits, and residency issues. Experienced lawyer specializing in expat legal matters.',
-    category: 'LEGAL' as const,
     price: 5000,
-    duration_minutes: 60,
-    status: 'ACTIVE' as const,
+    currency: 'RUB',
+    condition: 'NEW',
+    city: 'Moscow',
+    photo_urls: ['/api/placeholder/300/200'],
     provider: {
-      id: 1,
       name: 'Sarah Wilson Legal Services',
       verified: true,
-      profile: {
-        first_name: 'Sarah',
-        last_name: 'Wilson',
-        verified_expat: true,
-        city: 'Moscow'
-      }
+      rating: 4.9,
+      city: 'Moscow',
+      profile_image: '/api/placeholder/300/200'
     },
-    rating: 4.9,
-    review_count: 47
+    duration: '1 hour',
+    created_at: '2024-01-15T10:30:00Z',
+    type: 'service' as const
   },
   {
     id: 2,
     title: 'Financial Planning Session',
-    description: 'Personal financial planning for expats in Russia. Help with banking, investments, and tax optimization.',
-    category: 'FINANCIAL' as const,
     price: 4000,
-    duration_minutes: 90,
-    status: 'ACTIVE' as const,
+    currency: 'RUB',
+    condition: 'NEW',
+    city: 'Moscow',
+    photo_urls: ['/api/placeholder/300/200'],
     provider: {
-      id: 2,
       name: 'Michael Brown Financial Consulting',
       verified: true,
-      profile: {
-        first_name: 'Michael',
-        last_name: 'Brown',
-        verified_expat: true,
-        city: 'Moscow'
-      }
+      rating: 4.7,
+      city: 'Moscow',
+      profile_image: '/api/placeholder/300/200'
     },
-    rating: 4.7,
-    review_count: 32
+    duration: '1.5 hours',
+    created_at: '2024-01-14T15:45:00Z',
+    type: 'service' as const
   },
   {
     id: 3,
     title: 'Russian Language Tutoring',
-    description: 'One-on-one Russian language lessons tailored for expats. All levels welcome.',
-    category: 'PERSONAL' as const,
     price: 2500,
-    duration_minutes: 60,
-    status: 'ACTIVE' as const,
+    currency: 'RUB',
+    condition: 'NEW',
+    city: 'St. Petersburg',
+    photo_urls: ['/api/placeholder/300/200'],
     provider: {
-      id: 3,
       name: 'Elena Petrov Language School',
       verified: false,
-      profile: {
-        first_name: 'Elena',
-        last_name: 'Petrov',
-        verified_expat: false,
-        city: 'St. Petersburg'
-      }
+      rating: 4.8,
+      city: 'St. Petersburg',
+      profile_image: '/api/placeholder/300/200'
     },
-    rating: 4.8,
-    review_count: 89
+    duration: '1 hour',
+    created_at: '2024-01-13T09:20:00Z',
+    type: 'service' as const
   },
   {
     id: 4,
     title: 'Event Planning & Coordination',
-    description: 'Full-service event planning for expat community events, parties, and corporate functions.',
-    category: 'EVENT' as const,
     price: 15000,
-    duration_minutes: 120,
-    status: 'ACTIVE' as const,
+    currency: 'RUB',
+    condition: 'NEW',
+    city: 'Moscow',
+    photo_urls: ['/api/placeholder/300/200'],
     provider: {
-      id: 4,
       name: 'Expat Events Moscow',
       verified: true,
-      profile: {
-        first_name: 'Anna',
-        last_name: 'Kozlova',
-        verified_expat: true,
-        city: 'Moscow'
-      }
+      rating: 4.6,
+      city: 'Moscow',
+      profile_image: '/api/placeholder/300/200'
     },
-    rating: 4.6,
-    review_count: 23
+    duration: '2 hours',
+    created_at: '2024-01-12T14:30:00Z',
+    type: 'service' as const
   },
   {
     id: 5,
     title: 'Health Check-up & Consultation',
-    description: 'Comprehensive health check-up with English-speaking doctor. Perfect for expats.',
-    category: 'HEALTHCARE' as const,
     price: 8000,
-    duration_minutes: 45,
-    status: 'ACTIVE' as const,
+    currency: 'RUB',
+    condition: 'NEW',
+    city: 'Moscow',
+    photo_urls: ['/api/placeholder/300/200'],
     provider: {
-      id: 5,
       name: 'International Medical Center',
       verified: true,
-      profile: {
-        first_name: 'Dr. Maria',
-        last_name: 'Volkova',
-        verified_expat: false,
-        city: 'Moscow'
-      }
+      rating: 4.9,
+      city: 'Moscow',
+      profile_image: '/api/placeholder/300/200'
     },
-    rating: 4.9,
-    review_count: 156
+    duration: '45 minutes',
+    created_at: '2024-01-11T11:15:00Z',
+    type: 'service' as const
+  },
+  {
+    id: 6,
+    title: 'Home Cleaning Service',
+    price: 3000,
+    currency: 'RUB',
+    condition: 'NEW',
+    city: 'Moscow',
+    photo_urls: ['/api/placeholder/300/200'],
+    provider: {
+      name: 'Clean Home Services',
+      verified: true,
+      rating: 4.5,
+      city: 'Moscow',
+      profile_image: '/api/placeholder/300/200'
+    },
+    duration: '2 hours',
+    created_at: '2024-01-10T16:00:00Z',
+    type: 'service' as const
   }
 ]
 
@@ -135,235 +137,280 @@ const categories = [
   { value: 'FINANCIAL', label: 'Financial Services' },
   { value: 'PERSONAL', label: 'Personal Services' },
   { value: 'EVENT', label: 'Event Planning' },
-  { value: 'HEALTHCARE', label: 'Healthcare' }
+  { value: 'HEALTHCARE', label: 'Healthcare' },
+  { value: 'CLEANING', label: 'Cleaning Services' }
 ]
 
 export default function ServicesPage() {
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [sortBy, setSortBy] = useState('newest')
+  const [minPrice, setMinPrice] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const [favorites, setFavorites] = useState<Set<number>>(new Set())
+
+  const handleFavorite = (itemId: number) => {
+    setFavorites(prev => {
+      const newFavorites = new Set(prev)
+      if (newFavorites.has(itemId)) {
+        newFavorites.delete(itemId)
+      } else {
+        newFavorites.add(itemId)
+      }
+      return newFavorites
+    })
+  }
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Services</h1>
-          <p className="text-muted-foreground mt-2">
-            Find professional services from verified providers in your community
-          </p>
+      {/* Header */}
+      <div className="bg-gradient-to-r from-primary/5 via-background to-secondary/5 py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-foreground mb-4">
+              Professional Services
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Find trusted service providers for all your expat needs in Russia
+            </p>
+          </div>
         </div>
+      </div>
 
-        {/* Filters */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar Filters */}
+          <div className="lg:w-64 space-y-6">
+            {/* Filters */}
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-foreground mb-4">Filters</h3>
+                <div className="space-y-6">
+                  {/* Price Range */}
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-3 block">Price Range</label>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">Min Price</label>
+                        <Input
+                          type="number"
+                          placeholder="From"
+                          value={minPrice}
+                          onChange={(e) => setMinPrice(e.target.value)}
+                          className="text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">Max Price</label>
+                        <Input
+                          type="number"
+                          placeholder="To"
+                          value={maxPrice}
+                          onChange={(e) => setMaxPrice(e.target.value)}
+                          className="text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Category Filter */}
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-3 block">Category</label>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Categories</SelectItem>
+                        {categories.map((category) => (
+                          <SelectItem key={category.value} value={category.value}>
+                            {category.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Clear Filters */}
+                  <div className="pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        setMinPrice('')
+                        setMaxPrice('')
+                        setSelectedCategory('')
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* Search and Controls */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search services..."
                   className="pl-10"
                 />
               </div>
-
-              {/* Category Filter */}
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Price Filter */}
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Price Range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Prices</SelectItem>
-                  <SelectItem value="under-5000">Under 5,000₽</SelectItem>
-                  <SelectItem value="5000-10000">5,000₽ - 10,000₽</SelectItem>
-                  <SelectItem value="over-10000">Over 10,000₽</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Sort */}
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                  <SelectItem value="duration">Shortest Duration</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center space-x-2">
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest First</SelectItem>
+                    <SelectItem value="oldest">Oldest First</SelectItem>
+                    <SelectItem value="price-low">Price: Low to High</SelectItem>
+                    <SelectItem value="price-high">Price: High to Low</SelectItem>
+                    <SelectItem value="rating">Highest Rated</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="flex border rounded-lg">
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                    className="rounded-r-none"
+                  >
+                    <Grid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                    className="rounded-l-none"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Featured Services */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">Featured Services</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockServices.slice(0, 3).map((service) => (
-              <Card key={service.id} className="group hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={`/api/placeholder/100/100`} />
-                        <AvatarFallback>
-                          {getInitials(service.provider.profile.first_name, service.provider.profile.last_name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <CardTitle className="text-lg">{service.title}</CardTitle>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Badge variant="outline" className="text-xs">
-                            {getServiceCategoryLabel(service.category)}
-                          </Badge>
-                          {service.provider.verified && (
-                            <Badge variant="outline" className="text-xs">
-                              <Shield className="h-3 w-3 mr-1" />
-                              Verified
-                            </Badge>
-                          )}
+            {/* Results */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Showing {mockServices.length} services
+                </p>
+              </div>
+
+              {viewMode === 'grid' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {mockServices.map((service) => (
+                    <ListingCard 
+                      key={service.id} 
+                      item={service} 
+                      onFavorite={handleFavorite}
+                      isFavorite={favorites.has(service.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {mockServices.map((service) => (
+                    <Card key={service.id} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                      <CardContent className="p-6">
+                        <div className="flex space-x-6">
+                          {/* Image */}
+                          <div className="relative w-32 h-32 bg-muted rounded-lg flex-shrink-0 overflow-hidden">
+                            <Image
+                              src={service.photo_urls?.[0] || '/api/placeholder/300/200'}
+                              alt={service.title}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
+
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            {/* Date and Location */}
+                            <div className="flex items-center space-x-1 mb-2">
+                              <span className="text-xs text-muted-foreground">
+                                {service.created_at ? new Date(service.created_at).toLocaleDateString() : ''}
+                              </span>
+                              <span className="text-xs text-muted-foreground">•</span>
+                              <span className="text-xs text-muted-foreground">
+                                {service.city}
+                              </span>
+                            </div>
+
+                            {/* Title */}
+                            <h3 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                              {service.title}
+                            </h3>
+
+                            {/* Price */}
+                            <div className="text-xl font-bold text-primary mb-3">
+                              <span className="text-sm font-normal text-black">From </span>{service.price.toLocaleString()}₽
+                            </div>
+
+                            {/* Provider Info */}
+                            <div className="flex items-center space-x-2 mb-4">
+                              <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 border-2 border-primary">
+                                {service.provider?.profile_image ? (
+                                  <Image
+                                    src={service.provider.profile_image}
+                                    alt={service.provider.name}
+                                    width={24}
+                                    height={24}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <Image
+                                    src="/placeholder-user.jpg"
+                                    alt="Provider placeholder"
+                                    width={24}
+                                    height={24}
+                                    className="w-full h-full object-cover"
+                                  />
+                                )}
+                              </div>
+                              <span className="text-sm font-medium truncate">
+                                {service.provider?.name}
+                              </span>
+                              {service.provider?.verified && (
+                                <Shield className="h-3 w-3 text-green-500 flex-shrink-0" />
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Right Side - Favorite, Action Button */}
+                          <div className="flex flex-col items-end space-y-3">
+                            {/* Favorite Icon */}
+                            <div
+                              className="h-6 w-6 flex items-center justify-center cursor-pointer hover:scale-110 transition-all duration-200"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleFavorite(service.id)
+                              }}
+                            >
+                              <Heart className={`h-5 w-5 transition-all duration-200 ${favorites.has(service.id) ? 'fill-primary text-primary' : 'text-gray-500 hover:text-primary'}`} />
+                            </div>
+
+                            {/* Action Button */}
+                            <Button size="sm">
+                              Book Now
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                    {service.description}
-                  </p>
-                  
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-primary">
-                        {formatPrice(service.price)}
-                      </span>
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Clock className="h-4 w-4 mr-1" />
-                        <span>{service.duration_minutes} min</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      <span>{service.provider.profile.city}</span>
-                    </div>
-                    
-                    <div className="flex items-center text-sm">
-                      <Star className="h-4 w-4 mr-1 text-yellow-400 fill-current" />
-                      <span className="font-medium">{service.rating}</span>
-                      <span className="text-muted-foreground ml-1">({service.review_count} reviews)</span>
-                    </div>
-                  </div>
-
-                  <div className="flex space-x-2">
-                    <Button asChild className="flex-1">
-                      <Link href={`/services/${service.id}`}>
-                        View Details
-                      </Link>
-                    </Button>
-                    <Button variant="outline" size="icon">
-                      <MessageCircle className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-
-        {/* All Services */}
-        <div>
-          <h2 className="text-2xl font-bold mb-4">All Services</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockServices.map((service) => (
-              <Card key={service.id} className="group hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={`/api/placeholder/100/100`} />
-                        <AvatarFallback>
-                          {getInitials(service.provider.profile.first_name, service.provider.profile.last_name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <CardTitle className="text-base">{service.title}</CardTitle>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Badge variant="outline" className="text-xs">
-                            {getServiceCategoryLabel(service.category)}
-                          </Badge>
-                          {service.provider.verified && (
-                            <Badge variant="outline" className="text-xs">
-                              <Shield className="h-3 w-3 mr-1" />
-                              Verified
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
-                    {service.description}
-                  </p>
-                  
-                  <div className="space-y-1 mb-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-primary">
-                        {formatPrice(service.price)}
-                      </span>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3 mr-1" />
-                        <span>{service.duration_minutes} min</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center text-xs text-muted-foreground">
-                      <MapPin className="h-3 w-3 mr-2" />
-                      <span>{service.provider.profile.city}</span>
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <Star className="h-3 w-3 mr-1 text-yellow-400 fill-current" />
-                      <span className="font-medium text-sm">{service.rating}</span>
-                      <span className="text-muted-foreground ml-1 text-xs">({service.review_count})</span>
-                    </div>
-                  </div>
-
-                  <div className="flex space-x-2">
-                    <Button asChild size="sm" className="flex-1">
-                      <Link href={`/services/${service.id}`}>
-                        Book Service
-                      </Link>
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <MessageCircle className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Load More */}
-        <div className="text-center mt-12">
-          <Button variant="outline" size="lg">
-            Load More Services
-          </Button>
         </div>
       </div>
     </div>

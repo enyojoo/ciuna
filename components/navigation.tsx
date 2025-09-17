@@ -130,10 +130,10 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
       icon: Paintbrush,
       color: 'text-orange-600',
       subcategories: [
-        { name: 'Legal Services', href: '/categories/services/legal' },
-        { name: 'Language Tutoring', href: '/categories/services/language' },
-        { name: 'Home Services', href: '/categories/services/home' },
-        { name: 'Business Services', href: '/categories/services/business' }
+        { name: 'Legal Services', href: '/services?category=legal' },
+        { name: 'Language Tutoring', href: '/services?category=language' },
+        { name: 'Home Services', href: '/services?category=home' },
+        { name: 'Business Services', href: '/services?category=business' }
       ]
     },
     {
@@ -335,7 +335,7 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
                       return (
                         <Link
                           key={category.id}
-                          href={`/categories/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
+                          href={category.name === 'Services' ? '/services' : `/categories/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
                           className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
                           onClick={() => setIsCategoryOpen(false)}
                         >
@@ -519,7 +519,7 @@ export function Navigation({ user, onSignOut }: NavigationProps) {
                     return (
                       <Link
                           key={category.id}
-                          href={`/categories/${category.name.toLowerCase()}`}
+                          href={category.name === 'Services' ? '/services' : `/categories/${category.name.toLowerCase()}`}
                           className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded"
                         onClick={() => setIsOpen(false)}
                       >
