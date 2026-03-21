@@ -4,6 +4,13 @@ import { useEffect, useMemo, useState } from "react"
 import { ChevronDown, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import type { Currency } from "@/types"
 import { cn } from "@/lib/utils"
 
@@ -139,5 +146,52 @@ export function CurrencyPickerSheet({
         </div>
       </DrawerContent>
     </Drawer>
+  )
+}
+
+function useFilteredCurrenciesForType(currencies: Currency[], type: "send" | "receive") {
+  return useMemo(() => {
+    if (type === "send") return currencies.filter((c) => c.can_send !== false)
+    return currencies.filter((c) => c.can_receive !== false)
+  }, [currencies, type])
+}
+
+/** Tablet/desktop: standard Radix select. Mobile: use {@link CurrencyPickerSheet} + {@link CurrencyPickerTrigger}. */
+export function CurrencyPickerSelect({
+  value,
+  onValueChange,
+  currencies,
+  type,
+  disabled,
+}: {
+  value: string
+  onValueChange: (code: string) => void
+  currencies: Currency[]
+  type: "send" | "receive"
+  disabled?: boolean
+}) {
+  const list = useFilteredCurrenciesForType(currencies, type)
+  const selected = currencies.find((c) => c.code === value)
+
+  return (
+    <Select value={value} onValueChange={onValueChange} disabled={disabled}>
+      <SelectTrigger
+        className={cn(
+          "h-11 min-w-[10rem] shrink-0 gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium shadow-sm",
+        )}
+      >
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          {selected ? <CurrencyFlagIcon currency={selected} /> : null}
+          <SelectValue placeholder="Currency" />
+        </div>
+      </SelectTrigger>
+      <SelectContent align="end" position="popper" className="max-h-72">
+        {list.map((currency) => (
+          <SelectItem key={currency.code} value={currency.code}>
+            {currency.code} — {currency.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }

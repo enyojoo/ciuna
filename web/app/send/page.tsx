@@ -30,10 +30,10 @@ import { useUserData } from "@/hooks/use-user-data"
 import { SendPageSkeleton } from "@/components/send-page-skeleton"
 import {
   CurrencyFlagIcon,
+  CurrencyPickerSelect,
   CurrencyPickerSheet,
   CurrencyPickerTrigger,
 } from "@/components/send/currency-picker-sheet"
-import { SendFlowStepper } from "@/components/send/send-flow-stepper"
 import type { Currency } from "@/types"
 import {
   getAccountTypeConfigFromCurrency,
@@ -753,7 +753,6 @@ export default function UserSendPage() {
     <>
     <div className="p-6">
         <div className="max-w-6xl mx-auto">
-          <SendFlowStepper currentStep={currentStep} />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2">
@@ -769,7 +768,7 @@ export default function UserSendPage() {
                     <div className="space-y-4">
                       <h3 className="text-sm font-medium text-gray-700">You Send</h3>
                       <div className="bg-gray-50 rounded-xl p-4">
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center gap-2">
                           <input
                             type="number"
                             value={sendAmount}
@@ -789,10 +788,10 @@ export default function UserSendPage() {
                                 setSendAmount(maxAmount.toString())
                               }
                             }}
-                            className="text-3xl font-bold bg-transparent border-0 outline-none w-full"
+                            className="min-w-0 flex-1 text-3xl font-bold bg-transparent border-0 outline-none"
                             placeholder="0.00"
                           />
-                          <>
+                          <div className="md:hidden shrink-0">
                             <CurrencyPickerTrigger
                               selectedCurrency={sendCurrency}
                               onOpen={() => setSendDropdownOpen(true)}
@@ -807,7 +806,15 @@ export default function UserSendPage() {
                               type="send"
                               title="You send"
                             />
-                          </>
+                          </div>
+                          <div className="hidden md:block shrink-0">
+                            <CurrencyPickerSelect
+                              value={sendCurrency}
+                              onValueChange={handleSendCurrencyChange}
+                              currencies={currencies}
+                              type="send"
+                            />
+                          </div>
                         </div>
                       </div>
                       {(() => {
@@ -856,7 +863,7 @@ export default function UserSendPage() {
                     <div className="space-y-4">
                       <h3 className="text-sm font-medium text-gray-700">Receiver Gets</h3>
                       <div className="bg-gray-50 rounded-xl p-4">
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center gap-2">
                           <input
                             type="number"
                             value={receiveAmount}
@@ -885,10 +892,10 @@ export default function UserSendPage() {
                                 }
                               }
                             }}
-                            className="text-3xl font-bold bg-transparent border-0 outline-none w-full"
+                            className="min-w-0 flex-1 text-3xl font-bold bg-transparent border-0 outline-none"
                             placeholder="0.00"
                           />
-                          <>
+                          <div className="md:hidden shrink-0">
                             <CurrencyPickerTrigger
                               selectedCurrency={receiveCurrency}
                               onOpen={() => setReceiveDropdownOpen(true)}
@@ -903,7 +910,15 @@ export default function UserSendPage() {
                               type="receive"
                               title="Receiver gets"
                             />
-                          </>
+                          </div>
+                          <div className="hidden md:block shrink-0">
+                            <CurrencyPickerSelect
+                              value={receiveCurrency}
+                              onValueChange={handleReceiveCurrencyChange}
+                              currencies={currencies}
+                              type="receive"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { useState, useEffect } from "react"
 import type { KYCSubmission } from "@/lib/kyc-service"
+import { InstallAppCard } from "@/components/pwa/install-app-card"
 
 export default function MorePage() {
   const router = useRouter()
@@ -180,6 +181,8 @@ export default function MorePage() {
 
         {/* Content */}
         <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-5 sm:pb-6 space-y-4 sm:space-y-5">
+          <InstallAppCard />
+
           {/* Account Section */}
           <Card>
             <CardHeader>

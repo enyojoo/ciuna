@@ -5,7 +5,11 @@ import { GeistMono } from "geist/font/mono"
 import { AuthProvider } from "@/lib/auth-context"
 import { PostHogProvider } from "@/components/posthog-provider"
 import { ProtectedRouteWrapper } from "@/components/auth/protected-route-wrapper"
+import { PwaStandaloneRoot } from "@/components/pwa/pwa-standalone-root"
 import "./globals.css"
+
+const APP_ICON =
+  "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20favicon.png"
 
 export const metadata: Metadata = {
   title: "Ciuna - Move Money Globally Like SMS",
@@ -23,9 +27,12 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   icons: {
-    icon: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20favicon.png",
-    shortcut: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20favicon.png",
-    apple: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20favicon.png",
+    icon: [
+      { url: APP_ICON, sizes: "32x32", type: "image/png" },
+      { url: APP_ICON, sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: APP_ICON,
+    apple: [{ url: APP_ICON, sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
     title: "Ciuna - Move Money Globally Like SMS",
@@ -63,6 +70,11 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  /**
+   * `statusBarStyle: "default"` keeps the iOS status bar opaque and matches our
+   * sticky headers that use `env(safe-area-inset-top)`. Avoid `black-translucent`
+   * unless you retest all top safe-area padding (e.g. AppPageHeader).
+   */
   appleWebApp: {
     capable: true,
     title: "Ciuna",
@@ -206,11 +218,12 @@ export default function RootLayout({
         />
       </head>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
-<PostHogProvider>
-        <AuthProvider>
-          <ProtectedRouteWrapper>{children}</ProtectedRouteWrapper>
-        </AuthProvider>
-      </PostHogProvider>
+        <PwaStandaloneRoot />
+        <PostHogProvider>
+          <AuthProvider>
+            <ProtectedRouteWrapper>{children}</ProtectedRouteWrapper>
+          </AuthProvider>
+        </PostHogProvider>
       </body>
     </html>
   )
