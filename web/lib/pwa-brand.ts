@@ -1,16 +1,20 @@
 /**
- * Single source of truth for app icons used by the Web App Manifest and HTML metadata.
+ * Brand icon URLs (Supabase public storage).
  *
- * **To update PWA / home-screen icons:**
- * - **Option A — hosted URL:** Put PNGs on a public HTTPS host (e.g. Supabase storage) and set
- *   `PWA_APP_ICON_URL` to the **192×192** or **512×512** asset (square PNG). Manifest lists the same
- *   URL for multiple `sizes` entries today; for best results provide a 512×512 master and optional
- *   maskable variant (safe zone for `purpose: "maskable"`).
- * - **Option B — repo:** Add files under `public/` (e.g. `/icons/app-192.png`, `/icons/app-512.png`)
- *   and set this constant to `https://app.ciuna.com/icons/app-512.png` (absolute URL is safest for
- *   manifest `icons[].src` across origins).
+ * **`SITE_FAVICON_URL`** — Browser tab favicon and `shortcut` in [`app/layout.tsx`](../app/layout.tsx).
+ * Use the dedicated favicon asset (not the PWA master).
  *
- * After changing, redeploy and hard-refresh; users may need to re-add to home screen to see the new icon.
+ * **`PWA_APP_ICON_URL`** — Web App Manifest ([`app/manifest.ts`](../app/manifest.ts)) and optional
+ * `apple` touch icon when you want the home-screen / install art to match the PWA icon.
+ */
+
+/** Tab favicon (distinct from the larger PWA install icon). */
+export const SITE_FAVICON_URL =
+  "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20favicon.png"
+
+/**
+ * PWA / “add to home screen” icon (192–512px square PNG). Used by the manifest only; do not use
+ * for the default favicon unless you intentionally want one asset for both.
  */
 export const PWA_APP_ICON_URL =
   "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/ciuna%20pwa%20icon.png"

@@ -9,7 +9,7 @@ import { PwaStandaloneRoot } from "@/components/pwa/pwa-standalone-root"
 import { InstallAppBanner } from "@/components/pwa/install-app-banner"
 import { PwaInstallProvider } from "@/hooks/use-pwa-install-prompt"
 import "./globals.css"
-import { PWA_APP_ICON_URL } from "@/lib/pwa-brand"
+import { PWA_APP_ICON_URL, SITE_FAVICON_URL } from "@/lib/pwa-brand"
 
 export const metadata: Metadata = {
   title: "Ciuna - Move Money Globally Like SMS",
@@ -28,10 +28,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: PWA_APP_ICON_URL, sizes: "32x32", type: "image/png" },
-      { url: PWA_APP_ICON_URL, sizes: "512x512", type: "image/png" },
+      { url: SITE_FAVICON_URL, sizes: "32x32", type: "image/png" },
+      { url: SITE_FAVICON_URL, sizes: "512x512", type: "image/png" },
     ],
-    shortcut: PWA_APP_ICON_URL,
+    shortcut: SITE_FAVICON_URL,
     apple: [{ url: PWA_APP_ICON_URL, sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
