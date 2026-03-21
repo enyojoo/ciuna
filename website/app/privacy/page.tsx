@@ -75,7 +75,7 @@ function PrivacyPageContent() {
                   This Privacy Policy describes how Ciuna, Inc. ("Ciuna," "we," "us," or "our") collects, uses, and
                   shares information about you when you use our platform and web applications. Ciuna provides
                   instant, zero-fee cross-border transfers through licensed financial service partners. Ciuna is a
-                  financial technology company and not a bank, exchange, or asset custodian. Ciuna does not facilitate FDIC insurance or hold deposits. Ciuna acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions. Cards are issued by partners licensed in their respective jurisdictions.
+                  financial technology company and not a bank or exchange and acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions.
                 </p>
               </section>
 

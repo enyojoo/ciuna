@@ -1,52 +1,34 @@
+import type { SVGProps } from "react"
 import Link from "next/link"
-import { Linkedin, ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
+
+const DISCLAIMER =
+  "Ciuna is a financial technology company and not a bank or exchange and acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions."
+
+function TelegramIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden {...props}>
+      <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+    </svg>
+  )
+}
 
 export function PublicFooter() {
   return (
     <footer className="w-full border-t bg-white/80 backdrop-blur-md">
-      {/* CTA: Move Money with Ease */}
-      <section className="py-20 md:py-28 bg-slate-50 relative">
-        <div
-          className="absolute inset-0 opacity-[0.05] pointer-events-none"
-          style={{
-            backgroundImage: `url('https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/worldmap.svg')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
-          }}
-        />
-        <div className="container mx-auto px-4 md:px-6 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 font-display mb-6">
-              Move Money with Ease
-            </h2>
-            <p className="text-lg md:text-xl text-gray-500 leading-relaxed">
-              From the US and EU to Africa and Asia, Ciuna provides financial infrastructure that makes global money movement simple, compliant, and instant — for individuals, SMEs, and institutions alike.
-            </p>
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button asChild size="lg" className="gap-2 bg-ciuna-primary hover:bg-ciuna-primary-600 shadow-md">
-                <Link href="/access">
-                  Get Started <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-6 sm:py-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
             <div className="flex flex-col items-center sm:items-start gap-2">
               <div className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">© {new Date().getFullYear()} Ciuna Inc.</div>
               <div className="flex items-center gap-3">
-                <a href="https://x.com/ciunabanking" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-ciuna-primary transition-colors" aria-label="X (Twitter)">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                  </svg>
-                </a>
-                <a href="https://www.linkedin.com/company/ciuna/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-ciuna-primary transition-colors" aria-label="LinkedIn">
-                  <Linkedin className="h-4 w-4" />
+                <a
+                  href="https://t.me/ciuna_help"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-500 hover:text-ciuna-primary transition-colors"
+                  aria-label="Telegram support"
+                >
+                  <TelegramIcon />
                 </a>
               </div>
             </div>
@@ -56,14 +38,13 @@ export function PublicFooter() {
             </div>
           </div>
           <div className="text-center sm:text-left text-xs sm:text-sm text-gray-500 mb-4">
-            <p>Have questions? Email us at{" "}
+            <p>
+              Need help? Email us at{" "}
               <a href="mailto:hello@ciuna.com" className="text-ciuna-primary hover:underline">hello@ciuna.com</a>
             </p>
           </div>
           <div className="pt-4 border-t border-gray-200">
-            <p className="text-xs text-gray-400 text-center max-w-4xl mx-auto leading-relaxed">
-              Ciuna is a financial technology company and not a bank, exchange, or asset custodian. Ciuna does not facilitate FDIC insurance or hold deposits. Ciuna acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions. Cards are issued by partners licensed in their respective jurisdictions.
-            </p>
+            <p className="text-xs text-gray-400 text-center max-w-4xl mx-auto leading-relaxed">{DISCLAIMER}</p>
           </div>
         </div>
       </div>

@@ -12,11 +12,11 @@ export function PublicHeader() {
           <Link href="/" className="flex items-center shrink-0">
             <BrandLogo size="sm" className="h-7" />
           </Link>
-          <Link href="/access">
-            <Button className="bg-ciuna-primary hover:bg-ciuna-primary-600 text-white shadow-lg hover:shadow-xl transition-all duration-200">
-              Get Started
-            </Button>
-          </Link>
+          <Button asChild className="bg-ciuna-primary hover:bg-ciuna-primary-600 text-white shadow-lg hover:shadow-xl transition-all duration-200">
+            <a href="https://t.me/ciunabot" target="_blank" rel="noopener noreferrer">
+              Open App
+            </a>
+          </Button>
         </div>
       </div>
     </header>

@@ -1,6 +1,5 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -9,9 +8,7 @@ import { PublicFooter } from '@/components/layout/public-footer'
 import { CurrencyConverter } from '@/components/currency-converter'
 
 export default function HomePage() {
-  const router = useRouter()
-
-  const handleSendMoney = (data: {
+  const handleSendMoney = (_data: {
     sendAmount: string
     sendCurrency: string
     receiveCurrency: string
@@ -19,7 +16,7 @@ export default function HomePage() {
     exchangeRate: number
     fee: number
   }) => {
-    router.push("/access")
+    window.open("https://t.me/ciunabot", "_blank", "noopener,noreferrer")
   }
 
   return (
@@ -44,8 +41,6 @@ function Hero({ onSendMoney }: { onSendMoney: (data: {
   exchangeRate: number
   fee: number
 }) => void }) {
-  const router = useRouter()
-
   return (
     <section className="relative bg-white pt-10 pb-8 sm:pt-12 sm:pb-10 md:pt-14 md:pb-12 lg:pt-16 lg:pb-16 overflow-hidden">
       <div className="absolute inset-0 bg-ciuna-primary-50/10 pointer-events-none" style={{ clipPath: 'ellipse(80% 50% at 50% 0%)' }} />
@@ -67,8 +62,10 @@ function Hero({ onSendMoney }: { onSendMoney: (data: {
             </p>
           </div>
           <div className="flex flex-col items-center gap-4">
-            <Button size="lg" className="gap-2 bg-ciuna-primary hover:bg-ciuna-primary-600" onClick={() => router.push("/access")}>
-              Get Started <ArrowRight className="h-4 w-4" />
+            <Button size="lg" className="gap-2 bg-ciuna-primary hover:bg-ciuna-primary-600" asChild>
+              <a href="https://t.me/ciunabot" target="_blank" rel="noopener noreferrer">
+                Open App <ArrowRight className="h-4 w-4" />
+              </a>
             </Button>
           </div>
         </motion.div>

@@ -88,7 +88,7 @@ function TermsPageContent() {
                   technology provided by our licensed partners, including Bridge, to make cross-border transfers instant, transparent, and secure.
                 </p>
                 <p className="text-gray-700 leading-relaxed">
-                  <strong>Important:</strong> Ciuna is a financial technology company and not a bank, exchange, or asset custodian. Ciuna does not facilitate FDIC insurance or hold deposits. Ciuna acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions. Cards are issued by partners licensed in their respective jurisdictions. Financial services are facilitated by licensed partners with appropriate regulatory permissions.
+                  <strong>Important:</strong> Ciuna is a financial technology company and not a bank or exchange and acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions. Financial services are facilitated by licensed partners with appropriate regulatory permissions.
                 </p>
               </section>
 
@@ -219,7 +219,7 @@ function TermsPageContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">11. Disclaimers</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  Ciuna is a financial technology company and not a bank, exchange, or asset custodian. Ciuna does not facilitate FDIC insurance or hold deposits. Ciuna acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions. Cards are issued by partners licensed in their respective jurisdictions. All financial services, including blockchain and cryptocurrency infrastructure, are provided by licensed third-party partners who hold appropriate regulatory licenses in their respective jurisdictions. Our blockchain and cryptocurrency services are provided by Bridge and other licensed partners. End users interact only with traditional fiat currencies through bank-to-bank transfers. Users do not need to hold, manage, or interact with cryptocurrency or digital assets to use Ciuna's services.
+                  Ciuna is a financial technology company and not a bank or exchange and acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions. All financial services, including blockchain and cryptocurrency infrastructure, are provided by licensed third-party partners who hold appropriate regulatory licenses in their respective jurisdictions. Our blockchain and cryptocurrency services are provided by Bridge and other licensed partners. End users interact only with traditional fiat currencies through bank-to-bank transfers. Users do not need to hold, manage, or interact with cryptocurrency or digital assets to use Ciuna's services.
                 </p>
               </section>
 
