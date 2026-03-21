@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useId, useMemo, useRef, useState } from "react"
+import { useEffect, useId, useMemo, useState } from "react"
 import { ChevronDown, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Drawer, DrawerContent } from "@/components/ui/drawer"
@@ -87,9 +87,6 @@ function CurrencyPickerPanel({
   selectedCurrency,
   onPick,
   listClassName,
-  autoFocusSearch,
-  /** Mobile sheet: delayed focus + scroll; avoids iOS fighting the drawer open animation. */
-  sheetSearchFocus,
 }: {
   /** When omitted or empty, no heading is shown (send flow uses search-only chrome). */
   title?: string
@@ -99,25 +96,9 @@ function CurrencyPickerPanel({
   selectedCurrency: string
   onPick: (code: string) => void
   listClassName?: string
-  autoFocusSearch?: boolean
-  sheetSearchFocus?: boolean
 }) {
   const showTitle = Boolean(title?.trim())
   const searchId = useId()
-  const searchInputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (!sheetSearchFocus || !autoFocusSearch) return
-    const t = window.setTimeout(() => {
-      const el = searchInputRef.current
-      if (!el) return
-      el.focus({ preventScroll: true })
-      requestAnimationFrame(() => {
-        el.scrollIntoView({ block: "nearest", behavior: "smooth" })
-      })
-    }, 300)
-    return () => window.clearTimeout(t)
-  }, [sheetSearchFocus, autoFocusSearch])
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
@@ -135,7 +116,6 @@ function CurrencyPickerPanel({
             aria-hidden
           />
           <Input
-            ref={searchInputRef}
             id={searchId}
             type="search"
             name={`currency-filter-${searchId.replace(/:/g, "")}`}
@@ -154,7 +134,6 @@ function CurrencyPickerPanel({
             data-lpignore="true"
             data-bwignore="true"
             data-form-type="other"
-            autoFocus={Boolean(autoFocusSearch && !sheetSearchFocus)}
           />
         </div>
       </div>
@@ -290,8 +269,6 @@ export function CurrencyPickerSheet({
               onOpenChange(false)
               queueMicrotask(() => onSelect(code))
             }}
-            autoFocusSearch={open}
-            sheetSearchFocus
           />
         </div>
       </DrawerContent>
@@ -352,7 +329,6 @@ export function CurrencyPickerPopover({
             setOpen(false)
           }}
           listClassName={POPOVER_CURRENCY_LIST_MAX_H}
-          autoFocusSearch={false}
         />
       </PopoverContent>
     </Popover>

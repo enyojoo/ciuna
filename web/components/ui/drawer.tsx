@@ -24,16 +24,23 @@ DrawerOverlay.displayName = "DrawerOverlay"
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerVaul.Content>,
   React.ComponentPropsWithoutRef<typeof DrawerVaul.Content>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, onOpenAutoFocus, ...props }, ref) => (
   <DrawerPortal>
     <DrawerOverlay />
     <DrawerVaul.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 flex max-h-[min(92vh,900px)] min-h-0 flex-col rounded-t-2xl border bg-background pb-[env(safe-area-inset-bottom,0px)]",
+        "fixed inset-x-0 bottom-0 z-50 flex max-h-[min(92vh,900px)] min-h-0 flex-col rounded-t-2xl border bg-background pb-[env(safe-area-inset-bottom,0px)] outline-none",
         className
       )}
       {...props}
+      tabIndex={-1}
+      onOpenAutoFocus={(event) => {
+        onOpenAutoFocus?.(event)
+        if (event.defaultPrevented) return
+        event.preventDefault()
+        event.currentTarget.focus()
+      }}
     >
       <DrawerVaul.Handle className="mx-auto mt-3 mb-2 h-1.5 w-12 shrink-0 rounded-full bg-muted-foreground/30" />
       {children}

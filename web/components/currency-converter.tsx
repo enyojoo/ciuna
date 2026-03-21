@@ -235,7 +235,6 @@ export function CurrencyConverter({ onSendMoney }: CurrencyConverterProps) {
                   value={searchTerm}
                   onChange={(e) => onSearchChange(e.target.value)}
                   className="pl-10 h-9"
-                  autoFocus
                 />
               </div>
             </div>

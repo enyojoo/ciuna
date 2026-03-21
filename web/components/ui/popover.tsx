@@ -14,7 +14,7 @@ const PopoverAnchor = PopoverPrimitive.Anchor
 const PopoverContent = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
->(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
+>(({ className, align = "center", sideOffset = 4, onOpenAutoFocus, ...props }, ref) => (
   <PopoverPrimitive.Portal>
     <PopoverPrimitive.Content
       ref={ref}
@@ -25,6 +25,13 @@ const PopoverContent = React.forwardRef<
         className,
       )}
       {...props}
+      tabIndex={-1}
+      onOpenAutoFocus={(event) => {
+        onOpenAutoFocus?.(event)
+        if (event.defaultPrevented) return
+        event.preventDefault()
+        event.currentTarget.focus()
+      }}
     />
   </PopoverPrimitive.Portal>
 ))
