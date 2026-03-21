@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next"
 
-const ICON =
-  "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20favicon.png"
+import { PWA_APP_ICON_URL } from "@/lib/pwa-brand"
 
 /**
  * Web App Manifest — keep `display: "standalone"` unless product explicitly wants
@@ -22,19 +21,19 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["finance", "business"],
     icons: [
       {
-        src: ICON,
+        src: PWA_APP_ICON_URL,
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: ICON,
+        src: PWA_APP_ICON_URL,
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: ICON,
+        src: PWA_APP_ICON_URL,
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",

@@ -1,7 +1,7 @@
 /* Ciuna Brand Standards
  * Primary Color: #F97316
  * Logo: https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna.svg
- * Favicon: https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20favicon.png
+ * App / PWA icon URL: see `lib/pwa-brand.ts` (`PWA_APP_ICON_URL`).
  */
 
 @import "tailwindcss";

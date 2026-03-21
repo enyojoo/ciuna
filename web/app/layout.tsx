@@ -6,10 +6,10 @@ import { AuthProvider } from "@/lib/auth-context"
 import { PostHogProvider } from "@/components/posthog-provider"
 import { ProtectedRouteWrapper } from "@/components/auth/protected-route-wrapper"
 import { PwaStandaloneRoot } from "@/components/pwa/pwa-standalone-root"
+import { InstallAppBanner } from "@/components/pwa/install-app-banner"
+import { PwaInstallProvider } from "@/hooks/use-pwa-install-prompt"
 import "./globals.css"
-
-const APP_ICON =
-  "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20favicon.png"
+import { PWA_APP_ICON_URL } from "@/lib/pwa-brand"
 
 export const metadata: Metadata = {
   title: "Ciuna - Move Money Globally Like SMS",
@@ -28,11 +28,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: APP_ICON, sizes: "32x32", type: "image/png" },
-      { url: APP_ICON, sizes: "512x512", type: "image/png" },
+      { url: PWA_APP_ICON_URL, sizes: "32x32", type: "image/png" },
+      { url: PWA_APP_ICON_URL, sizes: "512x512", type: "image/png" },
     ],
-    shortcut: APP_ICON,
-    apple: [{ url: APP_ICON, sizes: "180x180", type: "image/png" }],
+    shortcut: PWA_APP_ICON_URL,
+    apple: [{ url: PWA_APP_ICON_URL, sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
     title: "Ciuna - Move Money Globally Like SMS",
@@ -218,12 +218,15 @@ export default function RootLayout({
         />
       </head>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
-        <PwaStandaloneRoot />
-        <PostHogProvider>
-          <AuthProvider>
-            <ProtectedRouteWrapper>{children}</ProtectedRouteWrapper>
-          </AuthProvider>
-        </PostHogProvider>
+        <PwaInstallProvider>
+          <PwaStandaloneRoot />
+          <InstallAppBanner />
+          <PostHogProvider>
+            <AuthProvider>
+              <ProtectedRouteWrapper>{children}</ProtectedRouteWrapper>
+            </AuthProvider>
+          </PostHogProvider>
+        </PwaInstallProvider>
       </body>
     </html>
   )
