@@ -1,16 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useLayoutEffect } from "react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { Search } from "lucide-react"
-import { TransactionsSkeleton } from "@/components/transactions-skeleton"
+import { TransactionsListSkeleton } from "@/components/transactions-skeleton"
 import { useAuth } from "@/lib/auth-context"
 import { useUserData } from "@/hooks/use-user-data"
+import { userDataStore } from "@/lib/user-data-store"
 import { supabase } from "@/lib/supabase"
 import Link from "next/link"
+import { AppPageHeader } from "@/components/layout/app-page-header"
 
 interface CombinedTransaction {
   id: string
@@ -39,98 +40,103 @@ interface CombinedTransaction {
   }
 }
 
+const CACHE_TTL_MS = 5 * 60 * 1000
+
+function readStaleTransactionsCache(userId: string): CombinedTransaction[] | null {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = localStorage.getItem(`ciuna_combined_transactions_${userId}`)
+    if (!raw) return null
+    const { value } = JSON.parse(raw)
+    return Array.isArray(value) ? value : null
+  } catch {
+    return null
+  }
+}
+
+function isTransactionsCacheFresh(userId: string): boolean {
+  if (typeof window === "undefined") return false
+  try {
+    const raw = localStorage.getItem(`ciuna_combined_transactions_${userId}`)
+    if (!raw) return false
+    const { timestamp } = JSON.parse(raw)
+    return Date.now() - timestamp < CACHE_TTL_MS
+  } catch {
+    return false
+  }
+}
+
 export default function UserTransactionsPage() {
   const { userProfile } = useAuth()
-  const { transactions: userTransactions, currencies, loading: userDataLoading, refreshTransactions } = useUserData()
+  const { transactions: userTransactions, currencies, refreshTransactions } = useUserData()
   const [searchTerm, setSearchTerm] = useState("")
 
-  // Initialize from cache synchronously to prevent reload flicker
-  const getInitialTransactions = (): CombinedTransaction[] | null => {
-    if (!userProfile?.id) return null
-    try {
-      const cached = localStorage.getItem(`ciuna_combined_transactions_${userProfile.id}`)
-      if (!cached) return null
-      const { value, timestamp } = JSON.parse(cached)
-      if (Date.now() - timestamp < 5 * 60 * 1000) { // 5 minute cache
-        return value
-      }
-      return null
-    } catch {
-      return null
-    }
-  }
-
-  const [transactions, setTransactions] = useState<CombinedTransaction[]>(() => getInitialTransactions() || [])
+  const [transactions, setTransactions] = useState<CombinedTransaction[]>([])
   const [loading, setLoading] = useState(false)
 
-  // Fetch combined transactions - only if not in cache
+  // Seed from localStorage (stale OK) + in-memory store before paint; set loading before first paint when a fetch is needed
+  useLayoutEffect(() => {
+    if (!userProfile?.id) return
+    setTransactions((prev) => {
+      if (prev.length > 0) return prev
+      const stale = readStaleTransactionsCache(userProfile.id)
+      if (stale && stale.length > 0) return stale
+      const fromStore = userDataStore.getData().transactions as CombinedTransaction[]
+      if (fromStore && fromStore.length > 0) return fromStore
+      const ut = (userTransactions || []) as CombinedTransaction[]
+      if (ut.length > 0) return ut
+      return prev
+    })
+
+    const stale = readStaleTransactionsCache(userProfile.id)
+    const storeLen = userDataStore.getData().transactions?.length ?? 0
+    const utLen = (userTransactions || []).length
+    const hasRows = (stale?.length ?? 0) > 0 || storeLen > 0 || utLen > 0
+    const cacheFresh = isTransactionsCacheFresh(userProfile.id)
+
+    if (!cacheFresh && !hasRows) {
+      setLoading(true)
+    } else {
+      setLoading(false)
+    }
+  }, [userProfile?.id, userTransactions])
+
+  // Fetch combined transactions when cache is stale or missing (never drop full-page chrome)
   useEffect(() => {
     if (!userProfile?.id) return
 
     const CACHE_KEY = `ciuna_combined_transactions_${userProfile.id}`
-    const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
-
-    const getCachedTransactions = (): CombinedTransaction[] | null => {
-      try {
-        const cached = localStorage.getItem(CACHE_KEY)
-        if (!cached) return null
-        const { value, timestamp } = JSON.parse(cached)
-        if (Date.now() - timestamp < CACHE_TTL) {
-          return value
-        }
-        localStorage.removeItem(CACHE_KEY)
-        return null
-      } catch {
-        return null
-      }
-    }
 
     const setCachedTransactions = (value: CombinedTransaction[]) => {
       try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({
-          value,
-          timestamp: Date.now()
-        }))
+        localStorage.setItem(
+          CACHE_KEY,
+          JSON.stringify({
+            value,
+            timestamp: Date.now(),
+          }),
+        )
       } catch {}
     }
 
-    // Data is already loaded from cache in initial state
-    // Only fetch if cache is missing or expired
-    const cachedTransactions = getCachedTransactions()
-
-    // Update state if cache exists and state is empty (only on first mount)
-    if (cachedTransactions !== null && transactions.length === 0) {
-      setTransactions(cachedTransactions)
-    }
-
-    // If cached and valid, no need to fetch
-    if (cachedTransactions !== null) {
+    if (isTransactionsCacheFresh(userProfile.id)) {
       return
     }
 
-    // Only fetch missing or expired data
     const fetchCombinedTransactions = async () => {
-      // Only show loading if we don't have any cached data
-      if (transactions.length === 0) {
-        setLoading(true)
-      }
       try {
-        // Fetch all transactions (both send and receive) from API
-        const txResponse = await fetch(
-          `/api/transactions?type=send&limit=100`,
-          {
-            credentials: 'include',
-          }
-        )
+        const txResponse = await fetch(`/api/transactions?type=send&limit=100`, {
+          credentials: "include",
+        })
         if (txResponse.ok) {
           const txData = await txResponse.json()
           const transactionsList = txData.transactions || []
           setTransactions(transactionsList)
           setCachedTransactions(transactionsList)
         } else {
-          // If API fails, fall back to userTransactions from useUserData (which has its own fallback)
-          console.warn("API fetch failed, using cached transactions from useUserData")
-          const fallbackTransactions = (userTransactions || []) as CombinedTransaction[]
+          console.warn("API fetch failed, using in-memory store transactions")
+          const fallbackTransactions = (userDataStore.getData().transactions ||
+            []) as CombinedTransaction[]
           setTransactions(fallbackTransactions)
           if (fallbackTransactions.length > 0) {
             setCachedTransactions(fallbackTransactions)
@@ -138,8 +144,8 @@ export default function UserTransactionsPage() {
         }
       } catch (error) {
         console.error("Error fetching transactions:", error)
-        // Fall back to userTransactions from useUserData
-        const fallbackTransactions = (userTransactions || []) as CombinedTransaction[]
+        const fallbackTransactions = (userDataStore.getData().transactions ||
+          []) as CombinedTransaction[]
         setTransactions(fallbackTransactions)
         if (fallbackTransactions.length > 0) {
           setCachedTransactions(fallbackTransactions)
@@ -150,7 +156,7 @@ export default function UserTransactionsPage() {
     }
 
     fetchCombinedTransactions()
-  }, [userProfile?.id]) // Only fetch when user changes, not when userTransactions changes
+  }, [userProfile?.id])
 
   // Real-time subscription for transaction updates
   useEffect(() => {
@@ -227,13 +233,6 @@ export default function UserTransactionsPage() {
     }
   }, [userProfile?.id])
 
-  // Show skeleton only if we're loading and have no data at all
-  if ((loading || userDataLoading) && transactions.length === 0 && !userTransactions?.length) {
-    return (
-      <TransactionsSkeleton />
-    )
-  }
-
   const filteredTransactions = transactions.filter((transaction) => {
     if (!transaction) return false
     
@@ -292,11 +291,7 @@ export default function UserTransactionsPage() {
 
   return (
     <div className="space-y-0">
-        {/* Header - Mobile Style */}
-        <div className="bg-white p-5 sm:p-6 border-b border-gray-200">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Transaction History</h1>
-          <p className="text-base text-gray-600">View all your transfers</p>
-        </div>
+        <AppPageHeader title="Transactions" backHref="/dashboard" />
 
         {/* Search Bar */}
         <div className="p-5 sm:p-6 pb-3 sm:pb-4">
@@ -313,7 +308,9 @@ export default function UserTransactionsPage() {
 
         {/* Transactions List */}
         <div className="px-5 sm:px-6 pb-5 sm:pb-6 space-y-4 sm:space-y-5">
-          {transactions.length === 0 ? (
+          {loading && transactions.length === 0 ? (
+            <TransactionsListSkeleton />
+          ) : transactions.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-base text-gray-600 mb-2">No transactions found</p>
               <p className="text-sm text-gray-500">

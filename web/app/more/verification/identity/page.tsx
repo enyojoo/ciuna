@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Upload, X, Search, Check, AlertCircle } from "lucide-react"
+import { Upload, X, Search, Check, AlertCircle } from "lucide-react"
 import Link from "next/link"
+import { AppPageHeader } from "@/components/layout/app-page-header"
 import { useAuth } from "@/lib/auth-context"
 import {
   Select,
@@ -444,20 +445,10 @@ export default function IdentityVerificationPage() {
   const selectedCountryData = countries.find(c => c.code === selectedCountry)
 
   return (
-    <div className="min-h-screen bg-white">
-        {/* Header */}
-        <div className="bg-white px-5 py-6 border-b">
-          <div className="flex items-center gap-3">
-            <Link href="/more/verification">
-              <button className="p-1 -ml-1">
-                <ArrowLeft className="h-6 w-6 text-gray-900" />
-              </button>
-            </Link>
-            <h1 className="text-2xl font-bold text-gray-900">Identity Verification</h1>
-          </div>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+        <AppPageHeader title="Identity Verification" backHref="/more/verification" />
 
-        <div className="px-5 py-6 max-w-2xl mx-auto">
+        <div className="px-5 sm:px-6 py-6 max-w-2xl mx-auto">
           {loading && !submission ? (
             // Show loading skeleton while fetching
             <div className="space-y-6">

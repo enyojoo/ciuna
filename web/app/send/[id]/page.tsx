@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth-context"
 import { useUserData } from "@/hooks/use-user-data"
 import { TransactionTimeline } from "@/components/transaction-timeline"
 import { TransactionDetailsSkeleton } from "@/components/transaction-details-skeleton"
+import { AppPageHeader } from "@/components/layout/app-page-header"
 import { supabase } from "@/lib/supabase"
 import type { Transaction } from "@/types"
 
@@ -511,6 +512,8 @@ function TransactionStatusPage() {
   const { timeRemaining, isOverdue } = getTimeInfo()
 
   return (
+    <div className="space-y-0">
+      <AppPageHeader title="Transfer" backHref="/transactions" />
     <div className="p-6">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -729,6 +732,7 @@ function TransactionStatusPage() {
           </div>
         </div>
       </div>
+    </div>
   )
 }
 

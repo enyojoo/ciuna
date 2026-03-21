@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { ArrowLeft, MapPin, User, ChevronRight } from "lucide-react"
+import { MapPin, User, ChevronRight } from "lucide-react"
 import Link from "next/link"
+import { AppPageHeader } from "@/components/layout/app-page-header"
 import { useAuth } from "@/lib/auth-context"
 import { kycService, KYCSubmission } from "@/lib/kyc-service"
 import { supabase } from "@/lib/supabase"
@@ -210,22 +211,12 @@ export default function VerificationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-        {/* Header - Simple and clean */}
-        <div className="bg-white px-5 py-6">
-          <div className="flex items-center gap-3">
-            <Link href="/more">
-              <button className="p-1 -ml-1">
-                <ArrowLeft className="h-6 w-6 text-gray-900" />
-              </button>
-            </Link>
-            <h1 className="text-2xl font-bold text-gray-900">Account Verification</h1>
-          </div>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+        <AppPageHeader title="Account Verification" backHref="/more" />
 
         {/* Info Message - Only show if both are not completed */}
         {!bothCompleted && (
-          <div className="px-5 pt-2 pb-4">
+          <div className="px-5 sm:px-6 pt-2 pb-4 max-w-4xl mx-auto">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-700">
                 Please complete KYC Identity and Address information for compliance.
@@ -235,7 +226,7 @@ export default function VerificationPage() {
         )}
 
         {/* Cards Container */}
-        <div className="px-5 pb-6 space-y-6">
+        <div className="px-5 sm:px-6 pb-6 space-y-6 max-w-4xl mx-auto">
           {/* Identity Verification Card */}
           <Link href="/more/verification/identity" className="block">
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm cursor-pointer hover:shadow-md transition-shadow">

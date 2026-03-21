@@ -5,8 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft } from "lucide-react"
-import Link from "next/link"
+import { AppPageHeader } from "@/components/layout/app-page-header"
 
 export default function ChangePasswordPage() {
   const [currentPassword, setCurrentPassword] = useState("")
@@ -26,22 +25,10 @@ export default function ChangePasswordPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center gap-4 mb-1">
-              <Link href="/more">
-                <Button variant="ghost" size="sm" className="p-2">
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-              </Link>
-              <h1 className="text-2xl font-bold text-gray-900">Change Password</h1>
-            </div>
-            <p className="text-base text-gray-500 ml-12">Update your account password</p>
-          </div>
-        </div>
+        <AppPageHeader title="Change Password" backHref="/more" />
 
         <div className="max-w-4xl mx-auto px-6 py-6 lg:px-8 space-y-6">
+          <p className="text-base text-gray-600 -mt-1">Update your account password</p>
           <Card>
             <CardHeader>
               <CardTitle className="text-lg font-semibold">Password Settings</CardTitle>

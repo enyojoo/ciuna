@@ -24,6 +24,7 @@ import {
   formatIBAN,
   formatAccountNumber,
 } from "@/lib/formatters"
+import { AppPageHeader } from "@/components/layout/app-page-header"
 
 const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitting, currencies, onSubmit }) => {
   const selectedCurrency = currencies.find((c) => c.code === formData.currency)
@@ -653,11 +654,7 @@ export default function UserRecipientsPage() {
 
   return (
     <div className="space-y-0">
-        {/* Header - Mobile Style */}
-        <div className="bg-white p-5 sm:p-6 border-b border-gray-200">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Recipients</h1>
-          <p className="text-base text-gray-600">Manage your payment recipients</p>
-        </div>
+        <AppPageHeader title="Recipients" backHref="/dashboard" />
 
         {/* Add Recipient Button */}
         <div className="p-5 sm:p-6 pb-3 sm:pb-4">

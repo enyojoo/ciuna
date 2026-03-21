@@ -347,10 +347,8 @@ export default function UserDashboardPage() {
         <div className="px-5 sm:px-6">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Recent Transactions</h2>
-            <Link href="/transactions">
-              <button className="text-sm sm:text-base text-primary font-medium hover:underline">
-                See All
-              </button>
+            <Link href="/transactions" prefetch className="text-sm sm:text-base text-primary font-medium hover:underline">
+              See All
             </Link>
           </div>
 

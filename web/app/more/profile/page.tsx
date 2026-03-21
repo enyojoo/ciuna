@@ -15,11 +15,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Pencil, ArrowLeft } from "lucide-react"
+import { Pencil } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { userService } from "@/lib/database"
 import { useUserData } from "@/hooks/use-user-data"
-import Link from "next/link"
+import { AppPageHeader } from "@/components/layout/app-page-header"
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -108,20 +108,7 @@ export default function ProfilePage() {
   return (
     <>
     <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center gap-4 mb-1">
-              <Link href="/more">
-                <Button variant="ghost" size="sm" className="p-2">
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-              </Link>
-              <h1 className="text-2xl font-bold text-gray-900">Your Profile</h1>
-            </div>
-            <p className="text-base text-gray-500 ml-12">Manage your personal information</p>
-          </div>
-        </div>
+        <AppPageHeader title="Your profile" backHref="/more" />
 
         <div className="max-w-4xl mx-auto px-6 py-6 lg:px-8 space-y-6">
           <Card>

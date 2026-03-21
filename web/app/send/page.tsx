@@ -2,171 +2,13 @@
 
 import type React from "react"
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 
-// WORKING CURRENCY DROPDOWN COMPONENT - OUTSIDE MAIN COMPONENT
-const CurrencyDropdown = ({
-  selectedCurrency,
-  onCurrencyChange,
-  searchTerm,
-  onSearchChange,
-  isOpen,
-  onToggle,
-  dropdownRef,
-  currencies,
-  type,
-}: {
-  selectedCurrency: string
-  onCurrencyChange: (currency: string) => void
-  searchTerm: string
-  onSearchChange: (search: string) => void
-  isOpen: boolean
-  onToggle: () => void
-  dropdownRef: React.RefObject<HTMLDivElement>
-  currencies: Currency[]
-  type: "send" | "receive"
-}) => {
-  const [dropdownPosition, setDropdownPosition] = useState<'down' | 'up'>('down')
-
-  const filteredCurrencies = useMemo(() => {
-    let filtered = currencies
-
-    // Filter by send/receive capability
-    if (type === "send") {
-      filtered = filtered.filter((currency) => currency.can_send !== false)
-    } else if (type === "receive") {
-      filtered = filtered.filter((currency) => currency.can_receive !== false)
-    }
-
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(
-      (currency) =>
-        currency.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        currency.name.toLowerCase().includes(searchTerm.toLowerCase()),
-    )
-    }
-
-    return filtered
-  }, [searchTerm, currencies, type])
-
-  const selectedCurrencyData = useMemo(() => 
-    currencies.find((c) => c.code === selectedCurrency), 
-    [currencies, selectedCurrency]
-  )
-
-  // Calculate dropdown position when opening
-  useEffect(() => {
-    if (isOpen && dropdownRef.current) {
-      const rect = dropdownRef.current.getBoundingClientRect()
-      const viewportHeight = window.innerHeight
-      const dropdownHeight = 200 // Approximate height of dropdown
-      const spaceBelow = viewportHeight - rect.bottom
-      const spaceAbove = rect.top
-
-      // If not enough space below but enough space above, position up
-      if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
-        setDropdownPosition('up')
-      } else {
-        setDropdownPosition('down')
-      }
-    }
-  }, [isOpen, dropdownRef])
-
-  return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        type="button"
-        className="bg-white border border-gray-200 rounded-full px-3 py-1.5 h-auto hover:bg-gray-50 flex-shrink-0 inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors"
-        onClick={onToggle}
-      >
-        <div className="flex items-center gap-2">
-          {selectedCurrencyData && <FlagIcon currency={selectedCurrencyData} />}
-          <span className="font-medium text-sm">{selectedCurrency}</span>
-          <ChevronDown className="h-3 w-3 text-gray-500" />
-        </div>
-      </button>
-
-      {isOpen && (
-        <div className={`absolute right-0 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 ${
-          dropdownPosition === 'up' 
-            ? 'bottom-full mb-1' 
-            : 'top-full mt-1'
-        }`}>
-          {/* Arrow indicator */}
-          <div className={`absolute right-4 w-0 h-0 ${
-            dropdownPosition === 'up'
-              ? 'top-full border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-200'
-              : 'bottom-full border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-gray-200'
-          }`}></div>
-          
-          {/* Search Bar */}
-          <div className="p-3 border-b">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search currencies..."
-                value={searchTerm}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-10 h-9"
-                autoFocus
-              />
-            </div>
-          </div>
-
-          {/* Currency List - Show 3 items in preview, rest scroll */}
-          <div className="max-h-[180px] overflow-y-auto">
-            {filteredCurrencies.length > 0 ? (
-              filteredCurrencies.map((currency) => (
-                <div
-                  key={currency.code}
-                  onClick={() => {
-                    onCurrencyChange(currency.code)
-                    onSearchChange("")
-                    onToggle()
-                  }}
-                  className="flex items-center gap-3 px-3 py-3 cursor-pointer hover:bg-gray-50 min-h-[60px]"
-                >
-                  <FlagIcon currency={currency} />
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">{currency.code}</div>
-                    <div className="text-xs text-muted-foreground truncate">{currency.name}</div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="px-3 py-4 text-center text-sm text-gray-500">No currencies found</div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// FlagIcon component
-const FlagIcon = ({ currency }: { currency: Currency }) => {
-  if (!currency.flag) return null
-
-  // If flag is already an SVG string, render it directly
-  if (currency.flag.startsWith("<svg")) {
-    return <div dangerouslySetInnerHTML={{ __html: currency.flag }} />
-  }
-
-  // If flag is a URL or path, render as img
-  if (currency.flag.startsWith("http") || currency.flag.startsWith("/")) {
-    return <img src={currency.flag || "/placeholder.svg"} alt={`${currency.name} flag`} width={24} height={24} />
-  }
-
-  // Fallback to text
-  return <span className="text-xs">{currency.code}</span>
-}
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  ChevronDown,
   Upload,
   Check,
   Clock,
@@ -186,6 +28,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useAuth } from "@/lib/auth-context"
 import { useUserData } from "@/hooks/use-user-data"
 import { SendPageSkeleton } from "@/components/send-page-skeleton"
+import {
+  CurrencyFlagIcon,
+  CurrencyPickerSheet,
+  CurrencyPickerTrigger,
+} from "@/components/send/currency-picker-sheet"
+import { SendFlowStepper } from "@/components/send/send-flow-stepper"
 import type { Currency } from "@/types"
 import {
   getAccountTypeConfigFromCurrency,
@@ -267,14 +115,9 @@ export default function UserSendPage() {
   // Add this state near the other state declarations
   const [isAddRecipientDialogOpen, setIsAddRecipientDialogOpen] = useState(false)
 
-  // Currency dropdown states
-  const [sendCurrencySearch, setSendCurrencySearch] = useState<string>("")
-  const [receiveCurrencySearch, setReceiveCurrencySearch] = useState<string>("")
+  // Currency picker (bottom sheet) open state
   const [sendDropdownOpen, setSendDropdownOpen] = useState<boolean>(false)
   const [receiveDropdownOpen, setReceiveDropdownOpen] = useState<boolean>(false)
-
-  const sendDropdownRef = useRef<HTMLDivElement>(null)
-  const receiveDropdownRef = useRef<HTMLDivElement>(null)
 
   // Add state for tracking which field was last edited
   const [lastEditedField, setLastEditedField] = useState<"send" | "receive">("send")
@@ -427,37 +270,6 @@ export default function UserSendPage() {
 
       fetchPaymentDetails()
   }, [currentStep, sendCurrency, sendAmount, transactionId])
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (sendDropdownRef.current && !sendDropdownRef.current.contains(event.target as Node)) {
-        setSendDropdownOpen(false)
-        setSendCurrencySearch("")
-      }
-      if (receiveDropdownRef.current && !receiveDropdownRef.current.contains(event.target as Node)) {
-        setReceiveDropdownOpen(false)
-        setReceiveCurrencySearch("")
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
-
-  // Filter currencies based on search
-  const filterCurrencies = useMemo(() => {
-    return (searchTerm: string) => {
-      if (!searchTerm) return currencies
-      return currencies.filter(
-        (currency) =>
-          currency.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          currency.name.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-    }
-  }, [currencies])
 
   const filteredSavedRecipients = recipients.filter(
     (recipient) =>
@@ -645,34 +457,6 @@ export default function UserSendPage() {
     const curr = currencies.find((c) => c.code === currency)
     return `${curr?.symbol || ""}${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   }
-
-  // Component to render flag SVG safely
-  const FlagIcon = ({ currency }: { currency: Currency }) => {
-    if (!currency.flag) return null
-
-    // If flag is already an SVG string, render it directly
-    if (currency.flag.startsWith("<svg")) {
-      return <div dangerouslySetInnerHTML={{ __html: currency.flag }} />
-    }
-
-    // If flag is a URL or path, render as img
-    if (currency.flag.startsWith("http") || currency.flag.startsWith("/")) {
-      return <img src={currency.flag || "/placeholder.svg"} alt={`${currency.name} flag`} width={24} height={24} />
-    }
-
-    // Fallback to text
-    return <span className="text-xs">{currency.code}</span>
-  }
-
-
-  // Memoized toggle functions to prevent infinite re-renders
-  const toggleSendDropdown = useCallback(() => {
-    setSendDropdownOpen(!sendDropdownOpen)
-  }, [sendDropdownOpen])
-
-  const toggleReceiveDropdown = useCallback(() => {
-    setReceiveDropdownOpen(!receiveDropdownOpen)
-  }, [receiveDropdownOpen])
 
   // Handle currency selection with same currency prevention
   const handleSendCurrencyChange = (newCurrency: string) => {
@@ -969,6 +753,7 @@ export default function UserSendPage() {
     <>
     <div className="p-6">
         <div className="max-w-6xl mx-auto">
+          <SendFlowStepper currentStep={currentStep} />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2">
@@ -1007,17 +792,22 @@ export default function UserSendPage() {
                             className="text-3xl font-bold bg-transparent border-0 outline-none w-full"
                             placeholder="0.00"
                           />
-                          <CurrencyDropdown
-                            selectedCurrency={sendCurrency}
-                            onCurrencyChange={handleSendCurrencyChange}
-                            searchTerm={sendCurrencySearch}
-                            onSearchChange={setSendCurrencySearch}
-                            isOpen={sendDropdownOpen}
-                            onToggle={toggleSendDropdown}
-                            dropdownRef={sendDropdownRef}
-                            currencies={currencies}
-                            type="send"
-                          />
+                          <>
+                            <CurrencyPickerTrigger
+                              selectedCurrency={sendCurrency}
+                              onOpen={() => setSendDropdownOpen(true)}
+                              currencies={currencies}
+                            />
+                            <CurrencyPickerSheet
+                              open={sendDropdownOpen}
+                              onOpenChange={setSendDropdownOpen}
+                              selectedCurrency={sendCurrency}
+                              onSelect={handleSendCurrencyChange}
+                              currencies={currencies}
+                              type="send"
+                              title="You send"
+                            />
+                          </>
                         </div>
                       </div>
                       {(() => {
@@ -1098,28 +888,35 @@ export default function UserSendPage() {
                             className="text-3xl font-bold bg-transparent border-0 outline-none w-full"
                             placeholder="0.00"
                           />
-                          <CurrencyDropdown
-                            selectedCurrency={receiveCurrency}
-                            onCurrencyChange={handleReceiveCurrencyChange}
-                            searchTerm={receiveCurrencySearch}
-                            onSearchChange={setReceiveCurrencySearch}
-                            isOpen={receiveDropdownOpen}
-                            onToggle={toggleReceiveDropdown}
-                            dropdownRef={receiveDropdownRef}
-                            currencies={currencies}
-                            type="receive"
-                          />
+                          <>
+                            <CurrencyPickerTrigger
+                              selectedCurrency={receiveCurrency}
+                              onOpen={() => setReceiveDropdownOpen(true)}
+                              currencies={currencies}
+                            />
+                            <CurrencyPickerSheet
+                              open={receiveDropdownOpen}
+                              onOpenChange={setReceiveDropdownOpen}
+                              selectedCurrency={receiveCurrency}
+                              onSelect={handleReceiveCurrencyChange}
+                              currencies={currencies}
+                              type="receive"
+                              title="Receiver gets"
+                            />
+                          </>
                         </div>
                       </div>
                     </div>
 
-                    <Button
-                      onClick={handleContinue}
-                      className="w-full bg-primary hover:bg-primary/90"
-                      disabled={!sendCurrency || !receiveCurrency || !sendAmount}
-                    >
-                      Continue
-                    </Button>
+                    <div className="sticky bottom-0 z-10 -mx-6 mt-2 border-t border-border bg-background/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm supports-[backdrop-filter]:bg-background/80 lg:static lg:z-auto lg:mx-0 lg:mt-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+                      <Button
+                        onClick={handleContinue}
+                        className="min-h-12 w-full rounded-xl bg-primary text-base font-semibold hover:bg-primary/90"
+                        disabled={!sendCurrency || !receiveCurrency || !sendAmount}
+                      >
+                        Continue
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               )}
@@ -1164,7 +961,7 @@ export default function UserSendPage() {
                           <div className="space-y-2">
                             <Label htmlFor="newRecipientCurrency">Currency</Label>
                             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
-                              {receiveCurrencyData && <FlagIcon currency={receiveCurrencyData} />}
+                              {receiveCurrencyData && <CurrencyFlagIcon currency={receiveCurrencyData} />}
                               <div>
                                 <div className="font-medium">{receiveCurrency}</div>
                               </div>
@@ -1631,15 +1428,15 @@ export default function UserSendPage() {
                       </div>
                     )}
 
-                    <div className="flex gap-4">
-                      <Button variant="outline" onClick={handleBack} className="flex-1 bg-transparent">
+                    <div className="flex gap-3 sm:gap-4">
+                      <Button variant="outline" onClick={handleBack} className="min-h-12 flex-1 bg-transparent">
                         <ArrowLeft className="h-4 w-4 mr-2" />
                         Back
                       </Button>
                       <Button
                         onClick={handleContinue}
                         disabled={!selectedRecipientId}
-                        className="flex-1 bg-primary hover:bg-primary/90"
+                        className="min-h-12 flex-1 rounded-xl bg-primary text-base font-semibold hover:bg-primary/90"
                       >
                         Continue
                       </Button>
@@ -1658,7 +1455,7 @@ export default function UserSendPage() {
                     {/* Transfer amount and description */}
                     <div className="flex items-center gap-2">
                         <div className="w-10 h-10 border border-primary rounded-lg flex items-center justify-center">
-                          {sendCurrencyData && <FlagIcon currency={sendCurrencyData} />}
+                          {sendCurrencyData && <CurrencyFlagIcon currency={sendCurrencyData} />}
                         </div>
                         <div>
                           <h3 className="font-semibold text-primary">
@@ -2303,15 +2100,15 @@ export default function UserSendPage() {
                         )}
                       </div>
 
-                      <div className="flex gap-4">
-                        <Button variant="outline" onClick={handleBack} className="flex-1 bg-transparent">
+                      <div className="flex gap-3 sm:gap-4">
+                        <Button variant="outline" onClick={handleBack} className="min-h-12 flex-1 bg-transparent">
                           <ArrowLeft className="h-4 w-4 mr-2" />
                           Back
                         </Button>
                         <Button
                           onClick={handleContinue}
                           disabled={isCreatingTransaction}
-                          className="flex-1 bg-primary hover:bg-primary/90"
+                          className="min-h-12 flex-1 rounded-xl bg-primary text-base font-semibold hover:bg-primary/90"
                         >
                           {isCreatingTransaction ? "Sending..." : "I've Paid"}
                         </Button>

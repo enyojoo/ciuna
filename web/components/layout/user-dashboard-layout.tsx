@@ -23,7 +23,8 @@ const baseNavigation = [
 
 const bottomNavItems = [
   { name: "Home", href: "/dashboard", icon: Home },
-  { name: "Transactions", href: "/transactions", icon: History },
+  { name: "Send", href: "/send", icon: Send },
+  { name: "History", href: "/transactions", icon: History },
   { name: "Recipients", href: "/recipients", icon: UserPlus },
 ]
 
@@ -63,7 +64,10 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
           {/* Navigation */}
           <nav className="flex-1 px-3 py-6 space-y-1">
             {baseNavigation.map((item) => {
-              const isActive = pathname === item.href
+              const isActive =
+                item.href === "/send"
+                  ? pathname === "/send" || Boolean(pathname?.startsWith("/send/"))
+                  : pathname === item.href
               return (
                 <Link
                   key={item.name}
@@ -97,19 +101,24 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
         </div>
       </div>
 
-      {/* Main content area - ml-56 for desktop to account for fixed sidebar */}
+      {/* Main content area - ml-56 for desktop; max-width column on wide screens for app-like density */}
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-56">
         {/* Top bar - Desktop only, matches sidebar header line (h-16, border-sidebar-border) */}
         <div className="bg-background border-b border-sidebar-border px-4 h-16 items-center sm:px-6 lg:px-8 hidden lg:flex" />
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">{children}</main>
+        <main className="flex-1 overflow-y-auto pb-app-main-mobile lg:pb-0 w-full max-w-3xl lg:max-w-none mx-auto lg:mx-0">
+          {children}
+        </main>
 
-        {/* Bottom Navigation - Mobile/Tablet only (preserved per plan) */}
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border lg:hidden z-40">
-          <div className="flex justify-around items-center py-2 px-2">
+        {/* Bottom Navigation - Mobile/Tablet only */}
+        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border lg:hidden z-40 pb-safe">
+          <div className="flex justify-around items-center py-2 px-1 sm:px-2 max-w-3xl mx-auto">
             {bottomNavItems.map((item) => {
-              const isActive = pathname === item.href
+              const isActive =
+                item.href === "/send"
+                  ? pathname === "/send" || Boolean(pathname?.startsWith("/send/"))
+                  : pathname === item.href
 
               return (
                 <Link
@@ -119,7 +128,9 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
                   className="flex flex-col items-center justify-center p-2 min-w-0 flex-1"
                 >
                   <item.icon className={`h-5 w-5 ${isActive ? "text-primary" : "text-gray-600"}`} />
-                  <span className={`text-xs mt-1 ${isActive ? "text-primary" : "text-gray-600"}`}>
+                  <span
+                    className={`mt-1 max-w-[4.5rem] truncate text-center text-[10px] leading-tight sm:max-w-none sm:text-xs ${isActive ? "text-primary" : "text-gray-600"}`}
+                  >
                     {item.name}
                   </span>
                 </Link>
@@ -137,9 +148,11 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
                   pathname === "/more" || pathname?.startsWith("/more/") ? "text-primary" : "text-gray-600"
                 }`}
               />
-              <span className={`text-xs mt-1 ${
-                pathname === "/more" || pathname?.startsWith("/more/") ? "text-primary" : "text-gray-600"
-              }`}>
+              <span
+                className={`mt-1 max-w-[4.5rem] truncate text-center text-[10px] leading-tight sm:max-w-none sm:text-xs ${
+                  pathname === "/more" || pathname?.startsWith("/more/") ? "text-primary" : "text-gray-600"
+                }`}
+              >
                 More
               </span>
             </Link>
