@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: "Ciuna back office",
   metadataBase: new URL("https://bk.ciuna.com"),
   icons: {
-    icon: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20Favicon.svg",
+    icon: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20favicon.png",
   },
   robots: {
     index: false,
