@@ -40,10 +40,20 @@ export function isAndroidBrowser(): boolean {
   return /Android/i.test(navigator.userAgent)
 }
 
+/** Chrome on iOS reports `CriOS` in the user agent. */
+export function isIosChromeBrowser(): boolean {
+  if (typeof navigator === "undefined") return false
+  if (!isIosBrowser()) return false
+  return /CriOS/i.test(navigator.userAgent)
+}
+
 type PwaInstallValue = {
   ready: boolean
   deferred: BeforeInstallPromptEvent | null
-  ios: boolean
+  /** True when on iOS Chrome (Share → View more → Add to Home Screen). */
+  iosChrome: boolean
+  /** True when on iOS Safari / WebKit shell (⋯ → Share → View more → Add to Home Screen). */
+  iosSafari: boolean
   android: boolean
   dismiss: () => void
   runInstall: () => Promise<void>
@@ -56,7 +66,8 @@ export function PwaInstallProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false)
   const [dismissed, setDismissed] = useState(false)
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null)
-  const [ios, setIos] = useState(false)
+  const [iosChrome, setIosChrome] = useState(false)
+  const [iosSafari, setIosSafari] = useState(false)
   const [android, setAndroid] = useState(false)
 
   useEffect(() => {
@@ -65,7 +76,9 @@ export function PwaInstallProvider({ children }: { children: ReactNode }) {
     } catch {
       setDismissed(false)
     }
-    setIos(isIosBrowser())
+    const chrome = isIosChromeBrowser()
+    setIosChrome(chrome)
+    setIosSafari(isIosBrowser() && !chrome)
     setAndroid(isAndroidBrowser())
     setReady(true)
   }, [])
@@ -103,13 +116,14 @@ export function PwaInstallProvider({ children }: { children: ReactNode }) {
     () => ({
       ready,
       deferred,
-      ios,
+      iosChrome,
+      iosSafari,
       android,
       dismiss,
       runInstall,
       visible,
     }),
-    [ready, deferred, ios, android, dismiss, runInstall, visible],
+    [ready, deferred, iosChrome, iosSafari, android, dismiss, runInstall, visible],
   )
 
   return <PwaInstallContext.Provider value={value}>{children}</PwaInstallContext.Provider>
