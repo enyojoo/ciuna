@@ -8,6 +8,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import type { Currency } from "@/types"
 import { cn } from "@/lib/utils"
 
+/** Scroll area height so ~3 currency rows show in {@link CurrencyPickerPopover}; rest scrolls. */
+const POPOVER_CURRENCY_LIST_MAX_H = "max-h-[12.5rem]"
+
 /** Desktop / tablet popover trigger (md+) */
 export const CURRENCY_PICKER_TRIGGER_CLASSES =
   "inline-flex min-h-11 min-w-[5.5rem] shrink-0 items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent active:bg-accent/80"
@@ -336,7 +339,7 @@ export function CurrencyPickerPopover({
         align="end"
         side="bottom"
         sideOffset={8}
-        className="flex max-h-[min(70vh,520px)] min-h-0 w-[min(22rem,calc(100vw-2rem))] max-w-[22rem] flex-col overflow-hidden p-0"
+        className="flex max-h-[min(calc(100vh-6rem),28rem)] min-h-0 w-[min(22rem,calc(100vw-2rem))] max-w-[22rem] flex-col overflow-hidden p-0"
       >
         <CurrencyPickerPanel
           title={title}
@@ -348,7 +351,7 @@ export function CurrencyPickerPopover({
             onSelect(code)
             setOpen(false)
           }}
-          listClassName="max-h-[min(65vh,460px)]"
+          listClassName={POPOVER_CURRENCY_LIST_MAX_H}
           autoFocusSearch={false}
         />
       </PopoverContent>
