@@ -804,7 +804,6 @@ export default function UserSendPage() {
                               onSelect={handleSendCurrencyChange}
                               currencies={currencies}
                               type="send"
-                              title="You send"
                             />
                           </div>
                           <div className="hidden md:block shrink-0">
@@ -813,7 +812,6 @@ export default function UserSendPage() {
                               onSelect={handleSendCurrencyChange}
                               currencies={currencies}
                               type="send"
-                              title="You send"
                             />
                           </div>
                         </div>
@@ -909,7 +907,6 @@ export default function UserSendPage() {
                               onSelect={handleReceiveCurrencyChange}
                               currencies={currencies}
                               type="receive"
-                              title="Receiver gets"
                             />
                           </div>
                           <div className="hidden md:block shrink-0">
@@ -918,7 +915,6 @@ export default function UserSendPage() {
                               onSelect={handleReceiveCurrencyChange}
                               currencies={currencies}
                               type="receive"
-                              title="Receiver gets"
                             />
                           </div>
                         </div>
