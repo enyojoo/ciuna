@@ -1,7 +1,7 @@
-/* Easner Brand Standards
- * Primary Color: #007ACC
- * Logo: https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Easner%20Logo.svg
- * Favicon: https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Easner%20Favicon.svg
+/* Ciuna Brand Standards
+ * Primary Color: #F97316
+ * Logo: https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20Logo.svg
+ * Favicon: https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20Favicon.svg
  */
 
 @import "tailwindcss";
@@ -16,7 +16,7 @@
   --card-foreground: oklch(0.15 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.15 0 0);
-  --primary: #007acc;
+  --primary: #f97316;
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.96 0 0);
   --secondary-foreground: oklch(0.15 0 0);
@@ -28,8 +28,8 @@
   --destructive-foreground: oklch(1 0 0);
   --border: oklch(0.93 0 0);
   --input: oklch(0.93 0 0);
-  --ring: #007acc;
-  --chart-1: #007acc;
+  --ring: #f97316;
+  --chart-1: #f97316;
   --chart-2: oklch(0.6 0.15 180);
   --chart-3: oklch(0.65 0.2 140);
   --chart-4: oklch(0.7 0.15 80);
@@ -37,12 +37,12 @@
   --radius: 0.5rem;
   --sidebar: oklch(0.98 0 0);
   --sidebar-foreground: oklch(0.15 0 0);
-  --sidebar-primary: #007acc;
+  --sidebar-primary: #f97316;
   --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: oklch(0.96 0 0);
   --sidebar-accent-foreground: oklch(0.15 0 0);
   --sidebar-border: oklch(0.93 0 0);
-  --sidebar-ring: #007acc;
+  --sidebar-ring: #f97316;
 }
 
 .dark {
@@ -52,7 +52,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.145 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: #007acc;
+  --primary: #f97316;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -65,14 +65,14 @@
   --border: oklch(0.269 0 0);
   --input: oklch(0.269 0 0);
   --ring: oklch(0.439 0 0);
-  --chart-1: #007acc;
+  --chart-1: #f97316;
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: #007acc;
+  --sidebar-primary: #f97316;
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);

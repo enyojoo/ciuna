@@ -96,7 +96,7 @@ export const bridgeCustomerService = {
       email: customerData.email,
       first_name: customerData.firstName,
       last_name: customerData.lastName,
-      client_reference_id: userId, // Use Easner user ID as reference
+      client_reference_id: userId, // Use Ciuna user ID as reference
     }
 
     const response = await bridgeApiRequest<{ data: BridgeCustomer }>(

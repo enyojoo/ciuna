@@ -22,7 +22,7 @@ export function PostCard({ post }: PostCardProps) {
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group block rounded-xl border border-gray-200 overflow-hidden hover:border-easner-primary/50 hover:shadow-lg transition-all duration-200"
+      className="group block rounded-xl border border-gray-200 overflow-hidden hover:border-ciuna-primary/50 hover:shadow-lg transition-all duration-200"
     >
       {post.cover_image_url && (
         <div className="aspect-video relative bg-gray-100">
@@ -37,11 +37,11 @@ export function PostCard({ post }: PostCardProps) {
       )}
       <div className="p-5">
         {topic && (
-          <span className="inline-block text-xs font-medium text-easner-primary mb-2">
+          <span className="inline-block text-xs font-medium text-ciuna-primary mb-2">
             {topic.name}
           </span>
         )}
-        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-easner-primary transition-colors line-clamp-2 mb-2">
+        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-ciuna-primary transition-colors line-clamp-2 mb-2">
           {post.title}
         </h3>
         {post.excerpt && (

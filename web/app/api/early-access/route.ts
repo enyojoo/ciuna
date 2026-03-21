@@ -53,7 +53,7 @@ function getClientIP(request: NextRequest): string {
   return 'Unknown'
 }
 
-const ALLOWED_ORIGINS = ["https://easner.com", "https://www.easner.com", "http://localhost:3000"]
+const ALLOWED_ORIGINS = ["https://ciuna.com", "https://www.ciuna.com", "http://localhost:3000"]
 
 function getCorsHeaders(request: NextRequest) {
   const origin = request.headers.get("origin") || ""
@@ -318,9 +318,9 @@ export async function POST(request: NextRequest) {
       return countries[code] || code
     }
 
-    // Send email to enyo@easner.com
+    // Send email to enyo@ciuna.com
     const emailData = {
-      to: 'enyo@easner.com',
+      to: 'enyo@ciuna.com',
       template: 'earlyAccessRequest',
       data: {
         email,

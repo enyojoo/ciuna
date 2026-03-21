@@ -12,7 +12,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   global: {
     headers: {
-      "X-Client-Info": "easner-website",
+      "X-Client-Info": "ciuna-website",
     },
   },
 })

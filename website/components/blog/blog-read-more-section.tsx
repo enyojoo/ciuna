@@ -24,10 +24,10 @@ export function BlogReadMoreSection({ topics, currentTopicSlug }: BlogReadMoreSe
   return (
     <section className="mb-12 sm:mb-16 md:mb-24">
       <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 font-unbounded mb-2">
-        Read more from Easner
+        Read more from Ciuna
       </h2>
       <p className="text-gray-500 text-sm sm:text-base mb-8 sm:mb-12">
-        Explore more stories, insights, and updates from the Easner team
+        Explore more stories, insights, and updates from the Ciuna team
       </p>
       <div className="space-y-12 sm:space-y-16">
         {filteredTopics.map((topic) => (

@@ -1,1 +1,1 @@
-export { cn } from "@easner/shared"
+export { cn } from "@ciuna/shared"

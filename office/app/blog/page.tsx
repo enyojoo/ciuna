@@ -81,7 +81,7 @@ export default function OfficeBlogPage() {
         <Card>
           <CardHeader>
             <CardTitle>Posts</CardTitle>
-            <p className="text-sm text-gray-500">Manage blog posts for easner.com</p>
+            <p className="text-sm text-gray-500">Manage blog posts for ciuna.com</p>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -112,7 +112,7 @@ export default function OfficeBlogPage() {
                     <div className="flex items-center gap-2">
                       {post.published_at && (
                         <a
-                          href={`https://www.easner.com/blog/${post.slug}`}
+                          href={`https://www.ciuna.com/blog/${post.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-gray-500 hover:text-primary"

@@ -337,7 +337,7 @@ export function EarlyAccessForm() {
     }
 
     try {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.easner.com"
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.ciuna.com"
       const response = await fetch(`${appUrl}/api/early-access`, {
         method: "POST",
         headers: {
@@ -405,10 +405,10 @@ export function EarlyAccessForm() {
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">Request Submitted!</h3>
-          <p className="text-gray-600 mb-2">We've received your request. We'll review your application and send you an invitation to join Easner soon.</p>
+          <p className="text-gray-600 mb-2">We've received your request. We'll review your application and send you an invitation to join Ciuna soon.</p>
           <p className="text-sm text-gray-500 mb-6">You'll receive an email at <strong>{formData.email}</strong> with next steps.</p>
           <Link href="/">
-            <Button className="w-full bg-easner-primary hover:bg-easner-primary-600 text-white shadow-lg hover:shadow-xl transition-all duration-200">
+            <Button className="w-full bg-ciuna-primary hover:bg-ciuna-primary-600 text-white shadow-lg hover:shadow-xl transition-all duration-200">
               Go Home
             </Button>
           </Link>
@@ -421,7 +421,7 @@ export function EarlyAccessForm() {
     <Card className="w-full max-w-md rounded-2xl shadow-lg border-0 ring-1 ring-gray-200/60">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl text-gray-900">Request Access</CardTitle>
-        <CardDescription className="text-gray-600">Request access to Easner's cross-border payment infrastructure for businesses and financial institutions.</CardDescription>
+        <CardDescription className="text-gray-600">Request access to Ciuna's cross-border payment infrastructure for businesses and financial institutions.</CardDescription>
       </CardHeader>
       <CardContent>
         {error && (
@@ -439,7 +439,7 @@ export function EarlyAccessForm() {
               value={formData.email}
               onChange={(e) => handleInputChange("email", e.target.value)}
               placeholder="Enter your email"
-              className="border-gray-200 focus:border-easner-primary focus:ring-easner-primary"
+              className="border-gray-200 focus:border-ciuna-primary focus:ring-ciuna-primary"
               required
               disabled={isSubmitting}
             />
@@ -453,7 +453,7 @@ export function EarlyAccessForm() {
               value={formData.fullName}
               onChange={(e) => handleInputChange("fullName", e.target.value)}
               placeholder="Enter your full name"
-              className="border-gray-200 focus:border-easner-primary focus:ring-easner-primary"
+              className="border-gray-200 focus:border-ciuna-primary focus:ring-ciuna-primary"
               required
               disabled={isSubmitting}
             />
@@ -467,7 +467,7 @@ export function EarlyAccessForm() {
               value={formData.whatsappTelegram}
               onChange={(e) => handleInputChange("whatsappTelegram", e.target.value)}
               placeholder="+1234567890 or @username"
-              className="border-gray-200 focus:border-easner-primary focus:ring-easner-primary"
+              className="border-gray-200 focus:border-ciuna-primary focus:ring-ciuna-primary"
               required
               disabled={isSubmitting}
             />
@@ -479,7 +479,7 @@ export function EarlyAccessForm() {
               <button
                 type="button"
                 onClick={handlePrimaryUseCaseDropdownToggle}
-                className="w-full flex items-center justify-between px-3 py-2 border border-gray-200 rounded-md bg-white text-left focus:outline-none focus:ring-2 focus:ring-easner-primary focus:border-easner-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-between px-3 py-2 border border-gray-200 rounded-md bg-white text-left focus:outline-none focus:ring-2 focus:ring-ciuna-primary focus:border-ciuna-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isSubmitting}
               >
                 <span className={formData.primaryUseCase ? "text-gray-900" : "text-gray-500"}>
@@ -520,7 +520,7 @@ export function EarlyAccessForm() {
               <button
                 type="button"
                 onClick={handleLocatedInDropdownToggle}
-                className="w-full flex items-center justify-between px-3 py-2 border border-gray-200 rounded-md bg-white text-left focus:outline-none focus:ring-2 focus:ring-easner-primary focus:border-easner-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-between px-3 py-2 border border-gray-200 rounded-md bg-white text-left focus:outline-none focus:ring-2 focus:ring-ciuna-primary focus:border-ciuna-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isSubmitting}
               >
                 <span className={formData.locatedIn ? "text-gray-900" : "text-gray-500"}>
@@ -576,7 +576,7 @@ export function EarlyAccessForm() {
               <button
                 type="button"
                 onClick={handleSendingToDropdownToggle}
-                className="w-full flex items-center justify-between px-3 py-2 border border-gray-200 rounded-md bg-white text-left focus:outline-none focus:ring-2 focus:ring-easner-primary focus:border-easner-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-between px-3 py-2 border border-gray-200 rounded-md bg-white text-left focus:outline-none focus:ring-2 focus:ring-ciuna-primary focus:border-ciuna-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isSubmitting}
               >
                 <span className={formData.sendingTo ? "text-gray-900" : "text-gray-500"}>
@@ -636,11 +636,11 @@ export function EarlyAccessForm() {
             />
             <Label htmlFor="terms" className="text-sm text-gray-600 leading-relaxed">
               I agree to the{" "}
-              <Link href="/terms" className="text-easner-primary hover:text-easner-primary-600 hover:underline">
+              <Link href="/terms" className="text-ciuna-primary hover:text-ciuna-primary-600 hover:underline">
                 Terms
               </Link>{" "}
               and{" "}
-              <Link href="/privacy" className="text-easner-primary hover:text-easner-primary-600 hover:underline">
+              <Link href="/privacy" className="text-ciuna-primary hover:text-ciuna-primary-600 hover:underline">
                 Privacy Policy
               </Link>
             </Label>
@@ -649,7 +649,7 @@ export function EarlyAccessForm() {
           <Button
             type="submit"
             disabled={isSubmitting || !acceptTerms}
-            className="w-full bg-easner-primary hover:bg-easner-primary-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-ciuna-primary hover:bg-ciuna-primary-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <>

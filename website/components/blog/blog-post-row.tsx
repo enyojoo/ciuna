@@ -21,7 +21,7 @@ export function BlogPostRow({ post }: BlogPostRowProps) {
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group flex gap-3 sm:gap-4 rounded-xl border border-gray-200 overflow-hidden hover:border-easner-primary/50 hover:shadow-lg transition-all duration-200"
+      className="group flex gap-3 sm:gap-4 rounded-xl border border-gray-200 overflow-hidden hover:border-ciuna-primary/50 hover:shadow-lg transition-all duration-200"
     >
       {post.cover_image_url ? (
         <div className="relative w-24 sm:w-28 md:w-36 lg:w-40 flex-shrink-0 aspect-video bg-gray-100 rounded-l-xl overflow-hidden">
@@ -44,7 +44,7 @@ export function BlogPostRow({ post }: BlogPostRowProps) {
             <time dateTime={post.published_at || undefined}>{publishedDate}</time>
           )}
         </p>
-        <h3 className="text-sm sm:text-base font-semibold text-gray-900 group-hover:text-easner-primary transition-colors line-clamp-2">
+        <h3 className="text-sm sm:text-base font-semibold text-gray-900 group-hover:text-ciuna-primary transition-colors line-clamp-2">
           {post.title}
         </h3>
       </div>

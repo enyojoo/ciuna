@@ -1,15 +1,15 @@
 import { getPublishedPosts } from "@/lib/blog-service"
 
-const BASE_URL = "https://www.easner.com"
+const BASE_URL = "https://www.ciuna.com"
 
 export async function GET() {
   const posts = await getPublishedPosts({ limit: 50 })
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Easner Blog</title>
+    <title>Ciuna Blog</title>
     <link>${BASE_URL}/blog</link>
-    <description>Insights on the future of banking. The latest updates on Easner, the world of stablecoins and finance.</description>
+    <description>Insights on the future of banking. The latest updates on Ciuna, the world of stablecoins and finance.</description>
     <atom:link href="${BASE_URL}/blog/feed" rel="self" type="application/rss+xml"/>
     ${posts
       .map(

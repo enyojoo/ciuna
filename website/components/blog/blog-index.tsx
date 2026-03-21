@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Search, Rss, ChevronDown } from "lucide-react"
-import { BLOG_TOPICS } from "@easner/shared"
+import { BLOG_TOPICS } from "@ciuna/shared"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -78,7 +78,7 @@ export function BlogIndex(props: BlogIndexProps) {
             future of banking
           </h1>
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-500 md:whitespace-nowrap md:max-w-none max-w-2xl">
-            The latest updates on Easner, the world of stablecoins and finance.
+            The latest updates on Ciuna, the world of stablecoins and finance.
           </p>
         </section>
 
@@ -88,7 +88,7 @@ export function BlogIndex(props: BlogIndexProps) {
           <div className="flex items-center justify-between gap-4 lg:hidden">
             <div className="w-[11rem] flex-shrink-0">
               <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-2 w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-gray-900 hover:border-easner-primary hover:text-easner-primary transition-colors duration-200 text-sm font-medium">
+                <DropdownMenuTrigger className="flex items-center gap-2 w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-gray-900 hover:border-ciuna-primary hover:text-ciuna-primary transition-colors duration-200 text-sm font-medium">
                 <span className="truncate min-w-0 flex-1">
                   {isAllView(props) ? "All" : tabTopics.find((t) => t.slug === props.topicFilter)?.name ?? props.topicHeading}
                 </span>
@@ -113,14 +113,14 @@ export function BlogIndex(props: BlogIndexProps) {
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={() => setSearchOpen(true)}
-                className="p-2.5 text-gray-600 hover:text-easner-primary transition-colors duration-200 rounded-lg hover:bg-easner-primary-50"
+                className="p-2.5 text-gray-600 hover:text-ciuna-primary transition-colors duration-200 rounded-lg hover:bg-ciuna-primary-50"
                 aria-label="Search"
               >
                 <Search className="h-5 w-5" />
               </button>
               <Link
                 href="/blog/feed"
-                className="p-2.5 text-gray-600 hover:text-easner-primary transition-colors duration-200 rounded-lg hover:bg-easner-primary-50"
+                className="p-2.5 text-gray-600 hover:text-ciuna-primary transition-colors duration-200 rounded-lg hover:bg-ciuna-primary-50"
                 aria-label="RSS feed"
               >
                 <Rss className="h-5 w-5" />
@@ -135,8 +135,8 @@ export function BlogIndex(props: BlogIndexProps) {
                 href="/blog"
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap flex-shrink-0 transition-colors duration-200 ${
                   isAllView(props)
-                    ? "bg-easner-primary text-white shadow-sm"
-                    : "text-gray-600 hover:text-easner-primary hover:bg-easner-primary-50"
+                    ? "bg-ciuna-primary text-white shadow-sm"
+                    : "text-gray-600 hover:text-ciuna-primary hover:bg-ciuna-primary-50"
                 }`}
               >
                 All
@@ -147,8 +147,8 @@ export function BlogIndex(props: BlogIndexProps) {
                   href={`/blog?topic=${t.slug}`}
                   className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap flex-shrink-0 transition-colors duration-200 ${
                     !isAllView(props) && props.topicFilter === t.slug
-                      ? "bg-easner-primary text-white shadow-sm"
-                      : "text-gray-600 hover:text-easner-primary hover:bg-easner-primary-50"
+                      ? "bg-ciuna-primary text-white shadow-sm"
+                      : "text-gray-600 hover:text-ciuna-primary hover:bg-ciuna-primary-50"
                   }`}
                 >
                   {t.name}
@@ -158,7 +158,7 @@ export function BlogIndex(props: BlogIndexProps) {
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={() => setSearchOpen(true)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 text-gray-600 hover:border-easner-primary hover:text-easner-primary transition-colors duration-200 text-sm"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 text-gray-600 hover:border-ciuna-primary hover:text-ciuna-primary transition-colors duration-200 text-sm"
               >
                 <Search className="h-4 w-4" />
                 <span>Search...</span>
@@ -166,7 +166,7 @@ export function BlogIndex(props: BlogIndexProps) {
               </button>
               <Link
                 href="/blog/feed"
-                className="p-2 text-gray-600 hover:text-easner-primary transition-colors duration-200 rounded-lg hover:bg-easner-primary-50"
+                className="p-2 text-gray-600 hover:text-ciuna-primary transition-colors duration-200 rounded-lg hover:bg-ciuna-primary-50"
                 aria-label="RSS feed"
               >
                 <Rss className="h-5 w-5" />

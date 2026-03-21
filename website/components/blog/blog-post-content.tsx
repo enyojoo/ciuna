@@ -25,7 +25,7 @@ export function BlogPostContent({ post }: BlogPostContentProps) {
         {topic && (
           <Link
             href={`/blog?topic=${topic.slug}`}
-            className="inline-block text-sm font-medium text-easner-primary hover:text-easner-primary-600 mb-4"
+            className="inline-block text-sm font-medium text-ciuna-primary hover:text-ciuna-primary-600 mb-4"
           >
             {topic.name}
           </Link>
@@ -70,7 +70,7 @@ export function BlogPostContent({ post }: BlogPostContentProps) {
         )}
 
         <div
-          className="prose prose-sm sm:prose-base md:prose-lg max-w-none prose-headings:font-unbounded prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:text-easner-primary prose-a:no-underline hover:prose-a:underline prose-img:max-w-full prose-pre:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto [&_table]:max-w-full"
+          className="prose prose-sm sm:prose-base md:prose-lg max-w-none prose-headings:font-unbounded prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:text-ciuna-primary prose-a:no-underline hover:prose-a:underline prose-img:max-w-full prose-pre:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto [&_table]:max-w-full"
           dangerouslySetInnerHTML={{ __html: post.body }}
         />
 
@@ -97,7 +97,7 @@ export function BlogPostContent({ post }: BlogPostContentProps) {
         <div className="mt-12 pt-8 border-t border-gray-200">
           <Link
             href="/blog"
-            className="text-easner-primary hover:text-easner-primary-600 font-medium"
+            className="text-ciuna-primary hover:text-ciuna-primary-600 font-medium"
           >
             ← Back to Blog
           </Link>

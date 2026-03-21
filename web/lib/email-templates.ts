@@ -6,20 +6,20 @@ import type { EmailTemplate, TransactionEmailData, WelcomeEmailData } from './em
 export const emailTemplates: Record<string, EmailTemplate> = {
   // Welcome Email
   welcome: {
-    subject: "Welcome to Easner! Let's get started",
+    subject: "Welcome to Ciuna! Let's get started",
     html: (data: WelcomeEmailData) => {
       const content = `
         <p class="welcome-text">
-          Hi ${data.firstName}! Welcome to Easner.
+          Hi ${data.firstName}! Welcome to Ciuna.
         </p>
         
         <p class="confirmation-text">
-          Thank you for joining Easner! We're excited to have you as part of our community. 
+          Thank you for joining Ciuna! We're excited to have you as part of our community. 
           Your account is now active and ready to send money across borders in under 5 minutes.
         </p>
         
         <p class="confirmation-text">
-          With Easner, you can:
+          With Ciuna, you can:
         </p>
         
         <ul style="color: #4a5568; font-size: 16px; line-height: 1.7; margin: 20px 0; padding-left: 20px;">
@@ -36,7 +36,7 @@ export const emailTemplates: Record<string, EmailTemplate> = {
       `
       
       return generateBaseEmailTemplate(
-        "Welcome to Easner!",
+        "Welcome to Ciuna!",
         "",
         content,
         {
@@ -46,13 +46,13 @@ export const emailTemplates: Record<string, EmailTemplate> = {
       )
     },
     text: (data: WelcomeEmailData) => `
-Welcome to Easner!
+Welcome to Ciuna!
 
 Hi ${data.firstName}!
 
-Thank you for joining Easner! We're excited to have you as part of our community. Your account is now active and ready to send money across borders in under 5 minutes.
+Thank you for joining Ciuna! We're excited to have you as part of our community. Your account is now active and ready to send money across borders in under 5 minutes.
 
-With Easner, you can:
+With Ciuna, you can:
 • Send money globally in under 5 minutes - Lightning-fast cross-border transfers
 • Track your transfers in real-time with live updates
 • Save your favorite recipients for instant transfers
@@ -63,9 +63,9 @@ To send your first transfer, simply go to your dashboard and click "Send Money".
 
 Go to Dashboard: ${data.dashboardUrl}
 
-Need help? Contact us at support@easner.com
+Need help? Contact us at support@ciuna.com
 
-© 2025 Easner, Inc. All rights reserved.
+© 2025 Ciuna, Inc. All rights reserved.
     `
   },
 
@@ -93,7 +93,7 @@ Need help? Contact us at support@easner.com
         content,
         {
           text: "Track Transaction",
-          url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.easner.com'}/send/${data.transactionId.toLowerCase()}`
+          url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.ciuna.com'}/send/${data.transactionId.toLowerCase()}`
         }
       )
     },
@@ -114,9 +114,9 @@ Transaction Details:
 What's Next:
 We're working on your transfer and will notify you as soon as it's completed. You can track the progress in your dashboard.
 
-Track Transaction: ${process.env.NEXT_PUBLIC_APP_URL || 'https://app.easner.com'}/send/${data.transactionId.toLowerCase()}
+Track Transaction: ${process.env.NEXT_PUBLIC_APP_URL || 'https://app.ciuna.com'}/send/${data.transactionId.toLowerCase()}
 
-Need help? Contact us at support@easner.com
+Need help? Contact us at support@ciuna.com
     `
   },
 
@@ -144,7 +144,7 @@ Need help? Contact us at support@easner.com
         content,
         {
           text: "Track Transfer",
-          url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.easner.com'}/send/${data.transactionId.toLowerCase()}`
+          url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.ciuna.com'}/send/${data.transactionId.toLowerCase()}`
         }
       )
     },
@@ -165,9 +165,9 @@ Transaction Details:
 What's Happening:
 We're working with our banking partners to complete your transfer. Thanks to our advanced technology, this typically takes under 5 minutes!
 
-Track Transfer: ${process.env.NEXT_PUBLIC_APP_URL || 'https://app.easner.com'}/send/${data.transactionId.toLowerCase()}
+Track Transfer: ${process.env.NEXT_PUBLIC_APP_URL || 'https://app.ciuna.com'}/send/${data.transactionId.toLowerCase()}
 
-Need help? Contact us at support@easner.com
+Need help? Contact us at support@ciuna.com
     `
   },
 
@@ -195,7 +195,7 @@ Need help? Contact us at support@easner.com
         content,
         {
           text: "View Transaction",
-          url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.easner.com'}/send/${data.transactionId.toLowerCase()}`
+          url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.ciuna.com'}/send/${data.transactionId.toLowerCase()}`
         }
       )
     },
@@ -216,9 +216,9 @@ Transaction Details:
 What's Next:
 Your recipient should receive the money within minutes thanks to our fast processing. You can track all your transfers in your dashboard.
 
-View Transaction: ${process.env.NEXT_PUBLIC_APP_URL || 'https://app.easner.com'}/send/${data.transactionId.toLowerCase()}
+View Transaction: ${process.env.NEXT_PUBLIC_APP_URL || 'https://app.ciuna.com'}/send/${data.transactionId.toLowerCase()}
 
-Need help? Contact us at support@easner.com
+Need help? Contact us at support@ciuna.com
     `
   },
 
@@ -246,7 +246,7 @@ Need help? Contact us at support@easner.com
         content,
         {
           text: "Contact Support",
-          url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.easner.com'}/support`
+          url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.ciuna.com'}/support`
         }
       )
     },
@@ -268,9 +268,9 @@ Transaction Details:
 What Happens Next:
 If you were charged for this transfer, we will automatically refund the amount to your original payment method within 3-5 business days.
 
-Contact Support: ${process.env.NEXT_PUBLIC_APP_URL || 'https://app.easner.com'}/support
+Contact Support: ${process.env.NEXT_PUBLIC_APP_URL || 'https://app.ciuna.com'}/support
 
-Need help? Contact us at support@easner.com
+Need help? Contact us at support@ciuna.com
     `
   },
 
@@ -298,7 +298,7 @@ Need help? Contact us at support@easner.com
         content,
         {
           text: "Send New Transfer",
-          url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.easner.com'}/send`
+          url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.ciuna.com'}/send`
         }
       )
     },
@@ -320,15 +320,15 @@ Transaction Details:
 Refund Information:
 If you were charged for this transfer, we will automatically refund the amount to your original payment method within 3-5 business days.
 
-Send New Transfer: ${process.env.NEXT_PUBLIC_APP_URL || 'https://app.easner.com'}/send
+Send New Transfer: ${process.env.NEXT_PUBLIC_APP_URL || 'https://app.ciuna.com'}/send
 
-Need help? Contact us at support@easner.com
+Need help? Contact us at support@ciuna.com
     `
   },
 
   // Early Access Request
   earlyAccessRequest: {
-    subject: "New Early Access Request - Easner",
+    subject: "New Early Access Request - Ciuna",
     html: (data: any) => {
       const content = `
         <p class="welcome-text">
@@ -336,25 +336,25 @@ Need help? Contact us at support@easner.com
         </p>
         
         <p class="confirmation-text">
-          A new user has requested early access to Easner. Here are their details:
+          A new user has requested early access to Ciuna. Here are their details:
         </p>
         
         <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin: 20px 0;">
-          <h3 style="color: #007ACC; margin: 0 0 15px 0; font-size: 18px;">Contact Information</h3>
+          <h3 style="color: #F97316; margin: 0 0 15px 0; font-size: 18px;">Contact Information</h3>
           <p style="margin: 5px 0; font-size: 16px;"><strong>Name:</strong> ${data.fullName}</p>
           <p style="margin: 5px 0; font-size: 16px;"><strong>Email:</strong> ${data.email}</p>
           <p style="margin: 5px 0; font-size: 16px;"><strong>WhatsApp/Telegram:</strong> ${data.whatsappTelegram}</p>
         </div>
         
         <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin: 20px 0;">
-          <h3 style="color: #007ACC; margin: 0 0 15px 0; font-size: 18px;">Use Case & Transfer Preferences</h3>
+          <h3 style="color: #F97316; margin: 0 0 15px 0; font-size: 18px;">Use Case & Transfer Preferences</h3>
           <p style="margin: 5px 0; font-size: 16px;"><strong>Primary Use Case:</strong> ${data.primaryUseCase}</p>
           <p style="margin: 5px 0; font-size: 16px;"><strong>Located in:</strong> ${data.locatedIn}</p>
           <p style="margin: 5px 0; font-size: 16px;"><strong>Sending to:</strong> ${data.sendingTo}</p>
         </div>
         
         <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin: 20px 0;">
-          <h3 style="color: #007ACC; margin: 0 0 15px 0; font-size: 18px;">Request Details</h3>
+          <h3 style="color: #F97316; margin: 0 0 15px 0; font-size: 18px;">Request Details</h3>
           <p style="margin: 5px 0; font-size: 16px;"><strong>Submitted at:</strong> ${new Date(data.submittedAt).toLocaleString()}</p>
           <p style="margin: 5px 0; font-size: 16px;"><strong>User Agent:</strong> ${data.userAgent}</p>
           <p style="margin: 5px 0; font-size: 16px;"><strong>IP Address:</strong> ${data.ipAddress}</p>
@@ -369,9 +369,9 @@ Need help? Contact us at support@easner.com
             )
     },
     text: (data: any) => `
-New Early Access Request - Easner
+New Early Access Request - Ciuna
 
-A new user has requested early access to Easner. Here are their details:
+A new user has requested early access to Ciuna. Here are their details:
 
 Contact Information:
 - Name: ${data.fullName}
@@ -388,13 +388,13 @@ Request Details:
 - User Agent: ${data.userAgent}
 - IP Address: ${data.ipAddress}
 
-        © 2025 Easner, Inc. All rights reserved.
+        © 2025 Ciuna, Inc. All rights reserved.
     `
   },
 
   // Early Access Confirmation (sent to user)
   earlyAccessConfirmation: {
-    subject: "You're on the list! - Easner Early Access",
+    subject: "You're on the list! - Ciuna Early Access",
     html: (data: any) => {
       const content = `
         <p class="welcome-text">
@@ -402,11 +402,11 @@ Request Details:
         </p>
 
         <p class="confirmation-text">
-          Thank you for requesting early access to Easner! We're excited to have you join our community of users who will experience zero-fee international money transfers.
+          Thank you for requesting early access to Ciuna! We're excited to have you join our community of users who will experience zero-fee international money transfers.
         </p>
 
         <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin: 20px 0;">
-          <h3 style="color: #007ACC; margin: 0 0 15px 0; font-size: 18px;">What happens next?</h3>
+          <h3 style="color: #F97316; margin: 0 0 15px 0; font-size: 18px;">What happens next?</h3>
           <ul style="margin: 0; padding-left: 20px; color: #555; font-size: 16px;">
             <li style="margin-bottom: 8px; font-size: 16px;">We'll review your application and use case</li>
             <li style="margin-bottom: 8px; font-size: 16px;">You'll receive an invitation email when approved</li>
@@ -416,7 +416,7 @@ Request Details:
         </div>
 
         <div style="background: #e8f4fd; border: 1px solid #b3d9ff; border-radius: 8px; padding: 20px; margin: 20px 0;">
-          <h3 style="color: #007ACC; margin: 0 0 10px 0; font-size: 18px;">Why Easner?</h3>
+          <h3 style="color: #F97316; margin: 0 0 10px 0; font-size: 18px;">Why Ciuna?</h3>
           <p style="margin: 0; color: #555; font-size: 16px;">
             We're building the future of international money transfers with zero fees, real-time exchange rates, and instant transfers. Your early access will help us shape the perfect experience for users like you.
           </p>
@@ -439,7 +439,7 @@ You're on the list! 🎉
 
 Hi ${data.fullName},
 
-Thank you for requesting early access to Easner! We're excited to have you join our community of users who will experience zero-fee international money transfers.
+Thank you for requesting early access to Ciuna! We're excited to have you join our community of users who will experience zero-fee international money transfers.
 
 What happens next?
 - We'll review your application and use case
@@ -447,13 +447,13 @@ What happens next?
 - We'll follow up with you via the contact method you provided
 - You'll be among the first to experience our platform
 
-Why Easner?
+Why Ciuna?
 We're building the future of international money transfers with zero fees, real-time exchange rates, and instant transfers. Your early access will help us shape the perfect experience for users like you.
 
 Questions?
 If you have any questions about your early access request or our platform, feel free to reach out to us. We're here to help!
 
-© 2025 Easner, Inc. All rights reserved.
+© 2025 Ciuna, Inc. All rights reserved.
     `
   },
 
@@ -470,7 +470,7 @@ If you have any questions about your early access request or our platform, feel 
         </p>
       `
 
-      const adminUrl = process.env.NEXT_PUBLIC_OFFICE_URL || 'https://bk.easner.com'
+      const adminUrl = process.env.NEXT_PUBLIC_OFFICE_URL || 'https://bk.ciuna.com'
       return generateBaseEmailTemplate(
         data.status === 'pending' ? "New Transaction Created" : `Transaction ${data.status.toUpperCase()}`,
         "",
@@ -483,7 +483,7 @@ If you have any questions about your early access request or our platform, feel 
     },
     text: (data: any) => {
       const userName = data.userName && data.userName !== 'User' && data.userName !== 'Unknown' ? data.userName : 'a user'
-      const adminUrl = process.env.NEXT_PUBLIC_OFFICE_URL || 'https://bk.easner.com'
+      const adminUrl = process.env.NEXT_PUBLIC_OFFICE_URL || 'https://bk.ciuna.com'
       return `
 ${data.status === 'pending' ? 'New Transaction Created' : `Transaction Status Updated to ${data.status.toUpperCase()}`} - #${data.transactionId}
 
@@ -493,7 +493,7 @@ ${data.status === 'pending'
 
 View in Admin Dashboard: ${adminUrl}/transactions
 
-© 2025 Easner, Inc. All rights reserved.
+© 2025 Ciuna, Inc. All rights reserved.
     `
     }
   }

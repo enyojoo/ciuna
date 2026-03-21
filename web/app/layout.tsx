@@ -8,7 +8,7 @@ import { ProtectedRouteWrapper } from "@/components/auth/protected-route-wrapper
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Easner - Move Money Globally Like SMS",
+  title: "Ciuna - Move Money Globally Like SMS",
   description:
     "API-first cross-border payment infrastructure for US and EU businesses, with built-in KYC/AML compliance. For individuals and businesses.",
   keywords:
@@ -18,39 +18,39 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://app.easner.com"),
+  metadataBase: new URL("https://app.ciuna.com"),
   alternates: {
     canonical: "/",
   },
   icons: {
-    icon: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Easner%20Favicon.svg",
-    shortcut: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Easner%20Favicon.svg",
-    apple: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Easner%20Favicon.svg",
+    icon: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20Favicon.svg",
+    shortcut: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20Favicon.svg",
+    apple: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20Favicon.svg",
   },
   openGraph: {
-    title: "Easner - Move Money Globally Like SMS",
+    title: "Ciuna - Move Money Globally Like SMS",
     description:
       "API-first cross-border payment infrastructure for US and EU businesses, with built-in KYC/AML compliance. For individuals and businesses.",
-    url: "https://app.easner.com",
-    siteName: "Easner",
+    url: "https://app.ciuna.com",
+    siteName: "Ciuna",
     locale: "en_US",
     type: "website",
     images: [
       {
-        url: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/easner%20seo%20cover.png",
+        url: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/ciuna%20seo%20cover.png",
         width: 1200,
         height: 630,
-        alt: "Easner - Global Money Transfer Platform",
+        alt: "Ciuna - Global Money Transfer Platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Easner - Move Money Globally Like SMS",
+    title: "Ciuna - Move Money Globally Like SMS",
     description:
       "API-first cross-border payment infrastructure for US and EU businesses, with built-in KYC/AML compliance. For individuals and businesses.",
-    creator: "@easner",
-    images: ["https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/easner%20seo%20cover.png"],
+    creator: "@ciuna",
+    images: ["https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/ciuna%20seo%20cover.png"],
   },
   robots: {
     index: true,
@@ -82,10 +82,10 @@ export default function RootLayout({
               "mainEntity": [
                 {
                   "@type": "Question",
-                  "name": "How much does it cost to send money with Easner?",
+                  "name": "How much does it cost to send money with Ciuna?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Easner charges zero fees for international money transfers. You only pay the real-time exchange rate with no hidden costs, saving you up to 15% compared to traditional services."
+                    "text": "Ciuna charges zero fees for international money transfers. You only pay the real-time exchange rate with no hidden costs, saving you up to 15% compared to traditional services."
                   }
                 },
                 {
@@ -106,18 +106,18 @@ export default function RootLayout({
                 },
                 {
                   "@type": "Question",
-                  "name": "Is it safe to send money with Easner?",
+                  "name": "Is it safe to send money with Ciuna?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Yes, Easner uses bank-level security. All transfers are encrypted and processed through regulated financial institutions. Your money is always safe."
+                    "text": "Yes, Ciuna uses bank-level security. All transfers are encrypted and processed through regulated financial institutions. Your money is always safe."
                   }
                 },
                 {
                   "@type": "Question",
-                  "name": "How does Easner compare to Wise, Remitly, or WorldRemit?",
+                  "name": "How does Ciuna compare to Wise, Remitly, or WorldRemit?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Easner offers zero fees compared to 0.5-3% fees charged by competitors. We also provide instant transfers, while traditional services can take 1-3 business days."
+                    "text": "Ciuna offers zero fees compared to 0.5-3% fees charged by competitors. We also provide instant transfers, while traditional services can take 1-3 business days."
                   }
                 }
               ]
@@ -130,10 +130,10 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FinancialService",
-              "name": "Easner",
+              "name": "Ciuna",
               "description": "Technology platform facilitating instant cross-border money transfers. API-first cross-border payment infrastructure for US and EU businesses.",
-              "url": "https://www.easner.com",
-              "logo": "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Easner%20web%20app.png",
+              "url": "https://www.ciuna.com",
+              "logo": "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20web%20app.png",
               "serviceType": "Money Transfer",
               "areaServed": [
                 { "@type": "Country", "name": "Nigeria" },

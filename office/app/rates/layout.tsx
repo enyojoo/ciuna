@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Exchange Rates - Easner",
-  description: "Manage currency exchange rates and update rate configurations for the Easner platform.",
+  title: "Exchange Rates - Ciuna",
+  description: "Manage currency exchange rates and update rate configurations for the Ciuna platform.",
   robots: {
     index: false,
     noindex: true,

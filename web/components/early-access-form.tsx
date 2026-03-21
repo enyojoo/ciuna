@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox"
 import { CheckCircle, Loader2, Send, ChevronDown, Search } from "lucide-react"
 import Link from "next/link"
-import { APP_URLS } from "@easner/shared"
+import { APP_URLS } from "@ciuna/shared"
 
 interface EarlyAccessFormData {
   email: string
@@ -405,7 +405,7 @@ export function EarlyAccessForm() {
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">Request Submitted!</h3>
-          <p className="text-gray-600 mb-2">We've received your request. We'll review your application and send you an invitation to join Easner soon.</p>
+          <p className="text-gray-600 mb-2">We've received your request. We'll review your application and send you an invitation to join Ciuna soon.</p>
           <p className="text-sm text-gray-500 mb-6">You'll receive an email at <strong>{formData.email}</strong> with next steps.</p>
           <Link href="/">
             <Button className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-200">
@@ -421,7 +421,7 @@ export function EarlyAccessForm() {
     <Card className="w-full max-w-md rounded-2xl shadow-lg border-0 ring-1 ring-gray-200/60">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl text-gray-900">Request Access</CardTitle>
-        <CardDescription className="text-gray-600">Request access to Easner's cross-border payment infrastructure for businesses and financial institutions.</CardDescription>
+        <CardDescription className="text-gray-600">Request access to Ciuna's cross-border payment infrastructure for businesses and financial institutions.</CardDescription>
       </CardHeader>
       <CardContent>
         {error && (

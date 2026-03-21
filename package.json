@@ -1,5 +1,5 @@
 {
-  "name": "easner",
+  "name": "ciuna",
   "version": "0.1.0",
   "private": true,
   "packageManager": "npm@10.9.3",
@@ -7,19 +7,17 @@
     "packages/*",
     "website",
     "web",
-    "office",
-    "mobile"
+    "office"
   ],
   "scripts": {
     "dev": "turbo run dev --filter=web",
     "dev:website": "turbo run dev --filter=website",
     "dev:web": "turbo run dev --filter=web",
-    "dev:mobile": "npm run start --workspace=easner-mobile",
     "dev:all": "turbo run dev --filter=website --filter=web",
     "build": "turbo run build",
     "build:website": "turbo run build --filter=website",
     "build:web": "turbo run build --filter=web",
-    "build:shared": "turbo run build --filter=@easner/shared",
+    "build:shared": "turbo run build --filter=@ciuna/shared",
     "lint": "turbo run lint",
     "start:website": "turbo run start --filter=website",
     "start:web": "turbo run start --filter=web",

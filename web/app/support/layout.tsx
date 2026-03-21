@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Support - Easner",
-  description: "Get help with your money transfers and find answers to common questions about Easner's services.",
+  title: "Support - Ciuna",
+  description: "Get help with your money transfers and find answers to common questions about Ciuna's services.",
   robots: {
     index: false,
     noindex: true,

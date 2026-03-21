@@ -30,7 +30,7 @@ export default function CardTransactionsPage() {
   const getInitialTransactions = (): CardTransaction[] | null => {
     if (!userProfile?.id) return null
     try {
-      const cached = localStorage.getItem(`easner_all_card_transactions_${userProfile.id}`)
+      const cached = localStorage.getItem(`ciuna_all_card_transactions_${userProfile.id}`)
       if (!cached) return null
       const { value, timestamp } = JSON.parse(cached)
       if (Date.now() - timestamp < 5 * 60 * 1000) {
@@ -48,7 +48,7 @@ export default function CardTransactionsPage() {
   useEffect(() => {
     if (!userProfile?.id) return
 
-    const CACHE_KEY = `easner_all_card_transactions_${userProfile.id}`
+    const CACHE_KEY = `ciuna_all_card_transactions_${userProfile.id}`
     const CACHE_TTL = 5 * 60 * 1000
 
     const getCachedTransactions = (): CardTransaction[] | null => {

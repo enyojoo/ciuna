@@ -48,7 +48,7 @@ export default function UserTransactionsPage() {
   const getInitialTransactions = (): CombinedTransaction[] | null => {
     if (!userProfile?.id) return null
     try {
-      const cached = localStorage.getItem(`easner_combined_transactions_${userProfile.id}`)
+      const cached = localStorage.getItem(`ciuna_combined_transactions_${userProfile.id}`)
       if (!cached) return null
       const { value, timestamp } = JSON.parse(cached)
       if (Date.now() - timestamp < 5 * 60 * 1000) { // 5 minute cache
@@ -67,7 +67,7 @@ export default function UserTransactionsPage() {
   useEffect(() => {
     if (!userProfile?.id) return
 
-    const CACHE_KEY = `easner_combined_transactions_${userProfile.id}`
+    const CACHE_KEY = `ciuna_combined_transactions_${userProfile.id}`
     const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
     const getCachedTransactions = (): CombinedTransaction[] | null => {
@@ -156,7 +156,7 @@ export default function UserTransactionsPage() {
   useEffect(() => {
     if (!userProfile?.id) return
 
-    const CACHE_KEY = `easner_combined_transactions_${userProfile.id}`
+    const CACHE_KEY = `ciuna_combined_transactions_${userProfile.id}`
     
     const setCachedTransactions = (value: CombinedTransaction[]) => {
       try {

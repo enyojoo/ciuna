@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Dashboard - Easner",
-  description: "Admin dashboard for managing Easner platform operations, users, and transactions.",
+  title: "Dashboard - Ciuna",
+  description: "Admin dashboard for managing Ciuna platform operations, users, and transactions.",
   robots: {
     index: false,
     noindex: true,

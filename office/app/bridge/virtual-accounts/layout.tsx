@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Virtual Accounts - Easner",
+  title: "Virtual Accounts - Ciuna",
   robots: {
     index: false,
     noindex: true,

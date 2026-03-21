@@ -31,7 +31,7 @@ export function BlogFeaturedBlock({ posts }: BlogFeaturedBlockProps) {
         <div className="flex flex-col justify-center">
           <Link
             href={`/blog/${largePost.slug}`}
-            className="group block rounded-xl border border-gray-200 overflow-hidden hover:border-easner-primary/50 hover:shadow-lg transition-all duration-200"
+            className="group block rounded-xl border border-gray-200 overflow-hidden hover:border-ciuna-primary/50 hover:shadow-lg transition-all duration-200"
           >
             {largePost.cover_image_url && (
               <div className="aspect-video relative bg-gray-100">
@@ -55,7 +55,7 @@ export function BlogFeaturedBlock({ posts }: BlogFeaturedBlockProps) {
                   </time>
                 )}
               </p>
-              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 font-unbounded group-hover:text-easner-primary transition-colors line-clamp-2">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 font-unbounded group-hover:text-ciuna-primary transition-colors line-clamp-2">
                 {largePost.title}
               </h2>
             </div>

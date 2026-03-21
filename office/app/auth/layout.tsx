@@ -1,10 +1,10 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { BrandLogo } from "@easner/shared"
+import { BrandLogo } from "@ciuna/shared"
 
 export const metadata: Metadata = {
-  title: "Sign in - Easner",
-  description: "Sign in to Easner Office",
+  title: "Sign in - Ciuna",
+  description: "Sign in to Ciuna Office",
   robots: {
     index: false,
     follow: false,

@@ -221,7 +221,7 @@ export class EmailNotificationService {
     firstName: string
   ): Promise<void> {
     try {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.easner.com'
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.ciuna.com'
       const result = await emailService.sendWelcomeEmail({
         firstName,
         lastName: '',
@@ -326,10 +326,10 @@ export class EmailNotificationService {
       }
 
       // Send admin notification email (exact same pattern as user email)
-      console.log('Sending admin notification email to: enyo@easner.com')
+      console.log('Sending admin notification email to: enyo@ciuna.com')
       
       const result = await emailService.sendEmail({
-        to: 'enyo@easner.com',
+        to: 'enyo@ciuna.com',
         template: 'adminTransactionNotification',
         data: adminEmailData
       })

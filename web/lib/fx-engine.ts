@@ -15,7 +15,7 @@ export interface OrderAmounts {
 /**
  * FX Engine Service
  * Centralized exchange rate and fee calculation logic
- * Used by both web and mobile applications
+ * Used by the web app and related services
  */
 export const fxEngine = {
   /**
@@ -147,7 +147,7 @@ export const fxEngine = {
     let receiveAmount: number
 
     if (direction === "receive") {
-      // User entered receive amount (mobile app flow)
+      // User entered receive amount (alternate flow)
       // Calculate: sendAmount = receiveAmount / rate
       receiveAmount = amount
       sendAmount = receiveAmount / rateData.rate

@@ -113,7 +113,7 @@ export function BlogSearchDialog({ posts, open, onClose }: BlogSearchDialogProps
               setSelectedIndex(0)
             }}
             placeholder="Search..."
-            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-easner-primary focus:outline-none focus:ring-2 focus:ring-easner-primary/20"
+            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-ciuna-primary focus:outline-none focus:ring-2 focus:ring-ciuna-primary/20"
             autoFocus
           />
         </div>
@@ -134,7 +134,7 @@ export function BlogSearchDialog({ posts, open, onClose }: BlogSearchDialogProps
                   onClick={onClose}
                   className={`flex items-center gap-3 px-4 py-3 transition-colors ${
                     i === selectedIndex
-                      ? "bg-easner-primary text-white"
+                      ? "bg-ciuna-primary text-white"
                       : "hover:bg-gray-50 text-gray-900"
                   }`}
                   onMouseEnter={() => setSelectedIndex(i)}

@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { BrandLogo } from "@easner/shared"
+import { BrandLogo } from "@ciuna/shared"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,7 +64,7 @@ export function PublicHeader() {
           <nav className="hidden md:flex items-center gap-1">
             {NAV_SECTIONS.map((section) => (
               <DropdownMenu key={section.label}>
-                <DropdownMenuTrigger className="flex items-center gap-1 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:text-easner-primary hover:bg-easner-primary-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=open]:text-easner-primary data-[state=open]:bg-easner-primary-50">
+                <DropdownMenuTrigger className="flex items-center gap-1 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:text-ciuna-primary hover:bg-ciuna-primary-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=open]:text-ciuna-primary data-[state=open]:bg-ciuna-primary-50">
                   {section.label}
                   <ChevronDown className="h-4 w-4" />
                 </DropdownMenuTrigger>
@@ -91,7 +91,7 @@ export function PublicHeader() {
                         <DropdownMenuItem key={item.href} asChild>
                           <Link
                             href={item.href}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-900 hover:bg-easner-primary-50 hover:text-easner-primary-600 transition-colors cursor-pointer"
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-900 hover:bg-ciuna-primary-50 hover:text-ciuna-primary-600 transition-colors cursor-pointer"
                           >
                             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-600">
                               <Icon className="h-4 w-4" />
@@ -109,7 +109,7 @@ export function PublicHeader() {
 
           <div className="hidden md:flex items-center gap-3">
             <Link href="/access">
-              <Button className="bg-easner-primary hover:bg-easner-primary-600 text-white shadow-lg hover:shadow-xl transition-all duration-200">
+              <Button className="bg-ciuna-primary hover:bg-ciuna-primary-600 text-white shadow-lg hover:shadow-xl transition-all duration-200">
                 Get Started
               </Button>
             </Link>
@@ -118,7 +118,7 @@ export function PublicHeader() {
           {/* Mobile menu button */}
           <button
             type="button"
-            className="md:hidden p-2 text-gray-700 hover:text-easner-primary"
+            className="md:hidden p-2 text-gray-700 hover:text-ciuna-primary"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           >
@@ -154,7 +154,7 @@ export function PublicHeader() {
                                 key={item.href}
                                 href={item.href}
                                 onClick={() => setMobileMenuOpen(false)}
-                                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-easner-primary-50 hover:text-easner-primary-600 transition-colors"
+                                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-ciuna-primary-50 hover:text-ciuna-primary-600 transition-colors"
                               >
                                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-600">
                                   <Icon className="h-4 w-4" />
@@ -172,7 +172,7 @@ export function PublicHeader() {
             </nav>
             <div className="flex-shrink-0 pt-4 pb-4 px-4 border-t border-gray-200 bg-white">
               <Link href="/access" onClick={() => setMobileMenuOpen(false)}>
-                <Button className="w-full bg-easner-primary hover:bg-easner-primary-600 text-white">
+                <Button className="w-full bg-ciuna-primary hover:bg-ciuna-primary-600 text-white">
                   Get Started
                 </Button>
               </Link>

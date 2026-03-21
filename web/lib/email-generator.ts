@@ -12,7 +12,7 @@ export function generateBaseEmailTemplate(
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title} - Easner</title>
+    <title>${title} - Ciuna</title>
     <style>
         /* Reset styles */
         * {
@@ -52,7 +52,7 @@ export function generateBaseEmailTemplate(
         }
         
         .email-title {
-            color: #007ACC;
+            color: #F97316;
             font-size: 28px;
             font-weight: 700;
             margin-bottom: 10px;
@@ -84,7 +84,7 @@ export function generateBaseEmailTemplate(
         
         .cta-button {
             display: inline-block;
-            background: linear-gradient(135deg, #007ACC 0%, #0056b3 100%);
+            background: linear-gradient(135deg, #F97316 0%, #ea580c 100%);
             color: #ffffff !important;
             text-decoration: none;
             padding: 16px 32px;
@@ -94,17 +94,17 @@ export function generateBaseEmailTemplate(
             text-align: center;
             margin: 20px 0;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 122, 204, 0.3);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
         }
         
         .cta-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 122, 204, 0.4);
+            box-shadow: 0 6px 16px rgba(249, 115, 22, 0.4);
         }
         
         .security-note {
             background-color: #f7fafc;
-            border-left: 4px solid #007ACC;
+            border-left: 4px solid #F97316;
             padding: 20px;
             margin: 30px 0;
             border-radius: 0 8px 8px 0;
@@ -141,7 +141,7 @@ export function generateBaseEmailTemplate(
         }
         
         .footer-links a {
-            color: #007ACC;
+            color: #F97316;
             text-decoration: none;
             margin: 0 15px;
             font-size: 14px;
@@ -244,7 +244,7 @@ export function generateBaseEmailTemplate(
             }
             
             .email-title {
-                color: #007ACC;
+                color: #F97316;
             }
             
             .email-subtitle {
@@ -261,7 +261,7 @@ export function generateBaseEmailTemplate(
             
             .security-note {
                 background-color: #2a2a2a;
-                border-left-color: #007ACC;
+                border-left-color: #F97316;
             }
             
             .security-note h3 {
@@ -282,7 +282,7 @@ export function generateBaseEmailTemplate(
             }
             
             .footer-links a {
-                color: #007ACC;
+                color: #F97316;
             }
             
             .company-info {
@@ -360,7 +360,7 @@ export function generateBaseEmailTemplate(
     <div class="email-container">
         <!-- Header -->
         <div class="email-header">
-            <img src="https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Easner%20Logo.png" alt="Easner Logo" class="logo">
+            <img src="https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20Logo.png" alt="Ciuna Logo" class="logo">
             <h1 class="email-title">${title}</h1>
             ${subtitle ? `<p class="email-subtitle">${subtitle}</p>` : ''}
         </div>
@@ -383,13 +383,13 @@ export function generateBaseEmailTemplate(
             </p>
             
             <div class="footer-links">
-                <a href="mailto:support@easner.com">Contact Support</a>
+                <a href="mailto:support@ciuna.com">Contact Support</a>
             </div>
             
             <p class="company-info">
-                © 2025 Easner, Inc. All rights reserved.<br>
+                © 2025 Ciuna, Inc. All rights reserved.<br>
                 28 Geary St Ste 650, San Francisco, CA 94108<br>
-                You received this email because you have an Easner account.
+                You received this email because you have an Ciuna account.
             </p>
         </div>
     </div>
@@ -447,13 +447,13 @@ export function generateFooter(): string {
     </p>
     
     <div class="footer-links">
-      <a href="mailto:support@easner.com">Contact Support</a>
+      <a href="mailto:support@ciuna.com">Contact Support</a>
     </div>
     
     <p class="company-info">
-      © 2025 Easner, Inc. All rights reserved.<br>
+      © 2025 Ciuna, Inc. All rights reserved.<br>
       28 Geary St Ste 650, San Francisco, CA 94108<br>
-      You received this email because you have an Easner account.
+      You received this email because you have an Ciuna account.
     </p>
   `
 }

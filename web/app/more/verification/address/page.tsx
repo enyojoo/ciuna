@@ -27,7 +27,7 @@ export default function AddressVerificationPage() {
     if (typeof window === "undefined") return null
     if (!userProfile?.id) return null
     try {
-      const cached = localStorage.getItem(`easner_kyc_submissions_${userProfile.id}`)
+      const cached = localStorage.getItem(`ciuna_kyc_submissions_${userProfile.id}`)
       if (!cached) return null
       const { value } = JSON.parse(cached)
       // Always return cached value if it exists (even if expired) to prevent flicker
@@ -61,7 +61,7 @@ export default function AddressVerificationPage() {
   useEffect(() => {
     if (!userProfile?.id) return
 
-    const CACHE_KEY = `easner_kyc_submissions_${userProfile.id}`
+    const CACHE_KEY = `ciuna_kyc_submissions_${userProfile.id}`
     const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
     const getCachedSubmissions = (): KYCSubmission[] | null => {
@@ -373,7 +373,7 @@ export default function AddressVerificationPage() {
       }
 
       // Update cache
-      const CACHE_KEY = `easner_kyc_submissions_${userProfile.id}`
+      const CACHE_KEY = `ciuna_kyc_submissions_${userProfile.id}`
       try {
         const cached = localStorage.getItem(CACHE_KEY)
         let submissions: KYCSubmission[] = []

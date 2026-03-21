@@ -12,10 +12,10 @@ export async function generateMetadata({
   const { slug } = await params
   const post = await getPostBySlug(slug)
   if (!post) {
-    return { title: { absolute: "Post Not Found - Easner" } }
+    return { title: { absolute: "Post Not Found - Ciuna" } }
   }
   return {
-    title: { absolute: `${post.title} - Easner Blog` },
+    title: { absolute: `${post.title} - Ciuna Blog` },
     description: post.excerpt || post.title,
   }
 }

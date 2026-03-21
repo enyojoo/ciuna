@@ -22,10 +22,10 @@ export function PublicFooter() {
               Move Money with Ease
             </h2>
             <p className="text-lg md:text-xl text-gray-500 leading-relaxed">
-              From the US and EU to Africa and Asia, Easner provides financial infrastructure that makes global money movement simple, compliant, and instant — for individuals, SMEs, and institutions alike.
+              From the US and EU to Africa and Asia, Ciuna provides financial infrastructure that makes global money movement simple, compliant, and instant — for individuals, SMEs, and institutions alike.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button asChild size="lg" className="gap-2 bg-easner-primary hover:bg-easner-primary-600 shadow-md">
+              <Button asChild size="lg" className="gap-2 bg-ciuna-primary hover:bg-ciuna-primary-600 shadow-md">
                 <Link href="/access">
                   Get Started <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -38,33 +38,33 @@ export function PublicFooter() {
         <div className="py-6 sm:py-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
             <div className="flex flex-col items-center sm:items-start gap-2">
-              <div className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">© {new Date().getFullYear()} Easner Inc.</div>
+              <div className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">© {new Date().getFullYear()} Ciuna Inc.</div>
               <div className="flex items-center gap-3">
-                <a href="https://x.com/easnerbanking" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-easner-primary transition-colors" aria-label="X (Twitter)">
+                <a href="https://x.com/ciunabanking" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-ciuna-primary transition-colors" aria-label="X (Twitter)">
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                   </svg>
                 </a>
-                <a href="https://www.linkedin.com/company/easner/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-easner-primary transition-colors" aria-label="LinkedIn">
+                <a href="https://www.linkedin.com/company/ciuna/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-ciuna-primary transition-colors" aria-label="LinkedIn">
                   <Linkedin className="h-4 w-4" />
                 </a>
               </div>
             </div>
             <div className="flex items-center space-x-6 sm:space-x-8">
-              <Link href="/blog" className="text-xs sm:text-sm text-gray-500 hover:text-easner-primary transition-colors">Blog</Link>
-              <Link href="/about" className="text-xs sm:text-sm text-gray-500 hover:text-easner-primary transition-colors">About</Link>
-              <Link href="/terms" className="text-xs sm:text-sm text-gray-500 hover:text-easner-primary transition-colors">Terms</Link>
-              <Link href="/privacy" className="text-xs sm:text-sm text-gray-500 hover:text-easner-primary transition-colors">Privacy Policy</Link>
+              <Link href="/blog" className="text-xs sm:text-sm text-gray-500 hover:text-ciuna-primary transition-colors">Blog</Link>
+              <Link href="/about" className="text-xs sm:text-sm text-gray-500 hover:text-ciuna-primary transition-colors">About</Link>
+              <Link href="/terms" className="text-xs sm:text-sm text-gray-500 hover:text-ciuna-primary transition-colors">Terms</Link>
+              <Link href="/privacy" className="text-xs sm:text-sm text-gray-500 hover:text-ciuna-primary transition-colors">Privacy Policy</Link>
             </div>
           </div>
           <div className="text-center sm:text-left text-xs sm:text-sm text-gray-500 mb-4">
             <p>Have questions? Email us at{" "}
-              <a href="mailto:hello@easner.com" className="text-easner-primary hover:underline">hello@easner.com</a>
+              <a href="mailto:hello@ciuna.com" className="text-ciuna-primary hover:underline">hello@ciuna.com</a>
             </p>
           </div>
           <div className="pt-4 border-t border-gray-200">
             <p className="text-xs text-gray-400 text-center max-w-4xl mx-auto leading-relaxed">
-              Easner is a financial technology company and not a bank, exchange, or asset custodian. Easner does not facilitate FDIC insurance or hold deposits. Easner acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions. Cards are issued by partners licensed in their respective jurisdictions.
+              Ciuna is a financial technology company and not a bank, exchange, or asset custodian. Ciuna does not facilitate FDIC insurance or hold deposits. Ciuna acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions. Cards are issued by partners licensed in their respective jurisdictions.
             </p>
           </div>
         </div>

@@ -13,11 +13,11 @@ export async function GET(request: NextRequest) {
     
     // Try different cookie names
     const accessToken = request.cookies.get("sb-access-token")?.value || 
-                       request.cookies.get("sb-easner-access-token")?.value ||
+                       request.cookies.get("sb-ciuna-access-token")?.value ||
                        request.cookies.get("access_token")?.value
     
     const refreshToken = request.cookies.get("sb-refresh-token")?.value || 
-                        request.cookies.get("sb-easner-refresh-token")?.value ||
+                        request.cookies.get("sb-ciuna-refresh-token")?.value ||
                         request.cookies.get("refresh_token")?.value
     
     console.log('Debug: Access token found:', !!accessToken)

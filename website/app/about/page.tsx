@@ -19,12 +19,12 @@ export default function AboutPage() {
               className="space-y-8"
             >
               <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 font-unbounded">
-                About Easner
+                About Ciuna
               </h1>
 
               <div className="space-y-6 text-lg text-gray-600 leading-relaxed">
                 <p>
-                  Easner is building cross-border stablecoin banking for businesses and individuals. We believe money should move globally like SMS: instant, low-cost, and compliant.
+                  Ciuna is building cross-border stablecoin banking for businesses and individuals. We believe money should move globally like SMS: instant, low-cost, and compliant.
                 </p>
                 <p>
                   Our infrastructure combines stablecoin rails with built-in KYC/AML, licensed partner networks, and API-first design — so fintechs, businesses, and individuals can move money between the US, Europe, Africa, and Asia without the friction of traditional banking.
@@ -38,8 +38,8 @@ export default function AboutPage() {
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Contact</h2>
                 <p className="text-lg text-gray-600">
                   Have questions? Reach us at{" "}
-                  <a href="mailto:hello@easner.com" className="text-easner-primary hover:underline font-medium">
-                    hello@easner.com
+                  <a href="mailto:hello@ciuna.com" className="text-ciuna-primary hover:underline font-medium">
+                    hello@ciuna.com
                   </a>
                 </p>
               </div>

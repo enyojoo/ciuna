@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next"
 import { getPublishedPosts } from "@/lib/blog-service"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://www.easner.com"
+  const baseUrl = "https://www.ciuna.com"
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1 },

@@ -26,9 +26,9 @@ export class EmailService {
 
   constructor(config?: Partial<EmailServiceConfig>) {
     this.config = {
-      fromEmail: process.env.SENDGRID_FROM_EMAIL || 'noreply@easner.com',
-      fromName: process.env.SENDGRID_FROM_NAME || 'Easner',
-      replyTo: process.env.SENDGRID_REPLY_TO || 'support@easner.com',
+      fromEmail: process.env.SENDGRID_FROM_EMAIL || 'noreply@ciuna.com',
+      fromName: process.env.SENDGRID_FROM_NAME || 'Ciuna',
+      replyTo: process.env.SENDGRID_REPLY_TO || 'support@ciuna.com',
       ...config
     }
   }
@@ -152,7 +152,7 @@ export class EmailService {
    * Test email sending (for development)
    */
   async sendTestEmail(to: string): Promise<SendGridResponse> {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.easner.com'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.ciuna.com'
     return this.sendEmail({
       to,
       template: 'welcome',

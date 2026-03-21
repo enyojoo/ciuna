@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Transactions - Easner",
+  title: "Transactions - Ciuna",
   description: "View your money transfer history, track transaction status, and monitor all your international transfers.",
   robots: {
     index: false,

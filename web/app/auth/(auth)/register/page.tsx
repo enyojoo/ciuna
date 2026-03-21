@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { APP_URLS } from "@easner/shared"
+import { APP_URLS } from "@ciuna/shared"
 import { useAuth } from "@/lib/auth-context"
 import { CheckCircle, Eye, EyeOff } from "lucide-react"
 import { useRouteProtection } from "@/hooks/use-route-protection"
@@ -95,7 +95,7 @@ function RegisterPageContent() {
             <CheckCircle className="h-7 w-7 sm:h-8 sm:w-8 text-green-600 dark:text-green-400" />
           </div>
           <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">Account Created Successfully!</h3>
-          <p className="text-muted-foreground mb-2 text-sm sm:text-base">Welcome to Easner! Please check your email to verify your account.</p>
+          <p className="text-muted-foreground mb-2 text-sm sm:text-base">Welcome to Ciuna! Please check your email to verify your account.</p>
           <p className="text-sm text-muted-foreground mb-4">After verification, you can sign in to start sending money.</p>
           <p className="text-sm text-muted-foreground">Redirecting to login...</p>
         </CardContent>

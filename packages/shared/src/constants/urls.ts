@@ -1,4 +1,4 @@
 export const APP_URLS = {
-  website: "https://www.easner.com",
-  app: "https://app.easner.com",
+  website: "https://www.ciuna.com",
+  app: "https://app.ciuna.com",
 } as const

@@ -42,7 +42,7 @@ export default function OfficeCompliancePage() {
   const getInitialUsers = (): ComplianceUser[] => {
     if (typeof window === "undefined") return []
     try {
-      const cached = localStorage.getItem("easner_compliance_users")
+      const cached = localStorage.getItem("ciuna_compliance_users")
       if (!cached) return []
       const { value, timestamp } = JSON.parse(cached)
       // Return cached data even if expired - we'll refresh in background
@@ -55,7 +55,7 @@ export default function OfficeCompliancePage() {
   const getCacheTimestamp = (): number | null => {
     if (typeof window === "undefined") return null
     try {
-      const cached = localStorage.getItem("easner_compliance_users")
+      const cached = localStorage.getItem("ciuna_compliance_users")
       if (!cached) return null
       const { timestamp } = JSON.parse(cached)
       return timestamp
@@ -127,7 +127,7 @@ export default function OfficeCompliancePage() {
       
       // Cache the data
       try {
-        localStorage.setItem("easner_compliance_users", JSON.stringify({
+        localStorage.setItem("ciuna_compliance_users", JSON.stringify({
           value: usersWithKyc,
           timestamp: Date.now()
         }))

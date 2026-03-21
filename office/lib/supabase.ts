@@ -11,7 +11,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   global: {
     headers: {
-      "X-Client-Info": "easner-office",
+      "X-Client-Info": "ciuna-office",
     },
   },
 })

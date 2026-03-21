@@ -15,7 +15,7 @@ export default function UserSupportPage() {
     },
     {
       question: 'What are the fees?',
-      answer: 'We charge absolutely no fees on any transaction. Send money worldwide completely free with Easner.'
+      answer: 'We charge absolutely no fees on any transaction. Send money worldwide completely free with Ciuna.'
     },
     {
       question: 'How long does it take?',
@@ -24,7 +24,7 @@ export default function UserSupportPage() {
   ]
 
   const handleEmailSupport = () => {
-    window.open("mailto:support@easner.com?subject=Support Request", "_blank")
+    window.open("mailto:support@ciuna.com?subject=Support Request", "_blank")
   }
 
   const handleOpenTelegram = () => {
@@ -61,7 +61,7 @@ export default function UserSupportPage() {
                   <div className="text-2xl">📧</div>
                   <div>
                     <h3 className="font-medium text-gray-900">Email Support</h3>
-                    <p className="text-sm text-gray-600">support@easner.com</p>
+                    <p className="text-sm text-gray-600">support@ciuna.com</p>
                   </div>
                 </div>
                 <div className="text-gray-400">›</div>

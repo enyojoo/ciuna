@@ -1,7 +1,7 @@
 "use client"
 
 import { ArrowLeft } from "lucide-react"
-import { BrandLogo } from "@easner/shared"
+import { BrandLogo } from "@ciuna/shared"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -21,10 +21,10 @@ function TermsPageContent() {
     
     // Show back button if:
     // 1. There's a 'from=internal' or 'from=register' query parameter
-    // 2. Referrer is from the same domain (easner.com)
+    // 2. Referrer is from the same domain (ciuna.com)
     // 3. Referrer includes auth/register path
     const isInternalReferrer = referrer && (
-      referrer.includes('easner.com') || 
+      referrer.includes('ciuna.com') || 
       referrer.includes('localhost') ||
       referrer.includes('127.0.0.1')
     )
@@ -50,7 +50,7 @@ function TermsPageContent() {
             <Button
               variant="ghost"
               onClick={handleBack}
-              className="inline-flex items-center gap-2 text-easner-primary hover:text-easner-primary-600 transition-colors p-0 h-auto"
+              className="inline-flex items-center gap-2 text-ciuna-primary hover:text-ciuna-primary-600 transition-colors p-0 h-auto"
             >
               <ArrowLeft className="h-5 w-5" />
               Back
@@ -72,30 +72,30 @@ function TermsPageContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Acceptance of Terms</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  By accessing and using Easner's services, you accept and agree to be bound by the terms and provisions
+                  By accessing and using Ciuna's services, you accept and agree to be bound by the terms and provisions
                   of this agreement. If you do not agree to abide by the above, please do not use this service.
                 </p>
               </section>
 
               <section>
-                <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. About Easner</h2>
+                <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. About Ciuna</h2>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  Easner, Inc. is a Delaware C-corporation that operates the Easner platform and mobile application.
-                  Easner provides instant, zero-fee cross-border transfers where users send money from their local bank
+                  Ciuna, Inc. is a Delaware C-corporation that operates the Ciuna platform and web applications.
+                  Ciuna provides instant, zero-fee cross-border transfers where users send money from their local bank
                   and recipients receive funds in their bank account within minutes, with no virtual wallets required.
                   Users can transfer money between supported currencies with competitive exchange rates and zero fees
-                  online with Easner. Easner's infrastructure leverages modern payment standards and blockchain settlement
+                  online with Ciuna. Ciuna's infrastructure leverages modern payment standards and blockchain settlement
                   technology provided by our licensed partners, including Bridge, to make cross-border transfers instant, transparent, and secure.
                 </p>
                 <p className="text-gray-700 leading-relaxed">
-                  <strong>Important:</strong> Easner is a financial technology company and not a bank, exchange, or asset custodian. Easner does not facilitate FDIC insurance or hold deposits. Easner acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions. Cards are issued by partners licensed in their respective jurisdictions. Financial services are facilitated by licensed partners with appropriate regulatory permissions.
+                  <strong>Important:</strong> Ciuna is a financial technology company and not a bank, exchange, or asset custodian. Ciuna does not facilitate FDIC insurance or hold deposits. Ciuna acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions. Cards are issued by partners licensed in their respective jurisdictions. Financial services are facilitated by licensed partners with appropriate regulatory permissions.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">3. Service Description</h2>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  Easner provides a technology platform that facilitates international money transfer services through
+                  Ciuna provides a technology platform that facilitates international money transfer services through
                   licensed partners. Our services include:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-gray-700">
@@ -107,13 +107,13 @@ function TermsPageContent() {
                 </ul>
                 <p className="text-gray-700 leading-relaxed mt-4">
                   All financial services are provided by our licensed partners who hold appropriate regulatory licenses
-                  in their respective jurisdictions. Easner does not directly provide financial services but acts as a
+                  in their respective jurisdictions. Ciuna does not directly provide financial services but acts as a
                   technology facilitator.
                 </p>
                 <p className="text-gray-700 leading-relaxed mt-4">
                   <strong>KYC Verification Services:</strong> Identity verification services are provided through our 
                   third-party partner Bridge (Bridge Financial, Inc.). By using our services, you agree to Bridge's terms 
-                  and conditions for identity verification. Easner is not responsible for Bridge's verification processes, 
+                  and conditions for identity verification. Ciuna is not responsible for Bridge's verification processes, 
                   but we work with Bridge to ensure compliance with applicable regulations. Bridge operates the 
                   verification platform and processes your identity documents and personal information on our behalf.
                 </p>
@@ -121,7 +121,7 @@ function TermsPageContent() {
 
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">4. User Responsibilities</h2>
-                <p className="text-gray-700 leading-relaxed mb-4">As a user of Easner services, you agree to:</p>
+                <p className="text-gray-700 leading-relaxed mb-4">As a user of Ciuna services, you agree to:</p>
                 <ul className="list-disc pl-6 space-y-2 text-gray-700">
                   <li>Provide accurate and complete information</li>
                   <li>Maintain the security of your account credentials</li>
@@ -140,7 +140,7 @@ function TermsPageContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">5. Fees and Charges</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  Easner currently offers zero-fee transfers for supported currency pairs and corridors. However, fees
+                  Ciuna currently offers zero-fee transfers for supported currency pairs and corridors. However, fees
                   may apply in certain circumstances and will be clearly displayed before you complete any transaction.
                   Exchange rates are provided by our licensed partners and may include a margin. We reserve the right to
                   introduce fees in the future with appropriate notice.
@@ -157,11 +157,11 @@ function TermsPageContent() {
                   anti-money laundering regulations, know-your-customer requirements, and to protect our users. Limits
                   may vary by jurisdiction and are subject to change. For detailed information about our compliance
                   procedures, please review our{" "}
-                  <Link href="/kyc-policy?from=internal" className="text-easner-primary hover:underline">
+                  <Link href="/kyc-policy?from=internal" className="text-ciuna-primary hover:underline">
                     KYC/KYB Policy
                   </Link>{" "}
                   and{" "}
-                  <Link href="/aml-policy?from=internal" className="text-easner-primary hover:underline">
+                  <Link href="/aml-policy?from=internal" className="text-ciuna-primary hover:underline">
                     AML Policy
                   </Link>
                   .
@@ -182,12 +182,12 @@ function TermsPageContent() {
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">8. Privacy and Data Protection</h2>
                 <p className="text-gray-700 leading-relaxed">
                   Your privacy is important to us. Please review our{" "}
-                  <Link href="/privacy?from=internal" className="text-easner-primary hover:underline">
+                  <Link href="/privacy?from=internal" className="text-ciuna-primary hover:underline">
                     Privacy Policy
                   </Link>{" "}
                   to understand how we collect, use, and protect your personal information. By using our services, you consent to the collection and use of
                   your information as outlined in our{" "}
-                  <Link href="/privacy?from=internal" className="text-easner-primary hover:underline">
+                  <Link href="/privacy?from=internal" className="text-ciuna-primary hover:underline">
                     Privacy Policy
                   </Link>{" "}
                   and as required by our licensed partners for regulatory compliance.
@@ -197,11 +197,11 @@ function TermsPageContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">9. Limitation of Liability</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  TO THE MAXIMUM EXTENT PERMITTED BY LAW, EASNER SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
+                  TO THE MAXIMUM EXTENT PERMITTED BY LAW, CIUNA SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
                   SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE,
                   GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM YOUR USE OF THE SERVICE. AS A TECHNOLOGY PLATFORM
-                  FACILITATING FINANCIAL SERVICES, EASNER'S LIABILITY IS LIMITED TO THE MAXIMUM EXTENT PERMITTED BY LAW.
-                  FINANCIAL SERVICES ARE PROVIDED BY LICENSED THIRD-PARTY PARTNERS, AND EASNER'S LIABILITY FOR SUCH
+                  FACILITATING FINANCIAL SERVICES, CIUNA'S LIABILITY IS LIMITED TO THE MAXIMUM EXTENT PERMITTED BY LAW.
+                  FINANCIAL SERVICES ARE PROVIDED BY LICENSED THIRD-PARTY PARTNERS, AND CIUNA'S LIABILITY FOR SUCH
                   SERVICES IS LIMITED.
                 </p>
               </section>
@@ -219,7 +219,7 @@ function TermsPageContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">11. Disclaimers</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  Easner is a financial technology company and not a bank, exchange, or asset custodian. Easner does not facilitate FDIC insurance or hold deposits. Easner acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions. Cards are issued by partners licensed in their respective jurisdictions. All financial services, including blockchain and cryptocurrency infrastructure, are provided by licensed third-party partners who hold appropriate regulatory licenses in their respective jurisdictions. Our blockchain and cryptocurrency services are provided by Bridge and other licensed partners. End users interact only with traditional fiat currencies through bank-to-bank transfers. Users do not need to hold, manage, or interact with cryptocurrency or digital assets to use Easner's services.
+                  Ciuna is a financial technology company and not a bank, exchange, or asset custodian. Ciuna does not facilitate FDIC insurance or hold deposits. Ciuna acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions. Cards are issued by partners licensed in their respective jurisdictions. All financial services, including blockchain and cryptocurrency infrastructure, are provided by licensed third-party partners who hold appropriate regulatory licenses in their respective jurisdictions. Our blockchain and cryptocurrency services are provided by Bridge and other licensed partners. End users interact only with traditional fiat currencies through bank-to-bank transfers. Users do not need to hold, manage, or interact with cryptocurrency or digital assets to use Ciuna's services.
                 </p>
               </section>
 
@@ -238,17 +238,17 @@ function TermsPageContent() {
                 </p>
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                   <p className="text-gray-700">
-                    <strong>Easner, Inc.</strong>
+                    <strong>Ciuna, Inc.</strong>
                     <br />
                     28 Geary St Ste 650
                     <br />
                     San Francisco, CA 94108
                     <br />
-                    <strong>Email:</strong> legal@easner.com
+                    <strong>Email:</strong> legal@ciuna.com
                     <br />
                     <strong>Phone:</strong> +1 628 228 6083
                     <br />
-                    <strong>Website:</strong> www.easner.com
+                    <strong>Website:</strong> www.ciuna.com
                   </p>
                 </div>
               </section>

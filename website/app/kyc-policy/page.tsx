@@ -1,7 +1,7 @@
 "use client"
 
 import { ArrowLeft } from "lucide-react"
-import { BrandLogo } from "@easner/shared"
+import { BrandLogo } from "@ciuna/shared"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -19,9 +19,9 @@ function KYCPolicyPageContent() {
     
     // Show back button if:
     // 1. There's a 'from=internal' query parameter (set when linking from other internal pages)
-    // 2. Referrer is from the same domain (easner.com)
+    // 2. Referrer is from the same domain (ciuna.com)
     const isInternalReferrer = referrer && (
-      referrer.includes('easner.com') || 
+      referrer.includes('ciuna.com') || 
       referrer.includes('localhost') ||
       referrer.includes('127.0.0.1')
     )
@@ -46,7 +46,7 @@ function KYCPolicyPageContent() {
             <Button
               variant="ghost"
               onClick={handleBack}
-              className="inline-flex items-center gap-2 text-easner-primary hover:text-easner-primary-600 transition-colors p-0 h-auto"
+              className="inline-flex items-center gap-2 text-ciuna-primary hover:text-ciuna-primary-600 transition-colors p-0 h-auto"
             >
               <ArrowLeft className="h-5 w-5" />
               Back
@@ -68,7 +68,7 @@ function KYCPolicyPageContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Overview</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  Easner, Inc. ("Easner," "we," "us," or "our") is committed to maintaining the highest standards of
+                  Ciuna, Inc. ("Ciuna," "we," "us," or "our") is committed to maintaining the highest standards of
                   compliance with anti-money laundering (AML) and know-your-customer (KYC) regulations. As a technology
                   platform facilitating financial services through licensed partners, we conduct comprehensive KYC
                   (Know Your Customer) and KYB (Know Your Business) verification on all users to ensure regulatory
@@ -78,16 +78,16 @@ function KYCPolicyPageContent() {
                   This policy outlines our KYC/KYB procedures, the information we collect, how we use it, and your
                   rights regarding the verification process. For more information about how we handle your personal
                   data, please review our{" "}
-                  <Link href="/privacy?from=internal" className="text-easner-primary hover:underline">
+                  <Link href="/privacy?from=internal" className="text-ciuna-primary hover:underline">
                     Privacy Policy
                   </Link>
                   .
                 </p>
                 <p className="text-gray-700 leading-relaxed mt-4">
-                  <strong>Verification Provider:</strong> Easner partners with Bridge (Bridge Financial, Inc.), a 
+                  <strong>Verification Provider:</strong> Ciuna partners with Bridge (Bridge Financial, Inc.), a 
                   licensed financial services technology company, to provide KYC/KYB verification services. Bridge 
                   operates the verification platform and processes your identity documents and personal information on 
-                  our behalf. All verification data collected by Bridge is shared with Easner for regulatory compliance 
+                  our behalf. All verification data collected by Bridge is shared with Ciuna for regulatory compliance 
                   and account management purposes. Bridge acts as a data processor and is contractually obligated to 
                   protect your information in accordance with applicable data protection laws.
                 </p>
@@ -270,7 +270,7 @@ function KYCPolicyPageContent() {
                 </ul>
                 <p className="text-gray-700 leading-relaxed mt-4">
                   For detailed information about how we handle your personal data, please review our{" "}
-                  <Link href="/privacy?from=internal" className="text-easner-primary hover:underline">
+                  <Link href="/privacy?from=internal" className="text-ciuna-primary hover:underline">
                     Privacy Policy
                   </Link>
                   .
@@ -291,7 +291,7 @@ function KYCPolicyPageContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">9. Verification Status and Consequences</h2>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  <strong>Approved:</strong> Your account is verified and you can use all Easner services subject to
+                  <strong>Approved:</strong> Your account is verified and you can use all Ciuna services subject to
                   transaction limits and other terms.
                 </p>
                 <p className="text-gray-700 leading-relaxed mb-4">
@@ -362,7 +362,7 @@ function KYCPolicyPageContent() {
                 </ul>
                 <p className="text-gray-700 leading-relaxed mt-4">
                   All sharing is conducted in accordance with applicable data protection laws and our{" "}
-                  <Link href="/privacy?from=internal" className="text-easner-primary hover:underline">
+                  <Link href="/privacy?from=internal" className="text-ciuna-primary hover:underline">
                     Privacy Policy
                   </Link>
                   .
@@ -398,7 +398,7 @@ function KYCPolicyPageContent() {
                 </p>
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                   <p className="text-gray-700">
-                    <strong>Easner, Inc.</strong>
+                    <strong>Ciuna, Inc.</strong>
                     <br />
                     Compliance Department
                     <br />
@@ -406,7 +406,7 @@ function KYCPolicyPageContent() {
                     <br />
                     San Francisco, CA 94108
                     <br />
-                    <strong>Email:</strong> compliance@easner.com
+                    <strong>Email:</strong> compliance@ciuna.com
                   </p>
                 </div>
                 <p className="text-gray-700 leading-relaxed mt-4">
@@ -419,11 +419,11 @@ function KYCPolicyPageContent() {
                     <strong>Bridge Financial, Inc.</strong>
                     <br />
                     <strong>Website:</strong>{" "}
-                    <a href="https://www.bridge.xyz" target="_blank" rel="noopener noreferrer" className="text-easner-primary hover:underline">
+                    <a href="https://www.bridge.xyz" target="_blank" rel="noopener noreferrer" className="text-ciuna-primary hover:underline">
                       www.bridge.xyz
                     </a>
                     <br />
-                    <strong>Note:</strong> For data requests related to Bridge verification, please contact Easner 
+                    <strong>Note:</strong> For data requests related to Bridge verification, please contact Ciuna 
                     support first, and we will coordinate with Bridge on your behalf.
                   </p>
                 </div>

@@ -35,8 +35,8 @@ export default function HomePage() {
         style={{ paddingTop: '4.5rem' }}
       >
         <Hero onSendMoney={handleSendMoney} />
-        <EasnerForIndividuals />
-        <EasnerForBusiness />
+        <CiunaForIndividuals />
+        <CiunaForBusiness />
         <ComplianceSecurity />
       </main>
       <PublicFooter />
@@ -58,7 +58,7 @@ function Hero({ onSendMoney }: { onSendMoney: (data: {
 
   return (
     <section className="relative bg-white pt-10 pb-8 sm:pt-12 sm:pb-10 md:pt-14 md:pb-12 lg:pt-16 lg:pb-16 overflow-hidden">
-      <div className="absolute inset-0 bg-easner-primary-50/10 pointer-events-none" style={{ clipPath: 'ellipse(80% 50% at 50% 0%)' }} />
+      <div className="absolute inset-0 bg-ciuna-primary-50/10 pointer-events-none" style={{ clipPath: 'ellipse(80% 50% at 50% 0%)' }} />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -70,14 +70,14 @@ function Hero({ onSendMoney }: { onSendMoney: (data: {
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-gray-900 font-unbounded">
               Move Money
               <br />
-              <span className="text-easner-primary">Globally Like SMS</span>.
+              <span className="text-ciuna-primary">Globally Like SMS</span>.
             </h1>
             <p className="text-lg sm:text-xl text-gray-500 leading-relaxed max-w-2xl mx-auto">
               API-first cross-border payment infrastructure for US and EU businesses. Built-in KYC/AML, instant payouts, and treasury operations.
             </p>
           </div>
           <div className="flex flex-col items-center gap-4">
-            <Button size="lg" className="gap-2 bg-easner-primary hover:bg-easner-primary-600" onClick={() => router.push("/access")}>
+            <Button size="lg" className="gap-2 bg-ciuna-primary hover:bg-ciuna-primary-600" onClick={() => router.push("/access")}>
               Get Started <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
@@ -101,8 +101,8 @@ function Hero({ onSendMoney }: { onSendMoney: (data: {
   )
 }
 
-// Section 2: Easner for Individuals
-function EasnerForIndividuals() {
+// Section 2: Ciuna for Individuals
+function CiunaForIndividuals() {
   const router = useRouter()
 
   return (
@@ -118,7 +118,7 @@ function EasnerForIndividuals() {
                 No waiting days. Just low-cost, bank-to-bank transfers between the US, Europe, Africa, and Asia — making global payments instant.
               </p>
               <div className="flex justify-center lg:justify-start">
-                <Button size="lg" className="gap-2 bg-easner-primary hover:bg-easner-primary-600" onClick={() => router.push("/access")}>
+                <Button size="lg" className="gap-2 bg-ciuna-primary hover:bg-ciuna-primary-600" onClick={() => router.push("/access")}>
                   Get Started <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -129,11 +129,11 @@ function EasnerForIndividuals() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
-                className="relative w-full rounded-2xl overflow-hidden shadow-xl border-2 border-easner-primary"
+                className="relative w-full rounded-2xl overflow-hidden shadow-xl border-2 border-ciuna-primary"
               >
                 <Image
                   src="https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/ew1.png"
-                  alt="Easner Web App"
+                  alt="Ciuna Web App"
                   width={1200}
                   height={800}
                   className="w-full h-auto"
@@ -149,8 +149,8 @@ function EasnerForIndividuals() {
   )
 }
 
-// Section 3: Easner for Business
-function EasnerForBusiness() {
+// Section 3: Ciuna for Business
+function CiunaForBusiness() {
   const router = useRouter()
 
   return (
@@ -164,11 +164,11 @@ function EasnerForBusiness() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
-                className="relative w-full rounded-2xl overflow-hidden shadow-xl border-2 border-easner-primary"
+                className="relative w-full rounded-2xl overflow-hidden shadow-xl border-2 border-ciuna-primary"
               >
                 <Image
                   src="https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/eb1.png"
-                  alt="Easner Business Banking"
+                  alt="Ciuna Business Banking"
                   width={1200}
                   height={800}
                   className="w-full h-auto"
@@ -182,10 +182,10 @@ function EasnerForBusiness() {
                 Business banking without borders.
               </h2>
               <p className="text-lg md:text-xl text-gray-500 leading-relaxed mb-8">
-                Manage accounts, cards, invoices, and cross-border payments from one dashboard. Automate payouts, FX, and treasury operations through the Easner API — with compliance, reconciliation, and transparency built in.
+                Manage accounts, cards, invoices, and cross-border payments from one dashboard. Automate payouts, FX, and treasury operations through the Ciuna API — with compliance, reconciliation, and transparency built in.
               </p>
               <div className="flex justify-center lg:justify-start">
-                <Button size="lg" className="gap-2 bg-easner-primary hover:bg-easner-primary-600" onClick={() => router.push("/access")}>
+                <Button size="lg" className="gap-2 bg-ciuna-primary hover:bg-ciuna-primary-600" onClick={() => router.push("/access")}>
                   Get Started <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -216,12 +216,12 @@ function ComplianceSecurity() {
                 Compliance is built in, not added later.
               </h2>
               <p className="text-lg md:text-xl text-gray-500 leading-relaxed mb-8">
-                Easner embeds verification, AML, and encryption at the core of every transaction. Our partners move money globally with full confidence in security and oversight.
+                Ciuna embeds verification, AML, and encryption at the core of every transaction. Our partners move money globally with full confidence in security and oversight.
               </p>
               <ul className="space-y-3">
                 {complianceFeatures.map((feature, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-easner-primary mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="h-5 w-5 text-ciuna-primary mt-0.5 flex-shrink-0" />
                     <span className="text-gray-500">{feature}</span>
                   </li>
                 ))}
@@ -233,7 +233,7 @@ function ComplianceSecurity() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
-                className="relative w-full max-w-md rounded-2xl overflow-hidden shadow-xl border-2 border-easner-primary"
+                className="relative w-full max-w-md rounded-2xl overflow-hidden shadow-xl border-2 border-ciuna-primary"
               >
                 <Image
                   src="https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/security.svg"

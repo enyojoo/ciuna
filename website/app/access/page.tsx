@@ -2,7 +2,7 @@
 
 import { EarlyAccessForm } from "@/components/early-access-form"
 import Link from "next/link"
-import { BrandLogo } from "@easner/shared"
+import { BrandLogo } from "@ciuna/shared"
 
 export default function EarlyAccessPage() {
   return (

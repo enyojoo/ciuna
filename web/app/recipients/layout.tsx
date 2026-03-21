@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Recipients - Easner",
+  title: "Recipients - Ciuna",
   description: "Manage your saved recipients for quick and easy money transfers. Add, edit, and organize your contact list.",
   robots: {
     index: false,

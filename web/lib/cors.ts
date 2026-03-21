@@ -1,7 +1,7 @@
 import { type NextRequest } from "next/server"
 
 const ALLOWED_ORIGINS = [
-  process.env.NEXT_PUBLIC_OFFICE_URL || "https://bk.easner.com",
+  process.env.NEXT_PUBLIC_OFFICE_URL || "https://bk.ciuna.com",
   "http://localhost:3002",
 ]
 

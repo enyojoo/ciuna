@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Send Money - Easner",
-  description: "Send money internationally with zero fees using Easner. Transfer money to family and friends worldwide instantly.",
+  title: "Send Money - Ciuna",
+  description: "Send money internationally with zero fees using Ciuna. Transfer money to family and friends worldwide instantly.",
   robots: {
     index: false,
     noindex: true,

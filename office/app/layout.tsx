@@ -6,11 +6,11 @@ import { ProtectedRouteWrapper } from "@/components/auth/protected-route-wrapper
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Easner Office",
-  description: "Easner back office",
-  metadataBase: new URL("https://bk.easner.com"),
+  title: "Ciuna Office",
+  description: "Ciuna back office",
+  metadataBase: new URL("https://bk.ciuna.com"),
   icons: {
-    icon: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Easner%20Favicon.svg",
+    icon: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20Favicon.svg",
   },
   robots: {
     index: false,

@@ -108,7 +108,7 @@ export const paymentCollectionService = {
       // For now, return structure (replace with actual API call)
       return {
         provider: "yellow_card",
-        accountName: "Easner Payments", // This would come from Yellow Card
+        accountName: "Ciuna Payments", // This would come from Yellow Card
         accountNumber: "1234567890", // This would come from Yellow Card
         bankName: "Yellow Card Bank", // This would come from Yellow Card
         mobileMoneyNumber: "1234567890", // For mobile money (if applicable)
@@ -121,7 +121,7 @@ export const paymentCollectionService = {
       // For now, return structure (replace with actual API call)
       return {
         provider: "bridge",
-        accountName: "Easner Payments", // This would come from Bridge
+        accountName: "Ciuna Payments", // This would come from Bridge
         accountNumber: "1234567890", // This would come from Bridge
         bankName: "Bridge Bank", // This would come from Bridge
         routingNumber: "123456789", // For USD ACH

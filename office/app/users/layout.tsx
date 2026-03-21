@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Users - Easner",
-  description: "Manage user accounts, view user activity, and handle user-related operations on the Easner platform.",
+  title: "Users - Ciuna",
+  description: "Manage user accounts, view user activity, and handle user-related operations on the Ciuna platform.",
   robots: {
     index: false,
     noindex: true,

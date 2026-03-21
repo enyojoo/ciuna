@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Settings - Easner",
-  description: "Configure platform settings, payment methods, and system parameters for the Easner platform.",
+  title: "Settings - Ciuna",
+  description: "Configure platform settings, payment methods, and system parameters for the Ciuna platform.",
   robots: {
     index: false,
     noindex: true,

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getOfficeCorsHeaders } from '@/lib/cors'
 
-// App root redirect: app.easner.com/ -> /auth/login
+// App root redirect: app.ciuna.com/ -> /auth/login
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 

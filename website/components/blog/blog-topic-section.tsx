@@ -19,7 +19,7 @@ export function BlogTopicSection({ topicName, topicSlug, posts }: BlogTopicSecti
         <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 font-unbounded">{topicName}</h2>
         <Link
           href={`/blog?topic=${topicSlug}`}
-          className="text-sm font-medium text-easner-primary hover:text-easner-primary-600 transition-colors"
+          className="text-sm font-medium text-ciuna-primary hover:text-ciuna-primary-600 transition-colors"
         >
           See All Posts &gt;
         </Link>

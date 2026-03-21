@@ -14,43 +14,43 @@ const unbounded = Unbounded({
 
 export const metadata: Metadata = {
   title: {
-    default: "Stablecoin Business Banking | Accounts, Cards & Invoicing - Easner",
-    template: "%s - Easner",
+    default: "Stablecoin Business Banking | Accounts, Cards & Invoicing - Ciuna",
+    template: "%s - Ciuna",
   },
   description:
     "Stablecoin banking for global businesses. API-first cross-border payment infrastructure with built-in KYC/AML. For individuals and businesses.",
   keywords:
     "stablecoin banking, cross-border payments, instant money transfer, bank to bank transfer, international money transfer, US fintech, business banking, global payments",
   formatDetection: { email: false, address: false, telephone: false },
-  metadataBase: new URL("https://www.easner.com"),
+  metadataBase: new URL("https://www.ciuna.com"),
   alternates: { canonical: "/" },
   icons: {
-    icon: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Easner%20Favicon.svg",
-    shortcut: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Easner%20Favicon.svg",
-    apple: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Easner%20Favicon.svg",
+    icon: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20Favicon.svg",
+    shortcut: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20Favicon.svg",
+    apple: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20Favicon.svg",
   },
   openGraph: {
-    title: "Stablecoin Business Banking | Accounts, Cards & Invoicing - Easner",
+    title: "Stablecoin Business Banking | Accounts, Cards & Invoicing - Ciuna",
     description: "API-first cross-border payment infrastructure for US and EU businesses.",
-    url: "https://www.easner.com",
-    siteName: "Easner",
+    url: "https://www.ciuna.com",
+    siteName: "Ciuna",
     locale: "en_US",
     type: "website",
     images: [
       {
-        url: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/easner%20seo%20cover.png",
+        url: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/ciuna%20seo%20cover.png",
         width: 1200,
         height: 630,
-        alt: "Easner - Global Money Transfer Platform",
+        alt: "Ciuna - Global Money Transfer Platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Stablecoin Business Banking | Accounts, Cards & Invoicing - Easner",
+    title: "Stablecoin Business Banking | Accounts, Cards & Invoicing - Ciuna",
     description: "API-first cross-border payment infrastructure for US and EU businesses.",
-    creator: "@easnerbanking",
-    images: ["https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/easner%20seo%20cover.png"],
+    creator: "@ciunabanking",
+    images: ["https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/ciuna%20seo%20cover.png"],
   },
   robots: { index: true, follow: true },
 }

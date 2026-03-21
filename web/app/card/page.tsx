@@ -58,7 +58,7 @@ export default function CardsPage() {
     if (typeof window === "undefined") return null
     if (!userProfile?.id) return null
     try {
-      const cached = localStorage.getItem(`easner_cards_${userProfile.id}`)
+      const cached = localStorage.getItem(`ciuna_cards_${userProfile.id}`)
       if (!cached) return null
       const { value, timestamp } = JSON.parse(cached)
       if (Date.now() - timestamp < 5 * 60 * 1000) {
@@ -145,7 +145,7 @@ export default function CardsPage() {
           setCards(loadedCards)
           // Update cache
           if (userProfile?.id) {
-            const CACHE_KEY_CARDS = `easner_cards_${userProfile.id}`
+            const CACHE_KEY_CARDS = `ciuna_cards_${userProfile.id}`
             try {
               localStorage.setItem(CACHE_KEY_CARDS, JSON.stringify({
                 value: loadedCards,
@@ -205,7 +205,7 @@ export default function CardsPage() {
           const loadedCards = data2.cards || []
           setCards(loadedCards)
           // Update cache
-          const CACHE_KEY_CARDS = `easner_cards_${userProfile?.id}`
+          const CACHE_KEY_CARDS = `ciuna_cards_${userProfile?.id}`
           try {
             localStorage.setItem(CACHE_KEY_CARDS, JSON.stringify({
               value: loadedCards,

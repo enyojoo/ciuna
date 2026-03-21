@@ -1,7 +1,7 @@
 "use client"
 
 import { ArrowLeft } from "lucide-react"
-import { BrandLogo } from "@easner/shared"
+import { BrandLogo } from "@ciuna/shared"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -21,10 +21,10 @@ function PrivacyPageContent() {
     
     // Show back button if:
     // 1. There's a 'from=internal' or 'from=register' query parameter
-    // 2. Referrer is from the same domain (easner.com)
+    // 2. Referrer is from the same domain (ciuna.com)
     // 3. Referrer includes auth/register path
     const isInternalReferrer = referrer && (
-      referrer.includes('easner.com') || 
+      referrer.includes('ciuna.com') || 
       referrer.includes('localhost') ||
       referrer.includes('127.0.0.1')
     )
@@ -50,7 +50,7 @@ function PrivacyPageContent() {
             <Button
               variant="ghost"
               onClick={handleBack}
-              className="inline-flex items-center gap-2 text-easner-primary hover:text-easner-primary-600 transition-colors p-0 h-auto"
+              className="inline-flex items-center gap-2 text-ciuna-primary hover:text-ciuna-primary-600 transition-colors p-0 h-auto"
             >
               <ArrowLeft className="h-5 w-5" />
               Back
@@ -72,17 +72,17 @@ function PrivacyPageContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. About This Policy</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  This Privacy Policy describes how Easner, Inc. ("Easner," "we," "us," or "our") collects, uses, and
-                  shares information about you when you use our platform and mobile application. Easner provides
-                  instant, zero-fee cross-border transfers through licensed financial service partners. Easner is a
-                  financial technology company and not a bank, exchange, or asset custodian. Easner does not facilitate FDIC insurance or hold deposits. Easner acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions. Cards are issued by partners licensed in their respective jurisdictions.
+                  This Privacy Policy describes how Ciuna, Inc. ("Ciuna," "we," "us," or "our") collects, uses, and
+                  shares information about you when you use our platform and web applications. Ciuna provides
+                  instant, zero-fee cross-border transfers through licensed financial service partners. Ciuna is a
+                  financial technology company and not a bank, exchange, or asset custodian. Ciuna does not facilitate FDIC insurance or hold deposits. Ciuna acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions. Cards are issued by partners licensed in their respective jurisdictions.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. Information We Collect</h2>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  Easner collects information you provide directly to us, such as when you create an account, use our
+                  Ciuna collects information you provide directly to us, such as when you create an account, use our
                   services, or contact us for support. This includes:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-gray-700">
@@ -139,7 +139,7 @@ function PrivacyPageContent() {
                   <li>With licensed financial service partners who facilitate transactions</li>
                   <li>With service providers who assist us in operating our business</li>
                   <li>To comply with legal obligations, court orders, or regulatory requests</li>
-                  <li>To protect the rights, property, or safety of Easner, our users, or others</li>
+                  <li>To protect the rights, property, or safety of Ciuna, our users, or others</li>
                   <li>In connection with a merger, acquisition, or sale of assets</li>
                   <li>With regulatory authorities as required by financial services regulations</li>
                   <li>For fraud prevention and risk management purposes</li>
@@ -174,7 +174,7 @@ function PrivacyPageContent() {
                 <p className="text-gray-700 leading-relaxed mt-4">
                   <strong>Bridge Data Retention:</strong> Bridge, our KYC verification provider, may retain your 
                   verification data in accordance with their data retention policies and regulatory obligations. Bridge 
-                  may retain certain information even after your account with Easner is closed, as required by financial 
+                  may retain certain information even after your account with Ciuna is closed, as required by financial 
                   services regulations. For specific information about Bridge's data retention practices, please contact 
                   us or refer to Bridge's privacy policy.
                 </p>
@@ -219,7 +219,7 @@ function PrivacyPageContent() {
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">9. International Transfers</h2>
                 <p className="text-gray-700 leading-relaxed">
                   Your information may be transferred to and processed in countries other than your country of
-                  residence, including the United States where Easner is headquartered. We ensure that such transfers
+                  residence, including the United States where Ciuna is headquartered. We ensure that such transfers
                   are conducted in accordance with applicable data protection laws and that appropriate safeguards are
                   in place. Our licensed partners may also process your information in their respective jurisdictions.
                 </p>
@@ -246,16 +246,16 @@ function PrivacyPageContent() {
                   As a platform facilitating financial services, we and our licensed partners are subject to various
                   regulatory requirements including anti-money laundering (AML), know-your-customer (KYC), and sanctions
                   screening obligations. This may require us to collect, process, and retain additional information and
-                  to share information with regulatory authorities. Easner embeds verification, AML, and encryption at
+                  to share information with regulatory authorities. Ciuna embeds verification, AML, and encryption at
                   the core of every transaction through our licensed partners, including Bridge, to ensure compliance and security.
                 </p>
                 <p className="text-gray-700 leading-relaxed mt-4">
                   For detailed information about our compliance procedures, please review our{" "}
-                  <Link href="/kyc-policy?from=internal" className="text-easner-primary hover:underline">
+                  <Link href="/kyc-policy?from=internal" className="text-ciuna-primary hover:underline">
                     KYC/KYB Policy
                   </Link>{" "}
                   and{" "}
-                  <Link href="/aml-policy?from=internal" className="text-easner-primary hover:underline">
+                  <Link href="/aml-policy?from=internal" className="text-ciuna-primary hover:underline">
                     AML Policy
                   </Link>
                   .
@@ -265,7 +265,7 @@ function PrivacyPageContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">12. Cryptocurrency and Digital Assets</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  Easner does not hold, store, or manage cryptocurrency or other digital assets on behalf of users.
+                  Ciuna does not hold, store, or manage cryptocurrency or other digital assets on behalf of users.
                   Blockchain and cryptocurrency infrastructure services are provided by our licensed partners, including 
                   Bridge, who handle blockchain settlement and cryptocurrency-related services. While our infrastructure 
                   leverages blockchain technology to facilitate instant cross-border transfers, end users interact only 
@@ -300,17 +300,17 @@ function PrivacyPageContent() {
                 </p>
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                   <p className="text-gray-700">
-                    <strong>Easner, Inc.</strong>
+                    <strong>Ciuna, Inc.</strong>
                     <br />
                     28 Geary St Ste 650
                     <br />
                     San Francisco, CA 94108
                     <br />
-                    <strong>Email:</strong> legal@easner.com
+                    <strong>Email:</strong> legal@ciuna.com
                     <br />
                     <strong>Phone:</strong> +1 628 228 6083
                     <br />
-                    <strong>Website:</strong> www.easner.com
+                    <strong>Website:</strong> www.ciuna.com
                   </p>
                 </div>
               </section>

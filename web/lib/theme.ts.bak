@@ -1,18 +1,18 @@
 /**
- * Easner Premium Design System - Web Theme
+ * Ciuna Premium Design System - Web Theme
  * 
- * Ported from mobile theme for consistent premium experience across platforms
+ * Shared design tokens for the web app
  */
 
-// Colors - matching mobile theme
+// Colors
 export const colors = {
   // Primary Brand Colors
   primary: {
-    main: '#007ACC',
+    main: '#F97316',
     light: '#3399DD',
     dark: '#005A99',
-    gradient: ['#007ACC', '#00A3FF'],
-    gradientDark: ['#005A99', '#007ACC'],
+    gradient: ['#F97316', '#fb923c'],
+    gradientDark: ['#c2410c', '#F97316'],
   },
 
   // Success Colors
@@ -72,13 +72,13 @@ export const colors = {
     secondary: '#6B7280',
     tertiary: '#9CA3AF',
     inverse: '#FFFFFF',
-    link: '#007ACC',
+    link: '#F97316',
   },
 
   // Card Gradients
   cardGradients: {
     premium: ['#1E293B', '#334155'],
-    blue: ['#007ACC', '#00A3FF'],
+    blue: ['#F97316', '#fb923c'],
     purple: ['#7C3AED', '#A78BFA'],
     green: ['#059669', '#10B981'],
     gold: ['#D97706', '#F59E0B'],
@@ -94,7 +94,7 @@ export const colors = {
   // Status Colors (for transactions)
   status: {
     pending: '#F59E0B',
-    processing: '#007ACC',
+    processing: '#F97316',
     completed: '#10B981',
     failed: '#EF4444',
     cancelled: '#6B7280',
@@ -245,11 +245,11 @@ export const breakpoints = {
 export const colors = {
   // Primary Brand Colors
   primary: {
-    main: '#007ACC',
+    main: '#F97316',
     light: '#3399DD',
     dark: '#005A99',
-    gradient: ['#007ACC', '#00A3FF'],
-    gradientDark: ['#005A99', '#007ACC'],
+    gradient: ['#F97316', '#fb923c'],
+    gradientDark: ['#c2410c', '#F97316'],
   },
 
   // Success Colors
@@ -309,13 +309,13 @@ export const colors = {
     secondary: '#6B7280',
     tertiary: '#9CA3AF',
     inverse: '#FFFFFF',
-    link: '#007ACC',
+    link: '#F97316',
   },
 
   // Card Gradients
   cardGradients: {
     premium: ['#1E293B', '#334155'],
-    blue: ['#007ACC', '#00A3FF'],
+    blue: ['#F97316', '#fb923c'],
     purple: ['#7C3AED', '#A78BFA'],
     green: ['#059669', '#10B981'],
     gold: ['#D97706', '#F59E0B'],
@@ -331,7 +331,7 @@ export const colors = {
   // Status Colors (for transactions)
   status: {
     pending: '#F59E0B',
-    processing: '#007ACC',
+    processing: '#F97316',
     completed: '#10B981',
     failed: '#EF4444',
     cancelled: '#6B7280',

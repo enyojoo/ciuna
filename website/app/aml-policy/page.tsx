@@ -1,7 +1,7 @@
 "use client"
 
 import { ArrowLeft } from "lucide-react"
-import { BrandLogo } from "@easner/shared"
+import { BrandLogo } from "@ciuna/shared"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -19,9 +19,9 @@ function AMLPolicyContent() {
     
     // Show back button if:
     // 1. There's a 'from=internal' query parameter (set when linking from other internal pages)
-    // 2. Referrer is from the same domain (easner.com)
+    // 2. Referrer is from the same domain (ciuna.com)
     const isInternalReferrer = referrer && (
-      referrer.includes('easner.com') || 
+      referrer.includes('ciuna.com') || 
       referrer.includes('localhost') ||
       referrer.includes('127.0.0.1')
     )
@@ -46,7 +46,7 @@ function AMLPolicyContent() {
             <Button
               variant="ghost"
               onClick={handleBack}
-              className="inline-flex items-center gap-2 text-easner-primary hover:text-easner-primary-600 transition-colors p-0 h-auto"
+              className="inline-flex items-center gap-2 text-ciuna-primary hover:text-ciuna-primary-600 transition-colors p-0 h-auto"
             >
               <ArrowLeft className="h-5 w-5" />
               Back
@@ -68,7 +68,7 @@ function AMLPolicyContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Overview</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  Easner, Inc. ("Easner," "we," "us," or "our") is committed to preventing money laundering, terrorist
+                  Ciuna, Inc. ("Ciuna," "we," "us," or "our") is committed to preventing money laundering, terrorist
                   financing, and other financial crimes. As a technology platform facilitating financial services through
                   licensed partners, we maintain a comprehensive Anti-Money Laundering (AML) program designed to detect,
                   prevent, and report suspicious activities in accordance with applicable laws and regulations.
@@ -77,7 +77,7 @@ function AMLPolicyContent() {
                   This policy outlines our AML procedures, controls, and obligations. We conduct AML screening and
                   monitoring on all users and transactions. For information about our identity verification procedures,
                   please review our{" "}
-                  <Link href="/kyc-policy?from=internal" className="text-easner-primary hover:underline">
+                  <Link href="/kyc-policy?from=internal" className="text-ciuna-primary hover:underline">
                     KYC/KYB Policy
                   </Link>
                   .
@@ -102,13 +102,13 @@ function AMLPolicyContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">3. Our AML Program</h2>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  Easner maintains a comprehensive AML program that includes:
+                  Ciuna maintains a comprehensive AML program that includes:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-gray-700">
                   <li>
                     <strong>Customer Due Diligence (CDD):</strong> We verify the identity of all users through our KYC
                     procedures (see our{" "}
-                    <Link href="/kyc-policy?from=internal" className="text-easner-primary hover:underline">
+                    <Link href="/kyc-policy?from=internal" className="text-ciuna-primary hover:underline">
                       KYC/KYB Policy
                     </Link>
                     )
@@ -258,7 +258,7 @@ function AMLPolicyContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">9. User Obligations</h2>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  As a user of Easner services, you have certain obligations under AML regulations:
+                  As a user of Ciuna services, you have certain obligations under AML regulations:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-gray-700">
                   <li>
@@ -365,7 +365,7 @@ function AMLPolicyContent() {
                 </p>
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                   <p className="text-gray-700">
-                    <strong>Easner, Inc.</strong>
+                    <strong>Ciuna, Inc.</strong>
                     <br />
                     Compliance Department
                     <br />
@@ -373,11 +373,11 @@ function AMLPolicyContent() {
                     <br />
                     San Francisco, CA 94108
                     <br />
-                    <strong>Email:</strong> compliance@easner.com
+                    <strong>Email:</strong> compliance@ciuna.com
                     <br />
                     <strong>Phone:</strong> +1 628 228 6083
                     <br />
-                    <strong>Website:</strong> www.easner.com
+                    <strong>Website:</strong> www.ciuna.com
                   </p>
                 </div>
               </section>

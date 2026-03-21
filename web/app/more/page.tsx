@@ -26,7 +26,7 @@ export default function MorePage() {
   const getInitialKycSubmissions = (): KYCSubmission[] => {
     if (typeof window === "undefined" || !userProfile?.id) return []
     try {
-      const CACHE_KEY = `easner_kyc_submissions_${userProfile.id}`
+      const CACHE_KEY = `ciuna_kyc_submissions_${userProfile.id}`
       const cached = localStorage.getItem(CACHE_KEY)
       if (!cached) return []
       const { value } = JSON.parse(cached)
@@ -42,11 +42,11 @@ export default function MorePage() {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const handlePrivacy = () => {
-    window.open("https://www.easner.com/privacy", "_blank")
+    window.open("https://www.ciuna.com/privacy", "_blank")
   }
 
   const handleTerms = () => {
-    window.open("https://www.easner.com/terms", "_blank")
+    window.open("https://www.ciuna.com/terms", "_blank")
   }
 
   const handleSignOut = async () => {
@@ -66,7 +66,7 @@ export default function MorePage() {
   useEffect(() => {
     if (!userProfile?.id) return
 
-    const CACHE_KEY = `easner_kyc_submissions_${userProfile.id}`
+    const CACHE_KEY = `ciuna_kyc_submissions_${userProfile.id}`
     const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
     const getCachedSubmissions = (): KYCSubmission[] | null => {

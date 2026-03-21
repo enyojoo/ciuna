@@ -389,7 +389,7 @@ export async function buildBridgeCustomerPayloadFromKyc(
         // National ID needs both front and back
         if (identitySubmission.id_document_url) {
           // For now, we use the uploaded file as front
-          // TODO: If mobile app starts storing front/back separately, update this
+          // TODO: If we store front/back separately, update this
           const result = await fileToBase64(identitySubmission.id_document_url)
           nationalIdFrontBase64 = result.base64
           nationalIdFrontMimeType = result.mimeType

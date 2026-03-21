@@ -2,4 +2,4 @@ packages:
   - "packages/*"
   - "website"
   - "web"
-  - "mobile"
+  - "office"

@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@easner/shared"],
+  transpilePackages: ["@ciuna/shared"],
   compress: true,
   images: {
     unoptimized: true,

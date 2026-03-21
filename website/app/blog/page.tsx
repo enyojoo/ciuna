@@ -1,13 +1,13 @@
 import { PublicHeader } from "@/components/layout/public-header"
 import { PublicFooter } from "@/components/layout/public-footer"
 import { getPublishedPosts } from "@/lib/blog-service"
-import { BLOG_TOPICS } from "@easner/shared"
+import { BLOG_TOPICS } from "@ciuna/shared"
 import { BlogIndex } from "@/components/blog/blog-index"
 
 export const metadata = {
   title: "Blog",
   description:
-    "Insights on the future of banking. The latest updates on Easner, the world of stablecoins and finance.",
+    "Insights on the future of banking. The latest updates on Ciuna, the world of stablecoins and finance.",
 }
 
 export default async function BlogPage({

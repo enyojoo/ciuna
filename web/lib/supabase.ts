@@ -14,7 +14,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   global: {
     headers: {
-      'X-Client-Info': 'easner-web-app'
+      'X-Client-Info': 'ciuna-web-app'
     }
   }
 })

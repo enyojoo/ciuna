@@ -3,8 +3,8 @@ import Link from "next/link"
 import { BrandLogo } from "@/components/brand/brand-logo"
 
 export const metadata: Metadata = {
-  title: "Authentication - Easner",
-  description: "Sign in to your Easner account to send money internationally with zero fees.",
+  title: "Authentication - Ciuna",
+  description: "Sign in to your Ciuna account to send money internationally with zero fees.",
   robots: {
     index: false,
     follow: false,
