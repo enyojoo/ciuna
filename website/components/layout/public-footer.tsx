@@ -1,9 +1,6 @@
 import type { SVGProps } from "react"
 import Link from "next/link"
 
-const DISCLAIMER =
-  "Ciuna is a financial technology company and not a bank or exchange and acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions."
-
 function TelegramIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden {...props}>
@@ -37,14 +34,11 @@ export function PublicFooter() {
               <Link href="/privacy" className="text-xs sm:text-sm text-gray-500 hover:text-ciuna-primary transition-colors">Privacy Policy</Link>
             </div>
           </div>
-          <div className="text-center sm:text-left text-xs sm:text-sm text-gray-500 mb-4">
+          <div className="text-center sm:text-left text-xs sm:text-sm text-gray-500">
             <p>
               Need help? Email us at{" "}
               <a href="mailto:hello@ciuna.com" className="text-ciuna-primary hover:underline">hello@ciuna.com</a>
             </p>
-          </div>
-          <div className="pt-4 border-t border-gray-200">
-            <p className="text-xs text-gray-400 text-center max-w-4xl mx-auto leading-relaxed">{DISCLAIMER}</p>
           </div>
         </div>
       </div>
