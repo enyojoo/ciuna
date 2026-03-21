@@ -1,6 +1,6 @@
 /* Ciuna Brand Standards - Website
  * Based on business UI stack (Tailwind v4, @theme inline)
- * Primary: #F97316 | Unbounded + ciuna-primary scale: website-only
+ * Primary: #F97316 | Plus Jakarta Sans (display) + ciuna-primary scale: website-only
  */
 
 @import "tailwindcss";
@@ -33,8 +33,8 @@
   --ring: #f97316;
   --radius: 0.5rem;
 
-  /* Website-only: Unbounded + ciuna-primary scale (HSL, orange / #F97316) */
-  --font-unbounded: "Unbounded", sans-serif;
+  /* Website-only: display font + ciuna-primary scale (HSL, orange / #F97316) */
+  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --ciuna-primary: 25 95% 53%;
   --ciuna-primary-50: 33 100% 96%;
   --ciuna-primary-100: 34 100% 92%;
@@ -73,7 +73,7 @@
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-unbounded: var(--font-unbounded);
+  --font-display: var(--font-display);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -149,14 +149,5 @@
   *:focus:not(:focus-visible) {
     outline: none !important;
     box-shadow: none !important;
-  }
-}
-
-@keyframes trusted-by-scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
   }
 }

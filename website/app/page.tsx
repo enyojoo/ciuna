@@ -1,16 +1,12 @@
 'use client'
 
-import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ArrowRight, CheckCircle } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import Image from 'next/image'
 import { PublicHeader } from '@/components/layout/public-header'
 import { PublicFooter } from '@/components/layout/public-footer'
 import { CurrencyConverter } from '@/components/currency-converter'
-import { TrustedBy } from '@/components/trusted-by'
 
 export default function HomePage() {
   const router = useRouter()
@@ -23,7 +19,6 @@ export default function HomePage() {
     exchangeRate: number
     fee: number
   }) => {
-    // Redirect to early access form instead of normal flow
     router.push("/access")
   }
 
@@ -35,16 +30,11 @@ export default function HomePage() {
         style={{ paddingTop: '4.5rem' }}
       >
         <Hero onSendMoney={handleSendMoney} />
-        <CiunaForIndividuals />
-        <CiunaForBusiness />
-        <ComplianceSecurity />
       </main>
       <PublicFooter />
     </div>
   )
 }
-
-// ----------------------- Sections -----------------------
 
 function Hero({ onSendMoney }: { onSendMoney: (data: {
   sendAmount: string
@@ -67,13 +57,13 @@ function Hero({ onSendMoney }: { onSendMoney: (data: {
           className="space-y-6 sm:space-y-8"
         >
           <div className="space-y-4 sm:space-y-6">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-gray-900 font-unbounded">
-              Move Money
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-gray-900 font-display">
+              Send money
               <br />
-              <span className="text-ciuna-primary">Globally Like SMS</span>.
+              <span className="text-ciuna-primary">across borders</span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-500 leading-relaxed max-w-2xl mx-auto">
-              API-first cross-border payment infrastructure for US and EU businesses. Built-in KYC/AML, instant payouts, and treasury operations.
+              Fast, transparent remittances from your bank account to recipients abroad — with clear rates and a simple path to get started.
             </p>
           </div>
           <div className="flex flex-col items-center gap-4">
@@ -83,7 +73,6 @@ function Hero({ onSendMoney }: { onSendMoney: (data: {
           </div>
         </motion.div>
       </div>
-      {/* Currency converter - secondary, below the fold feel */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 mt-12 sm:mt-16 pb-6 sm:pb-8 md:pb-10">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -94,159 +83,7 @@ function Hero({ onSendMoney }: { onSendMoney: (data: {
           <div className="w-full max-w-sm sm:max-w-md">
             <CurrencyConverter onSendMoney={onSendMoney} />
           </div>
-          <TrustedBy />
         </motion.div>
-      </div>
-    </section>
-  )
-}
-
-// Section 2: Ciuna for Individuals
-function CiunaForIndividuals() {
-  const router = useRouter()
-
-  return (
-    <section className="bg-slate-50 py-20 md:py-28">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <div className="text-center lg:text-left flex flex-col items-center lg:items-start">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 font-unbounded mb-6">
-                Send money anywhere. Instantly.
-              </h2>
-              <p className="text-lg md:text-xl text-gray-500 leading-relaxed mb-8">
-                No waiting days. Just low-cost, bank-to-bank transfers between the US, Europe, Africa, and Asia — making global payments instant.
-              </p>
-              <div className="flex justify-center lg:justify-start">
-                <Button size="lg" className="gap-2 bg-ciuna-primary hover:bg-ciuna-primary-600" onClick={() => router.push("/access")}>
-                  Get Started <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <div className="relative overflow-hidden">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                className="relative w-full rounded-2xl overflow-hidden shadow-xl border-2 border-ciuna-primary"
-              >
-                <Image
-                  src="https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/ew1.png"
-                  alt="Ciuna Web App"
-                  width={1200}
-                  height={800}
-                  className="w-full h-auto"
-                  style={{ maxHeight: '500px', objectFit: 'contain' }}
-                  unoptimized
-                />
-              </motion.div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// Section 3: Ciuna for Business
-function CiunaForBusiness() {
-  const router = useRouter()
-
-  return (
-    <section className="py-20 md:py-28 bg-white">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <div className="relative overflow-hidden order-2 lg:order-1">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                className="relative w-full rounded-2xl overflow-hidden shadow-xl border-2 border-ciuna-primary"
-              >
-                <Image
-                  src="https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/eb1.png"
-                  alt="Ciuna Business Banking"
-                  width={1200}
-                  height={800}
-                  className="w-full h-auto"
-                  style={{ maxHeight: '500px', objectFit: 'contain' }}
-                  unoptimized
-                />
-              </motion.div>
-            </div>
-            <div className="order-1 lg:order-2 text-center lg:text-left flex flex-col items-center lg:items-start">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 font-unbounded mb-6">
-                Business banking without borders.
-              </h2>
-              <p className="text-lg md:text-xl text-gray-500 leading-relaxed mb-8">
-                Manage accounts, cards, invoices, and cross-border payments from one dashboard. Automate payouts, FX, and treasury operations through the Ciuna API — with compliance, reconciliation, and transparency built in.
-              </p>
-              <div className="flex justify-center lg:justify-start">
-                <Button size="lg" className="gap-2 bg-ciuna-primary hover:bg-ciuna-primary-600" onClick={() => router.push("/access")}>
-                  Get Started <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// Section 4: Compliance & Security
-function ComplianceSecurity() {
-  const complianceFeatures = [
-    "Built-in KYC/KYB onboarding",
-    "AI-powered AML and sanctions checks",
-    "HSM-backed custody",
-    "GDPR-compliant data residency"
-  ]
-
-  return (
-    <section className="bg-slate-50 py-20 md:py-28">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 font-unbounded mb-6">
-                Compliance is built in, not added later.
-              </h2>
-              <p className="text-lg md:text-xl text-gray-500 leading-relaxed mb-8">
-                Ciuna embeds verification, AML, and encryption at the core of every transaction. Our partners move money globally with full confidence in security and oversight.
-              </p>
-              <ul className="space-y-3">
-                {complianceFeatures.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-ciuna-primary mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-500">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="relative flex justify-center lg:justify-end">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                className="relative w-full max-w-md rounded-2xl overflow-hidden shadow-xl border-2 border-ciuna-primary"
-              >
-                <Image
-                  src="https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/security.svg"
-                  alt="Security Shield"
-                  width={600}
-                  height={600}
-                  className="w-full h-auto"
-                  unoptimized
-                />
-              </motion.div>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   )

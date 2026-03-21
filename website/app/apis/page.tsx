@@ -10,7 +10,7 @@ export default function APIsPage() {
       <main className="pt-16">
         <section className="py-20 md:py-28">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 font-unbounded">
+            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 font-display">
               APIs
             </h1>
           </div>

@@ -1,26 +1,26 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Unbounded } from "next/font/google"
+import { Plus_Jakarta_Sans } from "next/font/google"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { PostHogProvider } from "@/components/posthog-provider"
 import "./globals.css"
 
-const unbounded = Unbounded({
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
-  variable: "--font-unbounded",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-display",
 })
 
 export const metadata: Metadata = {
   title: {
-    default: "Stablecoin Business Banking | Accounts, Cards & Invoicing - Ciuna",
+    default: "Ciuna | Send money across borders",
     template: "%s - Ciuna",
   },
   description:
-    "Stablecoin banking for global businesses. API-first cross-border payment infrastructure with built-in KYC/AML. For individuals and businesses.",
+    "Send money internationally with clear rates and bank-to-bank transfers. Ciuna helps you move funds across borders simply and securely.",
   keywords:
-    "stablecoin banking, cross-border payments, instant money transfer, bank to bank transfer, international money transfer, US fintech, business banking, global payments",
+    "international money transfer, remittance, cross-border payments, send money abroad, bank transfer, global payments",
   formatDetection: { email: false, address: false, telephone: false },
   metadataBase: new URL("https://www.ciuna.com"),
   alternates: { canonical: "/" },
@@ -30,8 +30,8 @@ export const metadata: Metadata = {
     apple: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20Favicon.svg",
   },
   openGraph: {
-    title: "Stablecoin Business Banking | Accounts, Cards & Invoicing - Ciuna",
-    description: "API-first cross-border payment infrastructure for US and EU businesses.",
+    title: "Ciuna | Send money across borders",
+    description: "International remittances and cross-border transfers with clear rates.",
     url: "https://www.ciuna.com",
     siteName: "Ciuna",
     locale: "en_US",
@@ -47,8 +47,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Stablecoin Business Banking | Accounts, Cards & Invoicing - Ciuna",
-    description: "API-first cross-border payment infrastructure for US and EU businesses.",
+    title: "Ciuna | Send money across borders",
+    description: "International remittances and cross-border transfers with clear rates.",
     creator: "@ciunabanking",
     images: ["https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/ciuna%20seo%20cover.png"],
   },
@@ -62,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className={`${unbounded.variable} ${GeistSans.variable} ${GeistMono.variable} font-sans`} suppressHydrationWarning>
+      <body className={`${plusJakartaSans.variable} ${GeistSans.variable} ${GeistMono.variable} font-sans`} suppressHydrationWarning>
         <PostHogProvider>{children}</PostHogProvider>
       </body>
     </html>
