@@ -120,10 +120,10 @@ export default function ProfilePage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setIsEditingProfile(true)}
-                    className="bg-blue-50 border-blue-200 hover:bg-blue-100"
+                    className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary"
                   >
-                    <Pencil className="h-4 w-4 mr-2 text-primary" />
-                    <span className="text-primary font-semibold">Edit</span>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    <span className="font-semibold">Edit</span>
                   </Button>
                 ) : (
                   <div className="flex gap-3">

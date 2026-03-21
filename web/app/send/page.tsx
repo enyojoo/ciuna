@@ -30,7 +30,7 @@ import { useUserData } from "@/hooks/use-user-data"
 import { SendPageSkeleton } from "@/components/send-page-skeleton"
 import {
   CurrencyFlagIcon,
-  CurrencyPickerSelect,
+  CurrencyPickerPopover,
   CurrencyPickerSheet,
   CurrencyPickerTrigger,
 } from "@/components/send/currency-picker-sheet"
@@ -808,11 +808,12 @@ export default function UserSendPage() {
                             />
                           </div>
                           <div className="hidden md:block shrink-0">
-                            <CurrencyPickerSelect
-                              value={sendCurrency}
-                              onValueChange={handleSendCurrencyChange}
+                            <CurrencyPickerPopover
+                              selectedCurrency={sendCurrency}
+                              onSelect={handleSendCurrencyChange}
                               currencies={currencies}
                               type="send"
+                              title="You send"
                             />
                           </div>
                         </div>
@@ -912,11 +913,12 @@ export default function UserSendPage() {
                             />
                           </div>
                           <div className="hidden md:block shrink-0">
-                            <CurrencyPickerSelect
-                              value={receiveCurrency}
-                              onValueChange={handleReceiveCurrencyChange}
+                            <CurrencyPickerPopover
+                              selectedCurrency={receiveCurrency}
+                              onSelect={handleReceiveCurrencyChange}
                               currencies={currencies}
                               type="receive"
+                              title="Receiver gets"
                             />
                           </div>
                         </div>
@@ -968,11 +970,11 @@ export default function UserSendPage() {
                         </div>
                       </DialogTrigger>
 
-                      <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
+                      <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] flex flex-col">
                         <DialogHeader>
                           <DialogTitle>Add New Recipient</DialogTitle>
                         </DialogHeader>
-                        <div className="overflow-y-auto flex-1 pr-2 -mr-2 space-y-4">
+                        <div className="min-h-0 overflow-y-auto flex-1 pr-2 -mr-2 space-y-4">
                           <div className="space-y-2">
                             <Label htmlFor="newRecipientCurrency">Currency</Label>
                             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">

@@ -3,16 +3,14 @@
 import { useEffect, useMemo, useState } from "react"
 import { ChevronDown, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Drawer, DrawerContent } from "@/components/ui/drawer"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import type { Currency } from "@/types"
 import { cn } from "@/lib/utils"
+
+/** Shared with mobile trigger and desktop popover trigger */
+export const CURRENCY_PICKER_TRIGGER_CLASSES =
+  "inline-flex min-h-11 min-w-[5.5rem] shrink-0 items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent active:bg-accent/80"
 
 export function CurrencyFlagIcon({ currency }: { currency: Currency }) {
   if (!currency.flag) return null
@@ -36,6 +34,97 @@ export function CurrencyFlagIcon({ currency }: { currency: Currency }) {
   return <span className="text-xs font-medium">{currency.code}</span>
 }
 
+function useCurrencySearchFilter(
+  currencies: Currency[],
+  type: "send" | "receive",
+  search: string,
+) {
+  return useMemo(() => {
+    let list = currencies
+    if (type === "send") list = list.filter((c) => c.can_send !== false)
+    else list = list.filter((c) => c.can_receive !== false)
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      list = list.filter(
+        (c) => c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q),
+      )
+    }
+    return list
+  }, [currencies, type, search])
+}
+
+/** Same rows as mobile sheet: flag, code (bold), name (muted) + search */
+function CurrencyPickerPanel({
+  title,
+  search,
+  onSearchChange,
+  filtered,
+  selectedCurrency,
+  onPick,
+  listClassName,
+  autoFocusSearch,
+}: {
+  title: string
+  search: string
+  onSearchChange: (v: string) => void
+  filtered: Currency[]
+  selectedCurrency: string
+  onPick: (code: string) => void
+  listClassName?: string
+  autoFocusSearch?: boolean
+}) {
+  return (
+    <>
+      <div className="border-b border-border px-4 pb-3 pt-3 text-left">
+        <h2 className="text-base font-semibold leading-none">{title}</h2>
+        <div className="relative pt-3">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <Input
+            placeholder="Search currencies..."
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="h-11 pl-10"
+            autoComplete="off"
+            autoFocus={autoFocusSearch}
+          />
+        </div>
+      </div>
+      <div
+        className={cn(
+          "min-h-0 overflow-y-auto overscroll-y-contain",
+          listClassName,
+        )}
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        {filtered.length > 0 ? (
+          <ul className="pb-[env(safe-area-inset-bottom,0px)]">
+            {filtered.map((currency) => (
+              <li key={currency.code} className="border-b border-border last:border-0">
+                <button
+                  type="button"
+                  onClick={() => onPick(currency.code)}
+                  className={cn(
+                    "touch-manipulation flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-accent active:bg-accent/80",
+                    selectedCurrency === currency.code && "bg-accent/40",
+                  )}
+                >
+                  <CurrencyFlagIcon currency={currency} />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold">{currency.code}</div>
+                    <div className="truncate text-sm text-muted-foreground">{currency.name}</div>
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="px-4 py-10 text-center text-sm text-muted-foreground">No currencies found</div>
+        )}
+      </div>
+    </>
+  )
+}
+
 export function CurrencyPickerTrigger({
   selectedCurrency,
   onOpen,
@@ -50,7 +139,7 @@ export function CurrencyPickerTrigger({
     <button
       type="button"
       onClick={onOpen}
-      className="inline-flex min-h-11 min-w-[5.5rem] shrink-0 items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent active:bg-accent/80"
+      className={CURRENCY_PICKER_TRIGGER_CLASSES}
     >
       {selected && <CurrencyFlagIcon currency={selected} />}
       <span>{selectedCurrency}</span>
@@ -82,116 +171,92 @@ export function CurrencyPickerSheet({
     if (!open) setSearch("")
   }, [open])
 
-  const filtered = useMemo(() => {
-    let list = currencies
-    if (type === "send") list = list.filter((c) => c.can_send !== false)
-    else list = list.filter((c) => c.can_receive !== false)
-    if (search.trim()) {
-      const q = search.toLowerCase()
-      list = list.filter(
-        (c) => c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q),
-      )
-    }
-    return list
-  }, [currencies, type, search])
+  const filtered = useCurrencySearchFilter(currencies, type, search)
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[min(88vh,820px)] flex-col gap-0 overflow-hidden p-0">
-        <DrawerHeader className="border-b px-4 pb-3 pt-0 text-left">
-          <DrawerTitle className="text-base">{title}</DrawerTitle>
-          <div className="relative pt-2">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-            <Input
-              placeholder="Search currencies..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-11 pl-10"
-              autoComplete="off"
-              autoFocus
-            />
-          </div>
-        </DrawerHeader>
-        <div
-          className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
-          style={{ WebkitOverflowScrolling: "touch" }}
-        >
-          {filtered.length > 0 ? (
-            <ul className="pb-[env(safe-area-inset-bottom,0px)]">
-              {filtered.map((currency) => (
-                <li key={currency.code} className="border-b border-border last:border-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onSelect(currency.code)
-                      onOpenChange(false)
-                    }}
-                    className={cn(
-                      "flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-accent active:bg-accent/80",
-                      selectedCurrency === currency.code && "bg-accent/40",
-                    )}
-                  >
-                    <CurrencyFlagIcon currency={currency} />
-                    <div className="min-w-0 flex-1">
-                      <div className="font-semibold">{currency.code}</div>
-                      <div className="truncate text-sm text-muted-foreground">{currency.name}</div>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="px-4 py-10 text-center text-sm text-muted-foreground">No currencies found</div>
-          )}
+      <DrawerContent
+        className={cn(
+          "max-h-[min(88vh,820px)] flex-col gap-0 overflow-hidden p-0",
+          "currency-picker-vaul-drawer",
+        )}
+      >
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <CurrencyPickerPanel
+            title={title}
+            search={search}
+            onSearchChange={setSearch}
+            filtered={filtered}
+            selectedCurrency={selectedCurrency}
+            onPick={(code) => {
+              onOpenChange(false)
+              queueMicrotask(() => onSelect(code))
+            }}
+            listClassName="flex-1"
+            autoFocusSearch={open}
+          />
         </div>
       </DrawerContent>
     </Drawer>
   )
 }
 
-function useFilteredCurrenciesForType(currencies: Currency[], type: "send" | "receive") {
-  return useMemo(() => {
-    if (type === "send") return currencies.filter((c) => c.can_send !== false)
-    return currencies.filter((c) => c.can_receive !== false)
-  }, [currencies, type])
-}
-
-/** Tablet/desktop: standard Radix select. Mobile: use {@link CurrencyPickerSheet} + {@link CurrencyPickerTrigger}. */
-export function CurrencyPickerSelect({
-  value,
-  onValueChange,
+/**
+ * Tablet/desktop: anchored popover with the same search + list UI as mobile (not a native Select).
+ * Mobile: use {@link CurrencyPickerSheet} + {@link CurrencyPickerTrigger}.
+ */
+export function CurrencyPickerPopover({
+  selectedCurrency,
+  onSelect,
   currencies,
   type,
-  disabled,
+  title = "Select currency",
 }: {
-  value: string
-  onValueChange: (code: string) => void
+  selectedCurrency: string
+  onSelect: (code: string) => void
   currencies: Currency[]
   type: "send" | "receive"
-  disabled?: boolean
+  title?: string
 }) {
-  const list = useFilteredCurrenciesForType(currencies, type)
-  const selected = currencies.find((c) => c.code === value)
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState("")
+
+  useEffect(() => {
+    if (!open) setSearch("")
+  }, [open])
+
+  const filtered = useCurrencySearchFilter(currencies, type, search)
+  const selected = currencies.find((c) => c.code === selectedCurrency)
 
   return (
-    <Select value={value} onValueChange={onValueChange} disabled={disabled}>
-      <SelectTrigger
-        className={cn(
-          "h-11 min-w-[10rem] shrink-0 gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium shadow-sm",
-        )}
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button type="button" className={CURRENCY_PICKER_TRIGGER_CLASSES}>
+          {selected && <CurrencyFlagIcon currency={selected} />}
+          <span>{selectedCurrency}</span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="end"
+        side="bottom"
+        sideOffset={8}
+        className="w-[min(22rem,calc(100vw-2rem))] max-w-[22rem] p-0"
       >
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          {selected ? <CurrencyFlagIcon currency={selected} /> : null}
-          <SelectValue placeholder="Currency" />
-        </div>
-      </SelectTrigger>
-      <SelectContent align="end" position="popper" className="max-h-72">
-        {list.map((currency) => (
-          <SelectItem key={currency.code} value={currency.code}>
-            {currency.code} — {currency.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+        <CurrencyPickerPanel
+          title={title}
+          search={search}
+          onSearchChange={setSearch}
+          filtered={filtered}
+          selectedCurrency={selectedCurrency}
+          onPick={(code) => {
+            onSelect(code)
+            setOpen(false)
+          }}
+          listClassName="max-h-[min(55vh,420px)]"
+          autoFocusSearch={false}
+        />
+      </PopoverContent>
+    </Popover>
   )
 }

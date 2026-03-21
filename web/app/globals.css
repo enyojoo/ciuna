@@ -21,6 +21,17 @@ html[data-pwa-standalone="true"] body {
   min-height: 100dvh;
 }
 
+/* Vaul defaults to 0.5s open/close; snappier dismiss for currency bottom sheet */
+.currency-picker-vaul-drawer[data-vaul-drawer] {
+  transition-duration: 0.18s !important;
+  animation-duration: 0.18s !important;
+}
+
+/* Backdrop fade for the same drawer session (only Vaul drawer consumer in app) */
+[data-vaul-overlay][data-vaul-snap-points="false"] {
+  animation-duration: 0.18s !important;
+}
+
 :root {
   --safe-area-inset-top: env(safe-area-inset-top, 0px);
   --safe-area-inset-right: env(safe-area-inset-right, 0px);

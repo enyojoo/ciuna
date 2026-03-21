@@ -24,8 +24,7 @@ const baseNavigation = [
 const bottomNavItems = [
   { name: "Home", href: "/dashboard", icon: Home },
   { name: "Send", href: "/send", icon: Send },
-  { name: "History", href: "/transactions", icon: History },
-  { name: "Recipients", href: "/recipients", icon: UserPlus },
+  { name: "More", href: "/more", icon: LayoutDashboard },
 ]
 
 export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
@@ -118,7 +117,9 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
               const isActive =
                 item.href === "/send"
                   ? pathname === "/send" || Boolean(pathname?.startsWith("/send/"))
-                  : pathname === item.href
+                  : item.href === "/more"
+                    ? pathname === "/more" || Boolean(pathname?.startsWith("/more/"))
+                    : pathname === item.href
 
               return (
                 <Link
@@ -136,26 +137,6 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
                 </Link>
               )
             })}
-
-            {/* More Menu */}
-            <Link
-              href="/more"
-              prefetch={true}
-              className="flex flex-col items-center justify-center p-2 min-w-0 flex-1"
-            >
-              <LayoutDashboard
-                className={`h-5 w-5 ${
-                  pathname === "/more" || pathname?.startsWith("/more/") ? "text-primary" : "text-gray-600"
-                }`}
-              />
-              <span
-                className={`mt-1 max-w-[4.5rem] truncate text-center text-[10px] leading-tight sm:max-w-none sm:text-xs ${
-                  pathname === "/more" || pathname?.startsWith("/more/") ? "text-primary" : "text-gray-600"
-                }`}
-              >
-                More
-              </span>
-            </Link>
           </div>
         </div>
       </div>
