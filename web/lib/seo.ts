@@ -52,8 +52,17 @@ export const SEO_PAGE_TITLES = {
   recipients: "Recipients",
   support: "Support",
   auth: "Sign in",
+  register: "Create account",
   forgotPassword: "Forgot password",
   resetPassword: "Reset password",
+  authCallback: "Signing in",
+  more: "More",
+  moreProfile: "Profile",
+  morePassword: "Password",
+  moreNotifications: "Notifications",
+  moreVerification: "Verification",
+  moreVerificationAddress: "Address verification",
+  moreVerificationIdentity: "Identity verification",
 } as const
 
 /** Page-specific meta descriptions (logged-in / utility routes; many are noindex) */
@@ -65,8 +74,18 @@ export const SEO_PAGE_DESCRIPTIONS = {
   recipients: "Save and manage recipients for faster, repeatable international transfers.",
   support: "Get help with transfers, verification, and your Ciuna account.",
   auth: "Sign in to Ciuna to send money globally with transparent pricing and secure authentication.",
+  register:
+    "Create your Ciuna account to send money internationally with transparent pricing and secure onboarding.",
   forgotPassword: "Start a secure password reset for your Ciuna account.",
   resetPassword: "Choose a new password to get back into your Ciuna account.",
+  authCallback: "Completing sign-in to your Ciuna account.",
+  more: "Account settings, profile, security, and more in the Ciuna app.",
+  moreProfile: "View and update your profile information in Ciuna.",
+  morePassword: "Change your Ciuna account password securely.",
+  moreNotifications: "Manage notification preferences for your Ciuna account.",
+  moreVerification: "Complete identity and address verification for Ciuna.",
+  moreVerificationAddress: "Verify your address for your Ciuna account.",
+  moreVerificationIdentity: "Verify your identity for your Ciuna account.",
 } as const
 
 /** JSON-LD: FinancialService block */
