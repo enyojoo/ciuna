@@ -123,9 +123,17 @@ export const SEO_FAQ_JSON_LD = {
   ],
 } as const
 
-/** Brand mark (OG / JSON-LD / emails); same asset as in-app marketing surfaces */
+/** Brand mark (OG / JSON-LD); in-app marketing surfaces */
 export const SEO_LOGO_URL =
   "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20web%20app.png"
+
+/** HTML emails: full-color mark on light backgrounds */
+export const SEO_EMAIL_LOGO_LIGHT_URL =
+  "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20main.png"
+
+/** HTML emails: mark for dark-mode mail clients (prefers-color-scheme: dark) */
+export const SEO_EMAIL_LOGO_DARK_URL =
+  "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20light.png"
 
 /** FinancialService JSON-LD (schema.org) */
 export const SEO_FINANCIAL_SERVICE_JSON_LD = {
