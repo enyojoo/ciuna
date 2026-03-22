@@ -10,13 +10,10 @@ import {
   PwaInstallIosGuide,
 } from "@/components/pwa/pwa-install-copy"
 
-/** Compact banner; extra room when iOS guide line is shown. */
-const BANNER_LAYOUT_RESERVE =
-  "min-h-[calc(5.25rem+env(safe-area-inset-top,0px))] sm:min-h-[calc(5rem+env(safe-area-inset-top,0px))]"
-
 /**
- * Global top notice for install / add-to-home-screen. Uses the same dismiss key and
- * `beforeinstallprompt` behavior as {@link InstallAppCard}. Hidden on `/more` where the card lives.
+ * Fixed overlay at the top — does not reserve layout space (no spacer), so the app header
+ * and content stay in place; the banner floats above them.
+ * Same dismiss key as {@link InstallAppCard}. Hidden on `/more` where the card lives.
  */
 export function InstallAppBanner() {
   const pathname = usePathname()
@@ -26,9 +23,7 @@ export function InstallAppBanner() {
   if (!visible || onMore) return null
 
   return (
-    <>
-      <div className={`shrink-0 ${BANNER_LAYOUT_RESERVE}`} aria-hidden />
-      <div
+    <div
         className="fixed left-0 right-0 top-0 z-[60] pt-[env(safe-area-inset-top,0px)] pointer-events-none"
         role="region"
         aria-label={PWA_INSTALL_TITLE}
@@ -72,7 +67,6 @@ export function InstallAppBanner() {
             </div>
           </div>
         </div>
-      </div>
-    </>
+    </div>
   )
 }
