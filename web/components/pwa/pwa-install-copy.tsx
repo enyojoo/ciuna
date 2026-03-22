@@ -1,9 +1,7 @@
 "use client"
 
-import { MoreVertical, Share2 } from "lucide-react"
-
 export const PWA_INSTALL_TITLE = "Ciuna App"
-export const PWA_INSTALL_SUBTITLE = "Use our app on the go without the browser"
+export const PWA_INSTALL_SUBTITLE = "Use our app on the go without browser"
 
 export type PwaInstallCopyVariant = "banner" | "card"
 
@@ -25,7 +23,7 @@ export function PwaInstallIosGuide({ iosChrome, iosSafari, variant = "card" }: P
   const banner = tier === "banner"
 
   const bodyClass = banner
-    ? "text-xs text-muted-foreground leading-snug sm:text-sm line-clamp-3"
+    ? "text-xs text-muted-foreground leading-snug sm:text-sm line-clamp-2"
     : "text-sm text-muted-foreground leading-relaxed"
 
   if (iosChrome) {
@@ -38,18 +36,10 @@ export function PwaInstallIosGuide({ iosChrome, iosSafari, variant = "card" }: P
             <span className="font-medium text-foreground">View more</span>
             {" → "}
             <span className="font-medium text-foreground">Add to Home Screen</span>
-            {"."}
           </>
         ) : (
           <>
-            Tap{" "}
-            <span className="inline-flex items-center gap-0.5 font-medium text-foreground">
-              <Share2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              Share
-            </span>
-            , then <span className="font-medium text-foreground">View more</span>, then{" "}
-            <span className="font-medium text-foreground">Add to Home Screen</span> to open Ciuna without the
-            browser bar.
+            Tap Share, then View more, then <span className="font-medium text-foreground">Add to Home Screen</span>
           </>
         )}
       </p>
@@ -61,30 +51,18 @@ export function PwaInstallIosGuide({ iosChrome, iosSafari, variant = "card" }: P
       <p className={bodyClass}>
         {banner ? (
           <>
-            <span className="font-medium text-foreground">⋯</span>
+            <span className="font-medium text-foreground">Menu</span>
             {" → "}
             <span className="font-medium text-foreground">Share</span>
             {" → "}
             <span className="font-medium text-foreground">View more</span>
             {" → "}
             <span className="font-medium text-foreground">Add to Home Screen</span>
-            {"."}
           </>
         ) : (
           <>
-            Tap the{" "}
-            <span className="inline-flex items-center gap-0.5 font-medium text-foreground">
-              <MoreVertical className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              menu
-            </span>{" "}
-            (three dots), then{" "}
-            <span className="inline-flex items-center gap-0.5 font-medium text-foreground">
-              <Share2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              Share
-            </span>
-            , then <span className="font-medium text-foreground">View more</span>, then{" "}
-            <span className="font-medium text-foreground">Add to Home Screen</span> to open Ciuna without the
-            browser bar.
+            Tap the menu (three dots), then Share, then View more, then{" "}
+            <span className="font-medium text-foreground">Add to Home Screen</span>
           </>
         )}
       </p>
