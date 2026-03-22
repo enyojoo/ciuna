@@ -8,7 +8,7 @@ import { PWA_APP_ICON_URL } from "@/lib/pwa-brand"
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    id: "https://app.ciuna.com/",
+    // Omit `id`: a hardcoded production URL breaks on other origins (e.g. ciuna.vercel.app) and is ignored.
     name: "Ciuna",
     short_name: "Ciuna",
     description: "Send money globally with Ciuna.",
