@@ -48,9 +48,9 @@ export function InstallAppBanner() {
                   {showInstallButton ? (
                     <Button
                       type="button"
-                      variant="link"
+                      variant="default"
                       size="sm"
-                      className="h-auto shrink-0 p-0 text-xs font-semibold text-primary sm:text-sm"
+                      className="h-6 shrink-0 rounded-full px-2.5 text-[11px] font-semibold shadow-none sm:h-7 sm:px-3 sm:text-xs"
                       onClick={() => void runInstall()}
                     >
                       Install
