@@ -68,11 +68,12 @@ function KYCPolicyPageContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Overview</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  Ciuna, Inc. ("Ciuna," "we," "us," or "our") is committed to maintaining the highest standards of
-                  compliance with anti-money laundering (AML) and know-your-customer (KYC) regulations. As a technology
-                  platform facilitating financial services through licensed partners, we conduct comprehensive KYC
-                  (Know Your Customer) and KYB (Know Your Business) verification on all users to ensure regulatory
-                  compliance, prevent fraud, and protect our platform and users.
+                  Cova Systems Limited (&quot;Ciuna,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) is
+                  committed to maintaining high standards of compliance with anti-money laundering (AML) and
+                  know-your-customer (KYC) regulations. As a technology platform facilitating financial services through
+                  licensed partners, we conduct comprehensive KYC (Know Your Customer) and KYB (Know Your Business)
+                  verification on users as required to ensure regulatory compliance, prevent fraud, and protect our
+                  platform and users.
                 </p>
                 <p className="text-gray-700 leading-relaxed mt-4">
                   This policy outlines our KYC/KYB procedures, the information we collect, how we use it, and your
@@ -84,11 +85,10 @@ function KYCPolicyPageContent() {
                   .
                 </p>
                 <p className="text-gray-700 leading-relaxed mt-4">
-                  <strong>Verification Provider:</strong> Ciuna partners with Bridge (Bridge Financial, Inc.), a 
-                  licensed financial services technology company, to provide KYC/KYB verification services. Bridge 
-                  operates the verification platform and processes your identity documents and personal information on 
-                  our behalf. All verification data collected by Bridge is shared with Ciuna for regulatory compliance 
-                  and account management purposes. Bridge acts as a data processor and is contractually obligated to 
+                  <strong>Verification partners:</strong> Ciuna uses one or more licensed or qualified verification
+                  partners to provide KYC/KYB services. Partners operate verification flows and may process your
+                  identity documents and personal information on our behalf. Data is shared with Ciuna for regulatory
+                  compliance and account management. Where they act as processors, partners are contractually required to
                   protect your information in accordance with applicable data protection laws.
                 </p>
               </section>
@@ -162,9 +162,9 @@ function KYCPolicyPageContent() {
                   <li>Additional information as required by specific jurisdictions or transaction types</li>
                 </ul>
                 <p className="text-gray-700 leading-relaxed mt-4">
-                  <strong>Additional Information Collected by Bridge:</strong> In addition to the standard KYC 
-                  information listed above, Bridge, our verification provider, may collect the following information 
-                  as part of the verification process:
+                  <strong>Additional information from verification partners:</strong> In addition to the standard KYC
+                  information listed above, our verification partners may collect the following as part of the
+                  verification process, depending on jurisdiction and risk:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-gray-700 mt-2">
                   <li>Social Security Number (SSN) for U.S. residents</li>
@@ -393,40 +393,13 @@ function KYCPolicyPageContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">14. Contact Us</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  If you have questions about our KYC/KYB procedures, need assistance with verification, or wish to
-                  update your information, please contact us at:
+                  If you have questions about our KYC/KYB procedures, need assistance with verification, wish to update
+                  your information, or have privacy-related requests about verification data, please contact us at{" "}
+                  <a href="mailto:legal@ciuna.com" className="text-ciuna-primary hover:underline">
+                    legal@ciuna.com
+                  </a>
+                  .
                 </p>
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <p className="text-gray-700">
-                    <strong>Ciuna, Inc.</strong>
-                    <br />
-                    Compliance Department
-                    <br />
-                    28 Geary St Ste 650
-                    <br />
-                    San Francisco, CA 94108
-                    <br />
-                    <strong>Email:</strong> compliance@ciuna.com
-                  </p>
-                </div>
-                <p className="text-gray-700 leading-relaxed mt-4">
-                  <strong>Bridge Contact Information:</strong> For questions or requests regarding data held by Bridge, 
-                  our KYC verification provider, you may contact Bridge directly or contact us and we will assist you. 
-                  Bridge may be contacted through their website or through our support team.
-                </p>
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <p className="text-gray-700">
-                    <strong>Bridge Financial, Inc.</strong>
-                    <br />
-                    <strong>Website:</strong>{" "}
-                    <a href="https://www.bridge.xyz" target="_blank" rel="noopener noreferrer" className="text-ciuna-primary hover:underline">
-                      www.bridge.xyz
-                    </a>
-                    <br />
-                    <strong>Note:</strong> For data requests related to Bridge verification, please contact Ciuna 
-                    support first, and we will coordinate with Bridge on your behalf.
-                  </p>
-                </div>
               </section>
 
               <div className="mt-12 pt-8 border-t border-gray-200">

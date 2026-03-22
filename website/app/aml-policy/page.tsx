@@ -68,10 +68,11 @@ function AMLPolicyContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Overview</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  Ciuna, Inc. ("Ciuna," "we," "us," or "our") is committed to preventing money laundering, terrorist
-                  financing, and other financial crimes. As a technology platform facilitating financial services through
-                  licensed partners, we maintain a comprehensive Anti-Money Laundering (AML) program designed to detect,
-                  prevent, and report suspicious activities in accordance with applicable laws and regulations.
+                  Cova Systems Limited (&quot;Ciuna,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) is
+                  committed to preventing money laundering, terrorist financing, and other financial crimes. As a
+                  technology platform facilitating financial services through licensed partners, we maintain an
+                  Anti-Money Laundering (AML) program designed to detect, prevent, and report suspicious activities in
+                  accordance with applicable laws and regulations.
                 </p>
                 <p className="text-gray-700 leading-relaxed mt-4">
                   This policy outlines our AML procedures, controls, and obligations. We conduct AML screening and
@@ -144,11 +145,11 @@ function AMLPolicyContent() {
                   </li>
                 </ul>
                 <p className="text-gray-700 leading-relaxed mt-4">
-                  <strong>Third-Party Screening Services:</strong> We utilize Bridge's verification and screening services 
-                  as part of our AML program. Bridge conducts identity verification, sanctions screening, and PEP 
-                  (Politically Exposed Person) checks on our behalf. Results from Bridge's screening are integrated into 
-                  our AML monitoring and reporting systems. Bridge acts as a data processor and is contractually obligated 
-                  to maintain appropriate security and compliance standards.
+                  <strong>Third-party screening services:</strong> We use third-party verification and screening partners
+                  as part of our AML program. Partners may conduct identity verification, sanctions screening, and PEP
+                  (Politically Exposed Person) checks on our behalf. Results are integrated into our AML monitoring and
+                  reporting where applicable. Partners that process personal data are bound by contract to maintain
+                  appropriate security and compliance standards.
                 </p>
               </section>
 
@@ -361,25 +362,12 @@ function AMLPolicyContent() {
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">15. Contact Us</h2>
                 <p className="text-gray-700 leading-relaxed">
                   If you have questions about our AML procedures, need to report concerns, or wish to understand how AML
-                  requirements affect your account, please contact us at:
+                  requirements affect your account, please contact us at{" "}
+                  <a href="mailto:legal@ciuna.com" className="text-ciuna-primary hover:underline">
+                    legal@ciuna.com
+                  </a>
+                  .
                 </p>
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <p className="text-gray-700">
-                    <strong>Ciuna, Inc.</strong>
-                    <br />
-                    Compliance Department
-                    <br />
-                    28 Geary St Ste 650
-                    <br />
-                    San Francisco, CA 94108
-                    <br />
-                    <strong>Email:</strong> compliance@ciuna.com
-                    <br />
-                    <strong>Phone:</strong> +1 628 228 6083
-                    <br />
-                    <strong>Website:</strong> www.ciuna.com
-                  </p>
-                </div>
               </section>
 
               <div className="mt-12 pt-8 border-t border-gray-200">

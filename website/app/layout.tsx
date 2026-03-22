@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     template: "%s - Ciuna",
   },
   description:
-    "Send money internationally with clear rates and bank-to-bank transfers. Ciuna helps you move funds across borders simply and securely.",
+    "Send money internationally without fees using bank-to-bank transfers. Ciuna helps you move funds across borders simply and securely.",
   keywords:
     "international money transfer, remittance, cross-border payments, send money abroad, bank transfer, global payments",
   formatDetection: { email: false, address: false, telephone: false },
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Ciuna | Send money across borders",
-    description: "International remittances and cross-border transfers with clear rates.",
+    description: "International remittances and cross-border bank transfers without fees.",
     url: "https://www.ciuna.com",
     siteName: "Ciuna",
     locale: "en_US",
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Ciuna | Send money across borders",
-    description: "International remittances and cross-border transfers with clear rates.",
+    description: "International remittances and cross-border bank transfers without fees.",
     creator: "@ciunabanking",
     images: ["https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/ciuna%20seo%20cover.png"],
   },

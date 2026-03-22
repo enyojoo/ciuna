@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useId, useMemo, useState } from "react"
-import { ChevronDown, Search } from "lucide-react"
+import { useEffect, useId, useMemo, useRef, useState } from "react"
+import { Check, ChevronDown, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Drawer, DrawerContent } from "@/components/ui/drawer"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -78,6 +78,10 @@ function useCurrencySearchFilter(
   }, [currencies, type, search])
 }
 
+function codesEqual(a: string, b: string) {
+  return a.trim().toUpperCase() === b.trim().toUpperCase()
+}
+
 /** Same rows for sheet + popover: optional title, search (aligned icon), scrollable list */
 function CurrencyPickerPanel({
   title,
@@ -87,6 +91,7 @@ function CurrencyPickerPanel({
   selectedCurrency,
   onPick,
   listClassName,
+  listOpen,
 }: {
   /** When omitted or empty, no heading is shown (send flow uses search-only chrome). */
   title?: string
@@ -96,9 +101,28 @@ function CurrencyPickerPanel({
   selectedCurrency: string
   onPick: (code: string) => void
   listClassName?: string
+  /** When true, scroll the selected row into view (popover / sheet just opened). */
+  listOpen?: boolean
 }) {
   const showTitle = Boolean(title?.trim())
   const searchId = useId()
+  const selectedRowRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!listOpen || !selectedCurrency.trim()) return
+    let cancelled = false
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!cancelled) {
+          selectedRowRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" })
+        }
+      })
+    })
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(id)
+    }
+  }, [listOpen, selectedCurrency, filtered])
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
@@ -146,24 +170,39 @@ function CurrencyPickerPanel({
       >
         {filtered.length > 0 ? (
           <ul className="pb-[env(safe-area-inset-bottom,0px)]">
-            {filtered.map((currency) => (
-              <li key={currency.code} className="border-b border-border last:border-0">
-                <button
-                  type="button"
-                  onClick={() => onPick(currency.code)}
-                  className={cn(
-                    "touch-manipulation flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-accent active:bg-accent/80",
-                    selectedCurrency === currency.code && "bg-accent/40",
-                  )}
-                >
-                  <CurrencyFlagIcon currency={currency} />
-                  <div className="min-w-0 flex-1">
-                    <div className="font-semibold">{currency.code}</div>
-                    <div className="truncate text-sm text-muted-foreground">{currency.name}</div>
-                  </div>
-                </button>
-              </li>
-            ))}
+            {filtered.map((currency) => {
+              const isSelected = codesEqual(selectedCurrency, currency.code)
+              return (
+                <li key={currency.code} className="border-b border-border last:border-0">
+                  <button
+                    ref={isSelected ? selectedRowRef : undefined}
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={() => onPick(currency.code)}
+                    className={cn(
+                      "touch-manipulation flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-accent active:bg-accent/80",
+                      isSelected &&
+                        "bg-primary/10 ring-1 ring-inset ring-primary/25 hover:bg-primary/15",
+                    )}
+                  >
+                    <CurrencyFlagIcon currency={currency} />
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold">{currency.code}</div>
+                      <div className="truncate text-sm text-muted-foreground">{currency.name}</div>
+                    </div>
+                    {isSelected ? (
+                      <Check
+                        className="h-5 w-5 shrink-0 text-primary"
+                        aria-hidden
+                      />
+                    ) : (
+                      <span className="h-5 w-5 shrink-0" aria-hidden />
+                    )}
+                  </button>
+                </li>
+              )
+            })}
           </ul>
         ) : (
           <div className="px-4 py-10 text-center text-sm text-muted-foreground">No currencies found</div>
@@ -182,7 +221,7 @@ export function CurrencyPickerTrigger({
   onOpen: () => void
   currencies: Currency[]
 }) {
-  const selected = currencies.find((c) => c.code === selectedCurrency)
+  const selected = currencies.find((c) => codesEqual(c.code, selectedCurrency))
   return (
     <button
       type="button"
@@ -190,7 +229,7 @@ export function CurrencyPickerTrigger({
       className={CURRENCY_PICKER_TRIGGER_CLASSES_MOBILE}
     >
       {selected && <CurrencyFlagIcon currency={selected} size="compact" />}
-      <span>{selectedCurrency}</span>
+      <span>{selected?.code ?? selectedCurrency}</span>
       <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
     </button>
   )
@@ -265,6 +304,7 @@ export function CurrencyPickerSheet({
             onSearchChange={setSearch}
             filtered={filtered}
             selectedCurrency={selectedCurrency}
+            listOpen={open}
             onPick={(code) => {
               onOpenChange(false)
               queueMicrotask(() => onSelect(code))
@@ -301,14 +341,14 @@ export function CurrencyPickerPopover({
   }, [open])
 
   const filtered = useCurrencySearchFilter(currencies, type, search)
-  const selected = currencies.find((c) => c.code === selectedCurrency)
+  const selected = currencies.find((c) => codesEqual(c.code, selectedCurrency))
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button type="button" className={CURRENCY_PICKER_TRIGGER_CLASSES}>
           {selected && <CurrencyFlagIcon currency={selected} />}
-          <span>{selectedCurrency}</span>
+          <span>{selected?.code ?? selectedCurrency}</span>
           <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
         </button>
       </PopoverTrigger>
@@ -324,6 +364,7 @@ export function CurrencyPickerPopover({
           onSearchChange={setSearch}
           filtered={filtered}
           selectedCurrency={selectedCurrency}
+          listOpen={open}
           onPick={(code) => {
             onSelect(code)
             setOpen(false)

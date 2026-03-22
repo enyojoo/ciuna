@@ -1,8 +1,10 @@
 import type { Metadata } from "next"
 
+import { SEO_PAGE_DESCRIPTIONS, SEO_PAGE_TITLES } from "@/lib/seo"
+
 export const metadata: Metadata = {
-  title: "Support - Ciuna",
-  description: "Get help with your money transfers and find answers to common questions about Ciuna's services.",
+  title: SEO_PAGE_TITLES.support,
+  description: SEO_PAGE_DESCRIPTIONS.support,
   robots: {
     index: false,
     noindex: true,

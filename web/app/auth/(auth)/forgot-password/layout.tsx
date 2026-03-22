@@ -1,8 +1,10 @@
 import type { Metadata } from "next"
 
+import { SEO_PAGE_DESCRIPTIONS, SEO_PAGE_TITLES } from "@/lib/seo"
+
 export const metadata: Metadata = {
-  title: "Forgot Password - Ciuna",
-  description: "Reset your Ciuna account password to regain access to your money transfer account.",
+  title: SEO_PAGE_TITLES.forgotPassword,
+  description: SEO_PAGE_DESCRIPTIONS.forgotPassword,
   robots: {
     index: true,
     follow: true,

@@ -72,20 +72,21 @@ function TermsPageContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Acceptance of Terms</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  By accessing and using Ciuna's services, you accept and agree to be bound by the terms and provisions
-                  of this agreement. If you do not agree to abide by the above, please do not use this service.
+                  By accessing and using Ciuna&apos;s services, you accept and agree to be bound by these Terms of
+                  Service between you and Cova Systems Limited (&quot;Ciuna,&quot; &quot;we,&quot; &quot;us,&quot; or
+                  &quot;our&quot;). If you do not agree to abide by the above, please do not use this service.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. About Ciuna</h2>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  Ciuna, Inc. is a Delaware C-corporation that operates the Ciuna platform and web applications.
-                  Ciuna provides instant, zero-fee cross-border transfers where users send money from their local bank
-                  and recipients receive funds in their bank account within minutes, with no virtual wallets required.
-                  Users can transfer money between supported currencies with competitive exchange rates and zero fees
-                  online with Ciuna. Ciuna's infrastructure leverages modern payment standards and blockchain settlement
-                  technology provided by our licensed partners, including Bridge, to make cross-border transfers instant, transparent, and secure.
+                  Cova Systems Limited operates the Ciuna platform and web applications. Ciuna provides cross-border
+                  money movement where users send money from their local bank and recipients receive funds in their
+                  bank account, with no virtual wallets required. Users can transfer money between supported currencies
+                  with competitive exchange rates where offered. Ciuna&apos;s infrastructure uses modern payment standards
+                  and settlement arrangements provided by licensed partners to make cross-border transfers reliable,
+                  transparent, and secure.
                 </p>
                 <p className="text-gray-700 leading-relaxed">
                   <strong>Important:</strong> Ciuna is a financial technology company and not a bank or exchange and acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions. Financial services are facilitated by licensed partners with appropriate regulatory permissions.
@@ -111,11 +112,11 @@ function TermsPageContent() {
                   technology facilitator.
                 </p>
                 <p className="text-gray-700 leading-relaxed mt-4">
-                  <strong>KYC Verification Services:</strong> Identity verification services are provided through our 
-                  third-party partner Bridge (Bridge Financial, Inc.). By using our services, you agree to Bridge's terms 
-                  and conditions for identity verification. Ciuna is not responsible for Bridge's verification processes, 
-                  but we work with Bridge to ensure compliance with applicable regulations. Bridge operates the 
-                  verification platform and processes your identity documents and personal information on our behalf.
+                  <strong>KYC Verification Services:</strong> Identity verification may be performed by vetted
+                  third-party or licensed verification partners. By using our services, you may be subject to those
+                  partners&apos; terms and requirements where applicable. Ciuna coordinates verification and compliance
+                  with applicable regulations; partners operate verification tooling and may process identity documents
+                  and personal information on our behalf under contract.
                 </p>
               </section>
 
@@ -219,7 +220,11 @@ function TermsPageContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">11. Disclaimers</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  Ciuna is a financial technology company and not a bank or exchange and acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions. All financial services, including blockchain and cryptocurrency infrastructure, are provided by licensed third-party partners who hold appropriate regulatory licenses in their respective jurisdictions. Our blockchain and cryptocurrency services are provided by Bridge and other licensed partners. End users interact only with traditional fiat currencies through bank-to-bank transfers. Users do not need to hold, manage, or interact with cryptocurrency or digital assets to use Ciuna's services.
+                  Ciuna is a financial technology company and not a bank or exchange and acts as a technology platform
+                  facilitating money movement services. Payment products are provided in partnership with licensed
+                  institutions. Financial services are delivered via licensed partners with appropriate permissions in
+                  their respective jurisdictions. End users interact with traditional fiat currencies through bank-based
+                  flows as presented in the product.
                 </p>
               </section>
 
@@ -234,23 +239,12 @@ function TermsPageContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">13. Contact Information</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  If you have any questions about these Terms of Service, please contact us at:
+                  If you have any questions about these Terms of Service, please contact us at{" "}
+                  <a href="mailto:legal@ciuna.com" className="text-ciuna-primary hover:underline">
+                    legal@ciuna.com
+                  </a>
+                  .
                 </p>
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <p className="text-gray-700">
-                    <strong>Ciuna, Inc.</strong>
-                    <br />
-                    28 Geary St Ste 650
-                    <br />
-                    San Francisco, CA 94108
-                    <br />
-                    <strong>Email:</strong> legal@ciuna.com
-                    <br />
-                    <strong>Phone:</strong> +1 628 228 6083
-                    <br />
-                    <strong>Website:</strong> www.ciuna.com
-                  </p>
-                </div>
               </section>
 
               <div className="mt-12 pt-8 border-t border-gray-200">

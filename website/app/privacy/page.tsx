@@ -72,10 +72,12 @@ function PrivacyPageContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. About This Policy</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  This Privacy Policy describes how Ciuna, Inc. ("Ciuna," "we," "us," or "our") collects, uses, and
-                  shares information about you when you use our platform and web applications. Ciuna provides
-                  instant, zero-fee cross-border transfers through licensed financial service partners. Ciuna is a
-                  financial technology company and not a bank or exchange and acts as a technology platform facilitating money movement services. Payment products are provided in partnership with licensed institutions.
+                  This Privacy Policy describes how Cova Systems Limited (&quot;Ciuna,&quot; &quot;we,&quot;
+                  &quot;us,&quot; or &quot;our&quot;) collects, uses, and shares information about you when you use our
+                  platform and web applications. Ciuna provides cross-border money movement through licensed financial
+                  service partners where available. Ciuna is a financial technology company and not a bank or exchange
+                  and acts as a technology platform facilitating money movement services. Payment products are provided
+                  in partnership with licensed institutions.
                 </p>
               </section>
 
@@ -98,12 +100,13 @@ function PrivacyPageContent() {
                   collect additional information as required by their regulatory obligations.
                 </p>
                 <p className="text-gray-700 leading-relaxed mt-4">
-                  <strong>Third-Party KYC Verification Services:</strong> We partner with Bridge (Bridge Financial, Inc.) 
-                  to provide KYC/KYB verification services. When you complete identity verification, Bridge collects and 
-                  processes your personal information, identity documents, and verification data on our behalf. Bridge acts 
-                  as a data processor and is contractually obligated to protect your information in accordance with 
-                  applicable data protection laws. Information collected by Bridge is shared with us for account 
-                  verification and regulatory compliance purposes. Bridge may collect additional information including:
+                  <strong>Third-Party KYC Verification Services:</strong> We use one or more qualified verification
+                  partners to provide KYC/KYB services. When you complete identity verification, those partners may
+                  collect and process your personal information, identity documents, and verification data on our
+                  behalf. Where applicable they act as processors and are contractually required to protect your
+                  information in accordance with applicable data protection laws. Information is shared with us for
+                  account verification and regulatory compliance. Partners may collect additional information
+                  including:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-gray-700 mt-2">
                   <li>Social Security Number (SSN) for U.S. residents</li>
@@ -145,11 +148,11 @@ function PrivacyPageContent() {
                   <li>For fraud prevention and risk management purposes</li>
                 </ul>
                 <p className="text-gray-700 leading-relaxed mt-4">
-                  <strong>Information Sharing with KYC Providers:</strong> We share your personal information and 
-                  identity verification documents with Bridge, our third-party KYC verification provider, to facilitate 
-                  identity verification and regulatory compliance. Bridge processes this information in accordance with 
-                  their privacy policy and our contractual agreements. Bridge may retain your verification data as 
-                  required by their regulatory obligations and data retention policies.
+                  <strong>Information Sharing with KYC Providers:</strong> We share your personal information and
+                  identity verification documents with third-party KYC verification providers as needed to facilitate
+                  identity verification and regulatory compliance. Providers process this information under their privacy
+                  commitments and our contractual agreements. They may retain verification data as required by law and
+                  their retention policies.
                 </p>
               </section>
 
@@ -172,11 +175,14 @@ function PrivacyPageContent() {
                   type of information and regulatory requirements in different jurisdictions.
                 </p>
                 <p className="text-gray-700 leading-relaxed mt-4">
-                  <strong>Bridge Data Retention:</strong> Bridge, our KYC verification provider, may retain your 
-                  verification data in accordance with their data retention policies and regulatory obligations. Bridge 
-                  may retain certain information even after your account with Ciuna is closed, as required by financial 
-                  services regulations. For specific information about Bridge's data retention practices, please contact 
-                  us or refer to Bridge's privacy policy.
+                  <strong>Verification partner retention:</strong> Our verification partners may retain your verification
+                  data in accordance with their retention policies and regulatory obligations, including after your account
+                  with Ciuna is closed where required by financial services regulations. For requests about data held by
+                  partners, contact us at{" "}
+                  <a href="mailto:legal@ciuna.com" className="text-ciuna-primary hover:underline">
+                    legal@ciuna.com
+                  </a>
+                  .
                 </p>
               </section>
 
@@ -199,10 +205,13 @@ function PrivacyPageContent() {
                   services.
                 </p>
                 <p className="text-gray-700 leading-relaxed mt-4">
-                  <strong>Accessing Data Held by Bridge:</strong> If you wish to access, correct, or delete personal 
-                  information held by Bridge, our KYC verification provider, you may contact Bridge directly or contact 
-                  us and we will assist you in making such requests. Bridge may retain certain verification data as 
-                  required by their regulatory obligations and data retention policies, even after account deletion.
+                  <strong>Data held by verification partners:</strong> If you wish to access, correct, or delete
+                  personal information processed by our verification partners, contact us at{" "}
+                  <a href="mailto:legal@ciuna.com" className="text-ciuna-primary hover:underline">
+                    legal@ciuna.com
+                  </a>{" "}
+                  and we will help coordinate requests where applicable. Partners may retain certain verification data as
+                  required by law and their retention policies, including after account deletion.
                 </p>
               </section>
 
@@ -219,15 +228,15 @@ function PrivacyPageContent() {
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">9. International Transfers</h2>
                 <p className="text-gray-700 leading-relaxed">
                   Your information may be transferred to and processed in countries other than your country of
-                  residence, including the United States where Ciuna is headquartered. We ensure that such transfers
-                  are conducted in accordance with applicable data protection laws and that appropriate safeguards are
-                  in place. Our licensed partners may also process your information in their respective jurisdictions.
+                  residence. We ensure that such transfers are conducted in accordance with applicable data protection
+                  laws and that appropriate safeguards are in place. Our licensed partners and verification providers
+                  may also process your information in their respective jurisdictions.
                 </p>
                 <p className="text-gray-700 leading-relaxed mt-4">
-                  <strong>Bridge Data Transfers:</strong> Bridge, our KYC verification provider, may process and store 
-                  your verification data in jurisdictions outside your country of residence. Bridge is contractually 
-                  obligated to implement appropriate safeguards for international data transfers in accordance with 
-                  applicable data protection laws, including standard contractual clauses where required.
+                  <strong>Partner processing locations:</strong> Verification partners may process and store your data
+                  in jurisdictions outside your country of residence. Where required, we rely on appropriate safeguards
+                  for international transfers under applicable data protection laws (including standard contractual
+                  clauses or equivalent mechanisms where applicable).
                 </p>
               </section>
 
@@ -246,8 +255,8 @@ function PrivacyPageContent() {
                   As a platform facilitating financial services, we and our licensed partners are subject to various
                   regulatory requirements including anti-money laundering (AML), know-your-customer (KYC), and sanctions
                   screening obligations. This may require us to collect, process, and retain additional information and
-                  to share information with regulatory authorities. Ciuna embeds verification, AML, and encryption at
-                  the core of every transaction through our licensed partners, including Bridge, to ensure compliance and security.
+                  to share information with regulatory authorities. Ciuna works with licensed partners and verification
+                  providers to apply verification, AML screening, and strong security practices as part of the service.
                 </p>
                 <p className="text-gray-700 leading-relaxed mt-4">
                   For detailed information about our compliance procedures, please review our{" "}
@@ -263,16 +272,11 @@ function PrivacyPageContent() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-semibold text-gray-900 mb-4">12. Cryptocurrency and Digital Assets</h2>
+                <h2 className="text-2xl font-semibold text-gray-900 mb-4">12. Bank and Partner Services</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  Ciuna does not hold, store, or manage cryptocurrency or other digital assets on behalf of users.
-                  Blockchain and cryptocurrency infrastructure services are provided by our licensed partners, including 
-                  Bridge, who handle blockchain settlement and cryptocurrency-related services. While our infrastructure 
-                  leverages blockchain technology to facilitate instant cross-border transfers, end users interact only 
-                  with traditional fiat currencies through bank-to-bank transfers. Users do not need to create 
-                  cryptocurrency wallets, hold digital assets, or interact with blockchain technology directly. All user 
-                  funds are processed through licensed financial service partners who handle fiat currency transactions in 
-                  compliance with applicable regulations.
+                  Services are presented as bank and fiat-based money movement. Settlement, banking, and compliance may be
+                  performed by licensed partners under applicable regulations. End users interact with traditional fiat
+                  currencies through bank-based flows as offered in the product.
                 </p>
               </section>
 
@@ -296,23 +300,12 @@ function PrivacyPageContent() {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">15. Contact Us</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  If you have any questions about this Privacy Policy or our privacy practices, please contact us at:
+                  If you have any questions about this Privacy Policy or our privacy practices, please contact us at{" "}
+                  <a href="mailto:legal@ciuna.com" className="text-ciuna-primary hover:underline">
+                    legal@ciuna.com
+                  </a>
+                  .
                 </p>
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <p className="text-gray-700">
-                    <strong>Ciuna, Inc.</strong>
-                    <br />
-                    28 Geary St Ste 650
-                    <br />
-                    San Francisco, CA 94108
-                    <br />
-                    <strong>Email:</strong> legal@ciuna.com
-                    <br />
-                    <strong>Phone:</strong> +1 628 228 6083
-                    <br />
-                    <strong>Website:</strong> www.ciuna.com
-                  </p>
-                </div>
               </section>
 
               <div className="mt-12 pt-8 border-t border-gray-200">

@@ -10,19 +10,32 @@ import { InstallAppBanner } from "@/components/pwa/install-app-banner"
 import { PwaInstallProvider } from "@/hooks/use-pwa-install-prompt"
 import "./globals.css"
 import { PWA_APP_ICON_URL, SITE_FAVICON_URL } from "@/lib/pwa-brand"
+import {
+  SEO_DEFAULT_DESCRIPTION,
+  SEO_DEFAULT_TITLE,
+  SEO_FAQ_JSON_LD,
+  SEO_FINANCIAL_SERVICE_JSON_LD,
+  SEO_KEYWORDS,
+  SEO_OG_IMAGE_ALT,
+  SEO_OG_IMAGE_URL,
+  SEO_SITE_NAME,
+  SEO_SITE_URL,
+  SEO_TWITTER_CREATOR,
+} from "@/lib/seo"
 
 export const metadata: Metadata = {
-  title: "Ciuna - Move Money Globally Like SMS",
-  description:
-    "API-first cross-border payment infrastructure for US and EU businesses, with built-in KYC/AML compliance. For individuals and businesses.",
-  keywords:
-    "instant money transfer, bank to bank transfer, cross border payments, international money transfer, zero fee transfer, US fintech, business banking, global payments, US EU Africa Asia transfers, instant cross border transfer, fiat to fiat transfer, business international payments, treasury FX, compliance gateway, money transfer API",
+  title: {
+    default: SEO_DEFAULT_TITLE,
+    template: "%s - Ciuna",
+  },
+  description: SEO_DEFAULT_DESCRIPTION,
+  keywords: SEO_KEYWORDS,
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://app.ciuna.com"),
+  metadataBase: new URL(SEO_SITE_URL),
   alternates: {
     canonical: "/",
   },
@@ -35,29 +48,27 @@ export const metadata: Metadata = {
     apple: [{ url: PWA_APP_ICON_URL, sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
-    title: "Ciuna - Move Money Globally Like SMS",
-    description:
-      "API-first cross-border payment infrastructure for US and EU businesses, with built-in KYC/AML compliance. For individuals and businesses.",
-    url: "https://app.ciuna.com",
-    siteName: "Ciuna",
+    title: SEO_DEFAULT_TITLE,
+    description: SEO_DEFAULT_DESCRIPTION,
+    url: SEO_SITE_URL,
+    siteName: SEO_SITE_NAME,
     locale: "en_US",
     type: "website",
     images: [
       {
-        url: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/ciuna%20seo%20cover.png",
+        url: SEO_OG_IMAGE_URL,
         width: 1200,
         height: 630,
-        alt: "Ciuna - Global Money Transfer Platform",
+        alt: SEO_OG_IMAGE_ALT,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ciuna - Move Money Globally Like SMS",
-    description:
-      "API-first cross-border payment infrastructure for US and EU businesses, with built-in KYC/AML compliance. For individuals and businesses.",
-    creator: "@ciuna",
-    images: ["https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/ciuna%20seo%20cover.png"],
+    title: SEO_DEFAULT_TITLE,
+    description: SEO_DEFAULT_DESCRIPTION,
+    creator: SEO_TWITTER_CREATOR,
+    images: [SEO_OG_IMAGE_URL],
   },
   robots: {
     index: true,
@@ -77,7 +88,7 @@ export const metadata: Metadata = {
    */
   appleWebApp: {
     capable: true,
-    title: "Ciuna",
+    title: SEO_SITE_NAME,
     statusBarStyle: "default",
   },
 }
@@ -104,116 +115,13 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              "mainEntity": [
-                {
-                  "@type": "Question",
-                  "name": "How much does it cost to send money with Ciuna?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Ciuna charges zero fees for international money transfers. You only pay the real-time exchange rate with no hidden costs, saving you up to 15% compared to traditional services."
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": "How fast are international money transfers?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Transfers are processed instantly using real-time settlement infrastructure. Money typically arrives in the recipient's bank account within minutes, not days like traditional services."
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": "Which countries can I send money to?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Currently, we support transfers to Nigeria, Ghana, Kenya, Uganda, and South Africa. We're constantly expanding to more countries to serve the global diaspora community."
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": "Is it safe to send money with Ciuna?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Yes, Ciuna uses bank-level security. All transfers are encrypted and processed through regulated financial institutions. Your money is always safe."
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": "How does Ciuna compare to Wise, Remitly, or WorldRemit?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Ciuna offers zero fees compared to 0.5-3% fees charged by competitors. We also provide instant transfers, while traditional services can take 1-3 business days."
-                  }
-                }
-              ]
-            })
+            __html: JSON.stringify(SEO_FAQ_JSON_LD),
           }}
         />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "FinancialService",
-              "name": "Ciuna",
-              "description": "Technology platform facilitating instant cross-border money transfers. API-first cross-border payment infrastructure for US and EU businesses.",
-              "url": "https://www.ciuna.com",
-              "logo": "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20web%20app.png",
-              "serviceType": "Money Transfer",
-              "areaServed": [
-                { "@type": "Country", "name": "Nigeria" },
-                { "@type": "Country", "name": "Ghana" },
-                { "@type": "Country", "name": "Kenya" },
-                { "@type": "Country", "name": "Uganda" },
-                { "@type": "Country", "name": "South Africa" },
-                { "@type": "Country", "name": "European Union" }
-              ],
-              "feesAndCommissionsSpecification": {
-                "@type": "UnitPriceSpecification",
-                "price": "0",
-                "priceCurrency": "USD",
-                "description": "Zero fees for international money transfers"
-              },
-              "offers": {
-                "@type": "Offer",
-                "description": "Instant bank-to-bank international money transfers with zero fees.",
-                "price": "0",
-                "priceCurrency": "USD"
-              },
-              "hasOfferCatalog": {
-                "@type": "OfferCatalog",
-                "name": "Money Transfer Services",
-                "itemListElement": [
-                  {
-                    "@type": "Offer",
-                    "itemOffered": {
-                      "@type": "Service",
-                      "name": "Send Money to Nigeria",
-                      "description": "Zero-fee money transfer to Nigeria"
-                    }
-                  },
-                  {
-                    "@type": "Offer",
-                    "itemOffered": {
-                      "@type": "Service",
-                      "name": "Send Money to Ghana",
-                      "description": "Zero-fee money transfer to Ghana"
-                    }
-                  },
-                  {
-                    "@type": "Offer",
-                    "itemOffered": {
-                      "@type": "Service",
-                      "name": "Send Money to Kenya",
-                      "description": "Zero-fee money transfer to Kenya"
-                    }
-                  }
-                ]
-              }
-            })
+            __html: JSON.stringify(SEO_FINANCIAL_SERVICE_JSON_LD),
           }}
         />
       </head>

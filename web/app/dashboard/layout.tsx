@@ -1,8 +1,10 @@
 import type { Metadata } from "next"
 
+import { SEO_PAGE_DESCRIPTIONS, SEO_PAGE_TITLES } from "@/lib/seo"
+
 export const metadata: Metadata = {
-  title: "Dashboard - Ciuna",
-  description: "Your personal dashboard for managing money transfers, viewing transaction history, and monitoring your account activity.",
+  title: SEO_PAGE_TITLES.dashboard,
+  description: SEO_PAGE_DESCRIPTIONS.dashboard,
   robots: {
     index: false,
     follow: false,

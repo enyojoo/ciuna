@@ -58,7 +58,7 @@ function Hero({ onSendMoney }: { onSendMoney: (data: {
               <span className="text-ciuna-primary">across borders</span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-500 leading-relaxed max-w-2xl mx-auto">
-              Fast, transparent remittances from your bank account to recipients abroad — with clear rates and a simple path to get started.
+              Easy way to send money from your bank account to recipients abroad in 10+ countries without fees
             </p>
           </div>
           <div className="flex flex-col items-center gap-4">

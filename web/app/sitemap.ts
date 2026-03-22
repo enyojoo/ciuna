@@ -1,7 +1,9 @@
 import type { MetadataRoute } from "next"
 
+import { SEO_SITE_URL } from "@/lib/seo"
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://app.ciuna.com"
+  const baseUrl = SEO_SITE_URL
 
   return [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1 },

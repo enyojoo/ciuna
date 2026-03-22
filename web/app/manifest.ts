@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next"
 
 import { PWA_APP_ICON_URL } from "@/lib/pwa-brand"
+import { SEO_MANIFEST_DESCRIPTION, SEO_SITE_NAME } from "@/lib/seo"
 
 /**
  * Web App Manifest — keep `display: "standalone"` unless product explicitly wants
@@ -9,9 +10,9 @@ import { PWA_APP_ICON_URL } from "@/lib/pwa-brand"
 export default function manifest(): MetadataRoute.Manifest {
   return {
     // Omit `id`: a hardcoded production URL breaks on other origins (e.g. ciuna.vercel.app) and is ignored.
-    name: "Ciuna",
-    short_name: "Ciuna",
-    description: "Send money globally with Ciuna.",
+    name: SEO_SITE_NAME,
+    short_name: SEO_SITE_NAME,
+    description: SEO_MANIFEST_DESCRIPTION,
     start_url: "/dashboard?source=pwa",
     scope: "/",
     display: "standalone",

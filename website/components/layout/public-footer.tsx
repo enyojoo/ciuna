@@ -16,7 +16,7 @@ export function PublicFooter() {
         <div className="py-6 sm:py-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
             <div className="flex flex-col items-center sm:items-start gap-2">
-              <div className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">© {new Date().getFullYear()} Ciuna Inc.</div>
+              <div className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">© {new Date().getFullYear()} Ciuna</div>
               <div className="flex items-center gap-3">
                 <a
                   href="https://t.me/ciuna_help"

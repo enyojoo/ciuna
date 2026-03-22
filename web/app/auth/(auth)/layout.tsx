@@ -1,10 +1,11 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { BrandLogo } from "@/components/brand/brand-logo"
+import { SEO_PAGE_DESCRIPTIONS, SEO_PAGE_TITLES } from "@/lib/seo"
 
 export const metadata: Metadata = {
-  title: "Authentication - Ciuna",
-  description: "Sign in to your Ciuna account to send money internationally with zero fees.",
+  title: SEO_PAGE_TITLES.auth,
+  description: SEO_PAGE_DESCRIPTIONS.auth,
   robots: {
     index: false,
     follow: false,
