@@ -7,7 +7,8 @@ import { usePwaInstallPrompt } from "@/hooks/use-pwa-install-prompt"
 import { PwaInstallBodyCopy } from "@/components/pwa/pwa-install-copy"
 
 export function InstallAppCard() {
-  const { visible, deferred, iosChrome, iosSafari, android, dismiss, runInstall } = usePwaInstallPrompt()
+  const { visible, deferred, iosChrome, iosSafari, android, showInstallButton, dismiss, runInstall } =
+    usePwaInstallPrompt()
 
   if (!visible) return null
 
@@ -37,7 +38,7 @@ export function InstallAppCard() {
               android={android}
               variant="card"
             />
-            {deferred ? (
+            {showInstallButton ? (
               <Button type="button" size="sm" className="mt-0.5 w-fit" onClick={() => void runInstall()}>
                 Install app
               </Button>

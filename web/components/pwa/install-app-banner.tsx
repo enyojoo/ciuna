@@ -16,7 +16,8 @@ const BANNER_LAYOUT_RESERVE =
  */
 export function InstallAppBanner() {
   const pathname = usePathname()
-  const { visible, deferred, iosChrome, iosSafari, android, dismiss, runInstall } = usePwaInstallPrompt()
+  const { visible, deferred, iosChrome, iosSafari, android, showInstallButton, dismiss, runInstall } =
+    usePwaInstallPrompt()
 
   const onMore = pathname === "/more" || pathname?.startsWith("/more/")
   if (!visible || onMore) return null
@@ -38,7 +39,7 @@ export function InstallAppBanner() {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                   <p className="text-sm font-semibold leading-tight text-foreground">Install Ciuna</p>
-                  {deferred ? (
+                  {showInstallButton ? (
                     <Button
                       type="button"
                       size="sm"

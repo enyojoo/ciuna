@@ -5,7 +5,7 @@ import { useRouteProtection } from "@/hooks/use-route-protection"
 import { AuthLoadingSkeleton } from "@/components/auth-loading-skeleton"
 import { UserDashboardLayout } from "@/components/layout/user-dashboard-layout"
 
-const PROTECTED_PATHS = ["/dashboard", "/send", "/transactions", "/recipients", "/card", "/more", "/support"]
+const PROTECTED_PATHS = ["/dashboard", "/send", "/transactions", "/recipients", "/more", "/support"]
 
 function isProtectedPath(pathname: string | null): boolean {
   if (!pathname) return false

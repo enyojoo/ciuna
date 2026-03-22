@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -173,7 +172,6 @@ export default function AdminTransactionsPage() {
   const [loading, setLoading] = useState(!adminData?.transactions) // Only show loading if no cached data
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [typeFilter, setTypeFilter] = useState<"all" | "send" | "receive">("all")
   const [currencyFilter, setCurrencyFilter] = useState("all")
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>([])
   const [selectedTransaction, setSelectedTransaction] = useState<CombinedTransaction | null>(null)
@@ -318,9 +316,6 @@ export default function AdminTransactionsPage() {
           transaction.blockchain_tx_hash?.toLowerCase().includes(searchTerm.toLowerCase()))
 
     const matchesStatus = statusFilter === "all" || transaction.status === statusFilter
-    const matchesType = typeFilter === "all" || 
-      (typeFilter === "send" && transaction.type === "send") ||
-      (typeFilter === "receive" && (transaction.type === "receive" || transaction.type === "card_funding"))
     const matchesCurrency =
       currencyFilter === "all" ||
       (transaction.type === "send" &&
@@ -328,7 +323,7 @@ export default function AdminTransactionsPage() {
       ((transaction.type === "receive" || transaction.type === "card_funding") &&
         (transaction.crypto_currency === currencyFilter || transaction.fiat_currency === currencyFilter))
 
-    return matchesSearch && matchesStatus && matchesType && matchesCurrency
+    return matchesSearch && matchesStatus && matchesCurrency
   })
 
   const formatTimestamp = (dateString: string) => {
@@ -541,21 +536,6 @@ export default function AdminTransactionsPage() {
         <div className="space-y-4">
           {/* Search and Filters Row */}
           <div className="flex flex-wrap items-center gap-3">
-            {/* Type Filter Tabs */}
-            <Tabs value={typeFilter} onValueChange={(v) => setTypeFilter(v as "all" | "send" | "receive")}>
-              <TabsList className="bg-gray-100">
-                <TabsTrigger value="all" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                  All Transactions
-                </TabsTrigger>
-                <TabsTrigger value="send" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                  Send (Fiat)
-                </TabsTrigger>
-                <TabsTrigger value="receive" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                  Receive & Card
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-
             {/* Search Bar */}
             <div className="relative flex-1 min-w-[300px]">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -613,7 +593,7 @@ export default function AdminTransactionsPage() {
             </Select>
 
             {/* Clear Filters Button */}
-            {(searchTerm || statusFilter !== "all" || currencyFilter !== "all" || typeFilter !== "all") && (
+            {(searchTerm || statusFilter !== "all" || currencyFilter !== "all") && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -621,7 +601,6 @@ export default function AdminTransactionsPage() {
                   setSearchTerm("")
                   setStatusFilter("all")
                   setCurrencyFilter("all")
-                  setTypeFilter("all")
                 }}
                 className="text-gray-600 hover:text-gray-900"
               >
@@ -632,20 +611,9 @@ export default function AdminTransactionsPage() {
           </div>
 
           {/* Active Filters Badges */}
-          {(searchTerm || statusFilter !== "all" || currencyFilter !== "all" || typeFilter !== "all") && (
+          {(searchTerm || statusFilter !== "all" || currencyFilter !== "all") && (
             <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-200">
               <span className="text-sm text-gray-500">Active filters:</span>
-              {typeFilter !== "all" && (
-                <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
-                  Type: {typeFilter === "send" ? "Send (Fiat)" : "Receive & Card"}
-                  <button
-                    onClick={() => setTypeFilter("all")}
-                    className="ml-2 hover:bg-blue-100 rounded-full p-0.5"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
               {statusFilter !== "all" && (
                 <Badge variant="secondary" className="bg-purple-50 text-purple-700 border-purple-200">
                   Status: {statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}

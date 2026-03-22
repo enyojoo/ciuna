@@ -22,9 +22,6 @@ const navigation = [
   { name: "Early Access", href: "/early-access", icon: UserPlus },
   { name: "Rates", href: "/rates", icon: TrendingUp },
   { name: "Settings", href: "/settings", icon: Settings },
-  { name: "Bridge Customers", href: "/bridge/customers", icon: Users },
-  { name: "Bridge Wallets", href: "/bridge/wallets", icon: CreditCard },
-  { name: "Bridge Virtual Accounts", href: "/bridge/virtual-accounts", icon: CreditCard },
 ]
 
 export function OfficeDashboardLayout({ children }: OfficeDashboardLayoutProps) {

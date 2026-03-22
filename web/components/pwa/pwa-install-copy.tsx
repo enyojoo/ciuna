@@ -33,12 +33,14 @@ export function PwaInstallBodyCopy({
     ? "text-xs text-muted-foreground leading-snug sm:text-sm line-clamp-2"
     : "text-sm text-muted-foreground leading-relaxed"
 
+  // Native install prompt (Chrome/Edge/Samsung Internet on Android, Chromium desktop, etc.).
+  // iOS never receives `beforeinstallprompt`; those users only see platform branches below.
   if (deferred) {
     return (
       <p className={bodyClass}>
         {banner
-          ? "Tap Install — or add Ciuna to your home screen for a full-screen app."
-          : "Add Ciuna to your home screen for a full-screen app experience."}
+          ? "Tap Install app for the browser install prompt — full-screen Ciuna."
+          : "Tap Install app below to run the browser install prompt and add full-screen Ciuna."}
       </p>
     )
   }

@@ -23,14 +23,7 @@ interface Transaction {
   recipient?: {
     full_name: string
   }
-  // Receive transaction fields
-  crypto_amount?: number
-  crypto_currency?: string
-  fiat_amount?: number
-  fiat_currency?: string
-  // Card funding fields
   destination_type?: "bank" | "card"
-  bridge_card_account_id?: string
 }
 
 export default function UserDashboardPage() {
@@ -38,62 +31,6 @@ export default function UserDashboardPage() {
   const { userProfile } = useAuth()
   const { transactions, currencies, exchangeRates, loading } = useUserData()
   const [totalSent, setTotalSent] = useState(0)
-  const [cardTransactions, setCardTransactions] = useState<any[]>([])
-
-  // Fetch card transactions
-  useEffect(() => {
-    if (!userProfile?.id) return
-
-    const fetchCardTransactions = async () => {
-      try {
-        // Fetch all cards first
-        const cardsResponse = await fetch("/api/cards", {
-          credentials: "include",
-        })
-        
-        if (cardsResponse.ok) {
-          const cardsData = await cardsResponse.json()
-          const cards = cardsData.cards || []
-          
-          // Fetch transactions for all cards
-          const transactionPromises = cards.map((card: any) =>
-            fetch(`/api/cards/${card.id}/transactions`, {
-              credentials: "include",
-            })
-              .then(res => res.ok ? res.json() : null)
-              .catch(() => null)
-          )
-          
-          const transactionResults = await Promise.all(transactionPromises)
-          
-          // Combine all card transactions (only debit/spending transactions)
-          const allCardTransactions: any[] = []
-          transactionResults.forEach((result) => {
-            if (result && result.transactions) {
-              const debitTransactions = result.transactions
-                .filter((tx: any) => {
-                  // Only include debit transactions (spending)
-                  const amount = parseFloat(tx.amount || "0")
-                  return amount < 0 || tx.type === "debit"
-                })
-                .map((tx: any) => ({
-                  ...tx,
-                  amount: Math.abs(parseFloat(tx.amount || "0")),
-                  currency: tx.currency || "USD",
-                }))
-              allCardTransactions.push(...debitTransactions)
-            }
-          })
-          
-          setCardTransactions(allCardTransactions)
-        }
-      } catch (error) {
-        console.error("Error fetching card transactions:", error)
-      }
-    }
-
-    fetchCardTransactions()
-  }, [userProfile?.id])
 
   // Helper function to convert amount to base currency
   const convertToBaseCurrency = (
@@ -183,21 +120,6 @@ export default function UserDashboardPage() {
           }
         }
 
-        // 2. Card transactions: use amount spent (debit transactions)
-        for (const cardTx of cardTransactions || []) {
-          if (cardTx.amount && cardTx.currency && cardTx.amount > 0) {
-            const amountInBaseCurrency = convertToBaseCurrency(
-              cardTx.amount,
-              cardTx.currency,
-              baseCurrency,
-              exchangeRates
-            )
-            if (amountInBaseCurrency > 0) {
-              totalInBaseCurrency += amountInBaseCurrency
-            }
-          }
-        }
-
         setTotalSent(totalInBaseCurrency)
       }
 
@@ -206,7 +128,7 @@ export default function UserDashboardPage() {
       console.error("Error calculating total spent:", error)
       setTotalSent(0)
     }
-  }, [transactions, exchangeRates, userProfile, cardTransactions])
+  }, [transactions, exchangeRates, userProfile])
 
   // Extract first name only (in case first_name contains full name)
   const userName = userProfile?.first_name?.split(' ')[0] || "User"
