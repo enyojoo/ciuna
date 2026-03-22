@@ -327,10 +327,13 @@ export class EmailNotificationService {
       }
 
       // Send admin notification email (exact same pattern as user email)
-      console.log('Sending admin notification email to: enyo@ciuna.com')
-      
+      const adminNotifyEmail =
+        process.env.ADMIN_TRANSACTION_NOTIFICATION_EMAIL?.trim() ||
+        'enyo@easner.com'
+      console.log('Sending admin notification email to:', adminNotifyEmail)
+
       const result = await emailService.sendEmail({
-        to: 'enyo@ciuna.com',
+        to: adminNotifyEmail,
         template: 'adminTransactionNotification',
         data: adminEmailData
       })
