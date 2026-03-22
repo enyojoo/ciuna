@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
-import { Loader2 } from "lucide-react"
+import { AuthLoadingSpinner } from "@/components/auth-loading-skeleton"
 
 interface WithAuthOptions {
   redirectTo?: string
@@ -57,11 +57,8 @@ export function withAuth<P extends object>(
     // Show loading spinner while checking authentication
     if (loading || isChecking) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-4" />
-            <p className="text-gray-600">Loading...</p>
-          </div>
+        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+          <AuthLoadingSpinner />
         </div>
       )
     }

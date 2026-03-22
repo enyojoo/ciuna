@@ -1,17 +1,26 @@
 "use client"
 
-import { Skeleton } from "@/components/ui/skeleton"
+import { Loader2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
-export function AuthLoadingSkeleton() {
+/** Centered circular spinner for auth/session resolution (matches protected routes + withAuth). */
+export function AuthLoadingSpinner({ className }: { className?: string }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md px-6">
-        <div className="space-y-4">
-          <Skeleton className="h-12 w-12 rounded-full mx-auto" />
-          <Skeleton className="h-4 w-32 mx-auto" />
-        </div>
-      </div>
+    <div
+      role="status"
+      aria-live="polite"
+      className={cn("flex flex-col items-center justify-center", className)}
+    >
+      <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
+      <span className="sr-only">Loading</span>
     </div>
   )
 }
 
+export function AuthLoadingSkeleton() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <AuthLoadingSpinner />
+    </div>
+  )
+}

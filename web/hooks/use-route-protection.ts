@@ -1,6 +1,6 @@
 "use client"
 
-import { useLayoutEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 
@@ -22,26 +22,24 @@ export function useRouteProtection(options: UseRouteProtectionOptions = {}) {
     redirectTo = "/auth/login",
   } = options
 
-  // useLayoutEffect: resolve auth gate before paint so we don't flash duplicate loading UIs.
-  useLayoutEffect(() => {
+  useEffect(() => {
+    // For login pages, don't show loading if we're not requiring auth
     if (!requireAuth) {
       setIsAuthorized(true)
       setIsChecking(false)
       return
     }
 
-    // Session + profile still resolving (auth-context keeps loading true until profile fetch completes).
-    if (loading) {
-      setIsChecking(true)
-      return
-    }
+    // Wait until Supabase session + profile fetch finish (see auth-context onAuthStateChange).
+    // Avoids treating `userProfile === null` as "still loading" — null is a valid value, not undefined.
+    if (loading) return
 
     // For user pages, check if user is admin and block access
     if (requireAuth && !adminOnly && user) {
       if (isAdmin) {
+        // Admin users cannot access user pages - redirect to admin dashboard
         router.push("/admin/dashboard")
         setIsAuthorized(false)
-        setIsChecking(false)
         return
       }
       setIsAuthorized(true)
@@ -55,9 +53,8 @@ export function useRouteProtection(options: UseRouteProtectionOptions = {}) {
         setIsAuthorized(true)
         setIsChecking(false)
       } else {
-        router.push(redirectTo)
+        router.push(redirectTo) // Use the redirectTo parameter (defaults to /login)
         setIsAuthorized(false)
-        setIsChecking(false)
       }
       return
     }
@@ -66,7 +63,6 @@ export function useRouteProtection(options: UseRouteProtectionOptions = {}) {
     if (requireAuth && !user) {
       router.push(redirectTo)
       setIsAuthorized(false)
-      setIsChecking(false)
       return
     }
 
@@ -78,7 +74,6 @@ export function useRouteProtection(options: UseRouteProtectionOptions = {}) {
         router.push("/dashboard")
       }
       setIsAuthorized(false)
-      setIsChecking(false)
       return
     }
 
@@ -87,7 +82,7 @@ export function useRouteProtection(options: UseRouteProtectionOptions = {}) {
   }, [user, loading, isAdmin, router, requireAuth, adminOnly, redirectTo])
 
   return {
-    isChecking,
+    isChecking: loading || isChecking,
     isAuthorized,
     user,
     userProfile,
