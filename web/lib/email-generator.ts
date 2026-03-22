@@ -1,5 +1,7 @@
 // Email template generator using the provided design system
 
+import { SEO_LOGO_URL } from "./seo"
+
 export function generateBaseEmailTemplate(
   title: string,
   subtitle: string,
@@ -360,7 +362,7 @@ export function generateBaseEmailTemplate(
     <div class="email-container">
         <!-- Header -->
         <div class="email-header">
-            <img src="https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20Logo.png" alt="Ciuna Logo" class="logo">
+            <img src="${SEO_LOGO_URL}" alt="Ciuna" class="logo" width="120" style="max-width:120px;height:auto;">
             <h1 class="email-title">${title}</h1>
             ${subtitle ? `<p class="email-subtitle">${subtitle}</p>` : ''}
         </div>
@@ -387,9 +389,8 @@ export function generateBaseEmailTemplate(
             </div>
             
             <p class="company-info">
-                © 2025 Ciuna, Inc. All rights reserved.<br>
-                28 Geary St Ste 650, San Francisco, CA 94108<br>
-                You received this email because you have an Ciuna account.
+                © ${new Date().getFullYear()} Ciuna. All rights reserved.<br>
+                You received this email because you have a Ciuna account.
             </p>
         </div>
     </div>
@@ -451,9 +452,8 @@ export function generateFooter(): string {
     </div>
     
     <p class="company-info">
-      © 2025 Ciuna, Inc. All rights reserved.<br>
-      28 Geary St Ste 650, San Francisco, CA 94108<br>
-      You received this email because you have an Ciuna account.
+      © ${new Date().getFullYear()} Ciuna. All rights reserved.<br>
+      You received this email because you have a Ciuna account.
     </p>
   `
 }

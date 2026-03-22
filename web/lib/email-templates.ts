@@ -65,7 +65,7 @@ Go to Dashboard: ${data.dashboardUrl}
 
 Need help? Contact us at support@ciuna.com
 
-© 2025 Ciuna, Inc. All rights reserved.
+© ${new Date().getFullYear()} Ciuna. All rights reserved.
     `
   },
 
@@ -388,7 +388,7 @@ Request Details:
 - User Agent: ${data.userAgent}
 - IP Address: ${data.ipAddress}
 
-        © 2025 Ciuna, Inc. All rights reserved.
+        © ${new Date().getFullYear()} Ciuna. All rights reserved.
     `
   },
 
@@ -453,7 +453,7 @@ We're building the future of international money transfers with zero fees, real-
 Questions?
 If you have any questions about your early access request or our platform, feel free to reach out to us. We're here to help!
 
-© 2025 Ciuna, Inc. All rights reserved.
+© ${new Date().getFullYear()} Ciuna. All rights reserved.
     `
   },
 
@@ -493,7 +493,7 @@ ${data.status === 'pending'
 
 View in Admin Dashboard: ${adminUrl}/transactions
 
-© 2025 Ciuna, Inc. All rights reserved.
+© ${new Date().getFullYear()} Ciuna. All rights reserved.
     `
     }
   }

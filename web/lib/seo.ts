@@ -123,7 +123,8 @@ export const SEO_FAQ_JSON_LD = {
   ],
 } as const
 
-const SEO_LOGO_URL =
+/** Brand mark (OG / JSON-LD / emails); same asset as in-app marketing surfaces */
+export const SEO_LOGO_URL =
   "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20web%20app.png"
 
 /** FinancialService JSON-LD (schema.org) */

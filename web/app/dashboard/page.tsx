@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Send, MessageCircle, UserPlus } from "lucide-react"
+import { Loader2, Send, MessageCircle, UserPlus } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { useEffect, useState } from "react"
@@ -199,11 +199,17 @@ export default function UserDashboardPage() {
     currencies && currencies.length > 0 && 
     exchangeRates && exchangeRates.length > 0
 
-  // Show skeleton only if:
-  // 1. Actually loading AND no data available, OR
-  // 2. No user profile
-  // This prevents flickering when navigating with cached data
-  if ((loading && !hasValidData) || !userProfile) {
+  // Spinner only while profile is missing; skeleton matches dashboard layout while user data loads.
+  if (!userProfile) {
+    return (
+      <div className="flex min-h-[50vh] w-full items-center justify-center px-5">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden />
+        <span className="sr-only">Loading profile</span>
+      </div>
+    )
+  }
+
+  if (loading && !hasValidData) {
     return <DashboardSkeleton />
   }
 

@@ -2,8 +2,9 @@
 
 import { usePathname } from "next/navigation"
 import { useRouteProtection } from "@/hooks/use-route-protection"
-import { AuthLoadingSkeleton } from "@/components/auth-loading-skeleton"
+import { Loader2 } from "lucide-react"
 import { UserDashboardLayout } from "@/components/layout/user-dashboard-layout"
+import { useAuth } from "@/lib/auth-context"
 
 const PROTECTED_PATHS = ["/dashboard", "/send", "/transactions", "/recipients", "/more", "/support"]
 
@@ -14,6 +15,7 @@ function isProtectedPath(pathname: string | null): boolean {
 
 export function ProtectedRouteWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const { user } = useAuth()
   const { isChecking, isAdmin } = useRouteProtection({ requireAuth: true })
 
   if (!isProtectedPath(pathname)) {
@@ -21,7 +23,23 @@ export function ProtectedRouteWrapper({ children }: { children: React.ReactNode 
   }
 
   if (isChecking) {
-    return <AuthLoadingSkeleton />
+    // Spinner during session / route resolution; dashboard page shows DashboardSkeleton while data loads.
+    if (user) {
+      return (
+        <UserDashboardLayout>
+          <div className="flex min-h-[50vh] w-full items-center justify-center px-5">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden />
+            <span className="sr-only">Loading</span>
+          </div>
+        </UserDashboardLayout>
+      )
+    }
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden />
+        <span className="sr-only">Loading</span>
+      </div>
+    )
   }
 
   if (isAdmin) {
