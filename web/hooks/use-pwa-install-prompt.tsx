@@ -13,10 +13,6 @@ import {
 /** Shared with InstallAppCard and InstallAppBanner; one dismiss hides both for 1 hour. */
 export const PWA_INSTALL_DISMISS_KEY = "ciuna_pwa_install_dismissed"
 
-/** When `beforeinstallprompt` is missing, tap still explains how to install from the browser menu. */
-const ANDROID_INSTALL_FALLBACK_MSG =
-  "If no install dialog appears, open the browser menu (⋮) and choose Install app or Add to Home screen."
-
 const DESKTOP_INSTALL_FALLBACK_MSG =
   "If no install dialog appears, use the install icon in the address bar, or open the browser menu (⋮) and choose Install app or Install Ciuna."
 
@@ -164,10 +160,8 @@ export function PwaInstallProvider({ children }: { children: ReactNode }) {
       return
     }
     if (typeof window === "undefined") return
-    if (android) {
-      window.alert(ANDROID_INSTALL_FALLBACK_MSG)
-      return
-    }
+    // Android: no instructional alert when `beforeinstallprompt` is missing (UI stays step-free).
+    if (android) return
     if (!isIosBrowser()) {
       window.alert(DESKTOP_INSTALL_FALLBACK_MSG)
     }
