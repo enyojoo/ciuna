@@ -26,8 +26,9 @@ export class EmailNotificationService {
     transactionId: string, 
     status: string
   ): Promise<void> {
-    console.log('Sending email for transaction:', transactionId, 'status:', status)
-    
+    const normalizedStatus = status.trim().toLowerCase()
+    console.log('Sending email for transaction:', transactionId, 'status:', normalizedStatus)
+
     try {
       // Get transaction data from database
       console.log('Creating Supabase client...')
@@ -94,25 +95,25 @@ export class EmailNotificationService {
         receiveCurrency: transaction.receive_currency,
         exchangeRate: transaction.exchange_rate,
         fee: transaction.fee_amount,
-        status: status as any,
+        status: normalizedStatus as TransactionEmailData['status'],
         failureReason: transaction.failure_reason,
         createdAt: transaction.created_at,
         updatedAt: transaction.updated_at
       }
 
-      // Send email based on status
-      console.log('Sending email to:', user.email, 'with status:', status)
-      
+      // Send email based on status (normalize casing from admin UIs)
+      console.log('Sending email to:', user.email, 'with status:', normalizedStatus)
+
       let result
-      if (status === 'completed') {
+      if (normalizedStatus === 'completed') {
         result = await emailService.sendTransactionCompletedEmail(user.email, emailData)
-      } else if (status === 'processing') {
+      } else if (normalizedStatus === 'processing') {
         result = await emailService.sendTransactionProcessingEmail(user.email, emailData)
-      } else if (status === 'pending') {
+      } else if (normalizedStatus === 'pending') {
         result = await emailService.sendTransactionPendingEmail(user.email, emailData)
-      } else if (status === 'failed') {
+      } else if (normalizedStatus === 'failed') {
         result = await emailService.sendTransactionFailedEmail(user.email, emailData)
-      } else if (status === 'cancelled') {
+      } else if (normalizedStatus === 'cancelled') {
         result = await emailService.sendTransactionCancelledEmail(user.email, emailData)
       } else {
         console.log('Unknown status:', status)

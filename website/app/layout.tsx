@@ -14,7 +14,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "Ciuna - Send Money Across Borders.",
+    default: "Ciuna - Send Money Across Borders",
     template: "%s - Ciuna",
   },
   description:
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     apple: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20favicon.png",
   },
   openGraph: {
-    title: "Ciuna - Send Money Across Borders.",
+    title: "Ciuna - Send Money Across Borders",
     description: "International remittances and cross-border bank transfers without fees.",
     url: "https://www.ciuna.com",
     siteName: "Ciuna",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ciuna - Send Money Across Borders.",
+    title: "Ciuna - Send Money Across Borders",
     description: "International remittances and cross-border bank transfers without fees.",
     creator: "@ciunabanking",
     images: ["https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/ciuna%20seo%20cover.png"],
