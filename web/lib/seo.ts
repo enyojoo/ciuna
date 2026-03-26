@@ -52,17 +52,8 @@ export const SEO_PAGE_TITLES = {
   recipients: "Recipients",
   support: "Support",
   auth: "Sign in",
-  register: "Create account",
   forgotPassword: "Forgot password",
   resetPassword: "Reset password",
-  authCallback: "Signing in",
-  more: "More",
-  moreProfile: "Profile",
-  morePassword: "Password",
-  moreNotifications: "Notifications",
-  moreVerification: "Verification",
-  moreVerificationAddress: "Address verification",
-  moreVerificationIdentity: "Identity verification",
 } as const
 
 /** Page-specific meta descriptions (logged-in / utility routes; many are noindex) */
@@ -74,18 +65,8 @@ export const SEO_PAGE_DESCRIPTIONS = {
   recipients: "Save and manage recipients for faster, repeatable international transfers.",
   support: "Get help with transfers, verification, and your Ciuna account.",
   auth: "Sign in to Ciuna to send money globally with transparent pricing and secure authentication.",
-  register:
-    "Create your Ciuna account to send money internationally with transparent pricing and secure onboarding.",
   forgotPassword: "Start a secure password reset for your Ciuna account.",
   resetPassword: "Choose a new password to get back into your Ciuna account.",
-  authCallback: "Completing sign-in to your Ciuna account.",
-  more: "Account settings, profile, security, and more in the Ciuna app.",
-  moreProfile: "View and update your profile information in Ciuna.",
-  morePassword: "Change your Ciuna account password securely.",
-  moreNotifications: "Manage notification preferences for your Ciuna account.",
-  moreVerification: "Complete identity and address verification for Ciuna.",
-  moreVerificationAddress: "Verify your address for your Ciuna account.",
-  moreVerificationIdentity: "Verify your identity for your Ciuna account.",
 } as const
 
 /** JSON-LD: FinancialService block */
@@ -142,17 +123,9 @@ export const SEO_FAQ_JSON_LD = {
   ],
 } as const
 
-/** Brand mark (OG / JSON-LD); in-app marketing surfaces */
+/** Brand mark (OG / JSON-LD / emails); same asset as in-app marketing surfaces */
 export const SEO_LOGO_URL =
   "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20web%20app.png"
-
-/** HTML emails: full-color mark on light backgrounds */
-export const SEO_EMAIL_LOGO_LIGHT_URL =
-  "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20main.png"
-
-/** HTML emails: mark for dark-mode mail clients (prefers-color-scheme: dark) */
-export const SEO_EMAIL_LOGO_DARK_URL =
-  "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20light.png"
 
 /** FinancialService JSON-LD (schema.org) */
 export const SEO_FINANCIAL_SERVICE_JSON_LD = {

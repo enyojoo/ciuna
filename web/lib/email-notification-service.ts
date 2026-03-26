@@ -26,9 +26,8 @@ export class EmailNotificationService {
     transactionId: string, 
     status: string
   ): Promise<void> {
-    const normalizedStatus = status.trim().toLowerCase()
-    console.log('Sending email for transaction:', transactionId, 'status:', normalizedStatus)
-
+    console.log('Sending email for transaction:', transactionId, 'status:', status)
+    
     try {
       // Get transaction data from database
       console.log('Creating Supabase client...')
@@ -95,25 +94,25 @@ export class EmailNotificationService {
         receiveCurrency: transaction.receive_currency,
         exchangeRate: transaction.exchange_rate,
         fee: transaction.fee_amount,
-        status: normalizedStatus as TransactionEmailData['status'],
+        status: status as any,
         failureReason: transaction.failure_reason,
         createdAt: transaction.created_at,
         updatedAt: transaction.updated_at
       }
 
-      // Send email based on status (normalize casing from admin UIs)
-      console.log('Sending email to:', user.email, 'with status:', normalizedStatus)
-
+      // Send email based on status
+      console.log('Sending email to:', user.email, 'with status:', status)
+      
       let result
-      if (normalizedStatus === 'completed') {
+      if (status === 'completed') {
         result = await emailService.sendTransactionCompletedEmail(user.email, emailData)
-      } else if (normalizedStatus === 'processing') {
+      } else if (status === 'processing') {
         result = await emailService.sendTransactionProcessingEmail(user.email, emailData)
-      } else if (normalizedStatus === 'pending') {
+      } else if (status === 'pending') {
         result = await emailService.sendTransactionPendingEmail(user.email, emailData)
-      } else if (normalizedStatus === 'failed') {
+      } else if (status === 'failed') {
         result = await emailService.sendTransactionFailedEmail(user.email, emailData)
-      } else if (normalizedStatus === 'cancelled') {
+      } else if (status === 'cancelled') {
         result = await emailService.sendTransactionCancelledEmail(user.email, emailData)
       } else {
         console.log('Unknown status:', status)
@@ -327,13 +326,10 @@ export class EmailNotificationService {
       }
 
       // Send admin notification email (exact same pattern as user email)
-      const adminNotifyEmail =
-        process.env.ADMIN_TRANSACTION_NOTIFICATION_EMAIL?.trim() ||
-        'enyo@easner.com'
-      console.log('Sending admin notification email to:', adminNotifyEmail)
-
+      console.log('Sending admin notification email to: enyo@ciuna.com')
+      
       const result = await emailService.sendEmail({
-        to: adminNotifyEmail,
+        to: 'enyo@ciuna.com',
         template: 'adminTransactionNotification',
         data: adminEmailData
       })

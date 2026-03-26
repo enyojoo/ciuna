@@ -37,7 +37,7 @@ export function PublicFooter() {
           <div className="text-center sm:text-left text-xs sm:text-sm text-gray-500">
             <p>
               Need help? Email us at{" "}
-              <a href="mailto:support@ciuna.com" className="text-ciuna-primary hover:underline">support@ciuna.com</a>
+              <a href="mailto:hello@ciuna.com" className="text-ciuna-primary hover:underline">hello@ciuna.com</a>
             </p>
           </div>
         </div>

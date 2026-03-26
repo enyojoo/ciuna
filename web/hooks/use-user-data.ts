@@ -5,7 +5,7 @@ import { userDataStore } from "@/lib/user-data-store"
 import { useAuth } from "@/lib/auth-context"
 
 export function useUserData() {
-  const { userProfile, loading: authLoading } = useAuth()
+  const { userProfile } = useAuth()
   const initialData = userDataStore.getData()
   const initialLoading = !initialData || initialData.lastUpdated === 0 || !userDataStore.checkDataFreshness()
   const [data, setData] = useState(initialData)
@@ -35,13 +35,7 @@ export function useUserData() {
   useEffect(() => {
     mountedRef.current = true
 
-    if (!userProfile?.id) {
-      // Auth finished but no profile (or signed out): do not leave loading stuck true.
-      if (!authLoading) {
-        setLoading(false)
-      }
-      return
-    }
+    if (!userProfile?.id) return
 
     const initializeData = async () => {
       if (!mountedRef.current) return
@@ -104,7 +98,7 @@ export function useUserData() {
     return () => {
       unsubscribe()
     }
-  }, [userProfile?.id, authLoading])
+  }, [userProfile?.id])
 
   useEffect(() => {
     return () => {

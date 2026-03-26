@@ -1,26 +1,5 @@
 import { transactionService, recipientService, currencyService } from "./database"
 import { supabase } from "./supabase"
-import { authFetchInit } from "./api-auth-fetch"
-
-/** One slow Supabase/API call must not fail the entire dashboard load (see global Promise.race removal). */
-const LOAD_OP_TIMEOUT_MS = 25_000
-
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const id = setTimeout(() => {
-      reject(new Error(`${label} timed out after ${ms}ms`))
-    }, ms)
-    promise
-      .then((v) => {
-        clearTimeout(id)
-        resolve(v)
-      })
-      .catch((e) => {
-        clearTimeout(id)
-        reject(e)
-      })
-  })
-}
 
 interface UserData {
   transactions: any[]
@@ -103,54 +82,41 @@ class UserDataStore {
       this.isLoading = true
       this.updateActivity()
 
-      // Hydrate client session before parallel RLS reads (reload after login can race).
-      try {
-        await withTimeout(supabase.auth.getSession(), 8000, "auth.getSession")
-      } catch {
-        // Continue — cookies may still attach to PostgREST requests
-      }
+      // Create timeout promise
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Data loading timeout")), 15000),
+      )
 
-      // Fetch combined transactions (send + receive) from API — per-op timeout, not a global race
+      // Load all data with timeout protection
+      // Fetch combined transactions (send + receive) from API
       const transactionsPromise = (async () => {
-        const controller = new AbortController()
-        const abortT = setTimeout(() => controller.abort(), LOAD_OP_TIMEOUT_MS)
         try {
-          const res = await fetch(
-            `/api/transactions?type=all&limit=20`,
-            await authFetchInit(controller.signal),
-          )
+          const res = await fetch(`/api/transactions?type=all&limit=20`, {
+            credentials: 'include',
+          })
           if (res.ok) {
             const data = await res.json()
             return data.transactions || []
           }
+          // Fallback to old method if API fails
           return await transactionService.getByUserId(userId, 20)
         } catch (error) {
           console.error("Error fetching combined transactions, falling back to send only:", error)
+          // Fallback to old method if fetch fails
           return await transactionService.getByUserId(userId, 20)
-        } finally {
-          clearTimeout(abortT)
         }
       })()
 
-      const results = await Promise.allSettled([
-        withTimeout(currencyService.getAll(), LOAD_OP_TIMEOUT_MS, "currencies"),
-        withTimeout(currencyService.getExchangeRates(), LOAD_OP_TIMEOUT_MS, "exchangeRates"),
-        withTimeout(transactionsPromise, LOAD_OP_TIMEOUT_MS + 2000, "transactions"),
-        withTimeout(recipientService.getByUserId(userId), LOAD_OP_TIMEOUT_MS, "recipients"),
+      const dataPromise = Promise.allSettled([
+        currencyService.getAll(),
+        currencyService.getExchangeRates(),
+        transactionsPromise,
+        recipientService.getByUserId(userId),
       ])
 
-      const logRejected = (label: string, i: number) => {
-        const r = results[i]
-        if (r.status === "rejected") {
-          console.warn(`UserDataStore: ${label} failed:`, r.reason)
-        }
-      }
-      logRejected("currencies", 0)
-      logRejected("exchangeRates", 1)
-      logRejected("transactions", 2)
-      logRejected("recipients", 3)
+      const results = (await Promise.race([dataPromise, timeoutPromise])) as PromiseSettledResult<any>[]
 
-      // Extract results with fallbacks (partial success is OK)
+      // Extract results with fallbacks
       const currencies = results[0].status === "fulfilled" ? results[0].value || [] : this.data.currencies
       const exchangeRates = results[1].status === "fulfilled" ? results[1].value || [] : this.data.exchangeRates
       const transactions = results[2].status === "fulfilled" ? results[2].value || [] : this.data.transactions
@@ -285,7 +251,9 @@ class UserDataStore {
     try {
       this.updateActivity()
       // Fetch combined transactions (send + receive) from API
-      const response = await fetch(`/api/transactions?type=all&limit=20`, await authFetchInit())
+      const response = await fetch(`/api/transactions?type=all&limit=20`, {
+        credentials: 'include',
+      })
       if (response.ok) {
         const data = await response.json()
         this.data.transactions = data.transactions || []

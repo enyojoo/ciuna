@@ -6,12 +6,9 @@ import { getOfficeCorsHeaders } from '@/lib/cors'
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  // CORS for office app: admin routes + email hook (office updates transaction status → web sends emails)
-  const isOfficeCorsApi =
-    pathname.startsWith('/api/admin/') ||
-    pathname.startsWith('/api/auth/admin/') ||
-    pathname === '/api/send-email-notification'
-  if (isOfficeCorsApi) {
+  // CORS for office app (admin API routes)
+  const isAdminApi = pathname.startsWith('/api/admin/') || pathname.startsWith('/api/auth/admin/')
+  if (isAdminApi) {
     const corsHeaders = getOfficeCorsHeaders(request)
     if (request.method === 'OPTIONS') {
       return new NextResponse(null, { status: 204, headers: corsHeaders })
@@ -40,10 +37,10 @@ export function middleware(request: NextRequest) {
     response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
   }
 
-  // App shell must not be cached to a 304 stale document (breaks auth + client state after reload).
+  // Set cache headers for authenticated app pages (dashboard, send, transactions, etc.)
   const appPaths = ['/dashboard', '/send', '/transactions', '/recipients', '/more', '/support']
   if (appPaths.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
-    response.headers.set('Cache-Control', 'private, no-store, must-revalidate')
+    response.headers.set('Cache-Control', 'private, no-cache, must-revalidate')
   }
 
   return response

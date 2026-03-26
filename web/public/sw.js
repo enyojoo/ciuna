@@ -10,5 +10,6 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim())
 })
 
-// Do not register a fetch handler: intercepting all requests can break auth/cookie behavior
-// and navigations; network requests stay on the default path (no SW interception).
+self.addEventListener("fetch", (event) => {
+  event.respondWith(fetch(event.request))
+})

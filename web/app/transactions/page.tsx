@@ -10,7 +10,6 @@ import { useAuth } from "@/lib/auth-context"
 import { useUserData } from "@/hooks/use-user-data"
 import { userDataStore } from "@/lib/user-data-store"
 import { supabase } from "@/lib/supabase"
-import { authFetchInit } from "@/lib/api-auth-fetch"
 import Link from "next/link"
 import { AppPageHeader } from "@/components/layout/app-page-header"
 
@@ -126,10 +125,9 @@ export default function UserTransactionsPage() {
 
     const fetchCombinedTransactions = async () => {
       try {
-        const txResponse = await fetch(
-          `/api/transactions?type=send&limit=100`,
-          await authFetchInit(),
-        )
+        const txResponse = await fetch(`/api/transactions?type=send&limit=100`, {
+          credentials: "include",
+        })
         if (txResponse.ok) {
           const txData = await txResponse.json()
           const transactionsList = txData.transactions || []
