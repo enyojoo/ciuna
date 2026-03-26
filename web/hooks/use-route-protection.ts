@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 
 interface UseRouteProtectionOptions {
@@ -13,6 +13,7 @@ interface UseRouteProtectionOptions {
 export function useRouteProtection(options: UseRouteProtectionOptions = {}) {
   const { user, userProfile, loading, isAdmin } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
   const [isChecking, setIsChecking] = useState(true)
   const [isAuthorized, setIsAuthorized] = useState(false)
 
@@ -30,17 +31,12 @@ export function useRouteProtection(options: UseRouteProtectionOptions = {}) {
       return
     }
 
-    // Wait until Supabase session + profile fetch finish (see auth-context onAuthStateChange).
-    // Avoids treating `userProfile === null` as "still loading" — null is a valid value, not undefined.
-    if (loading) return
-
     // For user pages, check if user is admin and block access
-    if (requireAuth && !adminOnly && user) {
+    if (requireAuth && !adminOnly && user && userProfile !== undefined) {
       if (isAdmin) {
         // Admin users cannot access user pages - redirect to admin dashboard
         router.push("/admin/dashboard")
         setIsAuthorized(false)
-        setIsChecking(false)
         return
       }
       setIsAuthorized(true)
@@ -48,42 +44,55 @@ export function useRouteProtection(options: UseRouteProtectionOptions = {}) {
       return
     }
 
+    // For user pages, if we have a user but profile is still loading, wait
+    if (requireAuth && !adminOnly && user && userProfile === undefined && loading) {
+      return
+    }
+
     // For admin pages, we need to wait for profile to determine admin status
-    if (adminOnly && user) {
+    if (adminOnly && user && userProfile !== undefined) {
       if (isAdmin) {
         setIsAuthorized(true)
         setIsChecking(false)
       } else {
         router.push(redirectTo) // Use the redirectTo parameter (defaults to /login)
         setIsAuthorized(false)
-        setIsChecking(false)
       }
       return
     }
+
+    // For admin pages, if we have a user but profile is still loading, wait
+    if (adminOnly && user && userProfile === undefined && loading) {
+      return
+    }
+
+    // If still loading auth, wait
+    if (loading) return
 
     // If authentication is required but user is not logged in
     if (requireAuth && !user) {
       router.push(redirectTo)
       setIsAuthorized(false)
-      setIsChecking(false)
       return
     }
 
     // If user is logged in but trying to access login page
     if (!requireAuth && user) {
-      if (isAdmin) {
-        router.push("/admin/dashboard")
-      } else {
-        router.push("/dashboard")
+      // Only redirect if we know the user's admin status
+      if (userProfile !== undefined) {
+        if (isAdmin) {
+          router.push("/admin/dashboard")
+        } else {
+          router.push("/dashboard")
+        }
+        setIsAuthorized(false)
+        return
       }
-      setIsAuthorized(false)
-      setIsChecking(false)
-      return
     }
 
     setIsAuthorized(true)
     setIsChecking(false)
-  }, [user, loading, isAdmin, router, requireAuth, adminOnly, redirectTo])
+  }, [user, userProfile, loading, isAdmin, router, requireAuth, adminOnly, redirectTo])
 
   return {
     isChecking: loading || isChecking,
