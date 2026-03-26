@@ -40,6 +40,7 @@ export function useRouteProtection(options: UseRouteProtectionOptions = {}) {
         // Admin users cannot access user pages - redirect to admin dashboard
         router.push("/admin/dashboard")
         setIsAuthorized(false)
+        setIsChecking(false)
         return
       }
       setIsAuthorized(true)
@@ -55,6 +56,7 @@ export function useRouteProtection(options: UseRouteProtectionOptions = {}) {
       } else {
         router.push(redirectTo) // Use the redirectTo parameter (defaults to /login)
         setIsAuthorized(false)
+        setIsChecking(false)
       }
       return
     }
@@ -63,6 +65,7 @@ export function useRouteProtection(options: UseRouteProtectionOptions = {}) {
     if (requireAuth && !user) {
       router.push(redirectTo)
       setIsAuthorized(false)
+      setIsChecking(false)
       return
     }
 
@@ -74,6 +77,7 @@ export function useRouteProtection(options: UseRouteProtectionOptions = {}) {
         router.push("/dashboard")
       }
       setIsAuthorized(false)
+      setIsChecking(false)
       return
     }
 

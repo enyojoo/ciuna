@@ -4,6 +4,27 @@ import { type NextRequest } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
 /**
+ * Supabase splits large session JSON across `sb-*-auth-token.0`, `.1`, … — parse after joining.
+ */
+function getAccessTokenFromJoinedChunks(request: NextRequest, baseName: string): string | null {
+  const chunks = request.cookies
+    .getAll()
+    .filter((c) => c.name === baseName || c.name.startsWith(`${baseName}.`))
+  if (chunks.length === 0) return null
+
+  const sorted = [...chunks].sort((a, b) => {
+    if (a.name === baseName) return -1
+    if (b.name === baseName) return 1
+    const ai = parseInt(a.name.slice(baseName.length + 1), 10)
+    const bi = parseInt(b.name.slice(baseName.length + 1), 10)
+    return (Number.isNaN(ai) ? 0 : ai) - (Number.isNaN(bi) ? 0 : bi)
+  })
+
+  const joined = sorted.map((c) => c.value).join("")
+  return extractTokenFromCookieValue(joined, baseName)
+}
+
+/**
  * Get Supabase access token from request cookies
  */
 export function getAccessTokenFromRequest(request: NextRequest): string | null {
@@ -12,6 +33,22 @@ export function getAccessTokenFromRequest(request: NextRequest): string | null {
   if (authHeader && authHeader.startsWith("Bearer ")) {
     return authHeader.substring(7)
   }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
+  let projectRef = ""
+  try {
+    const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
+    if (urlMatch) projectRef = urlMatch[1]
+  } catch {
+    // ignore
+  }
+
+  if (projectRef) {
+    const fromProject = getAccessTokenFromJoinedChunks(request, `sb-${projectRef}-auth-token`)
+    if (fromProject) return fromProject
+  }
+  const fromGeneric = getAccessTokenFromJoinedChunks(request, "sb-auth-token")
+  if (fromGeneric) return fromGeneric
 
   // Get all cookies
   const allCookies = request.cookies.getAll()
@@ -63,19 +100,7 @@ export function getAccessTokenFromRequest(request: NextRequest): string | null {
     }
   }
 
-  // Fallback: try common cookie name patterns
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-  // Extract project ref from Supabase URL (e.g., https://xyz.supabase.co -> xyz)
-  let projectRef = ''
-  try {
-    const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
-    if (urlMatch) {
-      projectRef = urlMatch[1]
-    }
-  } catch (e) {
-    // Ignore URL parsing errors
-  }
-  
+  // Fallback: try common cookie name patterns (single-cookie, non-chunked)
   // Try specific cookie names (Supabase uses sb-<project-ref>-auth-token format)
   const cookieNames = [
     `sb-${projectRef}-auth-token`,
