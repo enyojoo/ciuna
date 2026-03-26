@@ -217,15 +217,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     const getInitialSession = async () => {
       try {
-        const sessionResult = await Promise.race([
-          supabase.auth.getSession(),
-          new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error("getSession timeout")), 12_000),
-          ),
-        ])
         const {
           data: { session },
-        } = sessionResult
+        } = await supabase.auth.getSession()
 
         if (mounted && session?.user) {
           await fetchUserProfile(session.user.id, session.user)

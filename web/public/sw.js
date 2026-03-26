@@ -1,6 +1,9 @@
 /**
- * Minimal service worker for PWA installability (Chrome) and safe updates.
- * Network-only: no offline caching of app routes.
+ * Minimal service worker for PWA installability (Chrome) and update flow.
+ *
+ * Intentionally NO "fetch" handler: a passthrough `fetch(event.request)` for all
+ * requests broke navigations and Supabase auth (FetchEvent network error,
+ * "Failed to fetch" in sw.js). The default browser network stack is used instead.
  */
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting())
@@ -8,8 +11,4 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim())
-})
-
-self.addEventListener("fetch", (event) => {
-  event.respondWith(fetch(event.request))
 })
