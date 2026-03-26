@@ -49,3 +49,12 @@ export const signOut = async () => {
   const { error } = await supabase.auth.signOut()
   if (error) throw error
 }
+
+/** Use on same-origin fetch() to API routes that read the session via cookies or Authorization. Session is usually in localStorage, not cookies. */
+export async function getSupabaseAuthHeaders(): Promise<Record<string, string>> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session?.access_token) return {}
+  return { Authorization: `Bearer ${session.access_token}` }
+}

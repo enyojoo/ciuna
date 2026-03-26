@@ -9,7 +9,7 @@ import { TransactionsListSkeleton } from "@/components/transactions-skeleton"
 import { useAuth } from "@/lib/auth-context"
 import { useUserData } from "@/hooks/use-user-data"
 import { userDataStore } from "@/lib/user-data-store"
-import { supabase } from "@/lib/supabase"
+import { getSupabaseAuthHeaders, supabase } from "@/lib/supabase"
 import Link from "next/link"
 import { AppPageHeader } from "@/components/layout/app-page-header"
 
@@ -125,8 +125,10 @@ export default function UserTransactionsPage() {
 
     const fetchCombinedTransactions = async () => {
       try {
+        const authHeaders = await getSupabaseAuthHeaders()
         const txResponse = await fetch(`/api/transactions?type=send&limit=100`, {
           credentials: "include",
+          headers: authHeaders,
         })
         if (txResponse.ok) {
           const txData = await txResponse.json()
@@ -175,10 +177,12 @@ export default function UserTransactionsPage() {
 
     const fetchCombinedTransactions = async () => {
       try {
+        const authHeaders = await getSupabaseAuthHeaders()
         const txResponse = await fetch(
           `/api/transactions?type=send&limit=100`,
           {
-            credentials: 'include',
+            credentials: "include",
+            headers: authHeaders,
           }
         )
         if (txResponse.ok) {
@@ -214,7 +218,7 @@ export default function UserTransactionsPage() {
           console.log('User transaction change received via Realtime:', payload.eventType)
           // Refresh both local state and userDataStore
           if (userProfile?.id) {
-            await refreshTransactions(userProfile.id)
+            await refreshTransactions()
           }
           // Also update local state
           await fetchCombinedTransactions()
