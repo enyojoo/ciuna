@@ -103,7 +103,8 @@ export function useUserData() {
   useEffect(() => {
     return () => {
       mountedRef.current = false
-      userDataStore.cleanup()
+      // Do not call userDataStore.cleanup() here: the store is shared across routes.
+      // Cleanup on unmount cleared listeners/subscriptions when navigating e.g. dashboard → send.
     }
   }, [])
 

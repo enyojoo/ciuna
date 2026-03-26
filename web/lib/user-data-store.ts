@@ -329,6 +329,13 @@ class UserDataStore {
     this.listeners.clear()
     this.currentUserId = null
     this.loadingPromise = null
+    this.data = {
+      transactions: [],
+      recipients: [],
+      currencies: [],
+      exchangeRates: [],
+      lastUpdated: 0,
+    }
   }
 }
 

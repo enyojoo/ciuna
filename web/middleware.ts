@@ -40,10 +40,11 @@ export function middleware(request: NextRequest) {
     response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
   }
 
-  // Set cache headers for authenticated app pages (dashboard, send, transactions, etc.)
+  // Authenticated app shell: no-store avoids 304 reuse of HTML that can reference stale
+  // hashed chunks after deploys (broken hydration / infinite loading until hard refresh).
   const appPaths = ['/dashboard', '/send', '/transactions', '/recipients', '/more', '/support']
   if (appPaths.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
-    response.headers.set('Cache-Control', 'private, no-cache, must-revalidate')
+    response.headers.set('Cache-Control', 'private, no-store, must-revalidate')
   }
 
   return response

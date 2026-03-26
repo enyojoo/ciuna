@@ -4,6 +4,7 @@ import type React from "react"
 import { createContext, useContext, useEffect, useState, useMemo, useCallback } from "react"
 import type { User } from "@supabase/supabase-js"
 import { supabase } from "./supabase"
+import { userDataStore } from "./user-data-store"
 import { getSecuritySettings } from "./security-settings"
 
 interface UserProfile {
@@ -216,9 +217,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     const getInitialSession = async () => {
       try {
+        const sessionResult = await Promise.race([
+          supabase.auth.getSession(),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("getSession timeout")), 12_000),
+          ),
+        ])
         const {
           data: { session },
-        } = await supabase.auth.getSession()
+        } = sessionResult
 
         if (mounted && session?.user) {
           await fetchUserProfile(session.user.id, session.user)
@@ -359,6 +366,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserProfile(null)
       setIsAdmin(false)
       setLoading(false)
+      userDataStore.cleanup()
 
       // Sign out from Supabase
       const { error } = await supabase.auth.signOut()
@@ -373,6 +381,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserProfile(null)
       setIsAdmin(false)
       setLoading(false)
+      userDataStore.cleanup()
     }
   }, [])
 
