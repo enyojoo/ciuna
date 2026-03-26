@@ -212,6 +212,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true
+    const PROFILE_FETCH_TIMEOUT_MS = 15000
+
+    const fetchProfileWithTimeout = async (sessionUser: User) => {
+      try {
+        await Promise.race([
+          fetchUserProfile(sessionUser.id, sessionUser),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("Profile fetch timeout")), PROFILE_FETCH_TIMEOUT_MS),
+          ),
+        ])
+      } catch (e) {
+        console.warn("Profile fetch slow or failed, using session-only state:", e)
+        setUser(sessionUser)
+        setUserProfile({
+          id: sessionUser.id,
+          email: sessionUser.email ?? "",
+        })
+        setIsAdmin(false)
+      }
+    }
 
     // Get initial session
     const getInitialSession = async () => {
@@ -221,7 +241,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } = await supabase.auth.getSession()
 
         if (mounted && session?.user) {
-          await fetchUserProfile(session.user.id, session.user)
+          await fetchProfileWithTimeout(session.user)
         }
       } catch (error) {
         console.error("Error getting initial session:", error)
@@ -246,7 +266,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setLastActivity(Date.now())
           // Must await so `loading` stays true until profile is resolved — avoids flashing
           // AuthLoadingSkeleton → shell before userProfile exists (useUserData / dashboard).
-          await fetchUserProfile(session.user.id, session.user)
+          await fetchProfileWithTimeout(session.user)
         } else {
           setUser(null)
           setUserProfile(null)
