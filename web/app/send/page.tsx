@@ -26,7 +26,6 @@ import { transactionService, paymentMethodService, recipientService } from "@/li
 import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth } from "@/lib/auth-context"
-import { getSupabaseAuthHeaders } from "@/lib/supabase"
 import { useUserData } from "@/hooks/use-user-data"
 import { SendPageSkeleton } from "@/components/send-page-skeleton"
 import {
@@ -236,12 +235,11 @@ export default function UserSendPage() {
         
         try {
           const ref = transactionId || (() => { const { generateTransactionId } = require("@/lib/transaction-id"); return generateTransactionId(); })()
-          const authHeaders = await getSupabaseAuthHeaders()
+          
           const response = await fetch(
             `/api/transactions/payment-collection?currency=${sendCurrency}&amount=${sendAmount}&reference=${ref}`,
             {
               credentials: "include",
-              headers: authHeaders,
               signal: controller.signal,
             }
           )

@@ -24,10 +24,7 @@ export function PwaStandaloneRoot() {
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") return
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return
-    navigator.serviceWorker
-      .register("/sw.js")
-      .then((reg) => reg?.update())
-      .catch(() => {})
+    navigator.serviceWorker.register("/sw.js").catch(() => {})
   }, [])
 
   return null
