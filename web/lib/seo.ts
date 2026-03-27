@@ -38,9 +38,9 @@ export const SEO_OG_IMAGE_ALT = "Ciuna — send money globally"
 /** Referral link previews (Open Graph / Twitter / native share title) */
 export const SEO_REFERRAL_SHARE_TITLE = "Send Money with Ciuna"
 
-/** Referral link previews — matches in-app share copy */
+/** Referral link previews — matches in-app share copy (OG description; colon before URL in shareMessage) */
 export const SEO_REFERRAL_SHARE_DESCRIPTION =
-  "Use my link to sign up and send money to 10+ countries for free on Ciuna"
+  "Use my link to sign up and send money to 10+ countries for free on Ciuna:"
 
 /**
  * Image shown when a referral URL is shared (Slack, iMessage, etc.).
@@ -70,6 +70,7 @@ export const SEO_PAGE_TITLES = {
   recipients: `Recipients${PAGE_TITLE_SUFFIX}`,
   support: `Support${PAGE_TITLE_SUFFIX}`,
   auth: `Sign in${PAGE_TITLE_SUFFIX}`,
+  register: `Create account${PAGE_TITLE_SUFFIX}`,
   forgotPassword: `Forgot password${PAGE_TITLE_SUFFIX}`,
   resetPassword: `Reset password${PAGE_TITLE_SUFFIX}`,
   morePassword: `Password${PAGE_TITLE_SUFFIX}`,
@@ -88,6 +89,8 @@ export const SEO_PAGE_DESCRIPTIONS = {
   recipients: "Save and manage recipients for faster, repeatable international transfers.",
   support: "Get help with transfers, verification, and your Ciuna account.",
   auth: "Sign in to Ciuna to send money globally with transparent pricing and secure authentication.",
+  register:
+    "Create your Ciuna account to send money to 10+ countries with transparent pricing and secure onboarding.",
   forgotPassword: "Start a secure password reset for your Ciuna account.",
   resetPassword: "Choose a new password to get back into your Ciuna account.",
   morePassword: "Update your Ciuna account password and keep your sign-in secure.",

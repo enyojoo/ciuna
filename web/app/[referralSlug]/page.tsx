@@ -40,6 +40,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: SEO_REFERRAL_SHARE_TITLE,
     description: SEO_REFERRAL_SHARE_DESCRIPTION,
+    alternates: {
+      canonical: pageUrl,
+    },
     openGraph: {
       type: "website",
       title: SEO_REFERRAL_SHARE_TITLE,
