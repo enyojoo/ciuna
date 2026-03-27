@@ -12,9 +12,20 @@ function isProtectedPath(pathname: string | null): boolean {
   return PROTECTED_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))
 }
 
+/** Only these routes should trigger "must be logged in → redirect to /auth/login" in the wrapper. */
+function requiresProtectedAuth(pathname: string | null): boolean {
+  if (!pathname) return false
+  // All /auth/* (login, register, callback, …) must stay public — never push logged-out users to login.
+  if (pathname.startsWith("/auth/")) return false
+  if (pathname.startsWith("/admin")) return true
+  return isProtectedPath(pathname)
+}
+
 export function ProtectedRouteWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const { isChecking, isAdmin } = useRouteProtection({ requireAuth: true })
+  const { isChecking, isAdmin } = useRouteProtection({
+    requireAuth: requiresProtectedAuth(pathname),
+  })
 
   if (!isProtectedPath(pathname)) {
     return <>{children}</>
