@@ -1,3 +1,5 @@
+import { fetchWithAuth } from "./fetch-with-auth"
+
 const STORAGE_KEY = "ciuna_ref_slug"
 
 export function persistReferralSlugFromSearchParam(ref: string | null | undefined) {
@@ -15,10 +17,9 @@ export async function claimReferralIfNeeded(): Promise<void> {
   const slug = getStoredReferralSlug()
   if (!slug) return
   try {
-    const res = await fetch("/api/referrals/claim", {
+    const res = await fetchWithAuth("/api/referrals/claim", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify({ referralSlug: slug }),
     })
     if (res.ok) {

@@ -1,8 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -13,10 +12,12 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { ChevronLeft, Copy, Share2, Users, Wallet, Loader2 } from "lucide-react"
+import { Copy, Share2, Users, Wallet, Loader2 } from "lucide-react"
 import type { Recipient } from "@/types"
 import { useAuth } from "@/lib/auth-context"
 import { useRouteProtection } from "@/hooks/use-route-protection"
+import { AppPageHeader } from "@/components/layout/app-page-header"
+import { fetchWithAuth } from "@/lib/fetch-with-auth"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface ReferralRow {
@@ -42,7 +43,7 @@ interface MeResponse {
 
 export default function ReferralsPage() {
   useRouteProtection({ requireAuth: true })
-  const { userProfile } = useAuth()
+  const { userProfile, loading: authLoading, user } = useAuth()
   const [data, setData] = useState<MeResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -57,7 +58,7 @@ export default function ReferralsPage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch("/api/referrals/me", { credentials: "include" })
+      const res = await fetchWithAuth("/api/referrals/me")
       const j = await res.json()
       if (!res.ok) {
         throw new Error(j.error || "Failed to load")
@@ -71,12 +72,14 @@ export default function ReferralsPage() {
   }
 
   useEffect(() => {
+    if (authLoading) return
+    if (!user) return
     load()
-  }, [])
+  }, [authLoading, user])
 
   const loadRecipients = async () => {
     try {
-      const res = await fetch("/api/recipients", { credentials: "include" })
+      const res = await fetchWithAuth("/api/recipients")
       if (!res.ok) return
       const j = await res.json()
       setRecipients(j.recipients || [])
@@ -108,10 +111,9 @@ export default function ReferralsPage() {
     if (!(amt > 0)) return
     setSubmitting(true)
     try {
-      const res = await fetch("/api/referrals/payout-request", {
+      const res = await fetchWithAuth("/api/referrals/payout-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ recipientId, amount: amt }),
       })
       const j = await res.json().catch(() => ({}))
@@ -128,27 +130,23 @@ export default function ReferralsPage() {
 
   if (loading && !data) {
     return (
-      <div className="flex items-center justify-center min-h-[40vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-gray-50">
+        <AppPageHeader title="Affiliates & Referrals" backHref="/more" />
+        <div className="flex items-center justify-center min-h-[40vh] max-w-4xl mx-auto px-6">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-0">
-      <div className="bg-white p-5 sm:p-6 border-b border-gray-200">
-        <Link
-          href="/more"
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-3"
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Back
-        </Link>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Affiliates &amp; Referrals</h1>
-        <p className="text-base text-gray-600">Share your link and track rewards when friends send money.</p>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <AppPageHeader title="Affiliates & Referrals" backHref="/more" />
 
-      <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-8 space-y-5">
+      <div className="max-w-4xl mx-auto px-6 py-6 lg:px-8 space-y-6">
+        <p className="text-base text-gray-600 -mt-1">
+          Share your link and track rewards when friends send money.
+        </p>
         {error && (
           <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm border border-destructive/20">
             {error}

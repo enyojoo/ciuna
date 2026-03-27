@@ -214,19 +214,22 @@ export default function VerificationPage() {
     <div className="min-h-screen bg-gray-50">
         <AppPageHeader title="Account Verification" backHref="/more" />
 
+        <div className="max-w-4xl mx-auto px-6 py-6 lg:px-8 space-y-6">
+        <p className="text-base text-gray-600 -mt-1">
+          Complete identity and address verification for compliance.
+        </p>
+
         {/* Info Message - Only show if both are not completed */}
         {!bothCompleted && (
-          <div className="px-5 sm:px-6 pt-2 pb-4 max-w-4xl mx-auto">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-700">
                 Please complete KYC Identity and Address information for compliance.
               </p>
             </div>
-          </div>
         )}
 
         {/* Cards Container */}
-        <div className="px-5 sm:px-6 pb-6 space-y-6 max-w-4xl mx-auto">
+        <div className="space-y-6">
           {/* Identity Verification Card */}
           <Link href="/more/verification/identity" className="block">
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
@@ -288,6 +291,7 @@ export default function VerificationPage() {
               </div>
             </div>
           </Link>
+        </div>
         </div>
       </div>
   )
