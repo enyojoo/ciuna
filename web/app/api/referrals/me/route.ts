@@ -104,6 +104,8 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     balances: {
       availablePolicy: balances.availablePolicy,
       totalEarnedPolicy: balances.totalEarnedPolicy,
+      /** Numeric available in user base currency (for client payout validation) */
+      availableAmountBase: availableDisplay > 0 ? availableDisplay : balances.availablePolicy,
       availableDisplay: formatMoney(availableDisplay > 0 ? availableDisplay : balances.availablePolicy, base),
       lifetimeDisplay: formatMoney(lifetimeDisplay > 0 ? lifetimeDisplay : balances.totalEarnedPolicy, base),
       displayCurrency: base,

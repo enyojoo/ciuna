@@ -41,7 +41,13 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
   const amountPolicy = convertWithRateMap(amount, base, balances.policyCurrency, rateMap)
   if (amountPolicy <= 0 || amountPolicy > balances.availablePolicy + 1e-6) {
-    return NextResponse.json({ error: "Amount exceeds available balance" }, { status: 400 })
+    return NextResponse.json(
+      {
+        error:
+          "That amount is more than your available referral balance. Enter a lower amount or check what you can withdraw above.",
+      },
+      { status: 400 },
+    )
   }
 
   const payoutTransactionId = generateTransactionId()

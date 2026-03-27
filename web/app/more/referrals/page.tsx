@@ -40,6 +40,8 @@ interface MeResponse {
     availableDisplay: string
     lifetimeDisplay: string
     displayCurrency: string
+    /** Available balance as a number in `displayCurrency` (base) */
+    availableAmountBase?: number
   }
   referrals: ReferralRow[]
   pendingPayouts: { id: string; amount: number; currency: string; status: string }[]
@@ -94,6 +96,7 @@ export default function ReferralsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [withdrawOpen, setWithdrawOpen] = useState(false)
+  const [withdrawError, setWithdrawError] = useState<string | null>(null)
   const [recipientId, setRecipientId] = useState("")
   const [withdrawAmount, setWithdrawAmount] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -217,9 +220,23 @@ export default function ReferralsPage() {
   }
 
   const submitWithdraw = async () => {
-    if (!recipientId || !withdrawAmount) return
+    setWithdrawError(null)
+    if (!recipientId || !withdrawAmount) {
+      setWithdrawError("Choose a recipient and enter an amount.")
+      return
+    }
     const amt = Number.parseFloat(withdrawAmount)
-    if (!(amt > 0)) return
+    if (!(amt > 0)) {
+      setWithdrawError("Enter an amount greater than zero.")
+      return
+    }
+    const max = data?.balances.availableAmountBase
+    if (max !== undefined && amt > max + 1e-6) {
+      setWithdrawError(
+        `That amount is more than your available balance (${data?.balances.availableDisplay}). Enter a lower amount.`,
+      )
+      return
+    }
     setSubmitting(true)
     try {
       const res = await fetchWithAuth("/api/referrals/payout-request", {
@@ -231,9 +248,10 @@ export default function ReferralsPage() {
       if (!res.ok) throw new Error(j.error || "Request failed")
       setWithdrawOpen(false)
       setWithdrawAmount("")
+      setWithdrawError(null)
       await load({ silent: true })
     } catch (e: any) {
-      setError(e?.message || "Withdraw failed")
+      setWithdrawError(e?.message || "Withdraw failed")
     } finally {
       setSubmitting(false)
     }
@@ -330,25 +348,52 @@ export default function ReferralsPage() {
             <Share2 className="h-4 w-4 mr-2" />
             Share link
           </Button>
-          <Button variant="outline" className="flex-1 min-w-0" onClick={() => setWithdrawOpen(true)}>
+          <Button
+            variant="outline"
+            className="flex-1 min-w-0"
+            onClick={() => {
+              setWithdrawError(null)
+              setWithdrawOpen(true)
+            }}
+          >
             Withdraw
           </Button>
         </div>
       </div>
 
-      <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
+      <Dialog
+        open={withdrawOpen}
+        onOpenChange={(open) => {
+          setWithdrawOpen(open)
+          if (!open) setWithdrawError(null)
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Request payout</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
+            {withdrawError && (
+              <div
+                role="alert"
+                className="rounded-md border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              >
+                {withdrawError}
+              </div>
+            )}
             <p className="text-sm text-gray-600">
               Choose a saved recipient and amount. Our team will process the transfer. Available:{" "}
               <strong>{data?.balances.availableDisplay}</strong>
             </p>
             <div className="space-y-2">
               <Label>Recipient</Label>
-              <Select value={recipientId} onValueChange={setRecipientId}>
+              <Select
+                value={recipientId}
+                onValueChange={(v) => {
+                  setRecipientId(v)
+                  setWithdrawError(null)
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select recipient" />
                 </SelectTrigger>
@@ -368,7 +413,10 @@ export default function ReferralsPage() {
                 min={0}
                 step="0.01"
                 value={withdrawAmount}
-                onChange={(e) => setWithdrawAmount(e.target.value)}
+                onChange={(e) => {
+                  setWithdrawAmount(e.target.value)
+                  setWithdrawError(null)
+                }}
                 placeholder="0.00"
               />
             </div>
