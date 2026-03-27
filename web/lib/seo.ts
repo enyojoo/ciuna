@@ -38,15 +38,19 @@ export const SEO_OG_IMAGE_ALT = "Ciuna — send money globally"
 /** Referral link previews (Open Graph / Twitter / native share title) */
 export const SEO_REFERRAL_SHARE_TITLE = "Send Money with Ciuna"
 
-/** Referral link previews — matches in-app share copy (OG description; colon before URL in shareMessage) */
+/** Referral OG/Twitter `description` (period; no trailing colon). */
 export const SEO_REFERRAL_SHARE_DESCRIPTION =
-  "Use my link to sign up and send money to 10+ countries for free on Ciuna:"
+  "Use my link to sign up and send money between 10+ African countries and Russia for free on Ciuna."
+
+/** In-app share / clipboard: line before the URL (ends with colon). */
+export const SEO_REFERRAL_SHARE_MESSAGE_PREFIX =
+  "Use my link to sign up and send money between 10+ African countries and Russia for free on Ciuna:"
 
 /** Image shown when a referral URL is shared (Slack, iMessage, social previews). */
 export const SEO_REFERRAL_SHARE_IMAGE_URL =
   "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20share%20image.png"
 
-export const SEO_REFERRAL_SHARE_IMAGE_ALT = "Ciuna — send money to 10+ countries"
+export const SEO_REFERRAL_SHARE_IMAGE_ALT = "Ciuna — send money globally"
 
 /** Canonical site origin (metadata, sitemap, structured data) */
 export const SEO_SITE_URL = "https://app.ciuna.com"

@@ -7,7 +7,11 @@ import { getReferralProgramSettingsServer } from "@/lib/referral-program"
 import { buildRateMap, convertWithRateMap } from "@/lib/referral-currency"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 import { APP_URLS } from "@ciuna/shared"
-import { SEO_REFERRAL_SHARE_DESCRIPTION, SEO_REFERRAL_SHARE_TITLE } from "@/lib/seo"
+import {
+  SEO_REFERRAL_SHARE_DESCRIPTION,
+  SEO_REFERRAL_SHARE_MESSAGE_PREFIX,
+  SEO_REFERRAL_SHARE_TITLE,
+} from "@/lib/seo"
 
 function formatMoney(amount: number, currency: string) {
   try {
@@ -23,7 +27,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
 
   const slug = await ensureUserReferralSlug(supabase, user.id)
   const shareUrl = `${APP_URLS.app}/${slug}`
-  const shareMessage = `Use my link to sign up and send money to 10+ countries for free on Ciuna: ${shareUrl}`
+  const shareMessage = `${SEO_REFERRAL_SHARE_MESSAGE_PREFIX} ${shareUrl}`
 
   const program = await getReferralProgramSettingsServer()
   const balances = await computeReferralBalances(supabase, user.id)
