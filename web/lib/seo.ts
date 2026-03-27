@@ -31,7 +31,7 @@ export const SEO_KEYWORDS = [
 ].join(", ")
 
 export const SEO_OG_IMAGE_URL =
-  "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/ciuna%20seo%20cover.png"
+  "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20seo.png"
 
 export const SEO_OG_IMAGE_ALT = "Ciuna — send money globally"
 
@@ -42,11 +42,9 @@ export const SEO_REFERRAL_SHARE_TITLE = "Send Money with Ciuna"
 export const SEO_REFERRAL_SHARE_DESCRIPTION =
   "Use my link to sign up and send money to 10+ countries for free on Ciuna:"
 
-/**
- * Image shown when a referral URL is shared (Slack, iMessage, etc.).
- * Override this URL to use a dedicated referral asset; defaults to the main OG image.
- */
-export const SEO_REFERRAL_SHARE_IMAGE_URL = SEO_OG_IMAGE_URL
+/** Image shown when a referral URL is shared (Slack, iMessage, social previews). */
+export const SEO_REFERRAL_SHARE_IMAGE_URL =
+  "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20share%20image.png"
 
 export const SEO_REFERRAL_SHARE_IMAGE_ALT = "Ciuna — send money to 10+ countries"
 

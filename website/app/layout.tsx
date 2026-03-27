@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/ciuna%20seo%20cover.png",
+        url: "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20seo.png",
         width: 1200,
         height: 630,
         alt: "Ciuna - Global Money Transfer Platform",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     title: "Ciuna - Send Money Across Borders",
     description: "International remittances and cross-border bank transfers without fees.",
     creator: "@ciunabanking",
-    images: ["https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/ciuna%20seo%20cover.png"],
+    images: ["https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20seo.png"],
   },
   robots: { index: true, follow: true },
 }
