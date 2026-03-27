@@ -1,5 +1,6 @@
 // Combined Transaction Service — send transactions from the primary `transactions` table only.
-import { transactionService, adminService } from "./database"
+import { createServerClient } from "@/lib/supabase"
+import { adminService } from "./database"
 
 export interface CombinedTransaction {
   id: string
@@ -31,6 +32,12 @@ export interface CombinedTransaction {
 }
 
 export const combinedTransactionService = {
+  /**
+   * User transaction list for Route Handlers only. Uses the service-role client and
+   * filters by `userId` (must match the authenticated user from `requireUser`).
+   * The anon `transactionService` path does not receive a browser session on the server,
+   * so RLS would return no rows.
+   */
   async getUserAllTransactions(
     userId: string,
     filters: {
@@ -41,12 +48,21 @@ export const combinedTransactionService = {
   ): Promise<CombinedTransaction[]> {
     const limit = filters.limit || 100
 
-    const sendTransactions = await transactionService
-      .getByUserId(userId, limit, userId)
-      .catch((error) => {
-        console.error("Error fetching send transactions:", error)
-        return []
-      })
+    const supabase = createServerClient()
+    const { data: sendTransactions, error } = await supabase
+      .from("transactions")
+      .select(`
+        *,
+        recipient:recipients(*)
+      `)
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.error("Error fetching send transactions (server):", error)
+      return []
+    }
 
     const sendTxns: CombinedTransaction[] = (sendTransactions || []).map((tx) => ({
       id: tx.id,

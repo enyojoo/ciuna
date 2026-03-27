@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { createServerClient } from "@/lib/supabase"
 import { RESERVED_REFERRAL_SLUGS } from "@/lib/referral-slug"
 import {
@@ -10,9 +10,7 @@ import {
   SEO_SITE_NAME,
   SEO_SITE_URL,
 } from "@/lib/seo"
-import { ReferralRedirect } from "./referral-redirect"
 
-/** Referral cookie is set client-side via POST /api/referrals/set-ref-cookie (Route Handler). */
 export const dynamic = "force-dynamic"
 
 type Props = { params: Promise<{ referralSlug: string }> }
@@ -79,5 +77,5 @@ export default async function ReferralLandingPage({ params }: Props) {
     notFound()
   }
 
-  return <ReferralRedirect slug={slug} />
+  redirect(`/auth/register?ref=${encodeURIComponent(slug)}`)
 }

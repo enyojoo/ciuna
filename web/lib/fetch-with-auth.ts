@@ -5,16 +5,37 @@ import { supabase } from "./supabase"
  * when the session lives in localStorage (default Supabase browser client) and is not mirrored to cookies.
  */
 export async function fetchWithAuth(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
   const headers = new Headers(init?.headers)
-  if (session?.access_token) {
-    headers.set("Authorization", `Bearer ${session.access_token}`)
+
+  const attachSessionToken = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (session?.access_token) {
+      headers.set("Authorization", `Bearer ${session.access_token}`)
+      return
+    }
+    const { data } = await supabase.auth.refreshSession()
+    if (data.session?.access_token) {
+      headers.set("Authorization", `Bearer ${data.session.access_token}`)
+    }
   }
-  return fetch(input, {
-    ...init,
-    headers,
-    credentials: init?.credentials ?? "include",
-  })
+
+  await attachSessionToken()
+
+  const doFetch = () =>
+    fetch(input, {
+      ...init,
+      headers,
+      credentials: init?.credentials ?? "include",
+    })
+
+  let res = await doFetch()
+  if (res.status === 401) {
+    await supabase.auth.refreshSession()
+    headers.delete("Authorization")
+    await attachSessionToken()
+    res = await doFetch()
+  }
+  return res
 }
