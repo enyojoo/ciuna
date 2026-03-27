@@ -146,6 +146,27 @@ export default function UserDashboardPage() {
     }
   }
 
+  /** Mobile total-volume only: full amount below 1M; from 1M use symbol + N.NM (matches en-US style). */
+  const formatCurrencyValueMobileVolume = (amount: number, currencyCode: string) => {
+    if (amount < 1_000_000) {
+      return formatCurrencyValue(amount, currencyCode)
+    }
+    try {
+      const currency = currencies?.find((c) => c && c.code === currencyCode)
+      const symbol = currency?.symbol || ""
+      const millions = amount / 1_000_000
+      const rounded = Math.round(millions * 10) / 10
+      const num =
+        rounded % 1 === 0
+          ? rounded.toLocaleString("en-US", { maximumFractionDigits: 0 })
+          : rounded.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 1 })
+      return `${symbol}${num}M`
+    } catch (error) {
+      console.error("Error formatting compact currency:", error)
+      return formatCurrencyValue(amount, currencyCode)
+    }
+  }
+
   const formatAmount = (amount: number, currency: string) => {
     const currencyInfo = currencies?.find((c) => c && c.code === currency)
     return `${currencyInfo?.symbol || currency} ${amount.toLocaleString()}`
@@ -223,8 +244,39 @@ export default function UserDashboardPage() {
           </div>
         </div>
 
-        {/* Stats Cards - match transaction card UI (border, shadow) */}
-        <div className="px-5 sm:px-6 flex gap-3 sm:gap-6">
+        {/* Stats — mobile only: stable flex + compact volume ≥1M */}
+        <div className="px-5 sm:px-6 flex gap-3 min-w-0 sm:hidden">
+          <Card className="min-w-0 basis-0 flex-[1.5] shrink">
+            <CardContent className="p-5 sm:p-6 text-center min-w-0">
+              <div
+                className="min-h-[3.25rem] flex items-center justify-center mb-2"
+                title={formatCurrencyValue(totalSentValue, baseCurrency)}
+              >
+                <span className="max-w-full text-[clamp(1rem,4.2vw,2.25rem)] font-bold text-foreground tabular-nums leading-tight">
+                  {formatCurrencyValueMobileVolume(totalSentValue, baseCurrency)}
+                </span>
+              </div>
+              <div className="text-base sm:text-lg font-medium text-muted-foreground">Total Volume</div>
+            </CardContent>
+          </Card>
+
+          <Card className="min-w-0 basis-0 flex-1 shrink">
+            <CardContent className="p-5 sm:p-6 text-center min-w-0">
+              <div
+                className="min-h-[3.25rem] flex items-center justify-center mb-2"
+                title={String(completedTransactions)}
+              >
+                <span className="max-w-full text-[clamp(1rem,4.2vw,2.25rem)] font-bold text-foreground tabular-nums leading-tight truncate">
+                  {completedTransactions}
+                </span>
+              </div>
+              <div className="text-base sm:text-lg font-medium text-muted-foreground">Transactions</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Stats — tablet/desktop: unchanged from original */}
+        <div className="px-5 sm:px-6 hidden sm:flex gap-3 sm:gap-6">
           <Card className="flex-[1.5] sm:flex-1">
             <CardContent className="p-5 sm:p-6 text-center">
               <div className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
