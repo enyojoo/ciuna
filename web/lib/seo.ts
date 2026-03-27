@@ -48,7 +48,7 @@ export const SEO_REFERRAL_SHARE_MESSAGE_PREFIX =
 
 /** Image shown when a referral URL is shared (Slack, iMessage, social previews). */
 export const SEO_REFERRAL_SHARE_IMAGE_URL =
-  "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20share%20image.png"
+  "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20share%20imagee.png"
 
 export const SEO_REFERRAL_SHARE_IMAGE_ALT = "Ciuna — send money globally"
 
