@@ -1,15 +1,20 @@
 "use client"
 
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useLayoutEffect } from "react"
+import { persistReferralSlugFromSearchParam } from "@/lib/referral-client"
 
-/** No visible UI — keeps a 200 HTML response so OG/meta apply to the referral URL; redirect after mount. */
+/**
+ * No visible UI — server still returns 200 + OG for the referral URL.
+ * Use a full navigation (not App Router client replace) so we reliably hit
+ * `/auth/register?ref=...` for signup + sessionStorage; avoids edge cases that
+ * sent users to `/auth/login` or dropped the ref.
+ */
 export function ReferralClientRedirect({ slug }: { slug: string }) {
-  const router = useRouter()
-
-  useEffect(() => {
-    router.replace(`/auth/register?ref=${encodeURIComponent(slug)}`)
-  }, [router, slug])
+  useLayoutEffect(() => {
+    persistReferralSlugFromSearchParam(slug)
+    const url = `${window.location.origin}/auth/register?ref=${encodeURIComponent(slug)}`
+    window.location.replace(url)
+  }, [slug])
 
   return null
 }
