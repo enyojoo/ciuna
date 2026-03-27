@@ -1,20 +1,32 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { claimReferralIfNeeded } from "@/lib/referral-client"
 
+/** Read OAuth params from the live URL (query + hash). Next's useSearchParams can omit `code` on some OAuth returns. */
+function getOAuthParamsFromWindow(): URLSearchParams {
+  if (typeof window === "undefined") return new URLSearchParams()
+  const url = new URL(window.location.href)
+  const merged = new URLSearchParams()
+  if (url.hash?.startsWith("#")) {
+    new URLSearchParams(url.hash.slice(1)).forEach((v, k) => merged.set(k, v))
+  }
+  url.searchParams.forEach((v, k) => merged.set(k, v))
+  return merged
+}
+
 export default function AuthCallbackPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const handleCallback = async () => {
-      const code = searchParams.get("code")
-      const errorParam = searchParams.get("error")
+      const params = getOAuthParamsFromWindow()
+      const code = params.get("code")
+      const errorParam = params.get("error")
 
       if (errorParam) {
         setError(errorParam === "access_denied" ? "Sign in was cancelled" : errorParam)
@@ -55,7 +67,7 @@ export default function AuthCallbackPage() {
     }
 
     handleCallback()
-  }, [router, searchParams])
+  }, [router])
 
   if (error) {
     return (
