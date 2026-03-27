@@ -10,12 +10,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    // Must stay false: when true, Supabase parses/cleans the current URL on every page
-    // load. On `/auth/register?via=...` (avoid `ref=`; see referral-client) that can replace
-    // origin → user hits `/` → middleware sends them to `/auth/login` (looks like
-    // "register URL is invalid"). OAuth/email flows use `/auth/callback` with
-    // explicit `exchangeCodeForSession` / session handling instead.
-    detectSessionInUrl: false,
+    // Required for Google OAuth when tokens arrive in the URL fragment (#access_token=…),
+    // not only ?code= (PKCE). With false, the hash is never parsed and callback sees no session.
+    // Referral signup uses `/auth/register?ref=…`; ProtectedRouteWrapper keeps /auth/* public.
+    detectSessionInUrl: true,
   },
   global: {
     headers: {

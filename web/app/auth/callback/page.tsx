@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { claimReferralIfNeeded } from "@/lib/referral-client"
 
-/** Read OAuth params from the live URL (query + hash). Next's useSearchParams can omit `code` on some OAuth returns. */
+/** Read OAuth params from the live URL (query + hash). */
 function getOAuthParamsFromWindow(): URLSearchParams {
   if (typeof window === "undefined") return new URLSearchParams()
   const url = new URL(window.location.href)
@@ -25,7 +25,6 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleCallback = async () => {
       const params = getOAuthParamsFromWindow()
-      const code = params.get("code")
       const errorParam = params.get("error")
 
       if (errorParam) {
@@ -34,6 +33,16 @@ export default function AuthCallbackPage() {
         return
       }
 
+      // getSession() awaits client init, which parses #fragment (implicit) or ?code (PKCE) when detectSessionInUrl is true
+      const { data: { session: afterInit } } = await supabase.auth.getSession()
+      if (afterInit) {
+        await claimReferralIfNeeded()
+        const isAdmin = afterInit.user?.user_metadata?.isAdmin ?? false
+        router.replace(isAdmin ? "/admin/dashboard" : "/dashboard")
+        return
+      }
+
+      const code = params.get("code")
       if (code) {
         try {
           const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
@@ -43,7 +52,6 @@ export default function AuthCallbackPage() {
             return
           }
           await claimReferralIfNeeded()
-          // Success - redirect based on user type (admin vs regular)
           const isAdmin = data?.user?.user_metadata?.isAdmin ?? false
           router.replace(isAdmin ? "/admin/dashboard" : "/dashboard")
         } catch (err: any) {
@@ -53,17 +61,7 @@ export default function AuthCallbackPage() {
         return
       }
 
-      // No code - might be hash-based (implicit flow) or direct visit
-      // Check if we already have a session (e.g. from hash fragment auto-processing)
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        await claimReferralIfNeeded()
-        const isAdmin = session.user?.user_metadata?.isAdmin ?? false
-        router.replace(isAdmin ? "/admin/dashboard" : "/dashboard")
-      } else {
-        // No session, redirect to login
-        router.replace("/auth/login")
-      }
+      router.replace("/auth/login")
     }
 
     handleCallback()

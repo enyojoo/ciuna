@@ -3,11 +3,10 @@ import { fetchWithAuth } from "./fetch-with-auth"
 const STORAGE_KEY = "ciuna_ref_slug"
 
 /**
- * Referral slug in register URL: prefer `via` (avoids `ref`, which clashes with some
- * auth/URL tooling and could bounce users to `/` → `/auth/login`). `ref` still read for old links.
+ * Referral slug from register URL query. Canonical param is `ref`; `via` still accepted for older links.
  */
 export function getReferralSlugFromSearchParams(searchParams: { get: (key: string) => string | null }) {
-  return searchParams.get("via")?.trim() || searchParams.get("ref")?.trim() || null
+  return searchParams.get("ref")?.trim() || searchParams.get("via")?.trim() || null
 }
 
 export function persistReferralSlugFromSearchParam(ref: string | null | undefined) {
