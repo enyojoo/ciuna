@@ -10,7 +10,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true, // Better session detection for RLS
+    // Must stay false: when true, Supabase parses/cleans the current URL on every page
+    // load. On `/auth/register?ref=...` that can replace the location with the site
+    // origin → user hits `/` → middleware sends them to `/auth/login` (looks like
+    // "register URL is invalid"). OAuth/email flows use `/auth/callback` with
+    // explicit `exchangeCodeForSession` / session handling instead.
+    detectSessionInUrl: false,
   },
   global: {
     headers: {
