@@ -50,7 +50,7 @@ interface MeResponse {
 const CACHE_TTL_MS = 5 * 60 * 1000
 
 function referralsCacheKey(userId: string) {
-  return `ciuna_referrals_me_${userId}`
+  return `ciuna_referrals_me_v2_${userId}`
 }
 
 function readStaleReferralsCache(userId: string): MeResponse | null {
@@ -332,7 +332,9 @@ export default function ReferralsPage() {
                     <li key={r.id} className="px-4 py-3 flex justify-between items-center">
                       <div>
                         <p className="font-medium text-gray-900">{r.name}</p>
-                        <p className="text-xs text-gray-500">{r.transactionCount} completed sends</p>
+                        <p className="text-xs text-gray-500">
+                          {Number(r.transactionCount ?? 0)} completed sends
+                        </p>
                       </div>
                       <span className="text-sm font-semibold text-primary">{r.earningsDisplay}</span>
                     </li>

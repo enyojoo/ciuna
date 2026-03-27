@@ -68,22 +68,40 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     earnByReferee.set(id, (earnByReferee.get(id) || 0) + Number(r.amount_policy_currency || 0))
   }
 
+  const refereeIds = (referees || []).map((r) => String(r.id))
+  const completedSendCountByReferee = new Map<string, number>()
+  for (const id of refereeIds) completedSendCountByReferee.set(id, 0)
+
+  if (refereeIds.length > 0) {
+    const { data: completedTxs, error: completedTxErr } = await supabase
+      .from("transactions")
+      .select("user_id, reference")
+      .in("user_id", refereeIds)
+      .eq("status", "completed")
+      // Default PostgREST max-rows is 1000; without this, counts truncate and "completed sends" under-reports.
+      .limit(50000)
+
+    if (completedTxErr) {
+      console.error("referrals/me: completed transactions for referees", completedTxErr)
+    }
+
+    for (const t of completedTxs || []) {
+      const uid = String(t.user_id)
+      const refStr = t.reference as string | undefined
+      if (refStr?.startsWith(REFERRAL_PAYOUT_PREFIX)) continue
+      completedSendCountByReferee.set(uid, (completedSendCountByReferee.get(uid) || 0) + 1)
+    }
+  }
+
   const referralsList = []
   for (const ref of referees || []) {
-    const { data: txs } = await supabase
-      .from("transactions")
-      .select("reference")
-      .eq("user_id", ref.id)
-      .eq("status", "completed")
-
-    const txCount =
-      (txs || []).filter((t) => !(t.reference as string | undefined)?.startsWith(REFERRAL_PAYOUT_PREFIX)).length
-
-    const earnedPolicy = earnByReferee.get(ref.id) || 0
+    const rid = String(ref.id)
+    const txCount = completedSendCountByReferee.get(rid) ?? 0
+    const earnedPolicy = earnByReferee.get(rid) || 0
     const earnedDisplay = convertWithRateMap(earnedPolicy, policy, base, rateMap)
 
     referralsList.push({
-      id: ref.id,
+      id: rid,
       name: `${ref.first_name || ""} ${ref.last_name || ""}`.trim() || "User",
       transactionCount: txCount,
       earningsDisplay: formatMoney(earnedDisplay > 0 ? earnedDisplay : earnedPolicy, base),
