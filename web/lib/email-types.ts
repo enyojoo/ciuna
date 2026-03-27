@@ -35,6 +35,21 @@ export interface WelcomeEmailData {
   dashboardUrl: string
 }
 
+/** Referral balance withdrawal / payout request lifecycle (mirrors send: pending → completed/cancelled) */
+export interface ReferralPayoutEmailData {
+  firstName: string
+  amount: number
+  currency: string
+  recipientName: string
+  /** pending = user just submitted; completed / cancelled = Office action */
+  status: "pending" | "completed" | "cancelled"
+  payoutRequestId?: string
+  /** ETID reserved at request time (matches completed send row). */
+  payoutTransactionId?: string
+  linkedTransactionId?: string
+  dashboardUrl: string
+}
+
 export interface EmailServiceConfig {
   fromEmail: string
   fromName: string

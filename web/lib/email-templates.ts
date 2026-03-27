@@ -1,7 +1,7 @@
 // Email templates for all notification types
 
 import { generateBaseEmailTemplate, generateTransactionDetails } from './email-generator'
-import type { EmailTemplate, TransactionEmailData, WelcomeEmailData } from './email-types'
+import type { EmailTemplate, ReferralPayoutEmailData, TransactionEmailData, WelcomeEmailData } from './email-types'
 
 export const emailTemplates: Record<string, EmailTemplate> = {
   // Welcome Email
@@ -455,6 +455,108 @@ If you have any questions about your early access request or our platform, feel 
 
 © ${new Date().getFullYear()} Ciuna. All rights reserved.
     `
+  },
+
+  referralPayoutPending: {
+    subject: (data: ReferralPayoutEmailData) =>
+      data.payoutTransactionId
+        ? `Referral payout request — #${data.payoutTransactionId}`
+        : `Referral payout request received${data.payoutRequestId ? ` — ${data.payoutRequestId.slice(0, 8)}…` : ""}`,
+    html: (data: ReferralPayoutEmailData) => {
+      const amt = `${data.currency} ${data.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      const ref = data.payoutTransactionId
+        ? `<p class="confirmation-text" style="font-size:14px;color:#64748b;">Transaction ID: ${data.payoutTransactionId}</p>`
+        : data.payoutRequestId
+          ? `<p class="confirmation-text" style="font-size:14px;color:#64748b;">Request ID: ${data.payoutRequestId}</p>`
+          : ""
+      const content = `
+        <p class="confirmation-text">
+          Hi ${data.firstName}, we&apos;ve received your referral reward withdrawal request of ${amt} to ${data.recipientName}.
+          Our team will review and process it—similar to when you start a send, you&apos;ll get another email when the payout is completed or if it&apos;s cancelled.
+        </p>
+        ${ref}
+        <div class="security-note">
+          <h3>What happens next</h3>
+          <p>We&apos;ll notify you by email when the payout is sent or if the request is cancelled. You can also check status under Affiliates &amp; Referrals in the app.</p>
+        </div>
+      `
+      return generateBaseEmailTemplate("Referral payout request received", "", content, {
+        text: "View referrals",
+        url: data.dashboardUrl,
+      })
+    },
+    text: (data: ReferralPayoutEmailData) => {
+      const amt = `${data.currency} ${data.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      return `Referral payout request received
+
+Hi ${data.firstName},
+
+We've received your referral reward withdrawal request of ${amt} to ${data.recipientName}. Our team will review and process it—you'll get another email when the payout is completed or if it's cancelled.
+${data.payoutTransactionId ? `Transaction ID: ${data.payoutTransactionId}\n` : data.payoutRequestId ? `Request ID: ${data.payoutRequestId}\n` : ""}
+View referrals: ${data.dashboardUrl}
+
+© ${new Date().getFullYear()} Ciuna. All rights reserved.`
+    },
+  },
+
+  referralPayoutCompleted: {
+    subject: (data: ReferralPayoutEmailData) =>
+      `Referral payout sent — ${data.currency} ${data.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    html: (data: ReferralPayoutEmailData) => {
+      const amt = `${data.currency} ${data.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      const content = `
+        <p class="confirmation-text">
+          Hi ${data.firstName}, your referral reward withdrawal of ${amt} to ${data.recipientName} has been completed.
+          This send appears in your activity like a regular transfer and counts toward your send totals for the year.
+        </p>
+        ${data.linkedTransactionId ? `<p class="confirmation-text" style="font-size:14px;color:#64748b;">Transaction ID: ${data.linkedTransactionId}</p>` : ""}
+      `
+      return generateBaseEmailTemplate("Referral payout completed", "", content, {
+        text: "View activity",
+        url: data.dashboardUrl,
+      })
+    },
+    text: (data: ReferralPayoutEmailData) => {
+      const amt = `${data.currency} ${data.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      return `Referral payout completed
+
+Hi ${data.firstName},
+
+Your referral reward withdrawal of ${amt} to ${data.recipientName} has been completed. This send appears in your activity and counts toward your send totals.
+${data.linkedTransactionId ? `Transaction ID: ${data.linkedTransactionId}\n` : ""}
+View activity: ${data.dashboardUrl}
+
+© ${new Date().getFullYear()} Ciuna. All rights reserved.`
+    },
+  },
+
+  referralPayoutCancelled: {
+    subject: (_data: ReferralPayoutEmailData) => `Referral payout request cancelled`,
+    html: (data: ReferralPayoutEmailData) => {
+      const amt = `${data.currency} ${data.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      const content = `
+        <p class="confirmation-text">
+          Hi ${data.firstName}, your referral payout request for ${amt} to ${data.recipientName} has been cancelled.
+          Those funds remain in your available referral balance. If you did not expect this, contact support.
+        </p>
+      `
+      return generateBaseEmailTemplate("Referral payout cancelled", "", content, {
+        text: "Open referrals",
+        url: data.dashboardUrl,
+      })
+    },
+    text: (data: ReferralPayoutEmailData) => {
+      const amt = `${data.currency} ${data.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      return `Referral payout cancelled
+
+Hi ${data.firstName},
+
+Your referral payout request for ${amt} to ${data.recipientName} has been cancelled. Your available referral balance has not been reduced.
+
+Open referrals: ${data.dashboardUrl}
+
+© ${new Date().getFullYear()} Ciuna. All rights reserved.`
+    },
   },
 
   // Admin Transaction Notification

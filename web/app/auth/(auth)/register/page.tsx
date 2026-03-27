@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useState } from "react"
-import { useRouter } from "next/navigation"
+import React, { Suspense, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,9 +12,11 @@ import { useAuth } from "@/lib/auth-context"
 import { CheckCircle, Eye, EyeOff } from "lucide-react"
 import { useRouteProtection } from "@/hooks/use-route-protection"
 import { getSecuritySettings, validatePassword } from "@/lib/security-settings"
+import { claimReferralIfNeeded, persistReferralSlugFromSearchParam } from "@/lib/referral-client"
 
 function RegisterPageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { signUp, signInWithGoogle } = useAuth()
   useRouteProtection({ requireAuth: false })
   const [formData, setFormData] = useState({
@@ -28,6 +30,11 @@ function RegisterPageContent() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
   const [securitySettings, setSecuritySettings] = useState<any>(null)
+
+  React.useEffect(() => {
+    const ref = searchParams.get("ref")
+    persistReferralSlugFromSearchParam(ref)
+  }, [searchParams])
 
   // Load security settings on component mount
   React.useEffect(() => {
@@ -56,16 +63,20 @@ function RegisterPageContent() {
     }
 
     try {
+      const refSlug = searchParams.get("ref")?.trim()
       const { error: signUpError } = await signUp(formData.email, formData.password, {
         firstName: formData.firstName,
         lastName: formData.lastName,
         baseCurrency: "USD", // Default base currency
+        referralSlug: refSlug || undefined,
       })
 
       if (signUpError) {
         setError(signUpError.message)
         return
       }
+
+      await claimReferralIfNeeded()
 
       setSuccess(true)
       // Redirect after a short delay to show success message
@@ -243,5 +254,9 @@ function RegisterPageContent() {
 }
 
 export default function RegisterPage() {
-  return <RegisterPageContent />
+  return (
+    <Suspense fallback={null}>
+      <RegisterPageContent />
+    </Suspense>
+  )
 }

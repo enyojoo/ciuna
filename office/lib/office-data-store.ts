@@ -4,6 +4,7 @@ import { officeFetch } from "./api-client"
 interface AdminData {
   users: any[]
   transactions: any[]
+  referralPayoutRequests: any[]
   currencies: any[]
   exchangeRates: any[]
   earlyAccessRequests: any[]
@@ -230,6 +231,7 @@ class OfficeDataStore {
       this.data = {
         users: existingData?.users || [], // Keep existing users or empty array
         transactions: transactionsResult,
+        referralPayoutRequests: existingData?.referralPayoutRequests || [],
         currencies: currenciesResult,
         exchangeRates: exchangeRatesResult,
         earlyAccessRequests: existingData?.earlyAccessRequests || [], // Will load in background
@@ -248,6 +250,7 @@ class OfficeDataStore {
       const backgroundDataPromise = Promise.allSettled([
         this.loadUsers(transactionsResult), // Pass transactions to avoid re-querying
         this.loadEarlyAccessRequests(),
+        this.loadReferralPayouts(),
       ])
 
       const backgroundResults = (await Promise.race([backgroundDataPromise, timeoutPromise])) as PromiseSettledResult<any>[]
@@ -255,6 +258,7 @@ class OfficeDataStore {
       // Extract background results - preserve existing data if loading fails
       const usersResult = backgroundResults[0].status === "fulfilled" ? backgroundResults[0].value || [] : (this.data?.users || existingData?.users || [])
       const earlyAccessResult = backgroundResults[1].status === "fulfilled" ? backgroundResults[1].value || [] : (this.data?.earlyAccessRequests || existingData?.earlyAccessRequests || [])
+      const referralPayoutsResult = backgroundResults[2].status === "fulfilled" ? backgroundResults[2].value || [] : (this.data?.referralPayoutRequests || existingData?.referralPayoutRequests || [])
 
       // Recalculate stats with actual user count using already-loaded exchange rates
       const stats = await this.calculateStats(usersResult, transactionsResult, baseCurrency, exchangeRatesResult)
@@ -264,12 +268,15 @@ class OfficeDataStore {
       const usersChanged = JSON.stringify(usersResult) !== JSON.stringify(this.data?.users)
       const statsChanged = JSON.stringify(stats) !== JSON.stringify(this.data?.stats)
       const earlyAccessChanged = JSON.stringify(earlyAccessStats) !== JSON.stringify(this.data?.earlyAccessStats)
+      const referralPayoutsChanged =
+        JSON.stringify(referralPayoutsResult) !== JSON.stringify(this.data?.referralPayoutRequests)
 
       // Update data with background-loaded data only if something changed
-      if (usersChanged || statsChanged || earlyAccessChanged) {
+      if (usersChanged || statsChanged || earlyAccessChanged || referralPayoutsChanged) {
         this.data = {
           users: usersResult,
           transactions: transactionsResult,
+          referralPayoutRequests: referralPayoutsResult,
           currencies: currenciesResult,
           exchangeRates: exchangeRatesResult,
           earlyAccessRequests: earlyAccessResult,
@@ -376,6 +383,31 @@ class OfficeDataStore {
     } catch (error) {
       console.error("Error loading users:", error)
       return [] // Return empty array on error to prevent crashes
+    }
+  }
+
+  private async loadReferralPayouts() {
+    try {
+      const { data, error } = await supabase
+        .from("referral_payout_requests")
+        .select(
+          `
+          *,
+          recipient:recipients(full_name, bank_name, account_number, currency),
+          user:users(first_name, last_name, email)
+        `,
+        )
+        .order("created_at", { ascending: false })
+        .limit(200)
+
+      if (error) {
+        console.error("OfficeDataStore: referral payouts:", error)
+        return []
+      }
+      return (data || []).map((r: any) => ({ ...r, type: "referral_payout" }))
+    } catch (e) {
+      console.error("loadReferralPayouts:", e)
+      return []
     }
   }
 
@@ -915,6 +947,7 @@ class OfficeDataStore {
 
     try {
       const transactionsResult = await this.loadTransactions()
+      const referralPayoutsResult = await this.loadReferralPayouts()
       // Use already-loaded exchange rates for volume calculation
       const stats = await this.calculateStats(this.data.users, transactionsResult, this.data.baseCurrency, this.data.exchangeRates)
       const recentActivity = this.processRecentActivity(transactionsResult.slice(0, 10))
@@ -924,6 +957,7 @@ class OfficeDataStore {
       this.data = {
         ...this.data,
         transactions: transactionsResult,
+        referralPayoutRequests: referralPayoutsResult,
         stats: stats,
         recentActivity: recentActivity,
         currencyPairs: currencyPairs,
@@ -1094,6 +1128,13 @@ class OfficeDataStore {
         console.error('Email notification failed:', error)
         // Don't throw - email failure shouldn't break the status update
       })
+
+      if (newStatus === "completed") {
+        officeFetch("/api/referrals/process-completion", {
+          method: "POST",
+          body: JSON.stringify({ transactionId }),
+        }).catch((err) => console.error("Referral process-completion failed:", err))
+      }
     } catch (error) {
       throw error
     }

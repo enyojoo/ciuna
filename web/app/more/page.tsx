@@ -224,6 +224,13 @@ export default function MorePage() {
                 <span className="text-base text-gray-900">Notifications</span>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
               </Link>
+              <Link
+                href="/more/referrals"
+                className="w-full flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-base text-gray-900">Affiliates &amp; Referrals</span>
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </Link>
             </CardContent>
           </Card>
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { claimReferralIfNeeded } from "@/lib/referral-client"
 
 export default function AuthCallbackPage() {
   const router = useRouter()
@@ -29,6 +30,7 @@ export default function AuthCallbackPage() {
             setTimeout(() => router.replace("/auth/login"), 2000)
             return
           }
+          await claimReferralIfNeeded()
           // Success - redirect based on user type (admin vs regular)
           const isAdmin = data?.user?.user_metadata?.isAdmin ?? false
           router.replace(isAdmin ? "/admin/dashboard" : "/dashboard")
@@ -43,6 +45,7 @@ export default function AuthCallbackPage() {
       // Check if we already have a session (e.g. from hash fragment auto-processing)
       const { data: { session } } = await supabase.auth.getSession()
       if (session) {
+        await claimReferralIfNeeded()
         const isAdmin = session.user?.user_metadata?.isAdmin ?? false
         router.replace(isAdmin ? "/admin/dashboard" : "/dashboard")
       } else {

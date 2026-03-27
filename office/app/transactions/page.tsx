@@ -38,10 +38,20 @@ import { officeDataStore } from "@/lib/office-data-store"
 import { useOfficeData } from "@/hooks/use-office-data"
 import { officeFetch } from "@/lib/api-client"
 
+/** Matches web `REFERRAL_PAYOUT:` — completed referral withdrawals insert a `transactions` row with this reference. */
+const REFERRAL_PAYOUT_PREFIX = "REFERRAL_PAYOUT:"
+
+function excludeReferralPayoutMirrorTransactions<T extends { reference?: string | null }>(rows: T[] | undefined) {
+  return (rows || []).filter(
+    (tx) => !(typeof tx.reference === "string" && tx.reference.startsWith(REFERRAL_PAYOUT_PREFIX)),
+  )
+}
+
 interface CombinedTransaction {
   id: string
   transaction_id: string
-  type: "send" | "receive" | "card_funding"
+  type: "send" | "receive" | "card_funding" | "referral_payout"
+  payout_request_id?: string
   status: string
   created_at: string
   user?: {
@@ -91,14 +101,43 @@ interface CombinedTransaction {
   exchange_rate?: number
 }
 
+function mapPayoutRequests(payouts: any[] | undefined): CombinedTransaction[] {
+  if (!payouts?.length) return []
+  return payouts.map((p: any) => {
+    const linked =
+      typeof p.linked_transaction_id === "string" && p.linked_transaction_id.trim()
+        ? p.linked_transaction_id.trim()
+        : ""
+    const reserved =
+      typeof p.payout_transaction_id === "string" && p.payout_transaction_id.trim()
+        ? p.payout_transaction_id.trim()
+        : ""
+    const transactionId = linked || reserved || `payout-${p.id}`
+    return {
+    id: p.id,
+    transaction_id: transactionId,
+    type: "referral_payout" as const,
+    payout_request_id: p.id,
+    status: p.status,
+    created_at: p.created_at,
+    updated_at: p.updated_at,
+    user: p.user,
+    user_id: p.user_id,
+    send_amount: p.amount,
+    send_currency: p.currency,
+    recipient: p.recipient,
+  }
+  })
+}
+
 export default function AdminTransactionsPage() {
   const { data: adminData, loading: adminDataLoading } = useOfficeData()
   
   // Initialize from cache synchronously to prevent flicker
   const getInitialTransactions = (): CombinedTransaction[] => {
-    if (!adminData?.transactions) return []
+    if (!adminData?.transactions?.length && !adminData?.referralPayoutRequests?.length) return []
     // Transform transactions to match CombinedTransaction interface
-    return (adminData.transactions || []).map((tx: any) => {
+    const rows = excludeReferralPayoutMirrorTransactions(adminData.transactions).map((tx: any) => {
       // If it's already transformed (has type), use it as is
       if (tx.type) {
         return {
@@ -166,6 +205,10 @@ export default function AdminTransactionsPage() {
         exchange_rate: tx.exchange_rate,
       }
     })
+    const payouts = mapPayoutRequests(adminData.referralPayoutRequests)
+    return [...rows, ...payouts].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    )
   }
 
   const [transactions, setTransactions] = useState<CombinedTransaction[]>(() => getInitialTransactions())
@@ -209,9 +252,11 @@ export default function AdminTransactionsPage() {
 
   // Update transactions when adminData changes (from realtime updates or initial load)
   useEffect(() => {
-    if (adminData?.transactions) {
+    if (adminData?.transactions || adminData?.referralPayoutRequests?.length) {
       // Transform transactions to match CombinedTransaction interface
-      const transformedTransactions: CombinedTransaction[] = (adminData.transactions || []).map((tx: any) => {
+      const transformedTransactions: CombinedTransaction[] = excludeReferralPayoutMirrorTransactions(
+        adminData.transactions,
+      ).map((tx: any) => {
         // If it's already transformed (has type), use it as is
         if (tx.type) {
           return {
@@ -279,7 +324,11 @@ export default function AdminTransactionsPage() {
           exchange_rate: tx.exchange_rate,
         }
       })
-      setTransactions(transformedTransactions)
+      const payoutRows = mapPayoutRequests(adminData.referralPayoutRequests)
+      const merged = [...transformedTransactions, ...payoutRows].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      )
+      setTransactions(merged)
       setLoading(false)
     } else if (!adminDataLoading) {
       // If adminData is loaded but has no transactions, set empty array
@@ -298,7 +347,12 @@ export default function AdminTransactionsPage() {
   }, [])
 
   // Only show skeleton if we're truly loading and have no data
-  if ((loading || adminDataLoading) && transactions.length === 0 && !adminData?.transactions?.length) {
+  if (
+    (loading || adminDataLoading) &&
+    transactions.length === 0 &&
+    !adminData?.transactions?.length &&
+    !adminData?.referralPayoutRequests?.length
+  ) {
     return (
       <OfficeDashboardLayout>
         <OfficeTransactionsSkeleton />
@@ -311,15 +365,19 @@ export default function AdminTransactionsPage() {
       searchTerm === "" ||
       transaction.transaction_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       transaction.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (transaction.type === "receive" || transaction.type === "card_funding") &&
+      (transaction.type === "referral_payout" &&
+        transaction.recipient?.full_name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      ((transaction.type === "receive" || transaction.type === "card_funding") &&
         (transaction.stellar_transaction_hash?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          transaction.blockchain_tx_hash?.toLowerCase().includes(searchTerm.toLowerCase()))
+          transaction.blockchain_tx_hash?.toLowerCase().includes(searchTerm.toLowerCase())))
 
     const matchesStatus = statusFilter === "all" || transaction.status === statusFilter
     const matchesCurrency =
       currencyFilter === "all" ||
       (transaction.type === "send" &&
         (transaction.send_currency === currencyFilter || transaction.receive_currency === currencyFilter)) ||
+      (transaction.type === "referral_payout" &&
+        (transaction.send_currency === currencyFilter || transaction.recipient?.currency === currencyFilter)) ||
       ((transaction.type === "receive" || transaction.type === "card_funding") &&
         (transaction.crypto_currency === currencyFilter || transaction.fiat_currency === currencyFilter))
 
@@ -402,14 +460,36 @@ export default function AdminTransactionsPage() {
 
   const handleBulkStatusUpdate = async (newStatus: string) => {
     try {
+      const ids = selectedTransactions.filter((tid) => {
+        const row = transactions.find((tr) => tr.transaction_id === tid)
+        return row && row.type !== "referral_payout"
+      })
       await Promise.all(
-        selectedTransactions.map(async (transactionId) => {
+        ids.map(async (transactionId) => {
           await officeDataStore.updateTransactionStatus(transactionId, newStatus)
-        })
+        }),
       )
       setSelectedTransactions([])
     } catch (err) {
       console.error("Error updating transaction statuses:", err)
+    }
+  }
+
+  const completeReferralPayout = async (payoutId: string) => {
+    try {
+      const res = await officeFetch(`/api/admin/referral-payouts/${payoutId}/complete`, { method: "POST" })
+      if (res.ok) await officeDataStore.refreshAllData()
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const cancelReferralPayout = async (payoutId: string) => {
+    try {
+      const res = await officeFetch(`/api/admin/referral-payouts/${payoutId}/cancel`, { method: "POST" })
+      if (res.ok) await officeDataStore.refreshAllData()
+    } catch (e) {
+      console.error(e)
     }
   }
 
@@ -460,7 +540,8 @@ export default function AdminTransactionsPage() {
   // Get timer display text
   const getTimerDisplay = (): string | null => {
     if (!selectedTransaction) return null
-    
+    if (selectedTransaction.type === "referral_payout") return null
+
     // Don't show timer for failed/cancelled
     if (selectedTransaction.status === "failed" || selectedTransaction.status === "cancelled") {
       return null
@@ -723,7 +804,15 @@ export default function AdminTransactionsPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {transaction.type === "send" ? (
+                      {transaction.type === "referral_payout" ? (
+                        <div>
+                          <Badge className="mb-1 bg-indigo-100 text-indigo-800 hover:bg-indigo-100">Referral payout</Badge>
+                          <div className="font-medium">
+                            {formatCurrency(transaction.send_amount || 0, transaction.send_currency || "")}
+                          </div>
+                          <div className="text-sm text-gray-500">To {transaction.recipient?.full_name}</div>
+                        </div>
+                      ) : transaction.type === "send" ? (
                         <div>
                           <div className="font-medium">
                             {formatCurrency(transaction.send_amount || 0, transaction.send_currency || "")}
@@ -748,7 +837,26 @@ export default function AdminTransactionsPage() {
                     </TableCell>
                     <TableCell>{getStatusBadge(transaction.status)}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {transaction.type === "referral_payout" &&
+                          (transaction.status === "pending" || transaction.status === "processing") && (
+                            <>
+                              <Button
+                                size="sm"
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                                onClick={() => transaction.payout_request_id && completeReferralPayout(transaction.payout_request_id)}
+                              >
+                                Complete
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => transaction.payout_request_id && cancelReferralPayout(transaction.payout_request_id)}
+                              >
+                                Cancel
+                              </Button>
+                            </>
+                          )}
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button variant="outline" size="sm" onClick={() => setSelectedTransaction(transaction)}>
@@ -758,7 +866,11 @@ export default function AdminTransactionsPage() {
                           <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
                             <DialogHeader>
                               <div className="flex items-center gap-6">
-                                <DialogTitle>Transaction Details</DialogTitle>
+                                <DialogTitle>
+                                  {selectedTransaction?.type === "referral_payout"
+                                    ? "Referral payout"
+                                    : "Transaction Details"}
+                                </DialogTitle>
                                 {selectedTransaction && getTimerDisplay() && (
                                   <div className="flex items-center text-orange-600">
                                     <Clock className="h-4 w-4 mr-1" />
@@ -789,7 +901,25 @@ export default function AdminTransactionsPage() {
                                     <label className="text-sm font-medium text-gray-600">Date</label>
                                     <p>{formatTimestamp(selectedTransaction.created_at)}</p>
                                   </div>
-                                  {selectedTransaction.type === "send" ? (
+                                  {selectedTransaction.type === "referral_payout" ? (
+                                    <div className="col-span-2 rounded-lg border border-indigo-200 bg-indigo-50/60 p-4 space-y-2">
+                                      <Badge className="bg-indigo-100 text-indigo-800">Referral payout</Badge>
+                                      <p className="text-sm">
+                                        <span className="font-medium">Amount: </span>
+                                        {formatCurrency(
+                                          selectedTransaction.send_amount || 0,
+                                          selectedTransaction.send_currency || "",
+                                        )}
+                                      </p>
+                                      <p className="text-sm">
+                                        <span className="font-medium">Recipient: </span>
+                                        {selectedTransaction.recipient?.full_name} ({selectedTransaction.recipient?.bank_name})
+                                      </p>
+                                      <p className="text-xs text-gray-500">
+                                        Use Complete or Cancel in the row for pending requests.
+                                      </p>
+                                    </div>
+                                  ) : selectedTransaction.type === "send" ? (
                                     <>
                                       <div>
                                         <label className="text-sm font-medium text-gray-600">Send Amount</label>
@@ -992,6 +1122,7 @@ export default function AdminTransactionsPage() {
                                   )}
                                 </div>
 
+                                {selectedTransaction.type !== "referral_payout" && (
                                 <div className="border-t pt-4">
                                   <label className="text-sm font-medium text-gray-600">Update Status</label>
                                   <div className="grid grid-cols-2 gap-2 mt-2">
@@ -1036,42 +1167,45 @@ export default function AdminTransactionsPage() {
                                     </Button>
                                   </div>
                                 </div>
+                                )}
                               </div>
                             )}
                           </DialogContent>
                         </Dialog>
 
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => handleStatusUpdate(transaction.transaction_id, "processing")}
-                            >
-                              Payment Received
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleStatusUpdate(transaction.transaction_id, "completed")}
-                            >
-                              Transfer Complete
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleStatusUpdate(transaction.transaction_id, "failed")}
-                              className="text-red-600"
-                            >
-                              Mark as Failed
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleStatusUpdate(transaction.transaction_id, "cancelled")}
-                              className="text-gray-600"
-                            >
-                              Cancel Transfer
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        {transaction.type !== "referral_payout" && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => handleStatusUpdate(transaction.transaction_id, "processing")}
+                              >
+                                Payment Received
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleStatusUpdate(transaction.transaction_id, "completed")}
+                              >
+                                Transfer Complete
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleStatusUpdate(transaction.transaction_id, "failed")}
+                                className="text-red-600"
+                              >
+                                Mark as Failed
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleStatusUpdate(transaction.transaction_id, "cancelled")}
+                                className="text-gray-600"
+                              >
+                                Cancel Transfer
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

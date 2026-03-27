@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/lib/auth-context"
 import { Check, Eye, EyeOff } from "lucide-react"
 import { useEffect } from "react"
+import { claimReferralIfNeeded } from "@/lib/referral-client"
 
 function LoginPageContent() {
   const router = useRouter()
@@ -45,6 +46,8 @@ function LoginPageContent() {
         setError(signInError.message)
         return
       }
+
+      await claimReferralIfNeeded()
 
       // Check for stored redirect and conversion data
       const redirectPath = sessionStorage.getItem("redirectAfterLogin")

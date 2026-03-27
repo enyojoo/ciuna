@@ -1,6 +1,6 @@
 // Email template generator using the provided design system
 
-import { SEO_LOGO_URL } from "./seo"
+import { SEO_EMAIL_LOGO_DARK_URL, SEO_EMAIL_LOGO_LIGHT_URL } from "./seo"
 
 export function generateBaseEmailTemplate(
   title: string,
@@ -51,6 +51,10 @@ export function generateBaseEmailTemplate(
             height: auto;
             margin: 0 auto 20px auto;
             display: block;
+        }
+        
+        .logo-dark {
+            display: none;
         }
         
         .email-title {
@@ -245,6 +249,14 @@ export function generateBaseEmailTemplate(
                 border-bottom-color: #333333;
             }
             
+            .logo-light {
+                display: none !important;
+            }
+            
+            .logo-dark {
+                display: block !important;
+            }
+            
             .email-title {
                 color: #F97316;
             }
@@ -362,7 +374,8 @@ export function generateBaseEmailTemplate(
     <div class="email-container">
         <!-- Header -->
         <div class="email-header">
-            <img src="${SEO_LOGO_URL}" alt="Ciuna" class="logo" width="120" style="max-width:120px;height:auto;">
+            <img src="${SEO_EMAIL_LOGO_LIGHT_URL}" alt="Ciuna" class="logo logo-light" width="120" style="max-width:120px;height:auto;">
+            <img src="${SEO_EMAIL_LOGO_DARK_URL}" alt="Ciuna" class="logo logo-dark" width="120" style="max-width:120px;height:auto;">
             <h1 class="email-title">${title}</h1>
             ${subtitle ? `<p class="email-subtitle">${subtitle}</p>` : ''}
         </div>

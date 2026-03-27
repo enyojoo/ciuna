@@ -26,7 +26,8 @@ export class EmailNotificationService {
     transactionId: string, 
     status: string
   ): Promise<void> {
-    console.log('Sending email for transaction:', transactionId, 'status:', status)
+    const normalizedStatus = status.trim().toLowerCase()
+    console.log('Sending email for transaction:', transactionId, 'status:', normalizedStatus)
     
     try {
       // Get transaction data from database
@@ -94,28 +95,28 @@ export class EmailNotificationService {
         receiveCurrency: transaction.receive_currency,
         exchangeRate: transaction.exchange_rate,
         fee: transaction.fee_amount,
-        status: status as any,
+        status: normalizedStatus as TransactionEmailData['status'],
         failureReason: transaction.failure_reason,
         createdAt: transaction.created_at,
         updatedAt: transaction.updated_at
       }
 
       // Send email based on status
-      console.log('Sending email to:', user.email, 'with status:', status)
+      console.log('Sending email to:', user.email, 'with status:', normalizedStatus)
       
       let result
-      if (status === 'completed') {
+      if (normalizedStatus === 'completed') {
         result = await emailService.sendTransactionCompletedEmail(user.email, emailData)
-      } else if (status === 'processing') {
+      } else if (normalizedStatus === 'processing') {
         result = await emailService.sendTransactionProcessingEmail(user.email, emailData)
-      } else if (status === 'pending') {
+      } else if (normalizedStatus === 'pending') {
         result = await emailService.sendTransactionPendingEmail(user.email, emailData)
-      } else if (status === 'failed') {
+      } else if (normalizedStatus === 'failed') {
         result = await emailService.sendTransactionFailedEmail(user.email, emailData)
-      } else if (status === 'cancelled') {
+      } else if (normalizedStatus === 'cancelled') {
         result = await emailService.sendTransactionCancelledEmail(user.email, emailData)
       } else {
-        console.log('Unknown status:', status)
+        console.log('Unknown status:', normalizedStatus)
         return
       }
 
@@ -248,7 +249,8 @@ export class EmailNotificationService {
     transactionId: string, 
     status: string
   ): Promise<void> {
-    console.log('Sending admin notification for transaction:', transactionId, 'status:', status)
+    const normalizedStatus = status.trim().toLowerCase()
+    console.log('Sending admin notification for transaction:', transactionId, 'status:', normalizedStatus)
     
     try {
       // Get transaction data from database (exact same as user email method)
@@ -309,7 +311,7 @@ export class EmailNotificationService {
       // Create admin email data
       const adminEmailData = {
         transactionId: transaction.transaction_id,
-        status: status,
+        status: normalizedStatus,
         sendAmount: transaction.send_amount,
         sendCurrency: transaction.send_currency,
         receiveAmount: transaction.receive_amount,
@@ -326,10 +328,13 @@ export class EmailNotificationService {
       }
 
       // Send admin notification email (exact same pattern as user email)
-      console.log('Sending admin notification email to: enyo@ciuna.com')
+      const adminNotifyEmail =
+        process.env.ADMIN_TRANSACTION_NOTIFICATION_EMAIL?.trim() ||
+        'enyo@easner.com'
+      console.log('Sending admin notification email to:', adminNotifyEmail)
       
       const result = await emailService.sendEmail({
-        to: 'enyo@ciuna.com',
+        to: adminNotifyEmail,
         template: 'adminTransactionNotification',
         data: adminEmailData
       })
@@ -341,6 +346,77 @@ export class EmailNotificationService {
       }
     } catch (error) {
       console.error('Error sending admin notification email:', error)
+    }
+  }
+
+  /**
+   * Legacy referral-only templates (no `transactions` row). New payout flow uses
+   * `sendTransactionStatusEmail` / `sendAdminTransactionNotification` like POST /api/transactions.
+   */
+  static async sendReferralPayoutStatusEmail(
+    payoutRequestId: string,
+    status: "pending" | "completed" | "cancelled",
+    linkedTransactionId?: string,
+  ): Promise<void> {
+    try {
+      const supabase = createServerClient()
+      const { data: pay, error } = await supabase
+        .from("referral_payout_requests")
+        .select(
+          `
+          id,
+          amount,
+          currency,
+          payout_transaction_id,
+          recipient:recipients(full_name),
+          user:users(email, first_name)
+        `,
+        )
+        .eq("id", payoutRequestId)
+        .single()
+
+      if (error || !pay) {
+        console.error("sendReferralPayoutStatusEmail: payout not found", error)
+        return
+      }
+
+      const user = pay.user as { email?: string; first_name?: string } | null
+      const rec = pay.recipient as { full_name?: string } | { full_name?: string }[] | null
+      const recipientName = Array.isArray(rec) ? rec[0]?.full_name : rec?.full_name
+
+      if (!user?.email) {
+        console.error("sendReferralPayoutStatusEmail: missing user email")
+        return
+      }
+
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.ciuna.com"
+      const dashboardUrl =
+        status === "completed" ? `${appUrl}/transactions` : `${appUrl}/more/referrals`
+
+      const payoutTxnId =
+        typeof pay.payout_transaction_id === "string" && pay.payout_transaction_id.trim()
+          ? pay.payout_transaction_id.trim()
+          : undefined
+
+      const result = await emailService.sendReferralPayoutEmail(user.email, {
+        firstName: user.first_name || "there",
+        amount: Number(pay.amount),
+        currency: pay.currency as string,
+        recipientName: recipientName || "Recipient",
+        status,
+        payoutRequestId: payoutRequestId,
+        payoutTransactionId: payoutTxnId,
+        linkedTransactionId: status === "completed" ? linkedTransactionId : undefined,
+        dashboardUrl,
+      })
+
+      if (result.success) {
+        console.log("Referral payout status email sent:", result.messageId)
+      } else {
+        console.error("Referral payout status email failed:", result.error)
+      }
+    } catch (e) {
+      console.error("sendReferralPayoutStatusEmail:", e)
     }
   }
 }

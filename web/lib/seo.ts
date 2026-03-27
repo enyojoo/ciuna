@@ -6,7 +6,7 @@
 export const SEO_SITE_NAME = "Ciuna"
 
 /** Primary window title + default for Open Graph / Twitter when no template applies */
-export const SEO_DEFAULT_TITLE = "Ciuna — Global money transfers, built for speed and compliance"
+export const SEO_DEFAULT_TITLE = "Ciuna Web App"
 
 /**
  * Meta description (≈150–160 chars ideal for SERPs; longer is OK for OG).
@@ -44,16 +44,24 @@ export const SEO_MANIFEST_DESCRIPTION =
 
 export const SEO_TWITTER_CREATOR = "@ciuna"
 
-/** Page-specific titles (used with root `title.template`) */
+/** Suffix for nested route titles (root default is `SEO_DEFAULT_TITLE` without template) */
+const PAGE_TITLE_SUFFIX = " - Ciuna"
+
+/** Page-specific document titles (full string incl. suffix; root has no template) */
 export const SEO_PAGE_TITLES = {
-  dashboard: "Dashboard",
-  send: "Send money",
-  transactions: "Transactions",
-  recipients: "Recipients",
-  support: "Support",
-  auth: "Sign in",
-  forgotPassword: "Forgot password",
-  resetPassword: "Reset password",
+  dashboard: `Dashboard${PAGE_TITLE_SUFFIX}`,
+  send: `Send money${PAGE_TITLE_SUFFIX}`,
+  transactions: `Transactions${PAGE_TITLE_SUFFIX}`,
+  recipients: `Recipients${PAGE_TITLE_SUFFIX}`,
+  support: `Support${PAGE_TITLE_SUFFIX}`,
+  auth: `Sign in${PAGE_TITLE_SUFFIX}`,
+  forgotPassword: `Forgot password${PAGE_TITLE_SUFFIX}`,
+  resetPassword: `Reset password${PAGE_TITLE_SUFFIX}`,
+  morePassword: `Password${PAGE_TITLE_SUFFIX}`,
+  moreNotifications: `Notifications${PAGE_TITLE_SUFFIX}`,
+  moreVerificationIdentity: `Identity verification${PAGE_TITLE_SUFFIX}`,
+  moreVerificationAddress: `Address verification${PAGE_TITLE_SUFFIX}`,
+  moreReferrals: `Affiliates & referrals${PAGE_TITLE_SUFFIX}`,
 } as const
 
 /** Page-specific meta descriptions (logged-in / utility routes; many are noindex) */
@@ -67,6 +75,14 @@ export const SEO_PAGE_DESCRIPTIONS = {
   auth: "Sign in to Ciuna to send money globally with transparent pricing and secure authentication.",
   forgotPassword: "Start a secure password reset for your Ciuna account.",
   resetPassword: "Choose a new password to get back into your Ciuna account.",
+  morePassword: "Update your Ciuna account password and keep your sign-in secure.",
+  moreNotifications: "Choose how Ciuna notifies you about transfers, security, and account updates.",
+  moreVerificationIdentity:
+    "Complete identity verification for your Ciuna account—secure uploads and guided steps.",
+  moreVerificationAddress:
+    "Confirm your address for Ciuna verification—support for proof of residence where required.",
+  moreReferrals:
+    "Share your referral link, track rewards when friends send with Ciuna, and request payouts to your saved recipients.",
 } as const
 
 /** JSON-LD: FinancialService block */
@@ -123,9 +139,17 @@ export const SEO_FAQ_JSON_LD = {
   ],
 } as const
 
-/** Brand mark (OG / JSON-LD / emails); same asset as in-app marketing surfaces */
+/** Brand mark (OG / JSON-LD); in-app marketing surfaces */
 export const SEO_LOGO_URL =
   "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20web%20app.png"
+
+/** HTML emails: full-color mark on light backgrounds */
+export const SEO_EMAIL_LOGO_LIGHT_URL =
+  "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20main.png"
+
+/** HTML emails: mark for dark-mode mail clients (prefers-color-scheme: dark) */
+export const SEO_EMAIL_LOGO_DARK_URL =
+  "https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20light.png"
 
 /** FinancialService JSON-LD (schema.org) */
 export const SEO_FINANCIAL_SERVICE_JSON_LD = {

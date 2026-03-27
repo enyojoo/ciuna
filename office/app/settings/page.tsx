@@ -23,6 +23,7 @@ import {
   MoreHorizontal,
   X,
   Upload,
+  Gift,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -141,6 +142,15 @@ export default function AdminSettingsPage() {
     accountLockoutDuration: 15,
   })
 
+  const [referralProgram, setReferralProgram] = useState({
+    program_active: true,
+    mode: "threshold" as "threshold" | "percent",
+    policy_currency: "USD",
+    reward_amount: 5,
+    threshold_send_amount: 500,
+    percent_of_send: 0.005,
+  })
+
   useEffect(() => {
     loadAllData()
   }, [])
@@ -202,6 +212,28 @@ export default function AdminSettingsPage() {
           case "account_lockout_duration":
             newSecuritySettings.accountLockoutDuration = Number.parseInt(setting.value)
             break
+          case "referral_program": {
+            let raw: unknown = setting.value
+            if (typeof raw === "string") {
+              try {
+                raw = JSON.parse(raw)
+              } catch {
+                break
+              }
+            }
+            if (raw && typeof raw === "object") {
+              const r = raw as Record<string, unknown>
+              setReferralProgram({
+                program_active: Boolean(r.program_active ?? true),
+                mode: r.mode === "percent" ? "percent" : "threshold",
+                policy_currency: typeof r.policy_currency === "string" ? r.policy_currency : "USD",
+                reward_amount: Number(r.reward_amount ?? 5),
+                threshold_send_amount: Number(r.threshold_send_amount ?? 500),
+                percent_of_send: Number(r.percent_of_send ?? 0.005),
+              })
+            }
+            break
+          }
         }
       })
 
@@ -314,6 +346,38 @@ export default function AdminSettingsPage() {
   const handleCancelSecuritySettings = () => {
     setSecuritySettings(originalSecuritySettings)
     setIsEditingSecuritySettings(false)
+  }
+
+  const handleSaveReferralProgram = async () => {
+    setSaving(true)
+    try {
+      const policy = referralProgram.policy_currency.trim().toUpperCase() || "USD"
+      const payload = {
+        program_active: referralProgram.program_active,
+        mode: referralProgram.mode,
+        policy_currency: policy,
+        reward_amount: referralProgram.reward_amount,
+        threshold_send_amount: referralProgram.threshold_send_amount,
+        percent_of_send: referralProgram.percent_of_send,
+      }
+      const { error } = await supabase.from("system_settings").upsert(
+        {
+          key: "referral_program",
+          value: JSON.stringify(payload),
+          data_type: "json",
+          category: "referrals",
+          is_active: true,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "key" },
+      )
+      if (error) throw error
+      await loadSystemSettings()
+    } catch (error) {
+      console.error("Error saving referral program:", error)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleQrCodeFileSelect = (file: File, isEditing = false) => {
@@ -596,7 +660,7 @@ export default function AdminSettingsPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
             <TabsTrigger value="platform" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Platform
@@ -608,6 +672,10 @@ export default function AdminSettingsPage() {
             <TabsTrigger value="security" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Security
+            </TabsTrigger>
+            <TabsTrigger value="referrals" className="flex items-center gap-2">
+              <Gift className="h-4 w-4" />
+              Referrals
             </TabsTrigger>
           </TabsList>
 
@@ -1826,6 +1894,125 @@ export default function AdminSettingsPage() {
                     </Button>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="referrals">
+            <Card>
+              <CardHeader>
+                <CardTitle>Referral program</CardTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  Rewards are based on referees&apos; completed sends (total amount sent), converted to the policy
+                  currency below—not money received on the other side.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="referral-active">Program active</Label>
+                    <p className="text-sm text-gray-500">When off, no new referral rewards are granted.</p>
+                  </div>
+                  <Switch
+                    id="referral-active"
+                    checked={referralProgram.program_active}
+                    onCheckedChange={(checked) => setReferralProgram((p) => ({ ...p, program_active: checked }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Policy currency</Label>
+                  <p className="text-xs text-gray-500">
+                    Thresholds and fixed rewards are interpreted in this currency (FX uses your exchange rates).
+                  </p>
+                  <Input
+                    value={referralProgram.policy_currency}
+                    onChange={(e) => setReferralProgram((p) => ({ ...p, policy_currency: e.target.value }))}
+                    placeholder="USD"
+                    className="max-w-xs"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Reward mode</Label>
+                  <Select
+                    value={referralProgram.mode}
+                    onValueChange={(v) =>
+                      setReferralProgram((p) => ({ ...p, mode: v === "percent" ? "percent" : "threshold" }))
+                    }
+                  >
+                    <SelectTrigger className="max-w-md">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="threshold">
+                        Threshold — one-time reward when cumulative sends cross a total
+                      </SelectItem>
+                      <SelectItem value="percent">Percent — reward on each completed send</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {referralProgram.mode === "threshold" ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Total send threshold ({referralProgram.policy_currency})</Label>
+                      <p className="text-xs text-gray-500">
+                        When a referee&apos;s lifetime completed send volume (in policy currency) reaches this amount,
+                        the referrer gets the reward once.
+                      </p>
+                      <Input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={referralProgram.threshold_send_amount}
+                        onChange={(e) =>
+                          setReferralProgram((p) => ({ ...p, threshold_send_amount: Number(e.target.value) }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Reward amount ({referralProgram.policy_currency})</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={referralProgram.reward_amount}
+                        onChange={(e) =>
+                          setReferralProgram((p) => ({ ...p, reward_amount: Number(e.target.value) }))
+                        }
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-w-md">
+                    <Label>Percent of each completed send</Label>
+                    <p className="text-xs text-gray-500">
+                      Enter as a percentage (e.g. 0.5 means 0.5% of each send in policy currency).
+                    </p>
+                    <Input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={referralProgram.percent_of_send * 100}
+                      onChange={(e) =>
+                        setReferralProgram((p) => ({
+                          ...p,
+                          percent_of_send: Number(e.target.value) / 100,
+                        }))
+                      }
+                    />
+                  </div>
+                )}
+
+                <Button
+                  onClick={handleSaveReferralProgram}
+                  disabled={saving}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {saving ? "Saving..." : "Save referral program"}
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>

@@ -5,6 +5,7 @@ import { emailTemplates } from './email-templates'
 import type { 
   EmailData, 
   EmailServiceConfig, 
+  ReferralPayoutEmailData,
   SendGridResponse, 
   TransactionEmailData, 
   WelcomeEmailData 
@@ -146,6 +147,23 @@ export class EmailService {
    */
   async sendTransactionCancelledEmail(userEmail: string, transactionData: TransactionEmailData): Promise<SendGridResponse> {
     return this.sendTransactionNotification(userEmail, transactionData, 'cancelled')
+  }
+
+  /**
+   * Referral payout lifecycle: pending (request submitted), completed, cancelled (Office-processed).
+   */
+  async sendReferralPayoutEmail(userEmail: string, data: ReferralPayoutEmailData): Promise<SendGridResponse> {
+    const templateMap = {
+      pending: "referralPayoutPending",
+      completed: "referralPayoutCompleted",
+      cancelled: "referralPayoutCancelled",
+    } as const
+    const template = templateMap[data.status]
+    return this.sendEmail({
+      to: userEmail,
+      template,
+      data,
+    })
   }
 
   /**

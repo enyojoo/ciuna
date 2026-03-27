@@ -339,6 +339,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             first_name: userData.firstName,
             last_name: userData.lastName,
             base_currency: userData.baseCurrency || "USD",
+            ...(userData.referralSlug?.trim()
+              ? { referral_slug: userData.referralSlug.trim() }
+              : {}),
           },
         },
       })

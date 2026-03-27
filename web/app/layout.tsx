@@ -24,10 +24,7 @@ import {
 } from "@/lib/seo"
 
 export const metadata: Metadata = {
-  title: {
-    default: SEO_DEFAULT_TITLE,
-    template: "%s - Ciuna",
-  },
+  title: SEO_DEFAULT_TITLE,
   description: SEO_DEFAULT_DESCRIPTION,
   keywords: SEO_KEYWORDS,
   formatDetection: {

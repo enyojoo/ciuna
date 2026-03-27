@@ -1,6 +1,7 @@
 // Transaction status management service with email notifications
 
-import { createServerClient } from './supabase'
+import { createServerClient, supabase } from './supabase'
+import { processReferralRewardsOnCompletedSend } from './referral-reward-service'
 import type { Transaction, TransactionStatusHistory } from '@/types'
 
 export interface StatusUpdateData {
@@ -98,6 +99,12 @@ export class TransactionStatusService {
         console.error('Email notification failed:', error)
         // Don't throw error as email failure shouldn't break status update
       })
+
+      if (statusData.status === 'completed' && updatedTransaction) {
+        processReferralRewardsOnCompletedSend(updatedTransaction as any).catch((err) => {
+          console.error('Referral rewards processing failed:', err)
+        })
+      }
 
       return {
         success: true,
