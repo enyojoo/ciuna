@@ -78,30 +78,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return {}
   }
 
-  const fetchUserProfile = async (userId: string, user?: any) => {
+  /** `authUser` is the Supabase session user; required for setUser — omitting it used to clear auth on refresh. */
+  const fetchUserProfile = async (userId: string, authUser?: User) => {
     try {
       // Check if this is an admin user by looking at the user metadata
-      const isAdminUser = user?.user_metadata?.isAdmin || user?.isAdmin || false
+      const isAdminUser = authUser?.user_metadata?.isAdmin || (authUser as any)?.isAdmin || false
 
-      if (isAdminUser) {
+      if (isAdminUser && authUser) {
         // For admin users, create profile from user metadata
         const adminProfile = {
-          id: user.id,
-          email: user.email,
-          first_name: user.user_metadata?.first_name || user.name || '',
-          last_name: user.user_metadata?.last_name || '',
-          phone: user.phone || '',
-          base_currency: user.user_metadata?.base_currency || 'NGN',
+          id: authUser.id,
+          email: authUser.email,
+          first_name: authUser.user_metadata?.first_name || authUser.name || '',
+          last_name: authUser.user_metadata?.last_name || '',
+          phone: authUser.phone || '',
+          base_currency: authUser.user_metadata?.base_currency || 'NGN',
           status: 'active',
           // verification_status removed - use bridge_kyc_status for KYC status
-          created_at: user.created_at,
-          updated_at: user.updated_at || user.created_at,
+          created_at: authUser.created_at,
+          updated_at: authUser.updated_at || authUser.created_at,
           role: 'super_admin'
         }
         
         setUserProfile(adminProfile)
         setIsAdmin(true)
-        setUser(user)
+        setUser(authUser)
         return adminProfile
       }
 
@@ -114,9 +115,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (userProfile && !userError) {
         // For OAuth users (e.g. Google), sync name from auth user_metadata when profile is missing it
-        const oauthName = getNameFromAuthUser(user)
+        const oauthName = getNameFromAuthUser(authUser)
         const needsName = (oauthName.first_name || oauthName.last_name) && (!userProfile.first_name || !userProfile.last_name)
-        if (needsName && user) {
+        if (needsName && authUser) {
           const { first_name, last_name } = oauthName
           if (first_name || last_name) {
             const mergedProfile = { ...userProfile, first_name: first_name || userProfile.first_name, last_name: last_name || userProfile.last_name }
@@ -135,13 +136,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
             setUserProfile(mergedProfile)
             setIsAdmin(false)
-            setUser(user)
+            setUser(authUser)
             return mergedProfile
           }
         }
         setUserProfile(userProfile)
         setIsAdmin(false)
-        setUser(user)
+        // Keep existing session user when refresh is called without authUser (should not happen if callers pass user)
+        setUser((prev) => authUser ?? prev)
         return userProfile
       }
 
@@ -156,7 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUserProfile = useCallback(async () => {
     if (user) {
-      await fetchUserProfile(user.id)
+      await fetchUserProfile(user.id, user)
     }
   }, [user])
 
