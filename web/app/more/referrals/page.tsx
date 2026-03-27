@@ -103,10 +103,31 @@ function writeReferralsCache(userId: string, value: MeResponse) {
   }
 }
 
+function currencySymbolForCode(
+  code: string,
+  currencies: { code?: string; symbol?: string }[] | undefined,
+): string {
+  const sym = currencies?.find((c) => c?.code === code)?.symbol
+  if (sym) return sym
+  try {
+    return (
+      new Intl.NumberFormat(undefined, {
+        style: "currency",
+        currency: code,
+        currencyDisplay: "narrowSymbol",
+      })
+        .formatToParts(0)
+        .find((p) => p.type === "currency")?.value ?? code
+    )
+  } catch {
+    return code
+  }
+}
+
 export default function ReferralsPage() {
   useRouteProtection({ requireAuth: true })
   const { userProfile, loading: authLoading, user } = useAuth()
-  const { recipients, refreshRecipients } = useUserData()
+  const { recipients, refreshRecipients, currencies } = useUserData()
   const [data, setData] = useState<MeResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -275,6 +296,9 @@ export default function ReferralsPage() {
   if (loading && !data) {
     return <ReferralsPageSkeleton />
   }
+
+  const baseCurrencyCode = userProfile?.base_currency || "USD"
+  const baseCurrencySymbol = currencySymbolForCode(baseCurrencyCode, currencies)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -467,7 +491,7 @@ export default function ReferralsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Amount ({userProfile?.base_currency || "USD"})</Label>
+              <Label>Amount ({baseCurrencySymbol})</Label>
               <Input
                 type="number"
                 min={0}
