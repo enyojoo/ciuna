@@ -44,7 +44,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     const pct = program.percent_of_send * 100
     programSummary = `Earn ${pct.toFixed(2)}% on every completed send your referrals make (totals shown in ${policy}).`
   } else {
-    programSummary = `Earn ${formatMoney(program.reward_amount, policy)} when each referral sends a combined ${formatMoney(program.threshold_send_amount, policy)} or more (completed sends only).`
+    programSummary = `Earn ${formatMoney(program.reward_amount, policy)} when each referral sends a combined ${formatMoney(program.threshold_send_amount, policy)} or more.`
   }
 
   const { data: referees } = await supabase

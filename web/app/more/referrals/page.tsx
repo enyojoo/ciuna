@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useState, useCallback } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,9 +12,9 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Copy, Share2, Users, Wallet, Loader2 } from "lucide-react"
-import type { Recipient } from "@/types"
+import { Check, Copy, Share2, Users, Wallet, Loader2 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
+import { useUserData } from "@/hooks/use-user-data"
 import { useRouteProtection } from "@/hooks/use-route-protection"
 import { AppPageHeader } from "@/components/layout/app-page-header"
 import { fetchWithAuth } from "@/lib/fetch-with-auth"
@@ -41,65 +41,159 @@ interface MeResponse {
   pendingPayouts: { id: string; amount: number; currency: string; status: string }[]
 }
 
+const CACHE_TTL_MS = 5 * 60 * 1000
+
+function referralsCacheKey(userId: string) {
+  return `ciuna_referrals_me_${userId}`
+}
+
+function readStaleReferralsCache(userId: string): MeResponse | null {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = localStorage.getItem(referralsCacheKey(userId))
+    if (!raw) return null
+    const { value } = JSON.parse(raw) as { value?: MeResponse; timestamp?: number }
+    return value && typeof value === "object" ? value : null
+  } catch {
+    return null
+  }
+}
+
+function isReferralsCacheFresh(userId: string): boolean {
+  if (typeof window === "undefined") return false
+  try {
+    const raw = localStorage.getItem(referralsCacheKey(userId))
+    if (!raw) return false
+    const { timestamp } = JSON.parse(raw) as { timestamp?: number }
+    return typeof timestamp === "number" && Date.now() - timestamp < CACHE_TTL_MS
+  } catch {
+    return false
+  }
+}
+
+function writeReferralsCache(userId: string, value: MeResponse) {
+  try {
+    localStorage.setItem(
+      referralsCacheKey(userId),
+      JSON.stringify({ value, timestamp: Date.now() }),
+    )
+  } catch {
+    /* ignore quota */
+  }
+}
+
 export default function ReferralsPage() {
   useRouteProtection({ requireAuth: true })
   const { userProfile, loading: authLoading, user } = useAuth()
+  const { recipients, refreshRecipients } = useUserData()
   const [data, setData] = useState<MeResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [withdrawOpen, setWithdrawOpen] = useState(false)
-  const [recipients, setRecipients] = useState<Recipient[]>([])
   const [recipientId, setRecipientId] = useState("")
   const [withdrawAmount, setWithdrawAmount] = useState("")
   const [submitting, setSubmitting] = useState(false)
-  const [copied, setCopied] = useState<"link" | "share" | null>(null)
+  const [linkCopied, setLinkCopied] = useState(false)
 
-  const load = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetchWithAuth("/api/referrals/me")
-      const j = await res.json()
-      if (!res.ok) {
-        throw new Error(j.error || "Failed to load")
+  const fetchReferralsMe = useCallback(async (): Promise<MeResponse> => {
+    const res = await fetchWithAuth("/api/referrals/me")
+    const j = await res.json()
+    if (!res.ok) {
+      throw new Error(j.error || "Failed to load")
+    }
+    return j as MeResponse
+  }, [])
+
+  /** Refresh from network; `silent` avoids full-page loading state (e.g. after withdraw). */
+  const load = useCallback(
+    async (options?: { silent?: boolean }) => {
+      const uid = userProfile?.id
+      if (!uid) return
+      if (!options?.silent) setLoading(true)
+      setError(null)
+      try {
+        const j = await fetchReferralsMe()
+        setData(j)
+        writeReferralsCache(uid, j)
+      } catch (e: any) {
+        setError(e?.message || "Failed to load")
+      } finally {
+        if (!options?.silent) setLoading(false)
       }
-      setData(j)
-    } catch (e: any) {
-      setError(e?.message || "Failed to load")
-    } finally {
+    },
+    [userProfile?.id, fetchReferralsMe],
+  )
+
+  // Seed from localStorage before paint; align loading with cache (same pattern as /transactions)
+  useLayoutEffect(() => {
+    if (authLoading || !user || !userProfile?.id) return
+
+    setData(() => {
+      const stale = readStaleReferralsCache(userProfile.id)
+      return stale ?? null
+    })
+
+    const stale = readStaleReferralsCache(userProfile.id)
+    const hasData = stale != null
+    const cacheFresh = isReferralsCacheFresh(userProfile.id)
+
+    if (!cacheFresh && !hasData) {
+      setLoading(true)
+    } else {
       setLoading(false)
     }
-  }
+  }, [userProfile?.id, authLoading, user])
+
+  // Fetch only when cache missing or stale (fresh cache → no network on revisit)
+  useEffect(() => {
+    if (authLoading || !user || !userProfile?.id) return
+    if (isReferralsCacheFresh(userProfile.id)) return
+
+    const stale = readStaleReferralsCache(userProfile.id)
+    void load({ silent: !!stale })
+  }, [userProfile?.id, authLoading, user, load])
 
   useEffect(() => {
-    if (authLoading) return
-    if (!user) return
-    load()
-  }, [authLoading, user])
+    if (!withdrawOpen) return
+    void refreshRecipients?.()
+  }, [withdrawOpen, refreshRecipients])
 
-  const loadRecipients = async () => {
+  useEffect(() => {
+    if (!withdrawOpen) return
+    if (!recipients.length) return
+    if (!recipientId || !recipients.some((r) => r.id === recipientId)) {
+      setRecipientId(recipients[0].id)
+    }
+  }, [withdrawOpen, recipients, recipientId])
+
+  const copyLinkUrl = async () => {
+    if (!data?.shareUrl) return
     try {
-      const res = await fetchWithAuth("/api/recipients")
-      if (!res.ok) return
-      const j = await res.json()
-      setRecipients(j.recipients || [])
-      if (j.recipients?.length && !recipientId) {
-        setRecipientId(j.recipients[0].id)
-      }
+      await navigator.clipboard.writeText(data.shareUrl)
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2000)
     } catch {
       /* ignore */
     }
   }
 
-  useEffect(() => {
-    if (withdrawOpen) loadRecipients()
-  }, [withdrawOpen])
-
-  const copyText = async (text: string, kind: "link" | "share") => {
+  const shareReferral = async () => {
+    if (!data?.shareUrl) return
+    const payload: ShareData = {
+      title: "Ciuna referral",
+      text: data.shareMessage,
+      url: data.shareUrl,
+    }
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share(payload)
+        return
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name === "AbortError") return
+      }
+    }
     try {
-      await navigator.clipboard.writeText(text)
-      setCopied(kind)
-      setTimeout(() => setCopied(null), 2000)
+      await navigator.clipboard.writeText(`${data.shareMessage}\n${data.shareUrl}`)
     } catch {
       /* ignore */
     }
@@ -120,7 +214,7 @@ export default function ReferralsPage() {
       if (!res.ok) throw new Error(j.error || "Request failed")
       setWithdrawOpen(false)
       setWithdrawAmount("")
-      await load()
+      await load({ silent: true })
     } catch (e: any) {
       setError(e?.message || "Withdraw failed")
     } finally {
@@ -132,7 +226,7 @@ export default function ReferralsPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <AppPageHeader title="Affiliates & Referrals" backHref="/more" />
-        <div className="flex items-center justify-center min-h-[40vh] max-w-4xl mx-auto px-6">
+        <div className="flex items-center justify-center min-h-[40vh] max-w-4xl mx-auto px-6 pb-12 sm:pb-16">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </div>
@@ -143,7 +237,7 @@ export default function ReferralsPage() {
     <div className="min-h-screen bg-gray-50">
       <AppPageHeader title="Affiliates & Referrals" backHref="/more" />
 
-      <div className="max-w-4xl mx-auto px-6 py-6 lg:px-8 space-y-6">
+      <div className="max-w-4xl mx-auto px-6 pt-6 pb-12 sm:pb-16 lg:px-8 lg:pb-10 space-y-6">
         <p className="text-base text-gray-600 -mt-1">
           Share your link and track rewards when friends send money.
         </p>
@@ -164,14 +258,17 @@ export default function ReferralsPage() {
                   <span className="font-mono text-sm truncate flex-1">{data?.shareUrl}</span>
                   <button
                     type="button"
-                    onClick={() => data?.shareUrl && copyText(data.shareUrl, "link")}
+                    onClick={() => void copyLinkUrl()}
                     className="p-1.5 rounded-md hover:bg-gray-100 text-gray-600"
-                    aria-label="Copy link"
+                    aria-label={linkCopied ? "Copied" : "Copy link"}
                   >
-                    <Copy className="h-4 w-4" />
+                    {linkCopied ? (
+                      <Check className="h-4 w-4 text-green-600" aria-hidden />
+                    ) : (
+                      <Copy className="h-4 w-4" aria-hidden />
+                    )}
                   </button>
                 </div>
-                {copied === "link" && <p className="text-xs text-green-600 mt-1">Copied</p>}
               </div>
             </div>
           </CardContent>
@@ -218,19 +315,15 @@ export default function ReferralsPage() {
           </Card>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Button
-            className="flex-1"
-            onClick={() => data?.shareMessage && copyText(data.shareMessage, "share")}
-          >
+        <div className="flex flex-row gap-3">
+          <Button className="flex-1 min-w-0" onClick={() => void shareReferral()}>
             <Share2 className="h-4 w-4 mr-2" />
             Share link
           </Button>
-          <Button variant="outline" className="flex-1" onClick={() => setWithdrawOpen(true)}>
-            Withdraw / Payout
+          <Button variant="outline" className="flex-1 min-w-0" onClick={() => setWithdrawOpen(true)}>
+            Withdraw
           </Button>
         </div>
-        {copied === "share" && <p className="text-xs text-green-600 text-center">Message copied to clipboard</p>}
       </div>
 
       <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
