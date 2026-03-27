@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Ciuna - Send Money Across Borders",
     description: "International remittances and cross-border bank transfers without fees.",
-    creator: "@ciunabanking",
+    creator: "@ciuna",
     images: ["https://seeqjiebmrnolcyydewj.supabase.co/storage/v1/object/public/brand/Ciuna%20seo.png"],
   },
   robots: { index: true, follow: true },
