@@ -47,7 +47,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     programSummary = "The referral program is paused. Check back later."
   } else if (program.mode === "percent") {
     const pct = program.percent_of_send * 100
-    programSummary = `Earn ${pct.toFixed(2)}% on every completed send your referrals make.`
+    programSummary = `Earn ${pct.toFixed(2)}% of every completed transaction your referrals make.`
   } else {
     programSummary = `Earn ${formatMoney(program.reward_amount, policy)} when each referral sends a combined ${formatMoney(program.threshold_send_amount, policy)} or more.`
   }
