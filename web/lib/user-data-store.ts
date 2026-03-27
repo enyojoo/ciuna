@@ -8,6 +8,8 @@ interface UserData {
   currencies: any[]
   exchangeRates: any[]
   lastUpdated: number
+  /** Which user this cache belongs to (logout clears; avoids refetch on every route change) */
+  userId: string | null
 }
 
 class UserDataStore {
@@ -17,6 +19,7 @@ class UserDataStore {
     currencies: [],
     exchangeRates: [],
     lastUpdated: 0,
+    userId: null,
   }
 
   private listeners: Set<() => void> = new Set()
@@ -52,12 +55,28 @@ class UserDataStore {
   async initialize(userId: string) {
     this.updateActivity()
 
-    // If data is fresh for this user, return immediately without reloading
-    if (this.currentUserId === userId && this.isDataFresh()) {
-      // Only start background refresh if not already started
+    // Another user’s session (should only happen around account switch) — drop stale cache
+    if (this.data.userId && this.data.userId !== userId) {
+      this.data = {
+        transactions: [],
+        recipients: [],
+        currencies: [],
+        exchangeRates: [],
+        lastUpdated: 0,
+        userId: null,
+      }
+      this.currentUserId = null
+    }
+
+    // Fresh cache for this user: skip network (SPA navigations used to clear currentUserId on unmount)
+    if (this.data.userId === userId && userId && this.isDataFresh()) {
+      this.currentUserId = userId
       if (!this.refreshInterval) {
         this.startBackgroundRefresh(userId)
         this.startActivityMonitoring()
+      }
+      if (!this.transactionsChannel) {
+        this.setupRealtimeSubscriptions(userId)
       }
       return this.data
     }
@@ -135,6 +154,7 @@ class UserDataStore {
           currencies,
           exchangeRates,
           lastUpdated: Date.now(),
+          userId,
         }
 
         if (!silent) {
@@ -143,6 +163,7 @@ class UserDataStore {
       } else {
         // Update timestamp even if data didn't change to keep it fresh
         this.data.lastUpdated = Date.now()
+        this.data.userId = userId
       }
 
       return this.data
@@ -240,6 +261,7 @@ class UserDataStore {
       const recipients = await recipientService.getByUserId(userId)
       this.data.recipients = recipients || []
       this.data.lastUpdated = Date.now()
+      this.data.userId = userId
       this.notify()
     } catch (error) {
       console.error("Error refreshing recipients:", error)
@@ -260,6 +282,7 @@ class UserDataStore {
         this.data.transactions = transactions || []
       }
       this.data.lastUpdated = Date.now()
+      this.data.userId = userId
       this.notify()
     } catch (error) {
       console.error("Error refreshing transactions:", error)
@@ -309,6 +332,7 @@ class UserDataStore {
     }
   }
 
+  /** Call on sign-out only. Do not run on route unmount — that forced a refetch on every navigation. */
   cleanup() {
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval)
@@ -322,6 +346,15 @@ class UserDataStore {
     this.listeners.clear()
     this.currentUserId = null
     this.loadingPromise = null
+    this.isLoading = false
+    this.data = {
+      transactions: [],
+      recipients: [],
+      currencies: [],
+      exchangeRates: [],
+      lastUpdated: 0,
+      userId: null,
+    }
   }
 }
 

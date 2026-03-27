@@ -645,8 +645,8 @@ export default function UserRecipientsPage() {
     }
   }
 
-  // Show skeleton while data is loading
-  if (loading || !userProfile || !currencies?.length) {
+  // Match dashboard: don’t flash skeleton when cached currencies exist on navigation
+  if (!userProfile || (loading && currencies.length === 0)) {
     return (
       <RecipientsSkeleton />
     )

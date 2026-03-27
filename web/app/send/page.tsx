@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, useRef, useMemo } from "react"
+import { useState, useEffect, useLayoutEffect, useRef, useMemo } from "react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -49,7 +49,7 @@ import {
 export default function UserSendPage() {
   const router = useRouter()
   const { user, userProfile } = useAuth()
-  const { currencies, exchangeRates, recipients, refreshRecipients } = useUserData()
+  const { currencies, exchangeRates, recipients, refreshRecipients, loading: userDataLoading } = useUserData()
   
   // Memoize exchangeRates to prevent infinite re-renders
   const memoizedExchangeRates = useMemo(() => exchangeRates, [exchangeRates])
@@ -63,7 +63,6 @@ export default function UserSendPage() {
   const [fee, setFee] = useState<number>(0)
 
   const [paymentMethods, setPaymentMethods] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false)
   const [isResendingVerification, setIsResendingVerification] = useState(false)
@@ -136,48 +135,41 @@ export default function UserSendPage() {
     loadPaymentMethods()
   }, [])
 
-  // Set default currencies when data is loaded - only if not already set
-  useEffect(() => {
+  // Default currencies before paint when possible — avoids skeleton flash on repeat visits (store cache)
+  useLayoutEffect(() => {
     if (currencies.length > 0 && userProfile && !sendCurrency && !receiveCurrency) {
-      // Prioritize user's base currency from profile, otherwise USD, then first available currency that can send
       const userBaseCurrency = userProfile.base_currency || "USD"
       const availableSendCurrencies = currencies.filter((c) => c.can_send !== false)
-      
+
       if (availableSendCurrencies.length > 0) {
-        // Check if user's base currency is available and can send
         const baseCurrencyExists = availableSendCurrencies.find((c) => c.code === userBaseCurrency)
         let newSendCurrency: string
-        
+
         if (baseCurrencyExists) {
           newSendCurrency = userBaseCurrency
         } else {
-          // Fallback to USD if available, otherwise first available
           const usdCurrency = availableSendCurrencies.find((c) => c.code === "USD")
           newSendCurrency = usdCurrency ? "USD" : availableSendCurrencies[0].code
         }
-        
+
         setSendCurrency(newSendCurrency)
-        
-        // Set receive currency to first available currency that can receive (and is not the send currency)
+
         const availableReceiveCurrencies = currencies.filter(
           (c) => c.can_receive !== false && c.code !== newSendCurrency
         )
         if (availableReceiveCurrencies.length > 0) {
-          // Prefer NGN if available, otherwise first available
           const ngnCurrency = availableReceiveCurrencies.find((c) => c.code === "NGN")
           const newReceiveCurrency = ngnCurrency ? "NGN" : availableReceiveCurrencies[0].code
           setReceiveCurrency(newReceiveCurrency)
         }
       }
-      setLoading(false)
     } else if (currencies.length > 0 && !userProfile && !sendCurrency && !receiveCurrency) {
-      // If no user profile, fallback to USD or first available
       const availableSendCurrencies = currencies.filter((c) => c.can_send !== false)
       if (availableSendCurrencies.length > 0) {
         const usdCurrency = availableSendCurrencies.find((c) => c.code === "USD")
         const newSendCurrency = usdCurrency ? "USD" : availableSendCurrencies[0].code
         setSendCurrency(newSendCurrency)
-        
+
         const availableReceiveCurrencies = currencies.filter(
           (c) => c.can_receive !== false && c.code !== newSendCurrency
         )
@@ -187,10 +179,6 @@ export default function UserSendPage() {
           setReceiveCurrency(newReceiveCurrency)
         }
       }
-      setLoading(false)
-    } else if (currencies.length > 0 && sendCurrency && receiveCurrency) {
-      // If currencies are already set, just stop loading
-      setLoading(false)
     }
   }, [currencies, userProfile, sendCurrency, receiveCurrency])
 
@@ -716,10 +704,8 @@ export default function UserSendPage() {
     </Card>
   )
 
-  if (loading) {
-    return (
-      <SendPageSkeleton />
-    )
+  if (userDataLoading && currencies.length === 0) {
+    return <SendPageSkeleton />
   }
 
   if (error) {

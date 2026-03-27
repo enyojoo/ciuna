@@ -103,7 +103,6 @@ export function useUserData() {
   useEffect(() => {
     return () => {
       mountedRef.current = false
-      userDataStore.cleanup()
     }
   }, [])
 
