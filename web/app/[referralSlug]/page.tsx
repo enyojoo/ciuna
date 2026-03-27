@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { notFound, redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 import { createServerClient } from "@/lib/supabase"
 import { RESERVED_REFERRAL_SLUGS } from "@/lib/referral-slug"
 import {
@@ -10,7 +10,9 @@ import {
   SEO_SITE_NAME,
   SEO_SITE_URL,
 } from "@/lib/seo"
+import { ReferralClientRedirect } from "./referral-client-redirect"
 
+/** 200 + OG in <head> for crawlers; client redirects to register (no server redirect — that drops link previews). */
 export const dynamic = "force-dynamic"
 
 type Props = { params: Promise<{ referralSlug: string }> }
@@ -77,5 +79,5 @@ export default async function ReferralLandingPage({ params }: Props) {
     notFound()
   }
 
-  redirect(`/auth/register?ref=${encodeURIComponent(slug)}`)
+  return <ReferralClientRedirect slug={slug} />
 }

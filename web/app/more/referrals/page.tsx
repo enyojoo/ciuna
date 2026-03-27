@@ -196,10 +196,10 @@ export default function ReferralsPage() {
 
   const shareReferral = async () => {
     if (!data?.shareUrl) return
+    // Single link: `text` already includes the URL; omit `url` or iOS/Messages shows two links.
     const payload: ShareData = {
       title: data.shareTitle ?? SEO_REFERRAL_SHARE_TITLE,
       text: data.shareMessage,
-      url: data.shareUrl,
     }
     if (typeof navigator.share === "function") {
       try {
