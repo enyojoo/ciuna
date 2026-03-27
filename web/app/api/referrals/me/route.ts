@@ -7,6 +7,7 @@ import { getReferralProgramSettingsServer } from "@/lib/referral-program"
 import { buildRateMap, convertWithRateMap } from "@/lib/referral-currency"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 import { APP_URLS } from "@ciuna/shared"
+import { SEO_REFERRAL_SHARE_DESCRIPTION, SEO_REFERRAL_SHARE_TITLE } from "@/lib/seo"
 
 function formatMoney(amount: number, currency: string) {
   try {
@@ -42,7 +43,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     programSummary = "The referral program is paused. Check back later."
   } else if (program.mode === "percent") {
     const pct = program.percent_of_send * 100
-    programSummary = `Earn ${pct.toFixed(2)}% on every completed send your referrals make (totals shown in ${policy}).`
+    programSummary = `Earn ${pct.toFixed(2)}% on every completed send your referrals make.`
   } else {
     programSummary = `Earn ${formatMoney(program.reward_amount, policy)} when each referral sends a combined ${formatMoney(program.threshold_send_amount, policy)} or more.`
   }
@@ -96,6 +97,8 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     slug,
     shareUrl,
     shareMessage,
+    shareTitle: SEO_REFERRAL_SHARE_TITLE,
+    shareDescription: SEO_REFERRAL_SHARE_DESCRIPTION,
     programSummary,
     program,
     balances: {

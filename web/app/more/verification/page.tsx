@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { MapPin, User, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { AppPageHeader } from "@/components/layout/app-page-header"
+import { VerificationHubSkeleton } from "@/components/verification-hub-skeleton"
 import { useAuth } from "@/lib/auth-context"
 import { kycService, KYCSubmission } from "@/lib/kyc-service"
 import { supabase } from "@/lib/supabase"
@@ -180,6 +181,10 @@ export default function VerificationPage() {
   const bothCompleted = 
     identitySubmission?.status === "approved" && 
     addressSubmission?.status === "approved"
+
+  if (loading) {
+    return <VerificationHubSkeleton />
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {

@@ -213,17 +213,25 @@ export function withErrorHandling<T extends { params?: any } = {}>(
       }
       return await handler(request, resolvedContext)
     } catch (error) {
-      console.error("API Error:", error)
-      
       if (error instanceof Error) {
         switch (error.message) {
           case "Authentication required":
+            if (process.env.NODE_ENV === "development") {
+              console.debug("API:", error.message)
+            }
             return createErrorResponse("Authentication required", 401)
           case "Admin access required":
+            if (process.env.NODE_ENV === "development") {
+              console.debug("API:", error.message)
+            }
             return createErrorResponse("Admin access required", 403)
           case "Account is suspended":
+            if (process.env.NODE_ENV === "development") {
+              console.debug("API:", error.message)
+            }
             return createErrorResponse("Account is suspended", 403)
           default:
+            console.error("API Error:", error)
             return createErrorResponse(
               process.env.NODE_ENV === "development" 
                 ? error.message 
@@ -232,7 +240,8 @@ export function withErrorHandling<T extends { params?: any } = {}>(
             )
         }
       }
-      
+
+      console.error("API Error:", error)
       return createErrorResponse("Internal server error", 500)
     }
   }

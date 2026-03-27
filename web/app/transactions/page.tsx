@@ -9,6 +9,7 @@ import { TransactionsListSkeleton } from "@/components/transactions-skeleton"
 import { useAuth } from "@/lib/auth-context"
 import { useUserData } from "@/hooks/use-user-data"
 import { userDataStore } from "@/lib/user-data-store"
+import { fetchWithAuth } from "@/lib/fetch-with-auth"
 import { supabase } from "@/lib/supabase"
 import Link from "next/link"
 import { AppPageHeader } from "@/components/layout/app-page-header"
@@ -125,9 +126,7 @@ export default function UserTransactionsPage() {
 
     const fetchCombinedTransactions = async () => {
       try {
-        const txResponse = await fetch(`/api/transactions?type=send&limit=100`, {
-          credentials: "include",
-        })
+        const txResponse = await fetchWithAuth(`/api/transactions?type=send&limit=100`)
         if (txResponse.ok) {
           const txData = await txResponse.json()
           const transactionsList = txData.transactions || []
@@ -175,12 +174,7 @@ export default function UserTransactionsPage() {
 
     const fetchCombinedTransactions = async () => {
       try {
-        const txResponse = await fetch(
-          `/api/transactions?type=send&limit=100`,
-          {
-            credentials: 'include',
-          }
-        )
+        const txResponse = await fetchWithAuth(`/api/transactions?type=send&limit=100`)
         if (txResponse.ok) {
           const txData = await txResponse.json()
           const transactionsList = txData.transactions || []

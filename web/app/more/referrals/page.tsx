@@ -17,6 +17,8 @@ import { useAuth } from "@/lib/auth-context"
 import { useUserData } from "@/hooks/use-user-data"
 import { useRouteProtection } from "@/hooks/use-route-protection"
 import { AppPageHeader } from "@/components/layout/app-page-header"
+import { ReferralsPageSkeleton } from "@/components/referrals-page-skeleton"
+import { SEO_REFERRAL_SHARE_TITLE } from "@/lib/seo"
 import { fetchWithAuth } from "@/lib/fetch-with-auth"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
@@ -31,6 +33,8 @@ interface MeResponse {
   slug: string
   shareUrl: string
   shareMessage: string
+  shareTitle?: string
+  shareDescription?: string
   programSummary: string
   balances: {
     availableDisplay: string
@@ -144,14 +148,27 @@ export default function ReferralsPage() {
     }
   }, [userProfile?.id, authLoading, user])
 
-  // Fetch only when cache missing or stale (fresh cache → no network on revisit)
+  // Always refresh from network: full load if no cache; background refresh when cache exists (stale or fresh)
   useEffect(() => {
     if (authLoading || !user || !userProfile?.id) return
-    if (isReferralsCacheFresh(userProfile.id)) return
-
     const stale = readStaleReferralsCache(userProfile.id)
-    void load({ silent: !!stale })
+    if (stale == null) {
+      void load()
+    } else {
+      void load({ silent: true })
+    }
   }, [userProfile?.id, authLoading, user, load])
+
+  useEffect(() => {
+    if (!userProfile?.id) return
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        void load({ silent: true })
+      }
+    }
+    document.addEventListener("visibilitychange", onVisible)
+    return () => document.removeEventListener("visibilitychange", onVisible)
+  }, [userProfile?.id, load])
 
   useEffect(() => {
     if (!withdrawOpen) return
@@ -180,7 +197,7 @@ export default function ReferralsPage() {
   const shareReferral = async () => {
     if (!data?.shareUrl) return
     const payload: ShareData = {
-      title: "Ciuna referral",
+      title: data.shareTitle ?? SEO_REFERRAL_SHARE_TITLE,
       text: data.shareMessage,
       url: data.shareUrl,
     }
@@ -193,7 +210,7 @@ export default function ReferralsPage() {
       }
     }
     try {
-      await navigator.clipboard.writeText(`${data.shareMessage}\n${data.shareUrl}`)
+      await navigator.clipboard.writeText(data.shareMessage)
     } catch {
       /* ignore */
     }
@@ -223,14 +240,7 @@ export default function ReferralsPage() {
   }
 
   if (loading && !data) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <AppPageHeader title="Affiliates & Referrals" backHref="/more" />
-        <div className="flex items-center justify-center min-h-[40vh] max-w-4xl mx-auto px-6 pb-12 sm:pb-16">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </div>
-    )
+    return <ReferralsPageSkeleton />
   }
 
   return (

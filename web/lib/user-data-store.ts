@@ -1,4 +1,5 @@
 import { transactionService, recipientService, currencyService } from "./database"
+import { fetchWithAuth } from "./fetch-with-auth"
 import { supabase } from "./supabase"
 
 interface UserData {
@@ -91,9 +92,7 @@ class UserDataStore {
       // Fetch combined transactions (send + receive) from API
       const transactionsPromise = (async () => {
         try {
-          const res = await fetch(`/api/transactions?type=all&limit=20`, {
-            credentials: 'include',
-          })
+          const res = await fetchWithAuth(`/api/transactions?type=all&limit=20`)
           if (res.ok) {
             const data = await res.json()
             return data.transactions || []
@@ -251,9 +250,7 @@ class UserDataStore {
     try {
       this.updateActivity()
       // Fetch combined transactions (send + receive) from API
-      const response = await fetch(`/api/transactions?type=all&limit=20`, {
-        credentials: 'include',
-      })
+      const response = await fetchWithAuth(`/api/transactions?type=all&limit=20`)
       if (response.ok) {
         const data = await response.json()
         this.data.transactions = data.transactions || []

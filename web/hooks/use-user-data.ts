@@ -5,7 +5,7 @@ import { userDataStore } from "@/lib/user-data-store"
 import { useAuth } from "@/lib/auth-context"
 
 export function useUserData() {
-  const { userProfile } = useAuth()
+  const { userProfile, user, loading: authLoading } = useAuth()
   const initialData = userDataStore.getData()
   const initialLoading = !initialData || initialData.lastUpdated === 0 || !userDataStore.checkDataFreshness()
   const [data, setData] = useState(initialData)
@@ -35,7 +35,7 @@ export function useUserData() {
   useEffect(() => {
     mountedRef.current = true
 
-    if (!userProfile?.id) return
+    if (authLoading || !user || !userProfile?.id) return
 
     const initializeData = async () => {
       if (!mountedRef.current) return
@@ -98,7 +98,7 @@ export function useUserData() {
     return () => {
       unsubscribe()
     }
-  }, [userProfile?.id])
+  }, [userProfile?.id, user, authLoading])
 
   useEffect(() => {
     return () => {
