@@ -1,6 +1,15 @@
 import { createServerClient } from "@/lib/supabase"
 
-export type ReferralProgramMode = "threshold" | "percent"
+export type ReferralProgramMode = "threshold" | "percent" | "tier"
+
+export const PERCENT_REWARD_DURATION_MONTHS = [3, 6, 8, 12] as const
+export type PercentRewardDurationMonths = (typeof PERCENT_REWARD_DURATION_MONTHS)[number]
+
+export interface ReferralPercentTier {
+  min_qualified_referees_in_quarter: number
+  /** Decimal fraction, e.g. 0.005 = 0.5% */
+  percent_of_send: number
+}
 
 export interface ReferralProgramSettings {
   program_active: boolean
@@ -8,8 +17,12 @@ export interface ReferralProgramSettings {
   policy_currency: string
   reward_amount: number
   threshold_send_amount: number
-  /** Decimal fraction, e.g. 0.005 = 0.5% */
+  /** Decimal fraction; used when mode is percent (flat rate). */
   percent_of_send: number
+  /** Calendar months for percent/tier window from first qualifying completed send (per referee). */
+  percent_reward_duration_months: PercentRewardDurationMonths
+  /** When mode is tier: tiers sorted by min ascending after parse. */
+  percent_tiers: ReferralPercentTier[]
 }
 
 const DEFAULT_SETTINGS: ReferralProgramSettings = {
@@ -19,18 +32,111 @@ const DEFAULT_SETTINGS: ReferralProgramSettings = {
   reward_amount: 5,
   threshold_send_amount: 500,
   percent_of_send: 0.005,
+  percent_reward_duration_months: 6,
+  percent_tiers: [{ min_qualified_referees_in_quarter: 0, percent_of_send: 0.005 }],
+}
+
+function clampDurationMonths(n: number): PercentRewardDurationMonths {
+  const allowed = PERCENT_REWARD_DURATION_MONTHS as readonly number[]
+  if (allowed.includes(n)) return n as PercentRewardDurationMonths
+  return DEFAULT_SETTINGS.percent_reward_duration_months
+}
+
+function parseMode(raw: unknown): ReferralProgramMode {
+  if (raw === "tier") return "tier"
+  if (raw === "percent") return "percent"
+  return "threshold"
+}
+
+export function normalizePercentTiers(raw: unknown, fallbackPercent: number): ReferralPercentTier[] {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return [{ min_qualified_referees_in_quarter: 0, percent_of_send: fallbackPercent }]
+  }
+  const rows: ReferralPercentTier[] = []
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue
+    const o = item as Record<string, unknown>
+    const min = Number(o.min_qualified_referees_in_quarter ?? o.min ?? 0)
+    const pct = Number(o.percent_of_send ?? o.percent ?? fallbackPercent)
+    if (!Number.isFinite(min) || !Number.isFinite(pct)) continue
+    rows.push({
+      min_qualified_referees_in_quarter: Math.max(0, Math.floor(min)),
+      percent_of_send: pct,
+    })
+  }
+  if (rows.length === 0) {
+    return [{ min_qualified_referees_in_quarter: 0, percent_of_send: fallbackPercent }]
+  }
+  rows.sort((a, b) => a.min_qualified_referees_in_quarter - b.min_qualified_referees_in_quarter)
+  const dedup: ReferralPercentTier[] = []
+  for (const r of rows) {
+    const last = dedup[dedup.length - 1]
+    if (last && last.min_qualified_referees_in_quarter === r.min_qualified_referees_in_quarter) {
+      dedup[dedup.length - 1] = r
+    } else {
+      dedup.push(r)
+    }
+  }
+  return dedup
+}
+
+/** Largest tier percent where qualifiedCount >= min (tiers sorted by min ascending). */
+export function resolveTierPercent(tiers: ReferralPercentTier[], qualifiedCount: number): number {
+  const sorted = [...tiers].sort((a, b) => a.min_qualified_referees_in_quarter - b.min_qualified_referees_in_quarter)
+  let best = 0
+  for (const t of sorted) {
+    if (qualifiedCount >= t.min_qualified_referees_in_quarter) {
+      best = t.percent_of_send
+    }
+  }
+  return best
+}
+
+/** Index into sorted-by-min tiers for the active tier at this count (for UI highlight). */
+export function resolveTierIndex(tiers: ReferralPercentTier[], qualifiedCount: number): number {
+  const sorted = [...tiers].sort((a, b) => a.min_qualified_referees_in_quarter - b.min_qualified_referees_in_quarter)
+  let idx = 0
+  for (let i = 0; i < sorted.length; i++) {
+    if (qualifiedCount >= sorted[i].min_qualified_referees_in_quarter) {
+      idx = i
+    }
+  }
+  return idx
+}
+
+/** UTC calendar quarter containing `date` (inclusive start, inclusive end). */
+export function getUtcQuarterBoundsForDate(date: Date): { start: Date; end: Date } {
+  const y = date.getUTCFullYear()
+  const m = date.getUTCMonth()
+  const qStartMonth = Math.floor(m / 3) * 3
+  const start = new Date(Date.UTC(y, qStartMonth, 1, 0, 0, 0, 0))
+  const end = new Date(Date.UTC(y, qStartMonth + 3, 0, 23, 59, 59, 999))
+  return { start, end }
+}
+
+export function formatUtcQuarterLabel(date: Date): string {
+  const q = Math.floor(date.getUTCMonth() / 3) + 1
+  return `Q${q} ${date.getUTCFullYear()}`
 }
 
 function parseSettings(raw: unknown): ReferralProgramSettings {
   if (!raw || typeof raw !== "object") return DEFAULT_SETTINGS
   const o = raw as Record<string, unknown>
+  const fallbackPct = Number(o.percent_of_send ?? DEFAULT_SETTINGS.percent_of_send)
+  const percent_of_send = Number.isFinite(fallbackPct) ? fallbackPct : DEFAULT_SETTINGS.percent_of_send
+  const mode = parseMode(o.mode)
+  const percent_tiers = normalizePercentTiers(o.percent_tiers, percent_of_send)
   return {
     program_active: Boolean(o.program_active ?? DEFAULT_SETTINGS.program_active),
-    mode: o.mode === "percent" ? "percent" : "threshold",
+    mode,
     policy_currency: typeof o.policy_currency === "string" ? o.policy_currency : DEFAULT_SETTINGS.policy_currency,
     reward_amount: Number(o.reward_amount ?? DEFAULT_SETTINGS.reward_amount),
     threshold_send_amount: Number(o.threshold_send_amount ?? DEFAULT_SETTINGS.threshold_send_amount),
-    percent_of_send: Number(o.percent_of_send ?? DEFAULT_SETTINGS.percent_of_send),
+    percent_of_send,
+    percent_reward_duration_months: clampDurationMonths(
+      Number(o.percent_reward_duration_months ?? DEFAULT_SETTINGS.percent_reward_duration_months),
+    ),
+    percent_tiers,
   }
 }
 

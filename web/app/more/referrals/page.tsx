@@ -27,6 +27,19 @@ interface ReferralRow {
   name: string
   transactionCount: number
   earningsDisplay: string
+  /** Present in percent mode after the referee's first qualifying send. */
+  percentWindowEndsAt?: string
+}
+
+interface TierCommissionPayload {
+  quarterLabel: string
+  qualifiedRefereesThisQuarter: number
+  currentTierIndex: number
+  tiers: {
+    minQualifiedRefereesInQuarter: number
+    percentFraction: number
+    percentDisplay: string
+  }[]
 }
 
 interface MeResponse {
@@ -36,6 +49,8 @@ interface MeResponse {
   shareTitle?: string
   shareDescription?: string
   programSummary: string
+  program?: { mode?: string; percent_reward_duration_months?: number }
+  tierCommission?: TierCommissionPayload
   balances: {
     availableDisplay: string
     lifetimeDisplay: string
@@ -279,6 +294,39 @@ export default function ReferralsPage() {
           <CardContent className="p-5 sm:p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Refer a friend</h2>
             <p className="text-sm text-gray-600 mb-4">{data?.programSummary}</p>
+            {data?.tierCommission && data.tierCommission.tiers.length > 0 && (
+              <div className="mb-4 rounded-xl border border-teal-200/70 bg-white/70 p-4 shadow-sm">
+                <h3 className="text-base font-semibold text-gray-900">Commission rate rules</h3>
+                <p className="text-sm text-gray-600 mt-1 mb-1">
+                  The more friends qualify this quarter, the higher your commission rate.
+                </p>
+                <p className="text-xs text-gray-500 mb-3">{data.tierCommission.quarterLabel} (UTC)</p>
+                <ul className="rounded-lg border border-gray-200/80 divide-y divide-gray-100 overflow-hidden bg-white/90">
+                  {data.tierCommission.tiers.map((t, i) => {
+                    const active = i === data.tierCommission!.currentTierIndex
+                    return (
+                      <li
+                        key={`${t.minQualifiedRefereesInQuarter}-${i}`}
+                        className={`flex justify-between items-center gap-3 px-3 py-3 sm:px-4 ${
+                          active ? "bg-primary/10" : ""
+                        }`}
+                      >
+                        <span
+                          className={`text-sm ${active ? "text-gray-900 font-medium" : "text-gray-700"}`}
+                        >
+                          {t.minQualifiedRefereesInQuarter} qualified referees this quarter
+                        </span>
+                        <span
+                          className={`text-sm font-semibold tabular-nums shrink-0 ${active ? "text-primary" : "text-gray-900"}`}
+                        >
+                          {t.percentDisplay}
+                        </span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )}
             <div className="flex flex-col sm:flex-row sm:items-end gap-3">
               <div className="flex-1">
                 <Label className="text-xs text-gray-500 uppercase tracking-wide">Referral link</Label>
@@ -335,6 +383,16 @@ export default function ReferralsPage() {
                         <p className="text-xs text-gray-500">
                           {Number(r.transactionCount ?? 0)} completed transactions
                         </p>
+                        {r.percentWindowEndsAt &&
+                          (data?.program?.mode === "percent" || data?.program?.mode === "tier") && (
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            Reward window ends{" "}
+                            {new Date(r.percentWindowEndsAt).toLocaleString(undefined, {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            })}
+                          </p>
+                        )}
                       </div>
                       <span className="text-sm font-semibold text-primary">{r.earningsDisplay}</span>
                     </li>

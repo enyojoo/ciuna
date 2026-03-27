@@ -3,7 +3,12 @@ import { createServerClient } from "@/lib/supabase"
 import { requireUser, withErrorHandling } from "@/lib/auth-utils"
 import { ensureUserReferralSlug } from "@/lib/referral-user"
 import { computeReferralBalances } from "@/lib/referral-balances"
-import { getReferralProgramSettingsServer } from "@/lib/referral-program"
+import {
+  formatUtcQuarterLabel,
+  getReferralProgramSettingsServer,
+  getUtcQuarterBoundsForDate,
+  resolveTierIndex,
+} from "@/lib/referral-program"
 import { buildRateMap, convertWithRateMap } from "@/lib/referral-currency"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 import { APP_URLS } from "@ciuna/shared"
@@ -47,14 +52,49 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     programSummary = "The referral program is paused. Check back later."
   } else if (program.mode === "percent") {
     const pct = program.percent_of_send * 100
-    programSummary = `Earn ${pct.toFixed(2)}% of every completed transaction your referrals make.`
+    const months = program.percent_reward_duration_months
+    programSummary = `Earn ${pct.toFixed(2)}% on each referred user's completed sends for ${months} months from their first qualifying completed send.`
+  } else if (program.mode === "tier") {
+    const months = program.percent_reward_duration_months
+    programSummary = `Tiered commission: your rate depends on how many referred users qualify in the current calendar quarter (UTC). Each referral's rewards apply for ${months} months from their first qualifying completed send.`
   } else {
     programSummary = `Earn ${formatMoney(program.reward_amount, policy)} when each referral sends a combined ${formatMoney(program.threshold_send_amount, policy)} or more.`
   }
 
+  const now = new Date()
+  const { start: quarterStart, end: quarterEnd } = getUtcQuarterBoundsForDate(now)
+  let qualifiedRefereesThisQuarter = 0
+  if (program.program_active && program.mode === "tier") {
+    const { count, error: tierCountErr } = await supabase
+      .from("users")
+      .select("id", { count: "exact", head: true })
+      .eq("referred_by_user_id", user.id)
+      .gte("referral_first_qualifying_completed_at", quarterStart.toISOString())
+      .lte("referral_first_qualifying_completed_at", quarterEnd.toISOString())
+    if (tierCountErr) {
+      console.error("referrals/me: qualified referees this quarter", tierCountErr)
+    } else {
+      qualifiedRefereesThisQuarter = count ?? 0
+    }
+  }
+
+  const tierCommission =
+    program.program_active && program.mode === "tier"
+      ? {
+          quarterLabel: formatUtcQuarterLabel(now),
+          qualifiedRefereesThisQuarter,
+          currentTierIndex: resolveTierIndex(program.percent_tiers, qualifiedRefereesThisQuarter),
+          tiers: program.percent_tiers.map((t) => ({
+            minQualifiedRefereesInQuarter: t.min_qualified_referees_in_quarter,
+            percentFraction: t.percent_of_send,
+            percentDisplay: `${(t.percent_of_send * 100).toFixed(2)}%`,
+          })),
+        }
+      : undefined
+
   const { data: referees } = await supabase
     .from("users")
-    .select("id, first_name, last_name")
+    .select("id, first_name, last_name, referral_percent_window_ends_at")
     .eq("referred_by_user_id", user.id)
 
   const { data: rewardRows } = await supabase
@@ -105,6 +145,9 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
       name: `${ref.first_name || ""} ${ref.last_name || ""}`.trim() || "User",
       transactionCount: txCount,
       earningsDisplay: formatMoney(earnedDisplay > 0 ? earnedDisplay : earnedPolicy, base),
+      ...((program.mode === "percent" || program.mode === "tier") && ref.referral_percent_window_ends_at
+        ? { percentWindowEndsAt: ref.referral_percent_window_ends_at as string }
+        : {}),
     })
   }
 
@@ -123,6 +166,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     shareDescription: SEO_REFERRAL_SHARE_DESCRIPTION,
     programSummary,
     program,
+    tierCommission,
     balances: {
       availablePolicy: balances.availablePolicy,
       totalEarnedPolicy: balances.totalEarnedPolicy,

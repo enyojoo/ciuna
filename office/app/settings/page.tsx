@@ -38,6 +38,49 @@ import {
   formatFieldValue,
 } from "@/lib/currency-account-types"
 
+const REFERRAL_PERCENT_DURATION_OPTIONS = [3, 6, 8, 12] as const
+
+type ReferralPercentTierRow = {
+  min_qualified_referees_in_quarter: number
+  percent_of_send: number
+}
+
+function defaultReferralPercentTiers(): ReferralPercentTierRow[] {
+  return [{ min_qualified_referees_in_quarter: 0, percent_of_send: 0.005 }]
+}
+
+function parseReferralPercentTiers(raw: unknown, fallbackPercent: number): ReferralPercentTierRow[] {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return [{ min_qualified_referees_in_quarter: 0, percent_of_send: fallbackPercent }]
+  }
+  const rows: ReferralPercentTierRow[] = []
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue
+    const o = item as Record<string, unknown>
+    const min = Number(o.min_qualified_referees_in_quarter ?? o.min ?? 0)
+    const pct = Number(o.percent_of_send ?? o.percent ?? fallbackPercent)
+    if (!Number.isFinite(min) || !Number.isFinite(pct)) continue
+    rows.push({
+      min_qualified_referees_in_quarter: Math.max(0, Math.floor(min)),
+      percent_of_send: pct,
+    })
+  }
+  if (rows.length === 0) {
+    return [{ min_qualified_referees_in_quarter: 0, percent_of_send: fallbackPercent }]
+  }
+  rows.sort((a, b) => a.min_qualified_referees_in_quarter - b.min_qualified_referees_in_quarter)
+  const dedup: ReferralPercentTierRow[] = []
+  for (const r of rows) {
+    const last = dedup[dedup.length - 1]
+    if (last && last.min_qualified_referees_in_quarter === r.min_qualified_referees_in_quarter) {
+      dedup[dedup.length - 1] = r
+    } else {
+      dedup.push(r)
+    }
+  }
+  return dedup
+}
+
 interface SystemSetting {
   id: string
   key: string
@@ -144,11 +187,13 @@ export default function AdminSettingsPage() {
 
   const [referralProgram, setReferralProgram] = useState({
     program_active: true,
-    mode: "threshold" as "threshold" | "percent",
+    mode: "threshold" as "threshold" | "percent" | "tier",
     policy_currency: "USD",
     reward_amount: 5,
     threshold_send_amount: 500,
     percent_of_send: 0.005,
+    percent_reward_duration_months: 6 as 3 | 6 | 8 | 12,
+    percent_tiers: defaultReferralPercentTiers(),
   })
 
   useEffect(() => {
@@ -225,11 +270,22 @@ export default function AdminSettingsPage() {
               const r = raw as Record<string, unknown>
               setReferralProgram({
                 program_active: Boolean(r.program_active ?? true),
-                mode: r.mode === "percent" ? "percent" : "threshold",
+                mode:
+                  r.mode === "tier" ? "tier" : r.mode === "percent" ? "percent" : "threshold",
                 policy_currency: typeof r.policy_currency === "string" ? r.policy_currency : "USD",
                 reward_amount: Number(r.reward_amount ?? 5),
                 threshold_send_amount: Number(r.threshold_send_amount ?? 500),
                 percent_of_send: Number(r.percent_of_send ?? 0.005),
+                percent_reward_duration_months: (() => {
+                  const n = Number(r.percent_reward_duration_months ?? 6)
+                  return (REFERRAL_PERCENT_DURATION_OPTIONS as readonly number[]).includes(n)
+                    ? (n as 3 | 6 | 8 | 12)
+                    : 6
+                })(),
+                percent_tiers: parseReferralPercentTiers(
+                  r.percent_tiers,
+                  Number(r.percent_of_send ?? 0.005),
+                ),
               })
             }
             break
@@ -352,6 +408,10 @@ export default function AdminSettingsPage() {
     setSaving(true)
     try {
       const policy = referralProgram.policy_currency.trim().toUpperCase() || "USD"
+      const normalizedTiers = parseReferralPercentTiers(
+        referralProgram.percent_tiers,
+        referralProgram.percent_of_send,
+      )
       const payload = {
         program_active: referralProgram.program_active,
         mode: referralProgram.mode,
@@ -359,6 +419,8 @@ export default function AdminSettingsPage() {
         reward_amount: referralProgram.reward_amount,
         threshold_send_amount: referralProgram.threshold_send_amount,
         percent_of_send: referralProgram.percent_of_send,
+        percent_reward_duration_months: referralProgram.percent_reward_duration_months,
+        percent_tiers: normalizedTiers,
       }
       const { error } = await supabase.from("system_settings").upsert(
         {
@@ -1920,37 +1982,68 @@ export default function AdminSettingsPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Policy currency</Label>
-                  <p className="text-xs text-gray-500">
-                    Thresholds and fixed rewards are interpreted in this currency (FX uses your exchange rates).
-                  </p>
-                  <Input
-                    value={referralProgram.policy_currency}
-                    onChange={(e) => setReferralProgram((p) => ({ ...p, policy_currency: e.target.value }))}
-                    placeholder="USD"
-                    className="max-w-xs"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Reward mode</Label>
-                  <Select
-                    value={referralProgram.mode}
-                    onValueChange={(v) =>
-                      setReferralProgram((p) => ({ ...p, mode: v === "percent" ? "percent" : "threshold" }))
-                    }
-                  >
-                    <SelectTrigger className="max-w-md">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="threshold">
-                        Threshold — one-time reward when cumulative sends cross a total
-                      </SelectItem>
-                      <SelectItem value="percent">Percent — reward on each completed send</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Policy currency</Label>
+                    <p className="text-xs text-gray-500">
+                      Thresholds and fixed rewards are interpreted in this currency (FX uses your exchange rates).
+                    </p>
+                    <Select
+                      value={referralProgram.policy_currency}
+                      onValueChange={(value) => setReferralProgram((p) => ({ ...p, policy_currency: value }))}
+                    >
+                      <SelectTrigger className="w-full md:max-w-md">
+                        <SelectValue placeholder="Select policy currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {referralProgram.policy_currency &&
+                          !currencies.some(
+                            (c) => c.code === referralProgram.policy_currency && c.status === "active",
+                          ) && (
+                            <SelectItem value={referralProgram.policy_currency}>
+                              {referralProgram.policy_currency} (not in active list)
+                            </SelectItem>
+                          )}
+                        {currencies
+                          .filter((c) => c.status === "active")
+                          .map((currency) => (
+                            <SelectItem key={currency.code} value={currency.code}>
+                              <div className="flex items-center gap-3">
+                                <div dangerouslySetInnerHTML={{ __html: currency.flag_svg }} />
+                                <div className="font-medium">{currency.code}</div>
+                              </div>
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Reward mode</Label>
+                    <Select
+                      value={referralProgram.mode}
+                      onValueChange={(v) =>
+                        setReferralProgram((p) => ({
+                          ...p,
+                          mode: v === "tier" ? "tier" : v === "percent" ? "percent" : "threshold",
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="w-full md:max-w-md">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="threshold">
+                          Threshold — one-time reward when cumulative sends cross a total
+                        </SelectItem>
+                        <SelectItem value="percent">
+                          Percent — flat rate on each completed send (within per-referral window)
+                        </SelectItem>
+                        <SelectItem value="tier">
+                          Tier — commission rate by qualified referees in the current calendar quarter
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {referralProgram.mode === "threshold" ? (
@@ -1984,24 +2077,175 @@ export default function AdminSettingsPage() {
                       />
                     </div>
                   </div>
+                ) : referralProgram.mode === "percent" ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Percent of each completed send</Label>
+                      <p className="text-xs text-gray-500">
+                        Enter as a percentage (e.g. 0.5 means 0.5% of each send in policy currency).
+                      </p>
+                      <Input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={referralProgram.percent_of_send * 100}
+                        onChange={(e) =>
+                          setReferralProgram((p) => ({
+                            ...p,
+                            percent_of_send: Number(e.target.value) / 100,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Duration</Label>
+                      <p className="text-xs text-gray-500">
+                        From each referral&apos;s first qualifying completed send; end date is fixed when first
+                        calculated. Later changes here do not move existing referrals&apos; windows.
+                      </p>
+                      <Select
+                        value={String(referralProgram.percent_reward_duration_months)}
+                        onValueChange={(v) =>
+                          setReferralProgram((p) => ({
+                            ...p,
+                            percent_reward_duration_months: Number(v) as 3 | 6 | 8 | 12,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="w-full md:max-w-md">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {REFERRAL_PERCENT_DURATION_OPTIONS.map((m) => (
+                            <SelectItem key={m} value={String(m)}>
+                              {m} months
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 ) : (
-                  <div className="space-y-2 max-w-md">
-                    <Label>Percent of each completed send</Label>
-                    <p className="text-xs text-gray-500">
-                      Enter as a percentage (e.g. 0.5 means 0.5% of each send in policy currency).
-                    </p>
-                    <Input
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      value={referralProgram.percent_of_send * 100}
-                      onChange={(e) =>
-                        setReferralProgram((p) => ({
-                          ...p,
-                          percent_of_send: Number(e.target.value) / 100,
-                        }))
-                      }
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div>
+                        <Label>Commission tiers</Label>
+                        <p className="text-xs text-gray-500">
+                          Minimum qualified referees in the current calendar quarter (UTC) for each rate. First
+                          qualifying send per referee counts toward the quarter it completes in.
+                        </p>
+                      </div>
+                      {referralProgram.percent_tiers.map((row, i) => (
+                        <div key={i} className="flex flex-wrap items-end gap-2">
+                          <div className="space-y-1 flex-1 min-w-[8rem]">
+                            <Label className="text-xs">Min qualified (this quarter)</Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              step={1}
+                              value={row.min_qualified_referees_in_quarter}
+                              onChange={(e) =>
+                                setReferralProgram((p) => {
+                                  const next = [...p.percent_tiers]
+                                  next[i] = {
+                                    ...next[i],
+                                    min_qualified_referees_in_quarter: Math.max(
+                                      0,
+                                      Math.floor(Number(e.target.value) || 0),
+                                    ),
+                                  }
+                                  return { ...p, percent_tiers: next }
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="space-y-1 flex-1 min-w-[8rem]">
+                            <Label className="text-xs">Percent (%)</Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              value={row.percent_of_send * 100}
+                              onChange={(e) =>
+                                setReferralProgram((p) => {
+                                  const next = [...p.percent_tiers]
+                                  next[i] = {
+                                    ...next[i],
+                                    percent_of_send: Number(e.target.value) / 100,
+                                  }
+                                  return { ...p, percent_tiers: next }
+                                })
+                              }
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="shrink-0"
+                            disabled={referralProgram.percent_tiers.length <= 1}
+                            onClick={() =>
+                              setReferralProgram((p) => ({
+                                ...p,
+                                percent_tiers: p.percent_tiers.filter((_, j) => j !== i),
+                              }))
+                            }
+                            aria-label="Remove tier"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setReferralProgram((p) => ({
+                            ...p,
+                            percent_tiers: [
+                              ...p.percent_tiers,
+                              {
+                                min_qualified_referees_in_quarter:
+                                  (p.percent_tiers[p.percent_tiers.length - 1]
+                                    ?.min_qualified_referees_in_quarter ?? 0) + 5,
+                                percent_of_send: 0.005,
+                              },
+                            ],
+                          }))
+                        }
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add tier
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Duration</Label>
+                      <p className="text-xs text-gray-500">
+                        From each referral&apos;s first qualifying completed send; end date is fixed when first
+                        calculated. Later changes here do not move existing referrals&apos; windows.
+                      </p>
+                      <Select
+                        value={String(referralProgram.percent_reward_duration_months)}
+                        onValueChange={(v) =>
+                          setReferralProgram((p) => ({
+                            ...p,
+                            percent_reward_duration_months: Number(v) as 3 | 6 | 8 | 12,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="w-full md:max-w-md">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {REFERRAL_PERCENT_DURATION_OPTIONS.map((m) => (
+                            <SelectItem key={m} value={String(m)}>
+                              {m} months
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 )}
 

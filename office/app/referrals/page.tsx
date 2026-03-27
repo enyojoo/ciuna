@@ -16,6 +16,12 @@ import { OfficeUsersSkeleton } from "@/components/office-users-skeleton"
 
 const REFERRAL_PAYOUT_PREFIX = "REFERRAL_PAYOUT:"
 
+const REFERRAL_REWARD_TYPE_LABEL: Record<string, string> = {
+  threshold_unlock: "Threshold",
+  percent_of_send: "Percent",
+  tier_percent_of_send: "Tier",
+}
+
 interface ReferrerRow {
   id: string
   email: string
@@ -61,6 +67,7 @@ export default function OfficeReferralsPage() {
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [expandedRefereeId, setExpandedRefereeId] = useState<string | null>(null)
   const [policyCurrency, setPolicyCurrency] = useState("USD")
+  const [referralProgramMode, setReferralProgramMode] = useState<"threshold" | "percent" | "tier">("threshold")
   const [referrerDialogOpen, setReferrerDialogOpen] = useState(false)
 
   useEffect(() => {
@@ -90,8 +97,14 @@ export default function OfficeReferralsPage() {
           return
         }
       }
-      if (raw && typeof raw === "object" && "policy_currency" in raw && typeof (raw as { policy_currency: string }).policy_currency === "string") {
-        setPolicyCurrency((raw as { policy_currency: string }).policy_currency)
+      if (raw && typeof raw === "object") {
+        const o = raw as Record<string, unknown>
+        if (typeof o.policy_currency === "string") {
+          setPolicyCurrency(o.policy_currency)
+        }
+        if (o.mode === "tier") setReferralProgramMode("tier")
+        else if (o.mode === "percent") setReferralProgramMode("percent")
+        else setReferralProgramMode("threshold")
       }
     }
     loadProgram()
@@ -219,6 +232,16 @@ export default function OfficeReferralsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Referrals</h1>
           <p className="text-gray-600">
             Referrers and their invited users. Rewards follow completed sends (send volume), not receive-side activity.
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Program reward mode:{" "}
+            <span className="font-medium text-gray-800">
+              {referralProgramMode === "tier"
+                ? "Tier"
+                : referralProgramMode === "percent"
+                  ? "Percent"
+                  : "Threshold"}
+            </span>
           </p>
         </div>
 
@@ -421,7 +444,7 @@ export default function OfficeReferralsPage() {
                                                 <TableRow key={rw.id}>
                                                   <TableCell className="text-xs">
                                                     <Badge variant="secondary" className="text-[10px]">
-                                                      {rw.reward_type === "threshold_unlock" ? "Threshold" : "Percent"}
+                                                      {REFERRAL_REWARD_TYPE_LABEL[rw.reward_type] ?? rw.reward_type}
                                                     </Badge>
                                                   </TableCell>
                                                   <TableCell className="font-mono text-xs">{rw.source_transaction_id || "—"}</TableCell>
