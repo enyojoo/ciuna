@@ -333,7 +333,7 @@ export default function ReferralsPage() {
                       <div>
                         <p className="font-medium text-gray-900">{r.name}</p>
                         <p className="text-xs text-gray-500">
-                          {Number(r.transactionCount ?? 0)} completed sends
+                          {Number(r.transactionCount ?? 0)} completed transactions
                         </p>
                       </div>
                       <span className="text-sm font-semibold text-primary">{r.earningsDisplay}</span>

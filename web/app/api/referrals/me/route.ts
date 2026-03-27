@@ -78,7 +78,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
       .select("user_id, reference")
       .in("user_id", refereeIds)
       .eq("status", "completed")
-      // Default PostgREST max-rows is 1000; without this, counts truncate and "completed sends" under-reports.
+      // Default PostgREST max-rows is 1000; without this, counts truncate and per-referee completed counts under-report.
       .limit(50000)
 
     if (completedTxErr) {
