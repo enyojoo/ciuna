@@ -12,7 +12,11 @@ import { useAuth } from "@/lib/auth-context"
 import { CheckCircle, Eye, EyeOff } from "lucide-react"
 import { useRouteProtection } from "@/hooks/use-route-protection"
 import { getSecuritySettings, validatePassword } from "@/lib/security-settings"
-import { claimReferralIfNeeded, persistReferralSlugFromSearchParam } from "@/lib/referral-client"
+import {
+  claimReferralIfNeeded,
+  getReferralSlugFromSearchParams,
+  persistReferralSlugFromSearchParam,
+} from "@/lib/referral-client"
 
 function RegisterPageContent() {
   const router = useRouter()
@@ -32,8 +36,7 @@ function RegisterPageContent() {
   const [securitySettings, setSecuritySettings] = useState<any>(null)
 
   React.useEffect(() => {
-    const ref = searchParams.get("ref")
-    persistReferralSlugFromSearchParam(ref)
+    persistReferralSlugFromSearchParam(getReferralSlugFromSearchParams(searchParams))
   }, [searchParams])
 
   // Load security settings on component mount
@@ -63,7 +66,7 @@ function RegisterPageContent() {
     }
 
     try {
-      const refSlug = searchParams.get("ref")?.trim()
+      const refSlug = getReferralSlugFromSearchParams(searchParams)
       const { error: signUpError } = await signUp(formData.email, formData.password, {
         firstName: formData.firstName,
         lastName: formData.lastName,

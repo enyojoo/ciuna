@@ -11,7 +11,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
     // Must stay false: when true, Supabase parses/cleans the current URL on every page
-    // load. On `/auth/register?ref=...` that can replace the location with the site
+    // load. On `/auth/register?via=...` (avoid `ref=`; see referral-client) that can replace
     // origin → user hits `/` → middleware sends them to `/auth/login` (looks like
     // "register URL is invalid"). OAuth/email flows use `/auth/callback` with
     // explicit `exchangeCodeForSession` / session handling instead.
