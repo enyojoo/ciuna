@@ -33,11 +33,14 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
   const token = getAccessTokenFromRequest(request)
   let metaSlug: string | undefined
+  let authCreatedMs = 0
   if (token) {
     const anon = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     const { data: authData } = await anon.auth.getUser(token)
     const raw = (authData.user?.user_metadata as { referral_slug?: string } | undefined)?.referral_slug
     metaSlug = raw?.trim().toLowerCase()
+    const ac = authData.user?.created_at
+    if (ac) authCreatedMs = new Date(ac).getTime()
   }
   const metaMatches = !!metaSlug && metaSlug === slugNorm
 
@@ -57,9 +60,11 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     return res
   }
 
-  const createdMs = self.created_at ? new Date(self.created_at as string).getTime() : 0
-  const ageMs = Date.now() - createdMs
-  const withinSignupWindow = createdMs > 0 && ageMs >= 0 && ageMs < SIGNUP_ATTRIBUTION_WINDOW_MS
+  const profileCreatedMs = self.created_at ? new Date(self.created_at as string).getTime() : 0
+  /** Prefer public.users timestamp; fall back to auth user created_at (e.g. row not yet stamped). */
+  const anchorMs = profileCreatedMs > 0 ? profileCreatedMs : authCreatedMs
+  const ageMs = Date.now() - anchorMs
+  const withinSignupWindow = anchorMs > 0 && ageMs >= 0 && ageMs < SIGNUP_ATTRIBUTION_WINDOW_MS
 
   if (metaSlug && metaSlug !== slugNorm) {
     const res = NextResponse.json({
@@ -84,7 +89,10 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     return res
   }
 
-  const { data: referrer } = await supabase.from("users").select("id").eq("referral_slug", slug).maybeSingle()
+  let referrer = (await supabase.from("users").select("id").eq("referral_slug", slug).maybeSingle()).data
+  if (!referrer?.id && slugNorm !== slug) {
+    referrer = (await supabase.from("users").select("id").eq("referral_slug", slugNorm).maybeSingle()).data
+  }
 
   if (!referrer?.id || referrer.id === user.id) {
     const res = NextResponse.json({

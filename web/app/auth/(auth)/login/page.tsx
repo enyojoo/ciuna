@@ -11,7 +11,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/lib/auth-context"
 import { Check, Eye, EyeOff } from "lucide-react"
 import { useEffect } from "react"
-import { getReferralSlugFromSearchParams, persistReferralSlugFromSearchParam } from "@/lib/referral-client"
+import {
+  claimReferralIfNeeded,
+  getReferralSlugFromSearchParams,
+  persistReferralSlugFromSearchParam,
+} from "@/lib/referral-client"
 import { useTranslation } from "react-i18next"
 
 function LoginPageContent() {
@@ -59,7 +63,9 @@ function LoginPageContent() {
         return
       }
 
-      // Referral attribution runs at signup / OAuth callback only — not on login.
+      // First login after email confirmation (no session at signup): claim with stored ref.
+      // Server rejects accounts outside signup window unless metadata matches.
+      await claimReferralIfNeeded()
 
       // Check for stored redirect and conversion data
       const redirectPath = sessionStorage.getItem("redirectAfterLogin")
