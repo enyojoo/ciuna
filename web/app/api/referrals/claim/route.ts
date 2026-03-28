@@ -1,8 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
 import { createServerClient } from "@/lib/supabase"
 import { requireUser, withErrorHandling } from "@/lib/auth-utils"
-import { getAccessTokenFromRequest } from "@/lib/supabase-server-helpers"
 
 const REF_COOKIE = "ciuna_ref_slug"
 
@@ -31,17 +29,14 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
   const slugNorm = slug.toLowerCase()
 
-  const token = getAccessTokenFromRequest(request)
-  let metaSlug: string | undefined
-  let authCreatedMs = 0
-  if (token) {
-    const anon = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-    const { data: authData } = await anon.auth.getUser(token)
-    const raw = (authData.user?.user_metadata as { referral_slug?: string } | undefined)?.referral_slug
-    metaSlug = raw?.trim().toLowerCase()
-    const ac = authData.user?.created_at
-    if (ac) authCreatedMs = new Date(ac).getTime()
-  }
+  /** Service-role read: same metadata + created_at as Dashboard; avoids anon getUser missing fields. */
+  const { data: adminAuth } = await supabase.auth.admin.getUserById(user.id)
+  const authUser = adminAuth?.user
+  const um = authUser?.user_metadata as Record<string, unknown> | undefined
+  const rawRef = um?.referral_slug ?? um?.referralSlug
+  const metaSlug =
+    typeof rawRef === "string" && rawRef.trim() ? rawRef.trim().toLowerCase() : undefined
+  const authCreatedMs = authUser?.created_at ? new Date(authUser.created_at).getTime() : 0
   const metaMatches = !!metaSlug && metaSlug === slugNorm
 
   const { data: self } = await supabase
@@ -112,7 +107,18 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     .is("referred_by_user_id", null)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 })
+    console.error("[referrals/claim] users update failed", {
+      userId: user.id,
+      referrerId: referrer.id,
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    })
+    return NextResponse.json(
+      { error: error.message, code: error.code },
+      { status: 400 }
+    )
   }
 
   const res = NextResponse.json({ success: true, attributed: true })

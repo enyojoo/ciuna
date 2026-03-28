@@ -107,11 +107,13 @@ export async function requireAuth(request: NextRequest): Promise<AuthenticatedUs
   if (!user) {
     throw new Error("Authentication required")
   }
-  
-  if (user.profile.status !== "active") {
+
+  // Align with getAuthenticatedUser: null/missing status is treated as active (schema default is 'active').
+  const st = user.profile.status
+  if (st && st !== "active") {
     throw new Error("Account is suspended")
   }
-  
+
   return user
 }
 

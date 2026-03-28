@@ -69,6 +69,7 @@ function RegisterPageContent() {
 
     try {
       const refSlug = getReferralSlugFromSearchParams(searchParams)
+      persistReferralSlugFromSearchParam(refSlug)
       const { error: signUpError } = await signUp(formData.email, formData.password, {
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -81,7 +82,8 @@ function RegisterPageContent() {
         return
       }
 
-      await claimReferralIfNeeded()
+      // Pass slug from URL: claim only read sessionStorage before — if storage was empty, claim never ran.
+      await claimReferralIfNeeded(refSlug)
 
       setSuccess(true)
       // Redirect after a short delay to show success message

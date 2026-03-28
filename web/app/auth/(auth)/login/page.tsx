@@ -12,7 +12,7 @@ import { useAuth } from "@/lib/auth-context"
 import { Check, Eye, EyeOff } from "lucide-react"
 import { useEffect } from "react"
 import {
-  claimReferralIfNeeded,
+  claimReferralWithRetry,
   getReferralSlugFromSearchParams,
   persistReferralSlugFromSearchParam,
 } from "@/lib/referral-client"
@@ -64,8 +64,10 @@ function LoginPageContent() {
       }
 
       // First login after email confirmation (no session at signup): claim with stored ref.
-      // Server rejects accounts outside signup window unless metadata matches.
-      await claimReferralIfNeeded()
+      // Pass slug from URL so claim runs even when sessionStorage never persisted ?ref=.
+      const refFromUrl = getReferralSlugFromSearchParams(searchParams)
+      persistReferralSlugFromSearchParam(refFromUrl)
+      await claimReferralWithRetry({ slug: refFromUrl })
 
       // Check for stored redirect and conversion data
       const redirectPath = sessionStorage.getItem("redirectAfterLogin")

@@ -20,44 +20,66 @@ export function getStoredReferralSlug(): string | null {
   return sessionStorage.getItem(STORAGE_KEY)
 }
 
-export async function claimReferralIfNeeded(): Promise<void> {
-  const slug = getStoredReferralSlug()
-  if (!slug) return
+/**
+ * @param preferredSlug Slug from the current URL (`?ref=`) — use when sessionStorage is empty or unreliable.
+ * @returns true when no further retries are useful (success, terminal ineligible, or empty request handled).
+ */
+export async function claimReferralIfNeeded(preferredSlug?: string | null): Promise<boolean> {
+  const slug = (preferredSlug?.trim() || getStoredReferralSlug())?.trim()
+  if (!slug) return true
+
   try {
     const res = await fetchWithAuth("/api/referrals/claim", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ referralSlug: slug }),
     })
-    if (res.ok) {
-      const data = (await res.json().catch(() => ({}))) as {
-        attributed?: boolean
-        alreadySet?: boolean
-        ineligible?: boolean
-      }
-      if (data.attributed || data.alreadySet || data.ineligible) {
-        sessionStorage.removeItem(STORAGE_KEY)
-      }
+    if (!res.ok) return false
+
+    const data = (await res.json().catch(() => ({}))) as {
+      success?: boolean
+      attributed?: boolean
+      alreadySet?: boolean
+      ineligible?: boolean
     }
+
+    if (data.attributed || data.alreadySet || data.ineligible) {
+      sessionStorage.removeItem(STORAGE_KEY)
+      return true
+    }
+
+    // Server had no slug to process (e.g. empty body) — stop retrying.
+    if (data.success && data.attributed === false && !data.ineligible) {
+      sessionStorage.removeItem(STORAGE_KEY)
+      return true
+    }
+
+    return false
   } catch (e) {
     console.warn("claimReferralIfNeeded:", e)
+    return false
   }
 }
 
 /**
- * OAuth callback: profile row may not exist on first claim attempt — retry briefly.
- * Does not run on login; signup-only rules are enforced server-side.
+ * After login or OAuth: `public.users` row may lag auth — retry claim briefly.
+ * Pass `slug` from `?ref=` when sessionStorage may be empty (same issue as register).
  */
-export async function claimReferralWithRetryForOAuthCallback(): Promise<void> {
-  const slug = getStoredReferralSlug()
-  if (!slug) return
+export async function claimReferralWithRetry(opts?: { maxAttempts?: number; slug?: string | null }): Promise<void> {
+  const maxAttempts = opts?.maxAttempts ?? 12
+  const pinned = opts?.slug?.trim() || null
+  if (!pinned && !getStoredReferralSlug()) return
   try {
-    for (let attempt = 0; attempt < 12; attempt++) {
-      await claimReferralIfNeeded()
-      if (!getStoredReferralSlug()) return
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const done = await claimReferralIfNeeded(pinned || undefined)
+      if (done) return
       await new Promise((r) => setTimeout(r, 350 * (attempt + 1)))
     }
   } catch (e) {
-    console.warn("claimReferralWithRetryForOAuthCallback:", e)
+    console.warn("claimReferralWithRetry:", e)
   }
+}
+
+export async function claimReferralWithRetryForOAuthCallback(): Promise<void> {
+  return claimReferralWithRetry()
 }
