@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
         lastName: user.last_name,
         baseCurrency: user.base_currency,
         status: user.status,
-        // verification_status removed - use bridge_kyc_status for KYC status
+        // verification_status removed - use the provider-backed KYC status field
       },
     })
 

@@ -1,4 +1,4 @@
-// Send Transaction Processor — Yellow Card payouts only (no Bridge/crypto rails).
+// Send transaction processor for supported local-currency payouts.
 
 import { yellowCardService } from "./yellow-card-service"
 import { paymentCollectionService } from "./payment-collection-service"
@@ -55,7 +55,7 @@ export const sendTransactionProcessor = {
 
     if (!yellowCardService.isCurrencySupported(currency)) {
       throw new Error(
-        `Payouts are only supported for Yellow Card currencies. USD/EUR Bridge payouts have been removed.`,
+        `Payouts are only supported for the configured local currencies.`,
       )
     }
 

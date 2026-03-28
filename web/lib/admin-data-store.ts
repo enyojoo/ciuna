@@ -488,7 +488,7 @@ class AdminDataStore {
   private async calculateStats(users: any[], transactions: any[], baseCurrency: string, exchangeRates: any[] = []) {
     const totalUsers = users.length
     const activeUsers = users.filter((u) => u.status === "active").length
-    // Count users with approved Bridge KYC or email verified
+    // Count users with approved KYC or email verified
     const verifiedUsers = users.filter((u) => 
       u.bridge_kyc_status === "approved" || u.email_confirmed_at
     ).length
@@ -1164,7 +1164,7 @@ class AdminDataStore {
 
   async updateUserVerification(userId: string, newStatus: string) {
     try {
-      console.log(`AdminDataStore: Updating user ${userId} Bridge KYC status to ${newStatus}`)
+      console.log(`AdminDataStore: Updating user ${userId} KYC status to ${newStatus}`)
       
       // Map old verification_status values to bridge_kyc_status
       const statusMap: Record<string, string> = {

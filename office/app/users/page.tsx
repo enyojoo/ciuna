@@ -52,7 +52,7 @@ interface UserData {
   country_code?: string
   bridge_kyc_metadata?: any
   status: string
-  // verification_status removed - use bridge_kyc_status for KYC status
+  // verification_status removed - use provider-backed KYC status
   bridge_kyc_status?: string
   bridge_customer_id?: string
   bridge_kyc_rejection_reasons?: any
@@ -210,7 +210,7 @@ export default function AdminUsersPage() {
     const totalVolume = calculateUserVolume(userTransactions, baseCurrency, userExchangeRates)
     const completedTransactions = userTransactions.filter((t: any) => t.status === "completed")
 
-    // Use bridge_kyc_status for KYC verification status
+    // Use the provider-backed KYC status for verification
     // Map bridge_kyc_status to display values: approved -> verified, others -> pending
     const bridgeKycStatus = user.bridge_kyc_status || "not_started"
     const verificationStatus = bridgeKycStatus === "approved" ? "verified" : "pending"
@@ -230,7 +230,7 @@ export default function AdminUsersPage() {
       fullName.includes(searchTerm.toLowerCase()) || user.email.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesStatus = statusFilter === "all" || user.status === statusFilter
-    // Filter by bridge_kyc_status: map filter values to bridge status
+    // Filter by provider-backed KYC status
     const bridgeKycStatus = user.bridgeKycStatus || user.bridge_kyc_status || "not_started"
     let matchesVerification = true
     if (verificationFilter !== "all") {
@@ -319,7 +319,7 @@ export default function AdminUsersPage() {
       await officeDataStore.updateUserVerification(userId, newStatus)
       if (selectedUser?.id === userId) {
         setSelectedUser((prev) => {
-          // Map old verification_status to bridge_kyc_status
+          // Map old verification_status to the provider-backed KYC status field
           const statusMap: Record<string, string> = {
             "verified": "approved",
             "pending": "not_started",
@@ -818,9 +818,9 @@ export default function AdminUsersPage() {
                             </DialogHeader>
                             {selectedUser && (
                               <div className="space-y-6">
-                                {/* Bridge KYC Status */}
+                                {/* KYC Status */}
                                 <div className="border-t pt-6">
-                                  <h3 className="text-lg font-semibold mb-4">Bridge KYC Status</h3>
+                                  <h3 className="text-lg font-semibold mb-4">KYC Status</h3>
                                   {selectedUser.bridge_kyc_status ? (
                                     <div className="space-y-3">
                                       <div className="flex items-center gap-2">
@@ -829,7 +829,7 @@ export default function AdminUsersPage() {
                                       </div>
                                       {selectedUser.bridge_customer_id && (
                                         <div className="flex items-center gap-2">
-                                          <span className="text-sm text-gray-600">Bridge Customer ID:</span>
+                                          <span className="text-sm text-gray-600">Provider Customer ID:</span>
                                           <span className="text-sm font-mono">{selectedUser.bridge_customer_id}</span>
                                         </div>
                                       )}
@@ -853,7 +853,7 @@ export default function AdminUsersPage() {
                                   )}
                                 </div>
 
-                                {/* Identity Verification - Show only if Bridge KYC is approved */}
+                                {/* Identity Verification - Show only if KYC is approved */}
                                 {selectedUser.bridge_kyc_status === "approved" && (
                                   <>
                                     {/* Identity Verification */}

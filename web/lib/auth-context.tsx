@@ -18,7 +18,7 @@ interface UserProfile {
   phone?: string
   base_currency?: string
   status?: string
-  // verification_status removed - use bridge_kyc_status for KYC status
+  // verification_status removed - use the provider-backed KYC status field
   created_at?: string
   updated_at?: string
 }
@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           phone: authUser.phone || '',
           base_currency: authUser.user_metadata?.base_currency || 'NGN',
           status: 'active',
-          // verification_status removed - use bridge_kyc_status for KYC status
+          // verification_status removed - use the provider-backed KYC status field
           created_at: authUser.created_at,
           updated_at: authUser.updated_at || authUser.created_at,
           role: 'super_admin'
@@ -143,7 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const { first_name, last_name } = oauthName
           if (first_name || last_name) {
             const mergedProfile = { ...userProfile, first_name: first_name || userProfile.first_name, last_name: last_name || userProfile.last_name }
-            // Persist to users table so name is available server-side (Bridge, etc.)
+            // Persist to users table so name is available server-side for downstream integrations
             try {
               await supabase
                 .from("users")

@@ -1,4 +1,4 @@
-// Payment Collection Service — Yellow Card (African currencies) only.
+// Payment collection service for supported local currencies.
 import { yellowCardService } from "./yellow-card-service"
 
 const SUPPORTED = process.env.YELLOW_CARD_SUPPORTED_CURRENCIES?.split(",") || ["NGN", "KES", "GHS"]
@@ -46,7 +46,7 @@ export const paymentCollectionService = {
       provider: "yellow_card",
       accountName: "Ciuna Payments",
       accountNumber: "1234567890",
-      bankName: "Yellow Card Bank",
+      bankName: "Ciuna Payments",
       mobileMoneyNumber: "1234567890",
       reference: reference,
       currency: currencyUpper,
@@ -54,7 +54,7 @@ export const paymentCollectionService = {
   },
 
   /**
-   * Stub payment link — wire Yellow Card hosted checkout when available.
+   * Stub payment link for supported collection currencies.
    */
   async createPaymentLink(
     customerId: string,
@@ -81,7 +81,7 @@ export const paymentCollectionService = {
       amount: params.amount,
       currency,
       status: "pending",
-      payment_url: params.successUrl || "https://yellowcard.io",
+      payment_url: params.successUrl || process.env.NEXT_PUBLIC_APP_URL || "https://app.ciuna.com",
       created_at: new Date().toISOString(),
     }
   },

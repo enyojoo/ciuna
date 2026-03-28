@@ -6,11 +6,18 @@ import { processReferralRewardsOnCompletedSend } from "@/lib/referral-reward-ser
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const transactionId = params.id
+    const resolved = await context.params
+    const transactionId = resolved?.id
     const body = await request.json()
+    if (!transactionId) {
+      return NextResponse.json({
+        error: "Transaction ID is required"
+      }, { status: 400 })
+    }
+
 
     const { status, failure_reason, reference, completed_at } = body
 
@@ -52,12 +59,18 @@ export async function PATCH(
         recipient:recipients(*),
         user:users(first_name, last_name, email)
       `)
-      .single()
+      .maybeSingle()
 
     if (updateError) {
       return NextResponse.json({ 
         error: `Failed to update transaction: ${updateError.message}` 
       }, { status: 400 })
+    }
+
+    if (!updatedTransaction) {
+      return NextResponse.json({
+        error: "Transaction not found"
+      }, { status: 404 })
     }
 
     if (status === "completed" && updatedTransaction) {

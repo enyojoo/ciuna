@@ -99,7 +99,7 @@ export const userService = {
 
     const { data: activeUsers } = await supabase.from("users").select("id", { count: "exact" }).eq("status", "active")
 
-    // Count users with approved Bridge KYC status
+    // Count users with approved KYC status
     const { data: verifiedUsers } = await supabase
       .from("users")
       .select("id", { count: "exact" })
@@ -1102,7 +1102,7 @@ export const settingsService = {
 
 // Crypto Wallet operations
 // Note: The Stellar-specific create() method has been removed
-// Only createBridgeAddress() is used for Bridge addresses
+// Only createBridgeAddress() is used for provider-backed wallet addresses
 export const cryptoWalletService = {
 
   async getByUserAndCurrency(
@@ -1198,7 +1198,7 @@ export const cryptoWalletService = {
   },
 
   /**
-   * Create a Bridge address (Liquidation Address for bank or Top-Up deposit address for card)
+   * Create a provider-backed address (liquidation for bank or top-up deposit for card)
    */
   async createBridgeAddress(
     userId: string,
@@ -1306,7 +1306,7 @@ export const cryptoReceiveTransactionService = {
       status: "pending",
     }
 
-    // Add Bridge-specific fields if provided
+    // Add provider-specific fields if provided
     if (bridgeFields) {
       Object.assign(insertData, bridgeFields)
     }
@@ -1330,7 +1330,7 @@ export const cryptoReceiveTransactionService = {
       confirmed_at?: string
       converted_at?: string
       deposited_at?: string
-      // Bridge-specific fields
+      // Provider-specific fields
       bridge_liquidation_address_id?: string
       bridge_liquidation_id?: string
       blockchain_tx_hash?: string

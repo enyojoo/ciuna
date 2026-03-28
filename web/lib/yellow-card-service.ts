@@ -7,10 +7,6 @@ const YELLOW_CARD_API_SECRET = process.env.YELLOW_CARD_API_SECRET
 const YELLOW_CARD_SUPPORTED_CURRENCIES =
   process.env.YELLOW_CARD_SUPPORTED_CURRENCIES?.split(",") || ["NGN", "KES", "GHS"]
 
-if (!YELLOW_CARD_API_KEY || !YELLOW_CARD_API_SECRET) {
-  console.warn("YELLOW_CARD_API_KEY or YELLOW_CARD_API_SECRET is not set. Yellow Card API calls will fail.")
-}
-
 interface YellowCardDisbursement {
   id: string
   status: string

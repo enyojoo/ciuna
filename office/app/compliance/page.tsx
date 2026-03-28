@@ -184,7 +184,7 @@ export default function OfficeCompliancePage() {
           table: 'users',
         },
         async (payload) => {
-          // Only process if Bridge-related fields changed
+          // Only process if provider-backed KYC fields changed
           const oldData = payload.old as any
           const newData = payload.new as any
           
@@ -198,9 +198,9 @@ export default function OfficeCompliancePage() {
             JSON.stringify(oldData?.bridge_kyc_metadata) !== JSON.stringify(newData?.bridge_kyc_metadata)
           
           if (bridgeStatusChanged) {
-            console.log('Admin compliance: User Bridge status update received via Realtime')
+            console.log('Admin compliance: User KYC status update received via Realtime')
             try {
-              // Reload data to get updated Bridge status (silent refresh, no loading state)
+              // Reload data to get updated KYC status (silent refresh, no loading state)
               const updatedUsers = await loadData(false)
               
               // Update selected user if dialog is open and this update affects them
@@ -211,7 +211,7 @@ export default function OfficeCompliancePage() {
                 }
               }
             } catch (error) {
-              console.error("Error handling real-time Bridge status update:", error)
+              console.error("Error handling real-time KYC status update:", error)
             }
           }
         }
@@ -550,7 +550,7 @@ export default function OfficeCompliancePage() {
               <DialogTitle>
                 Compliance Details - {selectedUser?.first_name} {selectedUser?.last_name}
               </DialogTitle>
-                {/* Removed "Send to Bridge" button - users now do KYC directly through Bridge */}
+                {/* Removed legacy provider handoff button; users complete KYC directly in the current flow */}
               </div>
             </DialogHeader>
             {selectedUser && (
