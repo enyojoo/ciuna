@@ -56,18 +56,21 @@ function LoginPageContent() {
     setError("")
 
     try {
-      const { error: signInError } = await signIn(email, password, rememberMe)
+      const { error: signInError, session: signInSession } = await signIn(email, password, rememberMe)
 
       if (signInError) {
         setError(signInError.message)
         return
       }
 
-      // First login after email confirmation (no session at signup): claim with stored ref.
-      // Pass slug from URL so claim runs even when sessionStorage never persisted ?ref=.
+      // First login after email confirmation: claim with ref. Pass token from sign-in response because
+      // getSession() can still be empty in the same tick after setSession.
       const refFromUrl = getReferralSlugFromSearchParams(searchParams)
       persistReferralSlugFromSearchParam(refFromUrl)
-      await claimReferralWithRetry({ slug: refFromUrl })
+      await claimReferralWithRetry({
+        slug: refFromUrl,
+        accessToken: signInSession?.access_token ?? null,
+      })
 
       // Check for stored redirect and conversion data
       const redirectPath = sessionStorage.getItem("redirectAfterLogin")

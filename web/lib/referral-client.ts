@@ -1,4 +1,5 @@
 import { fetchWithAuth } from "./fetch-with-auth"
+import { supabase } from "./supabase"
 
 const STORAGE_KEY = "ciuna_ref_slug"
 
@@ -24,15 +25,30 @@ export function getStoredReferralSlug(): string | null {
  * @param preferredSlug Slug from the current URL (`?ref=`) — use when sessionStorage is empty or unreliable.
  * @returns true when no further retries are useful (success, terminal ineligible, or empty request handled).
  */
-export async function claimReferralIfNeeded(preferredSlug?: string | null): Promise<boolean> {
+export async function claimReferralIfNeeded(
+  preferredSlug?: string | null,
+  opts?: { accessToken?: string | null }
+): Promise<boolean> {
   const slug = (preferredSlug?.trim() || getStoredReferralSlug())?.trim()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  const accessToken = opts?.accessToken ?? session?.access_token ?? null
+  if (!accessToken) {
+    return false
+  }
+
   try {
-    const res = await fetchWithAuth("/api/referrals/claim", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      // Empty body is ok: server reads ciuna_ref_slug cookie (middleware sets it on ?ref= / ?via=).
-      body: JSON.stringify(slug ? { referralSlug: slug } : {}),
-    })
+    const res = await fetchWithAuth(
+      "/api/referrals/claim",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // Empty body is ok: server reads ciuna_ref_slug cookie (middleware sets it on ?ref= / ?via=).
+        body: JSON.stringify(slug ? { referralSlug: slug } : {}),
+      },
+      { accessToken }
+    )
     if (!res.ok) return false
 
     const data = (await res.json().catch(() => ({}))) as {
@@ -64,16 +80,23 @@ export async function claimReferralIfNeeded(preferredSlug?: string | null): Prom
  * After login or OAuth: `public.users` row may lag auth — retry claim briefly.
  * Pass `slug` from `?ref=` when sessionStorage may be empty (same issue as register).
  */
-export async function claimReferralWithRetry(opts?: { maxAttempts?: number; slug?: string | null }): Promise<void> {
+export async function claimReferralWithRetry(opts?: {
+  maxAttempts?: number
+  slug?: string | null
+  accessToken?: string | null
+}): Promise<void> {
   const maxAttempts = opts?.maxAttempts ?? 12
   const pinned = opts?.slug?.trim() || null
+  const accessToken = opts?.accessToken ?? null
   if (!pinned && !getStoredReferralSlug()) {
-    await claimReferralIfNeeded()
+    await claimReferralIfNeeded(undefined, { accessToken })
     return
   }
   try {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const done = await claimReferralIfNeeded(pinned || undefined)
+      const done = await claimReferralIfNeeded(pinned || undefined, {
+        accessToken: attempt === 0 ? accessToken : undefined,
+      })
       if (done) return
       await new Promise((r) => setTimeout(r, 350 * (attempt + 1)))
     }

@@ -26,7 +26,11 @@ interface AuthContextType {
   user: User | null
   userProfile: UserProfile | null
   loading: boolean
-  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: any }>
+  signIn: (
+    email: string,
+    password: string,
+    rememberMe?: boolean
+  ) => Promise<{ error: any; session?: Session | null }>
   signInWithGoogle: () => Promise<{ error: any }>
   signUp: (
     email: string,
@@ -289,7 +293,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) {
-        return { error }
+        return { error, session: null }
       }
 
       // Persist session before any code runs fetchWithAuth (e.g. referral claim). Previously only
@@ -302,10 +306,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // The auth state change listener will handle setting user and profile
-      return { error: null }
+      return { error: null, session: data.session ?? null }
     } catch (error) {
       console.error("Sign in error:", error)
-      return { error }
+      return { error, session: null }
     }
   }, [])
 
@@ -348,6 +352,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         return { error, session: null }
+      }
+
+      if (data.session) {
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        })
       }
 
       // If email confirmation is required, session is null — do not call /api/referrals/claim until login.
