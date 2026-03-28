@@ -1,6 +1,8 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
 import { Send, MessageCircle, UserPlus, Wallet, BadgeDollarSign } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
@@ -30,6 +32,47 @@ interface Transaction {
 
 function isReferralPayoutRow(t: Transaction): boolean {
   return typeof t.reference === "string" && t.reference.startsWith(REFERRAL_PAYOUT_PREFIX)
+}
+
+/** Mobile total volume only: compact K/M display; tap opens popover with full amount when abbreviated. */
+function VolumeAmountWithFullDetail({
+  fullLabel,
+  compactLabel,
+  numberClassName,
+}: {
+  fullLabel: string
+  compactLabel: string
+  numberClassName: string
+}) {
+  const [open, setOpen] = useState(false)
+  const expandable = fullLabel !== compactLabel
+
+  if (!expandable) {
+    return <span className={numberClassName}>{compactLabel}</span>
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            numberClassName,
+            "inline-flex max-w-full justify-center border-0 bg-transparent p-0 cursor-pointer",
+            "underline decoration-dotted underline-offset-[0.2em] hover:opacity-90",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm",
+          )}
+          aria-label={`Full amount: ${fullLabel}`}
+        >
+          {compactLabel}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="center" side="top" className="w-auto max-w-[min(100vw-2rem,22rem)]">
+        <p className="text-base sm:text-lg font-semibold tabular-nums text-center text-foreground">{fullLabel}</p>
+        <p className="text-xs text-muted-foreground text-center mt-1">Full amount</p>
+      </PopoverContent>
+    </Popover>
+  )
 }
 
 export default function UserDashboardPage() {
@@ -158,26 +201,43 @@ export default function UserDashboardPage() {
     }
   }
 
-  /** Mobile total-volume only: full amount below 1M; from 1M use symbol + N.NM (matches en-US style). */
-  const formatCurrencyValueMobileVolume = (amount: number, currencyCode: string) => {
-    if (amount < 1_000_000) {
+  /**
+   * Mobile total volume only: full below 10k; 10k–<1M as 10K…999.9K; 1M+ as 1M…
+   * Tablet/desktop use full `formatCurrencyValue` in the stat card.
+   */
+  const formatDashboardVolumeDisplay = (amount: number, currencyCode: string) => {
+    if (amount < 10_000) {
       return formatCurrencyValue(amount, currencyCode)
     }
     try {
       const currency = currencies?.find((c) => c && c.code === currencyCode)
       const symbol = currency?.symbol || ""
-      const millions = amount / 1_000_000
-      const rounded = Math.round(millions * 10) / 10
-      const num =
-        rounded % 1 === 0
-          ? rounded.toLocaleString("en-US", { maximumFractionDigits: 0 })
-          : rounded.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 1 })
-      return `${symbol}${num}M`
+
+      if (amount >= 1_000_000) {
+        const millions = amount / 1_000_000
+        const rounded = Math.round(millions * 10) / 10
+        const num =
+          rounded % 1 === 0
+            ? rounded.toLocaleString("en-US", { maximumFractionDigits: 0 })
+            : rounded.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 1 })
+        return `${symbol}${num}M`
+      }
+
+      const k = amount / 1000
+      const displayK = Math.min(999.9, Math.floor(k * 10) / 10)
+      const numStr =
+        displayK % 1 === 0
+          ? displayK.toLocaleString("en-US", { maximumFractionDigits: 0 })
+          : displayK.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 1 })
+      return `${symbol}${numStr}K`
     } catch (error) {
       console.error("Error formatting compact currency:", error)
       return formatCurrencyValue(amount, currencyCode)
     }
   }
+
+  const fullVolumeLabel = formatCurrencyValue(totalSentValue, baseCurrency)
+  const compactVolumeLabel = formatDashboardVolumeDisplay(totalSentValue, baseCurrency)
 
   const formatAmount = (amount: number, currency: string) => {
     const currencyInfo = currencies?.find((c) => c && c.code === currency)
@@ -280,13 +340,12 @@ export default function UserDashboardPage() {
         <div className="px-5 sm:px-6 flex gap-3 min-w-0 sm:hidden">
           <Card className="min-w-0 basis-0 flex-[1.5] shrink">
             <CardContent className="p-5 sm:p-6 text-center min-w-0">
-              <div
-                className="min-h-[3.5rem] flex items-center justify-center mb-2"
-                title={formatCurrencyValue(totalSentValue, baseCurrency)}
-              >
-                <span className="max-w-full text-3xl font-bold text-foreground tabular-nums leading-tight">
-                  {formatCurrencyValueMobileVolume(totalSentValue, baseCurrency)}
-                </span>
+              <div className="min-h-[3.5rem] flex items-center justify-center mb-2">
+                <VolumeAmountWithFullDetail
+                  fullLabel={fullVolumeLabel}
+                  compactLabel={compactVolumeLabel}
+                  numberClassName="max-w-full text-3xl font-bold text-foreground tabular-nums leading-tight"
+                />
               </div>
               <div className="text-base sm:text-lg font-medium text-muted-foreground">Total Volume</div>
             </CardContent>
@@ -307,7 +366,7 @@ export default function UserDashboardPage() {
           </Card>
         </div>
 
-        {/* Stats — tablet/desktop */}
+        {/* Stats — tablet/desktop (full amount; no compact K/M or popover) */}
         <div className="px-5 sm:px-6 hidden sm:flex gap-3 sm:gap-6">
           <Card className="flex-[1.5] sm:flex-1">
             <CardContent className="p-5 sm:p-6 text-center">
