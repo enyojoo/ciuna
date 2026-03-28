@@ -250,6 +250,10 @@ export default function UserDashboardPage() {
 
   const fullVolumeLabel = formatCurrencyValue(totalSentValue, baseCurrency)
   const compactVolumeLabel = formatDashboardVolumeDisplay(totalSentValue, baseCurrency)
+  const volumeMobileNumberClass = cn(
+    "max-w-full font-bold leading-none text-foreground tabular-nums",
+    compactVolumeLabel !== fullVolumeLabel ? "text-app-stat-value-abbrev" : "text-app-stat-value",
+  )
 
   const formatAmount = (amount: number, currency: string) => {
     const currencyInfo = currencies?.find((c) => c && c.code === currency)
@@ -349,10 +353,10 @@ export default function UserDashboardPage() {
                 <VolumeAmountWithFullDetail
                   fullLabel={fullVolumeLabel}
                   compactLabel={compactVolumeLabel}
-                  numberClassName="text-app-stat-value max-w-full font-bold leading-none text-foreground tabular-nums"
+                  numberClassName={volumeMobileNumberClass}
                 />
               </div>
-              <div className="text-app-stat-label font-medium text-muted-foreground">{t("dashboard.totalVolume")}</div>
+              <div className="text-app-stat-label-mobile font-medium text-muted-foreground">{t("dashboard.totalVolume")}</div>
             </CardContent>
           </Card>
 
@@ -366,7 +370,7 @@ export default function UserDashboardPage() {
                   {completedTransactions}
                 </span>
               </div>
-              <div className="text-app-stat-label font-medium text-muted-foreground">{t("dashboard.transactions")}</div>
+              <div className="text-app-stat-label-mobile font-medium text-muted-foreground">{t("dashboard.transactions")}</div>
             </CardContent>
           </Card>
         </div>
