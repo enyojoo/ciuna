@@ -1087,22 +1087,29 @@ class OfficeDataStore {
 
   async updateTransactionStatus(transactionId: string, newStatus: string) {
     try {
-      const { error } = await supabase
-        .from("transactions")
-        .update({
-          status: newStatus,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("transaction_id", transactionId)
-
-      if (error) {
-        throw error
+      const payload =
+        newStatus === "completed"
+          ? { status: newStatus, completed_at: new Date().toISOString() }
+          : { status: newStatus }
+      const response = await officeFetch(`/api/admin/transactions/${transactionId}/status`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(result?.error || "Failed to update transaction")
       }
 
       // Update local data after successful update
       if (this.data) {
         const updatedTransactions = this.data.transactions.map((tx) =>
-          tx.transaction_id === transactionId ? { ...tx, status: newStatus } : tx,
+          tx.transaction_id === transactionId
+            ? {
+                ...tx,
+                status: newStatus,
+                ...(newStatus === "completed" ? { completed_at: payload.completed_at } : {}),
+              }
+            : tx,
         )
         const updatedStats = await this.calculateStats(this.data.users, updatedTransactions, this.data.baseCurrency, this.data.exchangeRates)
         const updatedRecentActivity = this.processRecentActivity(updatedTransactions.slice(0, 10))
@@ -1128,13 +1135,6 @@ class OfficeDataStore {
         console.error('Email notification failed:', error)
         // Don't throw - email failure shouldn't break the status update
       })
-
-      if (newStatus === "completed") {
-        officeFetch("/api/referrals/process-completion", {
-          method: "POST",
-          body: JSON.stringify({ transactionId }),
-        }).catch((err) => console.error("Referral process-completion failed:", err))
-      }
     } catch (error) {
       throw error
     }

@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
+import { processReferralRewardsOnCompletedSend } from "@/lib/referral-reward-service"
 
 export async function PATCH(
   request: NextRequest,
@@ -38,6 +39,8 @@ export async function PATCH(
 
     if (completed_at) {
       updateData.completed_at = completed_at
+    } else if (status === "completed") {
+      updateData.completed_at = new Date().toISOString()
     }
 
     const { data: updatedTransaction, error: updateError } = await supabase
@@ -55,6 +58,10 @@ export async function PATCH(
       return NextResponse.json({ 
         error: `Failed to update transaction: ${updateError.message}` 
       }, { status: 400 })
+    }
+
+    if (status === "completed" && updatedTransaction) {
+      await processReferralRewardsOnCompletedSend(updatedTransaction as any)
     }
 
     return NextResponse.json({ 
