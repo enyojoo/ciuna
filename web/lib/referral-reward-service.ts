@@ -26,6 +26,29 @@ function transactionCompletedAtIso(tx: Transaction): string {
   return raw
 }
 
+function resolveTransactionAmountInPolicyCurrency(
+  transaction: Transaction,
+  policyCurrency: string,
+  rateMap: Map<string, number>,
+): number {
+  const sendAmount = Number(transaction.send_amount)
+  const sendCurrency = transaction.send_currency
+  const receiveCurrency = transaction.receive_currency
+  const exchangeRate = Number(transaction.exchange_rate)
+
+  if (sendCurrency === policyCurrency) return sendAmount
+
+  // Prefer the transaction's own stored FX when it already converts send -> policy.
+  if (receiveCurrency === policyCurrency && Number.isFinite(exchangeRate) && exchangeRate > 0) {
+    return sendAmount * exchangeRate
+  }
+
+  const converted = convertWithRateMap(sendAmount, sendCurrency, policyCurrency, rateMap)
+  if (converted > 0) return converted
+
+  return 0
+}
+
 async function minQualifyingCompletedAt(
   supabase: ReturnType<typeof createServerClient>,
   refereeUserId: string,
@@ -140,12 +163,7 @@ export async function processReferralRewardsOnCompletedSend(transaction: Transac
       if (Number.isNaN(txTime.getTime()) || Number.isNaN(endTime.getTime())) return
       if (txTime > endTime) return
 
-      const sendInPolicy = convertWithRateMap(
-        Number(transaction.send_amount),
-        transaction.send_currency,
-        policy,
-        rateMap,
-      )
+      const sendInPolicy = resolveTransactionAmountInPolicyCurrency(transaction, policy, rateMap)
       if (sendInPolicy <= 0) return
 
       let effectiveFraction = program.percent_of_send
@@ -183,6 +201,15 @@ export async function processReferralRewardsOnCompletedSend(transaction: Transac
       })
       if (insErr && insErr.code !== "23505") {
         console.error("referral_rewards insert (percent/tier):", insErr)
+      } else if (!insErr) {
+        console.log("referral reward inserted", {
+          transactionId: transaction.transaction_id,
+          referrerId,
+          refereeUserId: transaction.user_id,
+          rewardType,
+          policyCurrency: policy,
+          amountPolicy: rewardPolicy,
+        })
       }
       return
     }
