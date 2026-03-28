@@ -324,13 +324,37 @@ export default function ReferralsPage() {
         )}
 
         <Card className="overflow-hidden border-0 shadow-sm bg-gradient-to-br from-teal-50/90 to-white">
-          <CardContent className="p-5 sm:p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Refer a friend</h2>
-            <p className="text-sm text-gray-600 mb-4">{data?.programSummary}</p>
+          <CardContent className="p-5 sm:p-6 space-y-5">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Refer a friend</h2>
+              <p className="text-sm text-gray-600">{data?.programSummary}</p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+              <div className="flex-1">
+                <Label className="text-xs text-gray-500 uppercase tracking-wide">Referral link</Label>
+                <div className="mt-1 flex items-center gap-2 rounded-lg border border-dashed border-gray-300 bg-white/80 px-3 py-2">
+                  <span className="font-mono text-sm truncate flex-1">{data?.shareUrl}</span>
+                  <button
+                    type="button"
+                    onClick={() => void copyLinkUrl()}
+                    className="p-1.5 rounded-md hover:bg-gray-100 text-gray-600"
+                    aria-label={linkCopied ? "Copied" : "Copy link"}
+                  >
+                    {linkCopied ? (
+                      <Check className="h-4 w-4 text-green-600" aria-hidden />
+                    ) : (
+                      <Copy className="h-4 w-4" aria-hidden />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {data?.tierCommission && data.tierCommission.tiers.length > 0 && (
-              <div className="mb-4 rounded-xl border border-teal-200/70 bg-white/70 p-4 shadow-sm">
+              <div className="space-y-2">
                 <h3 className="text-base font-semibold text-gray-900">Commission rate rules</h3>
-                <p className="text-sm text-gray-600 mt-1 mb-3">
+                <p className="text-sm text-gray-600">
                   The more friends you refer and they complete transactions, the higher your commission rate!
                 </p>
                 <ul className="rounded-lg border border-gray-200/80 divide-y divide-gray-100 overflow-hidden bg-white/90">
@@ -360,26 +384,6 @@ export default function ReferralsPage() {
                 </ul>
               </div>
             )}
-            <div className="flex flex-col sm:flex-row sm:items-end gap-3">
-              <div className="flex-1">
-                <Label className="text-xs text-gray-500 uppercase tracking-wide">Referral link</Label>
-                <div className="mt-1 flex items-center gap-2 rounded-lg border border-dashed border-gray-300 bg-white/80 px-3 py-2">
-                  <span className="font-mono text-sm truncate flex-1">{data?.shareUrl}</span>
-                  <button
-                    type="button"
-                    onClick={() => void copyLinkUrl()}
-                    className="p-1.5 rounded-md hover:bg-gray-100 text-gray-600"
-                    aria-label={linkCopied ? "Copied" : "Copy link"}
-                  >
-                    {linkCopied ? (
-                      <Check className="h-4 w-4 text-green-600" aria-hidden />
-                    ) : (
-                      <Copy className="h-4 w-4" aria-hidden />
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
           </CardContent>
         </Card>
 
