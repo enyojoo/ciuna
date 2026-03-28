@@ -371,7 +371,7 @@ export default function ReferralsPage() {
                           className={`text-sm ${active ? "text-gray-900 font-medium" : "text-gray-700"}`}
                         >
                           {t.minQualifiedRefereesInQuarter} signed up and completed{" "}
-                          {t.minQualifiedRefereesInQuarter === 1 ? "a transaction" : "transactions"}
+                          {t.minQualifiedRefereesInQuarter === 1 ? "a transaction" : "transactions"} in this quarter
                         </span>
                         <span
                           className={`text-sm font-semibold tabular-nums shrink-0 ${active ? "text-primary" : "text-gray-900"}`}
