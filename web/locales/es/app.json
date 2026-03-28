@@ -291,7 +291,7 @@
     "noReferrals": "Aún no tienes referidos",
     "completedTxCount_one": "{{count}} transacción completada",
     "completedTxCount_other": "{{count}} transacciones completadas",
-    "rewardWindowEnds": "Hasta el {{date}}",
+    "rewardWindowEnds": "La ventana de recompensa termina el {{date}}",
     "shareLink": "Compartir",
     "withdraw": "Retirar",
     "requestPayout": "Pago",

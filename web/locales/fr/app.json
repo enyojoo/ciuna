@@ -291,7 +291,7 @@
     "noReferrals": "Vous n’avez pas encore de filleuls",
     "completedTxCount_one": "{{count}} transaction terminée",
     "completedTxCount_other": "{{count}} transactions terminées",
-    "rewardWindowEnds": "Jusqu’au {{date}}",
+    "rewardWindowEnds": "La période de récompense se termine le {{date}}",
     "shareLink": "Partager",
     "withdraw": "Retirer",
     "requestPayout": "Paiement",
