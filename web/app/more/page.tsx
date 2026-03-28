@@ -17,10 +17,20 @@ import { useAuth } from "@/lib/auth-context"
 import { useState, useEffect } from "react"
 import type { KYCSubmission } from "@/lib/kyc-service"
 import { InstallAppCard } from "@/components/pwa/install-app-card"
+import { LoginPinDialog } from "@/components/app-lock/login-pin-dialog"
+import { hasPin } from "@/lib/login-pin"
 
 export default function MorePage() {
   const router = useRouter()
   const { signOut, userProfile } = useAuth()
+  const [pinDialogOpen, setPinDialogOpen] = useState(false)
+  const [pinDialogMode, setPinDialogMode] = useState<"create" | "change">("create")
+
+  const openLoginPin = () => {
+    if (!userProfile?.id) return
+    setPinDialogMode(hasPin(userProfile.id) ? "change" : "create")
+    setPinDialogOpen(true)
+  }
   
   // Initialize from cache synchronously to prevent flicker
   // Use cached data even if expired to prevent skeleton flash
@@ -217,6 +227,14 @@ export default function MorePage() {
                 <span className="text-base text-gray-900">Affiliates &amp; Referrals</span>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
               </Link>
+              <button
+                type="button"
+                onClick={openLoginPin}
+                className="w-full flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors text-left"
+              >
+                <span className="text-base text-gray-900">Login PIN</span>
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </button>
             </CardContent>
           </Card>
 
@@ -305,6 +323,15 @@ export default function MorePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {userProfile?.id ? (
+        <LoginPinDialog
+          open={pinDialogOpen}
+          onOpenChange={setPinDialogOpen}
+          userId={userProfile.id}
+          mode={pinDialogMode}
+        />
+      ) : null}
     </>
   )
 }

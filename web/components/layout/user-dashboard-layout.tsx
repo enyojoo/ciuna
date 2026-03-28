@@ -8,6 +8,7 @@ import { Home, LayoutDashboard, Send, History, LogOut, X, UserPlus } from "lucid
 import { BrandLogo } from "@/components/brand/brand-logo"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
+import { AppLockProvider } from "@/components/app-lock/app-lock-provider"
 
 interface UserDashboardLayoutProps {
   children: React.ReactNode
@@ -39,6 +40,7 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
   }
 
   return (
+    <AppLockProvider>
     <div className="flex h-screen bg-background">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
@@ -141,5 +143,6 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
         </div>
       </div>
     </div>
+    </AppLockProvider>
   )
 }

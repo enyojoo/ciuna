@@ -6,6 +6,8 @@ import type { User } from "@supabase/supabase-js"
 import { supabase } from "./supabase"
 import { userDataStore } from "./user-data-store"
 import { getSecuritySettings } from "./security-settings"
+import { hasPin, removePin, setAppLocked } from "./login-pin"
+import { emitAppLocked } from "./app-lock-bus"
 
 interface UserProfile {
   id: string
@@ -29,6 +31,8 @@ interface AuthContextType {
   signUp: (email: string, password: string, userData: any) => Promise<{ error: any }>
   signOut: () => Promise<void>
   refreshUserProfile: () => Promise<void>
+  /** Reset idle session timer (e.g. after successful app PIN unlock). */
+  resetSessionActivity: () => void
   isAdmin: boolean
 }
 
@@ -41,6 +45,7 @@ const AuthContext = createContext<AuthContextType>({
   signUp: async () => ({ error: null }),
   signOut: async () => {},
   refreshUserProfile: async () => {},
+  resetSessionActivity: () => {},
   isAdmin: false,
 })
 
@@ -163,6 +168,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user])
 
+  const resetSessionActivity = useCallback(() => {
+    setLastActivity(Date.now())
+  }, [])
+
   // Load security settings and set up session timeout
   useEffect(() => {
     const loadSecuritySettings = async () => {
@@ -175,25 +184,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     loadSecuritySettings()
   }, [])
-
-  // Session timeout check
-  useEffect(() => {
-    if (!user) return
-
-    const checkSessionTimeout = () => {
-      const now = Date.now()
-      const timeSinceLastActivity = now - lastActivity
-      const timeoutMs = sessionTimeout * 60 * 1000 // Convert minutes to milliseconds
-
-      if (timeSinceLastActivity > timeoutMs) {
-        console.log("Session timeout reached, signing out user")
-        signOut()
-      }
-    }
-
-    const interval = setInterval(checkSessionTimeout, 60000) // Check every minute
-    return () => clearInterval(interval)
-  }, [user, lastActivity, sessionTimeout])
 
   // Update last activity on user interaction
   useEffect(() => {
@@ -361,7 +351,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = useCallback(async () => {
+    const uid = user?.id
     try {
+      if (uid) {
+        removePin(uid)
+      }
       // Clear all data immediately
       setUser(null)
       setUserProfile(null)
@@ -378,13 +372,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("Sign out error:", error)
       // Force clear state even if signOut fails
+      if (uid) {
+        removePin(uid)
+      }
       setUser(null)
       setUserProfile(null)
       setIsAdmin(false)
       setLoading(false)
       userDataStore.cleanup()
     }
-  }, [])
+  }, [user?.id])
+
+  // Session timeout check (after signOut is defined)
+  useEffect(() => {
+    if (!user) return
+
+    const checkSessionTimeout = () => {
+      const now = Date.now()
+      const timeSinceLastActivity = now - lastActivity
+      const timeoutMs = sessionTimeout * 60 * 1000 // Convert minutes to milliseconds
+
+      if (timeSinceLastActivity > timeoutMs) {
+        if (user.id && hasPin(user.id)) {
+          console.log("Session timeout reached, locking app (PIN configured)")
+          setAppLocked(user.id, true)
+          emitAppLocked()
+        } else {
+          console.log("Session timeout reached, signing out user")
+          signOut()
+        }
+      }
+    }
+
+    const interval = setInterval(checkSessionTimeout, 60000) // Check every minute
+    return () => clearInterval(interval)
+  }, [user, lastActivity, sessionTimeout, signOut])
 
   const value = useMemo(() => ({
     user,
@@ -395,8 +417,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     refreshUserProfile,
+    resetSessionActivity,
     isAdmin,
-  }), [user, userProfile, loading, signIn, signInWithGoogle, signUp, signOut, refreshUserProfile, isAdmin])
+  }), [user, userProfile, loading, signIn, signInWithGoogle, signUp, signOut, refreshUserProfile, resetSessionActivity, isAdmin])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
