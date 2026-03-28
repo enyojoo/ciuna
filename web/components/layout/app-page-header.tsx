@@ -1,14 +1,14 @@
 "use client"
 
 import type { ReactNode } from "react"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 interface AppPageHeaderProps {
   title: string
-  /** If omitted, no back control is shown */
+  /** Used when browser history has no prior entry (e.g. opened in a new tab). Otherwise back uses history. */
   backHref?: string
   backLabel?: string
   className?: string
@@ -17,6 +17,7 @@ interface AppPageHeaderProps {
 
 /**
  * Sticky app-style header for sub-pages (mobile-first; works on all breakpoints).
+ * Back prefers the previous screen in history; falls back to `backHref` when that is not available.
  */
 export function AppPageHeader({
   title,
@@ -25,6 +26,16 @@ export function AppPageHeader({
   className,
   trailing,
 }: AppPageHeaderProps) {
+  const router = useRouter()
+
+  const handleBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back()
+    } else if (backHref) {
+      router.push(backHref)
+    }
+  }
+
   return (
     <header
       className={cn(
@@ -33,10 +44,15 @@ export function AppPageHeader({
       )}
     >
       {backHref ? (
-        <Button variant="ghost" size="icon" className="shrink-0 -ml-2 h-11 w-11" asChild>
-          <Link href={backHref} aria-label={backLabel}>
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="shrink-0 -ml-2 h-11 w-11"
+          onClick={handleBack}
+          aria-label={backLabel}
+        >
+          <ArrowLeft className="h-5 w-5" />
         </Button>
       ) : (
         <div className="w-11 shrink-0" aria-hidden />

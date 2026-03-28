@@ -1,13 +1,14 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { Send, MessageCircle, UserPlus, User } from "lucide-react"
+import { Send, MessageCircle, UserPlus, Wallet, BadgeDollarSign } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { useEffect, useState } from "react"
 import { useUserData } from "@/hooks/use-user-data"
 import { useRouter } from "next/navigation"
 import { DashboardSkeleton } from "@/components/dashboard-skeleton"
+import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 
 interface Transaction {
   id: string
@@ -19,10 +20,16 @@ interface Transaction {
   receive_currency?: string
   status: string
   created_at: string
+  reference?: string | null
   recipient?: {
     full_name: string
+    bank_name?: string
   }
   destination_type?: "bank" | "card"
+}
+
+function isReferralPayoutRow(t: Transaction): boolean {
+  return typeof t.reference === "string" && t.reference.startsWith(REFERRAL_PAYOUT_PREFIX)
 }
 
 export default function UserDashboardPage() {
@@ -207,16 +214,18 @@ export default function UserDashboardPage() {
     return `${month} ${day}, ${year}`
   }
 
-  // Only show send transactions on web (receive/card_funding are mobile-only)
+  // Send + referral payouts on web (receive/card_funding are mobile-only); card sends excluded unless payout
   const recentTransactions = (transactions || [])
     .filter((t) => {
       if (!t) return false
+      const payout = isReferralPayoutRow(t)
       if (t.type === "receive" || t.type === "card_funding") return false
-      if (t.destination_type === "card") return false
+      if (t.destination_type === "card" && !payout) return false
       if (t.type === "send") return true
       if (t.send_amount || t.receive_amount || t.recipient) return true
       return false
     })
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 2)
 
   // Check if we have valid data to display
@@ -240,20 +249,19 @@ export default function UserDashboardPage() {
           <div className="flex items-center justify-between gap-3 min-w-0">
             <Link
               href="/more/profile"
-              className="flex items-center gap-2.5 min-w-0 rounded-xl py-1 pr-2 -ml-1 hover:bg-gray-50/80 transition-colors"
+              className="inline-flex shrink-0 rounded-full p-0.5 -ml-0.5 hover:bg-gray-50/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
+              aria-label="Profile"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 ring-2 ring-primary/20">
-                <User className="h-5 w-5 text-primary" aria-hidden />
-              </span>
-              <span className="text-lg font-bold text-gray-900 tracking-tight tabular-nums">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 ring-2 ring-primary/20 text-sm font-bold tracking-tight text-primary tabular-nums">
                 {profileInitials}
               </span>
             </Link>
             <div className="flex items-center gap-2 shrink-0">
               <Link
                 href="/more/referrals"
-                className="inline-flex items-center rounded-full border border-teal-200/90 bg-gradient-to-r from-teal-50 to-emerald-50/90 px-3 py-1.5 text-xs font-semibold text-teal-900 shadow-sm hover:from-teal-100 hover:to-emerald-50 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-full border border-teal-200/90 bg-gradient-to-r from-teal-50 to-emerald-50/90 px-3 py-1.5 text-xs font-semibold text-teal-900 shadow-sm hover:from-teal-100 hover:to-emerald-50 transition-colors"
               >
+                <BadgeDollarSign className="h-3.5 w-3.5 shrink-0 text-teal-800" strokeWidth={2.25} aria-hidden />
                 Refer &amp; Earn
               </Link>
               <button
@@ -364,13 +372,72 @@ export default function UserDashboardPage() {
               {recentTransactions.map((transaction) => {
                 if (!transaction) return null
                 const statusColor = getStatusColor(transaction.status)
+                const detailUrl = `/send/${transaction.transaction_id.toLowerCase()}`
+                const payout = isReferralPayoutRow(transaction)
+
+                if (payout) {
+                  return (
+                    <Link href={detailUrl} key={transaction.id} className="block">
+                      <Card className="overflow-hidden border border-indigo-200/80 bg-gradient-to-br from-indigo-50/90 via-white to-teal-50/40 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                        <CardContent className="p-4 sm:p-5">
+                          <div className="flex items-start justify-between gap-3 mb-4">
+                            <div className="flex items-start gap-3 min-w-0">
+                              <div className="shrink-0 flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700">
+                                <Wallet className="h-5 w-5" aria-hidden />
+                              </div>
+                              <div className="min-w-0">
+                                <span className="inline-flex rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-800">
+                                  Referral payout
+                                </span>
+                                <p className="mt-1.5 text-2xl sm:text-3xl font-bold text-gray-900 tabular-nums leading-tight">
+                                  {formatAmount(transaction.send_amount || 0, transaction.send_currency || "")}
+                                </p>
+                                <p className="mt-1 font-mono text-[11px] text-gray-500 truncate">
+                                  {transaction.transaction_id}
+                                </p>
+                              </div>
+                            </div>
+                            <span
+                              className="shrink-0 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold"
+                              style={{
+                                backgroundColor: `${statusColor}20`,
+                                color: statusColor,
+                              }}
+                            >
+                              {transaction.status.toUpperCase()}
+                            </span>
+                          </div>
+
+                          <div className="rounded-xl border border-indigo-100/90 bg-white/70 p-3 sm:p-4 mb-4">
+                            <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                              Withdrawal to
+                            </p>
+                            <p className="text-base font-semibold text-gray-900">
+                              {transaction.recipient?.full_name || "Recipient"}
+                            </p>
+                            {transaction.recipient?.bank_name && (
+                              <p className="text-sm text-gray-600 mt-0.5">{transaction.recipient.bank_name}</p>
+                            )}
+                            <div className="mt-3 pt-3 border-t border-indigo-100/80 flex items-center justify-between gap-2 text-base sm:text-lg">
+                              <span className="text-gray-600">Recipient receives</span>
+                              <span className="font-semibold tabular-nums text-indigo-800">
+                                {formatAmount(transaction.receive_amount || 0, transaction.receive_currency || "")}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-1">
+                            <span className="text-xs sm:text-sm text-gray-500">{formatDate(transaction.created_at)}</span>
+                            <span className="text-lg sm:text-xl text-indigo-300/80 font-light">›</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  )
+                }
 
                 return (
-                  <Link
-                    href={`/send/${transaction.transaction_id.toLowerCase()}`}
-                    key={transaction.id}
-                    className="block"
-                  >
+                  <Link href={detailUrl} key={transaction.id} className="block">
                     <Card className="hover:shadow-md transition-shadow cursor-pointer">
                       <CardContent className="p-4 sm:p-5">
                         {/* Transaction Header */}

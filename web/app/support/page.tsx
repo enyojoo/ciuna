@@ -42,11 +42,11 @@ export default function UserSupportPage() {
         <AppPageHeader title="Support" backHref="/dashboard" />
         <div className="px-5 sm:px-6 pt-3 sm:pt-4 pb-5 sm:pb-6 space-y-4 sm:space-y-5">
           {/* Contact Options */}
-          <Card className="bg-white">
-            <CardHeader className="pb-4">
+          <Card className="bg-white gap-2 py-5">
+            <CardHeader className="pb-0">
               <CardTitle className="text-lg font-semibold text-gray-900">Get in Touch</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-0">
+            <CardContent className="space-y-0 pt-1">
               {/* Email Support */}
               <div 
                 className="flex items-center justify-between py-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
@@ -80,11 +80,11 @@ export default function UserSupportPage() {
           </Card>
 
           {/* FAQ Section */}
-          <Card className="bg-white">
-            <CardHeader className="pb-4">
+          <Card className="bg-white gap-2 py-5">
+            <CardHeader className="pb-0">
               <CardTitle className="text-lg font-semibold text-gray-900">Frequently Asked Questions</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-0">
+            <CardContent className="space-y-0 pt-1">
               {faqItems.map((item, index) => (
                 <div key={index} className="border-b border-gray-100 last:border-b-0">
                   <button
@@ -109,14 +109,14 @@ export default function UserSupportPage() {
           </Card>
 
           {/* Support Hours */}
-          <Card className="bg-white">
-            <CardHeader className="pb-4">
+          <Card className="bg-white gap-2 py-5">
+            <CardHeader className="pb-0">
               <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <Clock className="h-5 w-5" />
                 Support Hours
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-1">
               <div className="space-y-2">
                 <p className="text-sm text-gray-600">All week from 8 am to 11pm GMT+3</p>
               </div>

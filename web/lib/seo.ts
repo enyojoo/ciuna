@@ -75,8 +75,6 @@ export const SEO_PAGE_TITLES = {
   register: `Create account${PAGE_TITLE_SUFFIX}`,
   forgotPassword: `Forgot password${PAGE_TITLE_SUFFIX}`,
   resetPassword: `Reset password${PAGE_TITLE_SUFFIX}`,
-  morePassword: `Password${PAGE_TITLE_SUFFIX}`,
-  moreNotifications: `Notifications${PAGE_TITLE_SUFFIX}`,
   moreVerificationIdentity: `Identity verification${PAGE_TITLE_SUFFIX}`,
   moreVerificationAddress: `Address verification${PAGE_TITLE_SUFFIX}`,
   moreReferrals: `Affiliates & referrals${PAGE_TITLE_SUFFIX}`,
@@ -95,8 +93,6 @@ export const SEO_PAGE_DESCRIPTIONS = {
     "Create your Ciuna account to send money to 10+ countries with transparent pricing and secure onboarding.",
   forgotPassword: "Start a secure password reset for your Ciuna account.",
   resetPassword: "Choose a new password to get back into your Ciuna account.",
-  morePassword: "Update your Ciuna account password and keep your sign-in secure.",
-  moreNotifications: "Choose how Ciuna notifies you about transfers, security, and account updates.",
   moreVerificationIdentity:
     "Complete identity verification for your Ciuna account—secure uploads and guided steps.",
   moreVerificationAddress:

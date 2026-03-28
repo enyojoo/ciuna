@@ -180,15 +180,15 @@ export default function MorePage() {
         </div>
 
         {/* Content */}
-        <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-5 sm:pb-6 space-y-4 sm:space-y-5">
+        <div className="px-5 sm:px-6 pt-3 sm:pt-4 pb-5 sm:pb-6 space-y-4 sm:space-y-5">
           <InstallAppCard />
 
           {/* Account Section */}
-          <Card>
-            <CardHeader>
+          <Card className="gap-2 py-5">
+            <CardHeader className="pb-0">
               <CardTitle className="text-lg font-semibold">Account</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-0 pt-4">
+            <CardContent className="space-y-0 pt-1">
               <Link
                 href="/more/profile"
                 className="w-full flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
@@ -211,20 +211,6 @@ export default function MorePage() {
                 </div>
               </Link>
               <Link
-                href="/more/password"
-                className="w-full flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
-              >
-                <span className="text-base text-gray-900">Change Password</span>
-                <ChevronRight className="h-5 w-5 text-gray-400" />
-              </Link>
-              <Link
-                href="/more/notifications"
-                className="w-full flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
-              >
-                <span className="text-base text-gray-900">Notifications</span>
-                <ChevronRight className="h-5 w-5 text-gray-400" />
-              </Link>
-              <Link
                 href="/more/referrals"
                 className="w-full flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
               >
@@ -235,11 +221,11 @@ export default function MorePage() {
           </Card>
 
           {/* App Section */}
-          <Card>
-            <CardHeader>
+          <Card className="gap-2 py-5">
+            <CardHeader className="pb-0">
               <CardTitle className="text-lg font-semibold">App</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-0 pt-4">
+            <CardContent className="space-y-0 pt-1">
               <Link
                 href="/recipients"
                 className="w-full flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
