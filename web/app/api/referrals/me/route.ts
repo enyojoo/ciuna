@@ -58,12 +58,12 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   } else if (program.mode === "percent") {
     const pct = program.percent_of_send * 100
     const months = program.percent_reward_duration_months
-    programSummary = `Earn ${pct.toFixed(2)}% on each referred user's completed sends for ${months} months from their first qualifying completed send.`
+    programSummary = `Earn ${pct.toFixed(2)}% on each referred user's completed transactions for ${months} months from their first transaction on Ciuna.`
   } else if (program.mode === "tier") {
     const months = program.percent_reward_duration_months
-    programSummary = `Tiered commission: your rate depends on how many referred users qualify in the current calendar quarter (UTC). Each referral's rewards apply for ${months} months from their first qualifying completed send.`
+    programSummary = `Earn tiered commission on each referred user's completed transactions for ${months} months from their first transaction on Ciuna.`
   } else {
-    programSummary = `Earn ${formatMoney(program.reward_amount, policy)} when each referral sends a combined ${formatMoney(program.threshold_send_amount, policy)} or more.`
+    programSummary = `Earn ${formatMoney(program.reward_amount, policy)} when each referral sends a combined ${formatMoney(program.threshold_send_amount, policy)} or more in completed transactions on Ciuna.`
   }
 
   const now = new Date()
