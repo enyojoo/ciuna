@@ -354,9 +354,6 @@ export default function ReferralsPage() {
       <AppPageHeader title={t("referrals.pageTitle")} backHref="/more" />
 
       <div className="max-w-4xl mx-auto px-6 pt-6 pb-12 sm:pb-16 lg:px-8 lg:pb-10 space-y-6">
-        <p className="text-base text-gray-600 -mt-1">
-          {t("referrals.subtitle")}
-        </p>
         {error && (
           <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm border border-destructive/20">
             {error}
@@ -397,9 +394,6 @@ export default function ReferralsPage() {
                 <p className="text-sm text-gray-600">
                   {t("referrals.commissionRulesHint")}
                 </p>
-                <p className="text-xs text-gray-500">
-                  {t("referrals.commissionRulesExample")}
-                </p>
                 <ul className="rounded-lg border border-gray-200/80 divide-y divide-gray-100 overflow-hidden bg-white/90">
                   {data.tierCommission.tiers.map((tierRow, i) => {
                     const active = i === data.tierCommission!.currentTierIndex
@@ -432,6 +426,9 @@ export default function ReferralsPage() {
                     )
                   })}
                 </ul>
+                <p className="text-xs text-gray-500">
+                  {t("referrals.commissionRulesExample")}
+                </p>
               </div>
             )}
           </CardContent>
