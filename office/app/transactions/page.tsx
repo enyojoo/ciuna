@@ -35,6 +35,7 @@ import { OfficeTransactionsSkeleton } from "@/components/office-transactions-ske
 import { officeDataStore } from "@/lib/office-data-store"
 import { useOfficeData } from "@/hooks/use-office-data"
 import { officeFetch } from "@/lib/api-client"
+import { buildRateMap, convertWithRateMap } from "@/lib/referral-currency"
 
 /** Matches web `REFERRAL_PAYOUT:` — completed referral withdrawals insert a `transactions` row with this reference. */
 const REFERRAL_PAYOUT_PREFIX = "REFERRAL_PAYOUT:"
@@ -99,8 +100,28 @@ interface CombinedTransaction {
   exchange_rate?: number
 }
 
-function mapPayoutRequests(payouts: any[] | undefined): CombinedTransaction[] {
+function buildTransactionsById(transactions: any[] | undefined): Map<string, any> {
+  const map = new Map<string, any>()
+  for (const t of transactions || []) {
+    const id = t?.transaction_id != null ? String(t.transaction_id).trim() : ""
+    if (id) map.set(id, t)
+  }
+  return map
+}
+
+function mapPayoutRequests(
+  payouts: any[] | undefined,
+  options?: {
+    transactionsByTransactionId?: Map<string, any>
+    exchangeRates?: { from_currency: string; to_currency: string; rate: number; status: string }[]
+  },
+): CombinedTransaction[] {
   if (!payouts?.length) return []
+  const rateMap =
+    options?.exchangeRates?.length && options.exchangeRates.length > 0
+      ? buildRateMap(options.exchangeRates)
+      : null
+
   return payouts.map((p: any) => {
     const linked =
       typeof p.linked_transaction_id === "string" && p.linked_transaction_id.trim()
@@ -111,20 +132,52 @@ function mapPayoutRequests(payouts: any[] | undefined): CombinedTransaction[] {
         ? p.payout_transaction_id.trim()
         : ""
     const transactionId = linked || reserved || `payout-${p.id}`
+
+    const sendAmount = Number(p.amount)
+    const sendCurrency = (p.currency as string) || ""
+
+    let receive_amount: number | undefined
+    let receive_currency: string | undefined
+
+    const linkedTx = linked && options?.transactionsByTransactionId?.get(linked)
+    if (
+      linkedTx &&
+      linkedTx.receive_currency != null &&
+      linkedTx.receive_amount != null &&
+      !Number.isNaN(Number(linkedTx.receive_amount))
+    ) {
+      receive_amount = Number(linkedTx.receive_amount)
+      receive_currency = linkedTx.receive_currency as string
+    } else {
+      receive_currency = (p.recipient as { currency?: string } | undefined)?.currency
+      if (receive_currency) {
+        if (rateMap) {
+          const conv = convertWithRateMap(sendAmount, sendCurrency, receive_currency, rateMap)
+          if (conv > 0 || sendCurrency === receive_currency) {
+            receive_amount = sendCurrency === receive_currency ? sendAmount : conv
+          }
+        } else if (sendCurrency === receive_currency) {
+          receive_amount = sendAmount
+        }
+      }
+    }
+
     return {
-    id: p.id,
-    transaction_id: transactionId,
-    type: "referral_payout" as const,
-    payout_request_id: p.id,
-    status: p.status,
-    created_at: p.created_at,
-    updated_at: p.updated_at,
-    user: p.user,
-    user_id: p.user_id,
-    send_amount: p.amount,
-    send_currency: p.currency,
-    recipient: p.recipient,
-  }
+      id: p.id,
+      transaction_id: transactionId,
+      type: "referral_payout" as const,
+      payout_request_id: p.id,
+      status: p.status,
+      created_at: p.created_at,
+      updated_at: p.updated_at,
+      user: p.user,
+      user_id: p.user_id,
+      send_amount: sendAmount,
+      send_currency: sendCurrency,
+      receive_amount,
+      receive_currency,
+      recipient: p.recipient,
+    }
   })
 }
 
@@ -203,7 +256,11 @@ export default function AdminTransactionsPage() {
         exchange_rate: tx.exchange_rate,
       }
     })
-    const payouts = mapPayoutRequests(adminData.referralPayoutRequests)
+    const payoutOpts = {
+      transactionsByTransactionId: buildTransactionsById(adminData.transactions),
+      exchangeRates: adminData.exchangeRates || [],
+    }
+    const payouts = mapPayoutRequests(adminData.referralPayoutRequests, payoutOpts)
     return [...rows, ...payouts].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     )
@@ -242,7 +299,7 @@ export default function AdminTransactionsPage() {
         return methods.find((pm) => pm.is_default) || methods[0]
       }
 
-      const defaultMethod = getDefaultPaymentMethod(selectedTransaction.send_currency)
+      const defaultMethod = getDefaultPaymentMethod(selectedTransaction.send_currency ?? "")
       const timerSeconds = defaultMethod?.completion_timer_seconds ?? 3600
       setTimerDuration(timerSeconds)
     }
@@ -322,7 +379,11 @@ export default function AdminTransactionsPage() {
           exchange_rate: tx.exchange_rate,
         }
       })
-      const payoutRows = mapPayoutRequests(adminData.referralPayoutRequests)
+      const payoutOpts = {
+        transactionsByTransactionId: buildTransactionsById(adminData.transactions),
+        exchangeRates: adminData.exchangeRates || [],
+      }
+      const payoutRows = mapPayoutRequests(adminData.referralPayoutRequests, payoutOpts)
       const merged = [...transformedTransactions, ...payoutRows].sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       )
@@ -491,34 +552,33 @@ export default function AdminTransactionsPage() {
     }
   }
 
-  // Calculate elapsed time in seconds
-  const getElapsedTime = (): number => {
-    if (!selectedTransaction) return 0
-    
-    const createdAt = new Date(selectedTransaction.created_at).getTime()
-    
-    if (selectedTransaction.status === "completed") {
-      const completedAt = selectedTransaction.completed_at
-        ? new Date(selectedTransaction.completed_at).getTime()
-        : new Date(selectedTransaction.updated_at).getTime()
+  // Calculate elapsed time in seconds (pass `tx` from the open row’s dialog to avoid stale `selectedTransaction`)
+  const getElapsedTime = (tx?: CombinedTransaction | null): number => {
+    const t = tx ?? selectedTransaction
+    if (!t) return 0
+
+    const createdAt = new Date(t.created_at).getTime()
+
+    if (t.status === "completed") {
+      const completedAt = (t as any).completed_at
+        ? new Date((t as any).completed_at).getTime()
+        : new Date((t as any).updated_at || t.created_at).getTime()
       return Math.floor((completedAt - createdAt) / 1000)
     } else {
-      // For pending/processing, use current time
       return Math.floor((currentTime - createdAt) / 1000)
     }
   }
 
-  // Calculate remaining time for pending/processing
-  const getRemainingTime = (): number => {
-    const elapsed = getElapsedTime()
+  const getRemainingTime = (tx?: CombinedTransaction | null): number => {
+    const elapsed = getElapsedTime(tx)
     const remaining = timerDuration - elapsed
     return Math.max(0, remaining)
   }
 
-  // Calculate delay for completed transactions or when timer has finished
-  const getDelay = (): number => {
-    if (!selectedTransaction) return 0
-    const elapsed = getElapsedTime()
+  const getDelay = (tx?: CombinedTransaction | null): number => {
+    const t = tx ?? selectedTransaction
+    if (!t) return 0
+    const elapsed = getElapsedTime(tx)
     const delay = elapsed - timerDuration
     return Math.max(0, delay)
   }
@@ -535,36 +595,32 @@ export default function AdminTransactionsPage() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
   }
 
-  // Get timer display text
-  const getTimerDisplay = (): string | null => {
-    if (!selectedTransaction) return null
-    if (selectedTransaction.type === "referral_payout") return null
+  const getTimerDisplay = (tx?: CombinedTransaction | null): string | null => {
+    const t = tx ?? selectedTransaction
+    if (!t) return null
+    if (t.type === "referral_payout") return null
 
-    // Don't show timer for failed/cancelled
-    if (selectedTransaction.status === "failed" || selectedTransaction.status === "cancelled") {
+    if (t.status === "failed" || t.status === "cancelled") {
       return null
     }
 
-    if (selectedTransaction.status === "completed") {
-      const elapsed = getElapsedTime()
-      const delay = getDelay()
-      
+    if (t.status === "completed") {
+      const elapsed = getElapsedTime(tx)
+      const delay = getDelay(tx)
+
       if (delay > 0) {
         return `Took ${formatTime(elapsed)} • Delayed ${formatTime(delay)}`
       } else {
         return `Took ${formatTime(elapsed)}`
       }
     } else {
-      // Pending or processing
-      const remaining = getRemainingTime()
-      const delay = getDelay()
-      
-      // If timer has finished (remaining <= 0), show delayed time
+      const remaining = getRemainingTime(tx)
+      const delay = getDelay(tx)
+
       if (remaining <= 0 && delay > 0) {
         return `Delayed ${formatTime(delay)}`
       }
-      
-      // Otherwise show countdown
+
       return `Time left ${formatTime(remaining)}`
     }
   }
@@ -810,6 +866,16 @@ export default function AdminTransactionsPage() {
                           <div className="font-medium">
                             {formatCurrency(transaction.send_amount || 0, transaction.send_currency || "")}
                           </div>
+                          {transaction.receive_currency != null &&
+                            transaction.receive_amount != null && (
+                              <div className="text-sm text-gray-500">
+                                →{" "}
+                                {formatCurrency(
+                                  transaction.receive_amount,
+                                  transaction.receive_currency,
+                                )}
+                              </div>
+                            )}
                         </div>
                       ) : transaction.type === "send" ? (
                         <div>
@@ -847,94 +913,72 @@ export default function AdminTransactionsPage() {
                             <DialogHeader>
                               <div className="flex items-center gap-6">
                                 <DialogTitle>
-                                  {selectedTransaction?.type === "referral_payout"
+                                  {transaction.type === "referral_payout"
                                     ? "Referral payout"
                                     : "Transaction Details"}
                                 </DialogTitle>
-                                {selectedTransaction && getTimerDisplay() && (
+                                {getTimerDisplay(transaction) && (
                                   <div className="flex items-center text-orange-600">
                                     <Clock className="h-4 w-4 mr-1" />
-                                    <span className="font-mono text-sm">{getTimerDisplay()}</span>
+                                    <span className="font-mono text-sm">{getTimerDisplay(transaction)}</span>
                                   </div>
                                 )}
                               </div>
                             </DialogHeader>
-                            {selectedTransaction && (
-                              <div className="overflow-y-auto flex-1 pr-2 -mr-2 space-y-4">
+                              <div className="overflow-y-auto flex-1 min-h-0 pr-2 -mr-2 space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
                                     <label className="text-sm font-medium text-gray-600">Transaction ID</label>
-                                    <p className="font-mono">{selectedTransaction.transaction_id}</p>
+                                    <p className="font-mono">{transaction.transaction_id}</p>
                                   </div>
                                   <div>
                                     <label className="text-sm font-medium text-gray-600">Status</label>
-                                    <div className="mt-1">{getStatusBadge(selectedTransaction.status)}</div>
+                                    <div className="mt-1">{getStatusBadge(transaction.status)}</div>
                                   </div>
                                   <div>
                                     <label className="text-sm font-medium text-gray-600">User</label>
                                     <p>
-                                      {selectedTransaction.user?.first_name} {selectedTransaction.user?.last_name}
+                                      {transaction.user?.first_name} {transaction.user?.last_name}
                                     </p>
-                                    <p className="text-sm text-gray-500">{selectedTransaction.user?.email}</p>
+                                    <p className="text-sm text-gray-500">{transaction.user?.email}</p>
                                   </div>
                                   <div>
                                     <label className="text-sm font-medium text-gray-600">Date</label>
-                                    <p>{formatTimestamp(selectedTransaction.created_at)}</p>
+                                    <p>{formatTimestamp(transaction.created_at)}</p>
                                   </div>
-                                  {selectedTransaction.type === "referral_payout" ? (
-                                    <>
+                                  {transaction.type === "referral_payout" ? (
                                       <div className="col-span-2 rounded-lg border border-indigo-200 bg-indigo-50/60 p-4 space-y-2">
                                         <Badge className="bg-indigo-100 text-indigo-800">Referral payout</Badge>
                                         <p className="text-sm">
-                                          <span className="font-medium">Amount: </span>
+                                          <span className="font-medium">Withdrawal: </span>
                                           {formatCurrency(
-                                            selectedTransaction.send_amount || 0,
-                                            selectedTransaction.send_currency || "",
+                                            transaction.send_amount || 0,
+                                            transaction.send_currency || "",
                                           )}
                                         </p>
+                                        {transaction.receive_currency != null &&
+                                          transaction.receive_amount != null && (
+                                            <p className="text-sm">
+                                              <span className="font-medium">Recipient receives: </span>
+                                              {formatCurrency(
+                                                transaction.receive_amount,
+                                                transaction.receive_currency,
+                                              )}
+                                            </p>
+                                          )}
                                         <p className="text-sm">
                                           <span className="font-medium">Recipient: </span>
-                                          {selectedTransaction.recipient?.full_name} ({selectedTransaction.recipient?.bank_name})
+                                          {transaction.recipient?.full_name} ({transaction.recipient?.bank_name})
                                         </p>
                                       </div>
-                                      {(selectedTransaction.status === "pending" ||
-                                        selectedTransaction.status === "processing") &&
-                                        selectedTransaction.payout_request_id && (
-                                          <div className="col-span-2 border-t border-gray-200 pt-4">
-                                            <label className="text-sm font-medium text-gray-600">Actions</label>
-                                            <div className="flex flex-wrap gap-2 mt-2">
-                                              <Button
-                                                size="sm"
-                                                className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                                                onClick={() =>
-                                                  selectedTransaction.payout_request_id &&
-                                                  void completeReferralPayout(selectedTransaction.payout_request_id)
-                                                }
-                                              >
-                                                Complete
-                                              </Button>
-                                              <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() =>
-                                                  selectedTransaction.payout_request_id &&
-                                                  void cancelReferralPayout(selectedTransaction.payout_request_id)
-                                                }
-                                              >
-                                                Cancel
-                                              </Button>
-                                            </div>
-                                          </div>
-                                        )}
-                                    </>
-                                  ) : selectedTransaction.type === "send" ? (
+                                  ) : transaction.type === "send" ? (
                                     <>
                                       <div>
                                         <label className="text-sm font-medium text-gray-600">Send Amount</label>
                                         <p className="font-medium">
                                           {formatCurrency(
-                                            selectedTransaction.send_amount || 0,
-                                            selectedTransaction.send_currency || "",
+                                            transaction.send_amount || 0,
+                                            transaction.send_currency || "",
                                           )}
                                         </p>
                                       </div>
@@ -942,19 +986,19 @@ export default function AdminTransactionsPage() {
                                         <label className="text-sm font-medium text-gray-600">Receive Amount</label>
                                         <p className="font-medium">
                                           {formatCurrency(
-                                            selectedTransaction.receive_amount || 0,
-                                            selectedTransaction.receive_currency || "",
+                                            transaction.receive_amount || 0,
+                                            transaction.receive_currency || "",
                                           )}
                                         </p>
                                       </div>
                                       <div>
                                         <label className="text-sm font-medium text-gray-600">Recipient</label>
-                                        <p>{selectedTransaction.recipient?.full_name}</p>
+                                        <p>{transaction.recipient?.full_name}</p>
                                     {(() => {
-                                      const recipient = selectedTransaction.recipient as any
+                                      const recipient = transaction.recipient as any
                                       if (!recipient) return null
 
-                                      const recipientCurrency = recipient.currency || selectedTransaction.receive_currency
+                                      const recipientCurrency = recipient.currency || transaction.receive_currency
                                       const accountConfig = recipientCurrency
                                         ? getAccountTypeConfigFromCurrency(recipientCurrency)
                                         : null
@@ -1019,8 +1063,8 @@ export default function AdminTransactionsPage() {
                                       <div>
                                         <label className="text-sm font-medium text-gray-600">Exchange Rate</label>
                                         <p className="font-medium">
-                                          1 {selectedTransaction.send_currency} = {selectedTransaction.exchange_rate}{" "}
-                                          {selectedTransaction.receive_currency}
+                                          1 {transaction.send_currency} = {transaction.exchange_rate}{" "}
+                                          {transaction.receive_currency}
                                         </p>
                                       </div>
                                     </>
@@ -1029,55 +1073,81 @@ export default function AdminTransactionsPage() {
                                       <div>
                                         <label className="text-sm font-medium text-gray-600">Stablecoin Received</label>
                                         <p className="font-medium">
-                                          {selectedTransaction.crypto_amount} {selectedTransaction.crypto_currency}
+                                          {transaction.crypto_amount} {transaction.crypto_currency}
                                         </p>
                                       </div>
                                       <div>
                                         <label className="text-sm font-medium text-gray-600">Fiat Amount</label>
                                         <p className="font-medium">
                                           {formatCurrency(
-                                            selectedTransaction.fiat_amount || 0,
-                                            selectedTransaction.fiat_currency || "",
+                                            transaction.fiat_amount || 0,
+                                            transaction.fiat_currency || "",
                                           )}
                                         </p>
                                       </div>
                                       <div>
                                         <label className="text-sm font-medium text-gray-600">Exchange Rate</label>
                                         <p className="font-medium">
-                                          1 {selectedTransaction.crypto_currency} = {selectedTransaction.exchange_rate}{" "}
-                                          {selectedTransaction.fiat_currency}
+                                          1 {transaction.crypto_currency} = {transaction.exchange_rate}{" "}
+                                          {transaction.fiat_currency}
                                         </p>
                                       </div>
                                       <div>
                                         <label className="text-sm font-medium text-gray-600">Stellar Transaction Hash</label>
                                         <p className="font-mono text-xs break-all">
-                                          {selectedTransaction.stellar_transaction_hash}
+                                          {transaction.stellar_transaction_hash}
                                         </p>
                                       </div>
                                       <div>
                                         <label className="text-sm font-medium text-gray-600">Wallet Address</label>
                                         <p className="font-mono text-xs">
-                                          {selectedTransaction.crypto_wallet?.wallet_address}
+                                          {transaction.crypto_wallet?.wallet_address}
                                         </p>
                                       </div>
                                       <div>
                                         <label className="text-sm font-medium text-gray-600">Deposit Account</label>
-                                        <p>{selectedTransaction.crypto_wallet?.recipient?.full_name}</p>
+                                        <p>{transaction.crypto_wallet?.recipient?.full_name}</p>
                                         <p className="text-sm text-gray-500">
-                                          {selectedTransaction.crypto_wallet?.recipient?.account_number}
+                                          {transaction.crypto_wallet?.recipient?.account_number}
                                         </p>
                                         <p className="text-sm text-gray-500">
-                                          {selectedTransaction.crypto_wallet?.recipient?.bank_name}
+                                          {transaction.crypto_wallet?.recipient?.bank_name}
                                         </p>
                                       </div>
                                     </>
                                   )}
                                 </div>
 
-                                {selectedTransaction.type !== "referral_payout" && (
+                                {transaction.type === "referral_payout" &&
+                                  (transaction.status === "pending" || transaction.status === "processing") &&
+                                  transaction.payout_request_id && (
+                                    <div className="border-t border-gray-200 pt-4">
+                                      <label className="text-sm font-medium text-gray-600">Actions</label>
+                                      <div className="flex flex-wrap gap-2 mt-2">
+                                        <Button
+                                          type="button"
+                                          size="sm"
+                                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                                          onClick={() => void completeReferralPayout(transaction.payout_request_id!)}
+                                        >
+                                          Complete
+                                        </Button>
+                                        <Button
+                                          type="button"
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => void cancelReferralPayout(transaction.payout_request_id!)}
+                                        >
+                                          Cancel
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                {transaction.type !== "referral_payout" && (
                                 <div>
                                   <label className="text-sm font-medium text-gray-600">Receipt</label>
-                                  {selectedTransaction.receipt_url ? (
+                                  {transaction.receipt_url ? (
                                     <div className="mt-1">
                                       <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
                                         <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
@@ -1085,14 +1155,15 @@ export default function AdminTransactionsPage() {
                                         </div>
                                         <div className="flex-1">
                                           <p className="text-sm font-medium text-gray-900">
-                                            {selectedTransaction.receipt_filename || "Receipt"}
+                                            {transaction.receipt_filename || "Receipt"}
                                           </p>
                                         </div>
                                         <Button
+                                          type="button"
                                           variant="outline"
                                           size="sm"
                                           onClick={async () => {
-                                            const receiptUrl = selectedTransaction.receipt_url!
+                                            const receiptUrl = transaction.receipt_url!
                                             // Check if it's a file path (starts with "receipts/") or a public URL
                                             const isPath = receiptUrl.startsWith("receipts/")
                                             
@@ -1132,45 +1203,49 @@ export default function AdminTransactionsPage() {
                                 </div>
                                 )}
 
-                                {selectedTransaction.type !== "referral_payout" && (
+                                {transaction.type !== "referral_payout" && (
                                 <div className="border-t pt-4">
                                   <label className="text-sm font-medium text-gray-600">Update Status</label>
                                   <div className="grid grid-cols-2 gap-2 mt-2">
                                     <Button
+                                      type="button"
                                       size="sm"
                                       variant="outline"
                                       onClick={() =>
-                                        handleStatusUpdate(selectedTransaction.transaction_id, "processing")
+                                        handleStatusUpdate(transaction.transaction_id, "processing")
                                       }
-                                      disabled={selectedTransaction.status === "processing"}
+                                      disabled={transaction.status === "processing"}
                                     >
                                       Payment Received
                                     </Button>
                                     <Button
+                                      type="button"
                                       size="sm"
                                       variant="outline"
                                       onClick={() =>
-                                        handleStatusUpdate(selectedTransaction.transaction_id, "completed")
+                                        handleStatusUpdate(transaction.transaction_id, "completed")
                                       }
-                                      disabled={selectedTransaction.status === "completed"}
+                                      disabled={transaction.status === "completed"}
                                       className="text-green-600 hover:text-green-700"
                                     >
                                       Transfer Complete
                                     </Button>
                                     <Button
+                                      type="button"
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => handleStatusUpdate(selectedTransaction.transaction_id, "failed")}
-                                      disabled={selectedTransaction.status === "failed"}
+                                      onClick={() => handleStatusUpdate(transaction.transaction_id, "failed")}
+                                      disabled={transaction.status === "failed"}
                                       className="text-red-600 hover:text-red-700"
                                     >
                                       Mark Failed
                                     </Button>
                                     <Button
+                                      type="button"
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => handleStatusUpdate(selectedTransaction.transaction_id, "cancelled")}
-                                      disabled={selectedTransaction.status === "cancelled"}
+                                      onClick={() => handleStatusUpdate(transaction.transaction_id, "cancelled")}
+                                      disabled={transaction.status === "cancelled"}
                                       className="text-gray-600 hover:text-gray-700"
                                     >
                                       Cancel Transfer
@@ -1179,7 +1254,6 @@ export default function AdminTransactionsPage() {
                                 </div>
                                 )}
                               </div>
-                            )}
                           </DialogContent>
                         </Dialog>
                       </div>
