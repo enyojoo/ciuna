@@ -411,9 +411,10 @@ export default function ReferralsPage() {
                           className={`text-sm min-w-0 break-words ${active ? "text-gray-900 font-medium" : "text-gray-700"}`}
                         >
                           <Trans
-                            t={t}
+                            ns="app"
                             i18nKey="referrals.tierLine"
                             count={tierRow.minQualifiedRefereesInQuarter}
+                            values={{ count: tierRow.minQualifiedRefereesInQuarter }}
                             components={{
                               bold: <span className="font-bold tabular-nums" />,
                             }}
