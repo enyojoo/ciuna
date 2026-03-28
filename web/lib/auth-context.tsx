@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { createContext, useContext, useEffect, useState, useMemo, useCallback } from "react"
-import type { User } from "@supabase/supabase-js"
+import type { Session, User } from "@supabase/supabase-js"
 import { supabase } from "./supabase"
 import { userDataStore } from "./user-data-store"
 import { getSecuritySettings } from "./security-settings"
@@ -26,9 +26,17 @@ interface AuthContextType {
   user: User | null
   userProfile: UserProfile | null
   loading: boolean
-  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: any }>
+  signIn: (
+    email: string,
+    password: string,
+    rememberMe?: boolean
+  ) => Promise<{ error: any; session?: Session | null }>
   signInWithGoogle: () => Promise<{ error: any }>
-  signUp: (email: string, password: string, userData: any) => Promise<{ error: any }>
+  signUp: (
+    email: string,
+    password: string,
+    userData: any
+  ) => Promise<{ error: any; session?: Session | null }>
   signOut: () => Promise<void>
   refreshUserProfile: () => Promise<void>
   /** Reset idle session timer (e.g. after successful app PIN unlock). */
@@ -40,9 +48,9 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   userProfile: null,
   loading: true,
-  signIn: async () => ({ error: null }),
+  signIn: async () => ({ error: null, session: null }),
   signInWithGoogle: async () => ({ error: null }),
-  signUp: async () => ({ error: null }),
+  signUp: async () => ({ error: null, session: null }),
   signOut: async () => {},
   refreshUserProfile: async () => {},
   resetSessionActivity: () => {},
@@ -285,7 +293,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) {
-        return { error }
+        return { error, session: null }
       }
 
       // Persist session before any code runs fetchWithAuth (e.g. referral claim). Previously only
@@ -298,10 +306,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // The auth state change listener will handle setting user and profile
-      return { error: null }
+      return { error: null, session: data.session ?? null }
     } catch (error) {
       console.error("Sign in error:", error)
-      return { error }
+      return { error, session: null }
     }
   }, [])
 
@@ -319,7 +327,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (checkResponse.ok) {
         const checkData = await checkResponse.json()
         if (checkData.exists) {
-          return { error: { message: "An account with this email already exists. Please sign in instead." } }
+          return {
+            error: { message: "An account with this email already exists. Please sign in instead." },
+            session: null,
+          }
         }
       }
 
@@ -340,13 +351,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) {
-        return { error }
+        return { error, session: null }
       }
 
-      return { error: null }
+      return { error: null, session: data.session ?? null }
     } catch (error) {
       console.error("Sign up error:", error)
-      return { error }
+      return { error, session: null }
     }
   }
 

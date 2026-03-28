@@ -70,7 +70,7 @@ function RegisterPageContent() {
     try {
       const refSlug = getReferralSlugFromSearchParams(searchParams)
       persistReferralSlugFromSearchParam(refSlug)
-      const { error: signUpError } = await signUp(formData.email, formData.password, {
+      const { error: signUpError, session: signUpSession } = await signUp(formData.email, formData.password, {
         firstName: formData.firstName,
         lastName: formData.lastName,
         baseCurrency: "USD", // Default base currency
@@ -82,8 +82,10 @@ function RegisterPageContent() {
         return
       }
 
-      // Pass slug from URL: claim only read sessionStorage before — if storage was empty, claim never ran.
-      await claimReferralIfNeeded(refSlug)
+      // Email confirmation: no session until they verify — do not POST /claim (would 401). Claim runs at login.
+      if (signUpSession?.access_token) {
+        await claimReferralIfNeeded(refSlug, { accessToken: signUpSession.access_token })
+      }
 
       setSuccess(true)
       // Redirect after a short delay to show success message
