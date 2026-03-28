@@ -86,8 +86,8 @@ function RegisterPageContent() {
       setSuccess(true)
       // Redirect after a short delay to show success message
       setTimeout(() => {
-        // Redirect to login page after successful signup
-        router.push("/auth/login")
+        const ref = getReferralSlugFromSearchParams(searchParams)
+        router.push(ref ? `/auth/login?ref=${encodeURIComponent(ref)}` : "/auth/login")
       }, 2000)
     } catch (err: any) {
       setError(err.message || t("auth.registerError"))
@@ -95,6 +95,11 @@ function RegisterPageContent() {
       setLoading(false)
     }
   }
+
+  const loginHref = (() => {
+    const ref = getReferralSlugFromSearchParams(searchParams)
+    return ref ? `/auth/login?ref=${encodeURIComponent(ref)}` : "/auth/login"
+  })()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
@@ -248,7 +253,7 @@ function RegisterPageContent() {
 
           <div className="mt-6 text-center text-sm">
             {t("auth.alreadyHaveAccount")}{" "}
-            <Link href="/auth/login" className="text-primary font-medium hover:underline">
+            <Link href={loginHref} className="text-primary font-medium hover:underline">
               {t("auth.signInLink")}
             </Link>
           </div>

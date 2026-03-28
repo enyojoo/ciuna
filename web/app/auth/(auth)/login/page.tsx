@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { Suspense, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,12 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/lib/auth-context"
 import { Check, Eye, EyeOff } from "lucide-react"
 import { useEffect } from "react"
-import { claimReferralIfNeeded } from "@/lib/referral-client"
+import { getReferralSlugFromSearchParams, persistReferralSlugFromSearchParam } from "@/lib/referral-client"
 import { useTranslation } from "react-i18next"
 
 function LoginPageContent() {
   const { t } = useTranslation("app")
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { signIn, signInWithGoogle, user, userProfile, isAdmin, loading } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -24,6 +25,15 @@ function LoginPageContent() {
   const [rememberMe, setRememberMe] = useState(false)
   const [formLoading, setFormLoading] = useState(false)
   const [error, setError] = useState("")
+
+  useEffect(() => {
+    persistReferralSlugFromSearchParam(getReferralSlugFromSearchParams(searchParams))
+  }, [searchParams])
+
+  const registerHref = (() => {
+    const ref = getReferralSlugFromSearchParams(searchParams)
+    return ref ? `/auth/register?ref=${encodeURIComponent(ref)}` : "/auth/register"
+  })()
 
   // Redirect if user is already logged in
   useEffect(() => {
@@ -49,7 +59,7 @@ function LoginPageContent() {
         return
       }
 
-      await claimReferralIfNeeded()
+      // Referral attribution runs at signup / OAuth callback only — not on login.
 
       // Check for stored redirect and conversion data
       const redirectPath = sessionStorage.getItem("redirectAfterLogin")
@@ -193,7 +203,7 @@ function LoginPageContent() {
 
           <div className="text-center text-sm">
             {t("auth.noAccount")}{" "}
-            <Link href="/auth/register" className="text-primary hover:underline font-semibold">
+            <Link href={registerHref} className="text-primary hover:underline font-semibold">
               {t("auth.signUp")}
             </Link>
           </div>
@@ -204,5 +214,9 @@ function LoginPageContent() {
 }
 
 export default function LoginPage() {
-  return <LoginPageContent />
+  return (
+    <Suspense fallback={null}>
+      <LoginPageContent />
+    </Suspense>
+  )
 }

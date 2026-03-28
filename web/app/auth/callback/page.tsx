@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
-import { claimReferralIfNeeded } from "@/lib/referral-client"
+import { claimReferralWithRetryForOAuthCallback } from "@/lib/referral-client"
 import { useTranslation } from "react-i18next"
 
 /** Read OAuth params from the live URL (query + hash). */
@@ -38,7 +38,7 @@ export default function AuthCallbackPage() {
       // getSession() awaits client init, which parses #fragment (implicit) or ?code (PKCE) when detectSessionInUrl is true
       const { data: { session: afterInit } } = await supabase.auth.getSession()
       if (afterInit) {
-        await claimReferralIfNeeded()
+        await claimReferralWithRetryForOAuthCallback()
         const isAdmin = afterInit.user?.user_metadata?.isAdmin ?? false
         router.replace(isAdmin ? "/admin/dashboard" : "/dashboard")
         return
@@ -53,7 +53,7 @@ export default function AuthCallbackPage() {
             setTimeout(() => router.replace("/auth/login"), 2000)
             return
           }
-          await claimReferralIfNeeded()
+          await claimReferralWithRetryForOAuthCallback()
           const isAdmin = data?.user?.user_metadata?.isAdmin ?? false
           router.replace(isAdmin ? "/admin/dashboard" : "/dashboard")
         } catch (err: any) {

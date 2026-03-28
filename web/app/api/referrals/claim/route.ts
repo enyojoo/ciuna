@@ -1,8 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
 import { createServerClient } from "@/lib/supabase"
 import { requireUser, withErrorHandling } from "@/lib/auth-utils"
+import { getAccessTokenFromRequest } from "@/lib/supabase-server-helpers"
 
 const REF_COOKIE = "ciuna_ref_slug"
+
+/** Email/password signup stores `referral_slug` in user_metadata; OAuth does not — allow a short window after account creation. */
+const SIGNUP_ATTRIBUTION_WINDOW_MS = 48 * 60 * 60 * 1000
 
 export const POST = withErrorHandling(async (request: NextRequest) => {
   const user = await requireUser(request)
@@ -24,7 +29,23 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     return NextResponse.json({ success: true, attributed: false })
   }
 
-  const { data: self } = await supabase.from("users").select("id, referred_by_user_id").eq("id", user.id).single()
+  const slugNorm = slug.toLowerCase()
+
+  const token = getAccessTokenFromRequest(request)
+  let metaSlug: string | undefined
+  if (token) {
+    const anon = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+    const { data: authData } = await anon.auth.getUser(token)
+    const raw = (authData.user?.user_metadata as { referral_slug?: string } | undefined)?.referral_slug
+    metaSlug = raw?.trim().toLowerCase()
+  }
+  const metaMatches = !!metaSlug && metaSlug === slugNorm
+
+  const { data: self } = await supabase
+    .from("users")
+    .select("id, referred_by_user_id, created_at")
+    .eq("id", user.id)
+    .single()
 
   if (!self) {
     return NextResponse.json({ error: "User not found" }, { status: 404 })
@@ -36,10 +57,42 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     return res
   }
 
+  const createdMs = self.created_at ? new Date(self.created_at as string).getTime() : 0
+  const ageMs = Date.now() - createdMs
+  const withinSignupWindow = createdMs > 0 && ageMs >= 0 && ageMs < SIGNUP_ATTRIBUTION_WINDOW_MS
+
+  if (metaSlug && metaSlug !== slugNorm) {
+    const res = NextResponse.json({
+      success: true,
+      attributed: false,
+      ineligible: true,
+      reason: "referral_mismatch",
+    })
+    res.cookies.set(REF_COOKIE, "", { path: "/", maxAge: 0 })
+    return res
+  }
+
+  const eligible = metaMatches || (!metaSlug && withinSignupWindow)
+  if (!eligible) {
+    const res = NextResponse.json({
+      success: true,
+      attributed: false,
+      ineligible: true,
+      reason: "signup_only",
+    })
+    res.cookies.set(REF_COOKIE, "", { path: "/", maxAge: 0 })
+    return res
+  }
+
   const { data: referrer } = await supabase.from("users").select("id").eq("referral_slug", slug).maybeSingle()
 
   if (!referrer?.id || referrer.id === user.id) {
-    const res = NextResponse.json({ success: true, attributed: false })
+    const res = NextResponse.json({
+      success: true,
+      attributed: false,
+      ineligible: true,
+      reason: referrer?.id === user.id ? "self_referral" : "unknown_referrer",
+    })
     res.cookies.set(REF_COOKIE, "", { path: "/", maxAge: 0 })
     return res
   }
