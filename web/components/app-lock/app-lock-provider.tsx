@@ -1,16 +1,18 @@
 "use client"
 
 import type React from "react"
-import { useCallback, useEffect, useLayoutEffect, useState } from "react"
+import { useCallback, useLayoutEffect, useState } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { registerAppLockListener } from "@/lib/app-lock-bus"
 import {
   hasPin,
   isAppLocked as readAppLocked,
+  isLoginPinModuleAvailable,
   setAppLocked as persistAppLocked,
   verifyPin,
 } from "@/lib/login-pin"
 import { AppPinLockScreen } from "./app-pin-lock-screen"
+import { AppPinSetupScreen } from "./app-pin-setup-screen"
 
 function getInitials(first?: string, last?: string, email?: string): string {
   const f = first?.trim()?.[0]
@@ -24,6 +26,8 @@ function getInitials(first?: string, last?: string, email?: string): string {
 export function AppLockProvider({ children }: { children: React.ReactNode }) {
   const { user, userProfile, signOut, resetSessionActivity } = useAuth()
   const [locked, setLocked] = useState(false)
+  /** Bumps after first-time PIN setup so `hasPin` is re-read from localStorage. */
+  const [pinSetupVersion, setPinSetupVersion] = useState(0)
 
   const userId = user?.id
 
@@ -37,9 +41,9 @@ export function AppLockProvider({ children }: { children: React.ReactNode }) {
     } else {
       setLocked(false)
     }
-  }, [userId])
+  }, [userId, pinSetupVersion])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const sync = () => {
       if (!userId) return
       if (hasPin(userId) && readAppLocked(userId)) setLocked(true)
@@ -66,11 +70,35 @@ export function AppLockProvider({ children }: { children: React.ReactNode }) {
     await signOut()
   }, [signOut])
 
+  const handleSetupComplete = useCallback(() => {
+    setPinSetupVersion((v) => v + 1)
+    resetSessionActivity()
+  }, [resetSessionActivity])
+
   const first = userProfile?.first_name?.trim()
   const welcomeName = first || ""
   const initials = getInitials(userProfile?.first_name, userProfile?.last_name, userProfile?.email ?? user?.email ?? undefined)
 
-  if (userId && hasPin(userId) && locked) {
+  const pinExists = Boolean(userId && hasPin(userId))
+  const needsPinSetup = Boolean(userId) && !pinExists
+
+  if (userId && needsPinSetup && !isLoginPinModuleAvailable()) {
+    return <>{children}</>
+  }
+
+  if (userId && needsPinSetup) {
+    return (
+      <AppPinSetupScreen
+        userId={userId}
+        welcomeName={welcomeName}
+        initials={initials}
+        onComplete={handleSetupComplete}
+        onLogout={handleLogout}
+      />
+    )
+  }
+
+  if (userId && pinExists && locked) {
     return (
       <AppPinLockScreen
         userId={userId}

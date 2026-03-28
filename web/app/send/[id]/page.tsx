@@ -16,9 +16,11 @@ import { AppPageHeader } from "@/components/layout/app-page-header"
 import { supabase } from "@/lib/supabase"
 import type { Transaction } from "@/types"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
+import { formatLocaleDateTimeLine } from "@/lib/format-date-locale"
 
 function TransactionStatusPage() {
-  const { t } = useTranslation("app")
+  const { t, i18n } = useTranslation("app")
+  const dateLocale = i18n.resolvedLanguage || i18n.language || "en"
   const router = useRouter()
   const params = useParams()
   const { user, userProfile, loading: authLoading } = useAuth()
@@ -424,18 +426,7 @@ function TransactionStatusPage() {
     }
   }
 
-  const formatTimestamp = (dateString: string) => {
-    const date = new Date(dateString)
-    const month = date.toLocaleString("en-US", { month: "short" })
-    const day = date.getDate().toString().padStart(2, "0")
-    const year = date.getFullYear()
-    const hours = date.getHours()
-    const minutes = date.getMinutes().toString().padStart(2, "0")
-    const ampm = hours >= 12 ? "PM" : "AM"
-    const displayHours = hours % 12 || 12
-    // Format: "Nov 07, 2025 • 7:29 PM"
-    return `${month} ${day}, ${year} • ${displayHours}:${minutes} ${ampm}`
-  }
+  const formatTimestamp = (dateString: string) => formatLocaleDateTimeLine(dateString, dateLocale)
 
 
   const getStatusMessage = (status: string, isReferralPayout: boolean) => {
@@ -521,8 +512,8 @@ function TransactionStatusPage() {
 
   if (hasAttemptedLoad && (error || !transaction)) {
     return (
-      <div className="p-6">
-          <div className="max-w-6xl mx-auto">
+      <div className="min-w-0 px-4 py-5 sm:p-6">
+          <div className="mx-auto max-w-6xl">
             <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
               <p className="text-red-700 mb-4">{error || t("txDetail.notFound")}</p>
               <div className="flex gap-4 justify-center">
@@ -561,24 +552,24 @@ function TransactionStatusPage() {
   const { timeRemaining, isOverdue } = getTimeInfo()
 
   return (
-    <div className="space-y-0">
+    <div className="min-w-0 space-y-0">
       <AppPageHeader
         title={isReferralPayout ? t("txDetail.referralPayout") : t("txDetail.transfer")}
         backHref={isReferralPayout ? "/more/referrals" : "/transactions"}
       />
-    <div className="p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="min-w-0 px-4 py-5 sm:p-6">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
             {/* Main Content */}
-            <div className="lg:col-span-2">
+            <div className="min-w-0 lg:col-span-2">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-0 leading-none">
-                    <div className="flex flex-col gap-1 items-center sm:items-start">
-                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-tight">
+                    <div className="flex min-w-0 max-w-full flex-col items-center gap-1 sm:items-start">
+                      <span className="text-xs font-medium uppercase leading-tight tracking-wide text-gray-500">
                         {isReferralPayout ? t("txDetail.payoutStatus") : t("txDetail.transactionStatus")}
                       </span>
-                      <span className="text-3xl font-bold text-gray-900 leading-tight">
+                      <span className="text-app-tx-amount max-w-full break-words text-center font-bold leading-tight text-gray-900 sm:text-left">
                         {transaction && formatCurrency(transaction.send_amount, transaction.send_currency)}
                       </span>
                       {transaction && getTimerDisplay() && (
@@ -737,7 +728,7 @@ function TransactionStatusPage() {
             </div>
 
             {/* Transaction Summary Sidebar */}
-            <div className="lg:col-span-1">
+            <div className="min-w-0 lg:col-span-1">
               <Card className="sticky top-6">
                 <CardHeader>
                   <CardTitle className="text-base sm:text-lg">
@@ -746,37 +737,37 @@ function TransactionStatusPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{isReferralPayout ? t("txDetail.withdrawalAmount") : t("txDetail.youSent")}</span>
-                      <span className="font-semibold">
+                    <div className="flex min-w-0 items-start justify-between gap-2">
+                      <span className="min-w-0 text-gray-600">{isReferralPayout ? t("txDetail.withdrawalAmount") : t("txDetail.youSent")}</span>
+                      <span className="shrink-0 text-right font-semibold tabular-nums">
                         {formatCurrency(transaction.send_amount, transaction.send_currency)}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{t("txDetail.fee")}</span>
+                    <div className="flex min-w-0 items-start justify-between gap-2">
+                      <span className="min-w-0 text-gray-600">{t("txDetail.fee")}</span>
                       <span
-                        className={`font-medium ${transaction.fee_amount === 0 ? "text-green-600" : "text-gray-900"}`}
+                        className={`shrink-0 text-right font-medium tabular-nums ${transaction.fee_amount === 0 ? "text-green-600" : "text-gray-900"}`}
                       >
                         {transaction.fee_amount === 0
                           ? t("txDetail.free")
                           : formatCurrency(transaction.fee_amount, transaction.send_currency)}
                       </span>
                     </div>
-                    <div className="flex justify-between border-t pt-2">
-                      <span className="text-gray-600">{t("txDetail.totalPaid")}</span>
-                      <span className="font-semibold">
+                    <div className="flex min-w-0 items-start justify-between gap-2 border-t pt-2">
+                      <span className="min-w-0 text-gray-600">{t("txDetail.totalPaid")}</span>
+                      <span className="shrink-0 text-right font-semibold tabular-nums">
                         {formatCurrency(transaction.total_amount, transaction.send_currency)}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{t("txDetail.recipientGets")}</span>
-                      <span className="font-semibold">
+                    <div className="flex min-w-0 items-start justify-between gap-2">
+                      <span className="min-w-0 text-gray-600">{t("txDetail.recipientGets")}</span>
+                      <span className="shrink-0 text-right font-semibold tabular-nums">
                         {formatCurrency(transaction.receive_amount, transaction.receive_currency)}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{t("txDetail.exchangeRate")}</span>
-                      <span className="text-sm">
+                    <div className="flex min-w-0 items-start justify-between gap-2">
+                      <span className="min-w-0 text-gray-600">{t("txDetail.exchangeRate")}</span>
+                      <span className="shrink-0 text-right text-sm">
                         1 {transaction.send_currency} = {transaction.exchange_rate.toFixed(2)}{" "}
                         {transaction.receive_currency}
                       </span>

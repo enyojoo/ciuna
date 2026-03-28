@@ -45,10 +45,19 @@
   "app": {
     "language": "Language"
   },
+  "pinSetup": {
+    "createTitle": "Create your app PIN",
+    "createSubtitle": "Enter your 4-digit PIN",
+    "confirmTitle": "Confirm your PIN",
+    "confirmSubtitle": "Enter the same PIN again",
+    "benefitLine": "Use it for quick access when you return. You’ll still use your password if you sign out fully.",
+    "mismatch": "PINs don’t match. Try again.",
+    "saving": "Saving…"
+  },
   "pinDialog": {
     "createTitle": "Create PIN",
     "changeTitle": "Change PIN",
-    "createDescription": "Choose a 4-digit PIN to unlock the app after it locks when you are inactive. You will still need your password if you log out.",
+    "createDescription": "Choose a 4-digit PIN for quick access when you open the app again. After idle lock, enter your PIN instead of your password. You’ll still sign in with your password if you log out.",
     "changeDescription": "Enter your current PIN, then choose a new 4-digit PIN.",
     "currentPin": "Current PIN",
     "pin": "PIN",

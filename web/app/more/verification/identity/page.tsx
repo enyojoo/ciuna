@@ -19,9 +19,11 @@ import { getIdTypesForCountry, getIdTypeLabel } from "@/lib/country-id-types"
 import { kycService, KYCSubmission } from "@/lib/kyc-service"
 import { countryService, Country, getCountryFlag } from "@/lib/country-service"
 import { useTranslation } from "react-i18next"
+import { formatLocaleDateShort } from "@/lib/format-date-locale"
 
 export default function IdentityVerificationPage() {
-  const { t } = useTranslation("app")
+  const { t, i18n } = useTranslation("app")
+  const dateLocale = i18n.resolvedLanguage || i18n.language || "en"
   const { userProfile } = useAuth()
   
   // Initialize from cache synchronously to prevent flicker
@@ -349,7 +351,9 @@ export default function IdentityVerificationPage() {
                   <div>
                     <Label className="text-sm text-gray-600">{t("verification.labelDateOfBirth")}</Label>
                     <p className="text-base text-gray-900 mt-1">
-                      {submission.date_of_birth ? new Date(submission.date_of_birth).toLocaleDateString() : "-"}
+                      {submission.date_of_birth
+                        ? formatLocaleDateShort(submission.date_of_birth, dateLocale)
+                        : "-"}
                     </p>
                   </div>
                   <div>

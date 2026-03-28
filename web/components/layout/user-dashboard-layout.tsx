@@ -49,7 +49,7 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
 
   return (
     <AppLockProvider>
-    <div className="flex h-screen bg-background">
+    <div className="flex h-dvh min-h-0 bg-background">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
@@ -111,12 +111,12 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
       </div>
 
       {/* Main content area - ml-56 for desktop; max-width column on wide screens for app-like density */}
-      <div className="flex-1 flex flex-col overflow-hidden lg:ml-56">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:ml-56">
         {/* Top bar - Desktop only, matches sidebar header line (h-16, border-sidebar-border) */}
         <div className="bg-background border-b border-sidebar-border px-4 h-16 items-center sm:px-6 lg:px-8 hidden lg:flex" />
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto pb-app-main-mobile lg:pb-0 w-full max-w-3xl lg:max-w-none mx-auto lg:mx-0">
+        <main className="mx-auto min-h-0 min-w-0 w-full max-w-3xl flex-1 overflow-x-clip overflow-y-auto pb-app-main-mobile lg:mx-0 lg:max-w-none lg:pb-0">
           {children}
         </main>
 

@@ -23,7 +23,8 @@ import { apiErrorMessage } from "@/lib/api-error-message"
 import type { ReferralProgramSettings } from "@/lib/referral-program"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
+import { formatLocaleDateTimeMedium } from "@/lib/format-date-locale"
 
 interface ReferralRow {
   id: string
@@ -45,9 +46,9 @@ interface TierCommissionPayload {
   }[]
 }
 
-function formatPolicyMoney(amount: number, currency: string) {
+function formatPolicyMoney(amount: number, currency: string, locale: string) {
   try {
-    return new Intl.NumberFormat(undefined, {
+    return new Intl.NumberFormat(locale, {
       style: "currency",
       currency,
       currencyDisplay: "narrowSymbol",
@@ -61,6 +62,7 @@ function formatPolicyMoney(amount: number, currency: string) {
 function programSummaryText(
   program: ReferralProgramSettings | undefined,
   t: (key: string, opts?: Record<string, unknown>) => string,
+  locale: string,
 ): string {
   if (!program) return ""
   if (!program.program_active) return t("referrals.programPaused")
@@ -76,8 +78,8 @@ function programSummaryText(
   }
   const pc = program.policy_currency
   return t("referrals.programThreshold", {
-    reward: formatPolicyMoney(program.reward_amount, pc),
-    threshold: formatPolicyMoney(program.threshold_send_amount, pc),
+    reward: formatPolicyMoney(program.reward_amount, pc, locale),
+    threshold: formatPolicyMoney(program.threshold_send_amount, pc, locale),
   })
 }
 
@@ -141,12 +143,13 @@ function writeReferralsCache(userId: string, value: MeResponse) {
 function currencySymbolForCode(
   code: string,
   currencies: { code?: string; symbol?: string }[] | undefined,
+  locale: string,
 ): string {
   const sym = currencies?.find((c) => c?.code === code)?.symbol
   if (sym) return sym
   try {
     return (
-      new Intl.NumberFormat(undefined, {
+      new Intl.NumberFormat(locale, {
         style: "currency",
         currency: code,
         currencyDisplay: "narrowSymbol",
@@ -160,7 +163,8 @@ function currencySymbolForCode(
 }
 
 export default function ReferralsPage() {
-  const { t } = useTranslation("app")
+  const { t, i18n } = useTranslation("app")
+  const dateLocale = i18n.resolvedLanguage || i18n.language || "en"
   useRouteProtection({ requireAuth: true })
   const { userProfile, loading: authLoading, user } = useAuth()
   const { recipients, refreshRecipients, currencies, refreshTransactions } = useUserData()
@@ -343,7 +347,7 @@ export default function ReferralsPage() {
   }
 
   const baseCurrencyCode = userProfile?.base_currency || "USD"
-  const baseCurrencySymbol = currencySymbolForCode(baseCurrencyCode, currencies)
+  const baseCurrencySymbol = currencySymbolForCode(baseCurrencyCode, currencies, dateLocale)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -363,7 +367,7 @@ export default function ReferralsPage() {
           <CardContent className="p-5 sm:p-6 space-y-5">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">{t("referrals.referFriend")}</h2>
-              <p className="text-sm text-gray-600">{programSummaryText(data?.program, t)}</p>
+              <p className="text-sm text-gray-600">{programSummaryText(data?.program, t, dateLocale)}</p>
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-end gap-3">
@@ -406,9 +410,14 @@ export default function ReferralsPage() {
                         <span
                           className={`text-sm min-w-0 break-words ${active ? "text-gray-900 font-medium" : "text-gray-700"}`}
                         >
-                          {t("referrals.tierLine", {
-                            count: tierRow.minQualifiedRefereesInQuarter,
-                          })}
+                          <Trans
+                            t={t}
+                            i18nKey="referrals.tierLine"
+                            count={tierRow.minQualifiedRefereesInQuarter}
+                            components={{
+                              bold: <span className="font-bold tabular-nums" />,
+                            }}
+                          />
                         </span>
                         <span
                           className={`text-sm font-semibold tabular-nums shrink-0 ${active ? "text-primary" : "text-gray-900"}`}
@@ -463,10 +472,7 @@ export default function ReferralsPage() {
                           (data?.program?.mode === "percent" || data?.program?.mode === "tier") && (
                           <p className="text-xs text-gray-400 mt-0.5">
                             {t("referrals.rewardWindowEnds", {
-                              date: new Date(r.percentWindowEndsAt).toLocaleString(undefined, {
-                                dateStyle: "medium",
-                                timeStyle: "short",
-                              }),
+                              date: formatLocaleDateTimeMedium(r.percentWindowEndsAt, dateLocale),
                             })}
                           </p>
                         )}

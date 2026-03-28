@@ -26,6 +26,7 @@ import {
   formatAccountNumber,
 } from "@/lib/formatters"
 import { AppPageHeader } from "@/components/layout/app-page-header"
+import { accountFieldLabel, accountFieldPlaceholder } from "@/lib/account-field-i18n"
 
 const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitting, currencies, onSubmit }) => {
   const { t } = useTranslation("app")
@@ -140,13 +141,13 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
           {/* Bank Name - Always required */}
           <div className="space-y-2">
             <Label htmlFor="bankName">
-              {accountConfig.fieldLabels.bank_name} *
+              {accountFieldLabel(t, "bank_name", accountConfig.fieldLabels.bank_name)} *
             </Label>
             <Input
               id="bankName"
               value={formData.bankName}
               onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
-              placeholder={accountConfig.fieldPlaceholders.bank_name}
+              placeholder={accountFieldPlaceholder(t, "bank_name", accountConfig.fieldPlaceholders.bank_name)}
           disabled={isSubmitting}
         />
       </div>
@@ -187,7 +188,7 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
               {/* Account Type Selection (Checking/Savings) */}
               <div className="space-y-2">
                 <Label htmlFor="checkingOrSavings">
-                  {accountConfig.fieldLabels.checking_or_savings} *
+                  {accountFieldLabel(t, "checking_or_savings", accountConfig.fieldLabels.checking_or_savings)} *
                 </Label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
@@ -218,7 +219,7 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
               </div>
               <div className="space-y-2">
                 <Label htmlFor="routingNumber">
-                  {accountConfig.fieldLabels.routing_number} *
+                  {accountFieldLabel(t, "routing_number", accountConfig.fieldLabels.routing_number)} *
                 </Label>
                 <Input
                   id="routingNumber"
@@ -227,14 +228,14 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
                     const formatted = formatRoutingNumber(e.target.value)
                     setFormData({ ...formData, routingNumber: formatted })
                   }}
-                  placeholder={accountConfig.fieldPlaceholders.routing_number}
+                  placeholder={accountFieldPlaceholder(t, "routing_number", accountConfig.fieldPlaceholders.routing_number)}
                   maxLength={9}
                   disabled={isSubmitting}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="accountNumber">
-                  {accountConfig.fieldLabels.account_number} *
+                  {accountFieldLabel(t, "account_number", accountConfig.fieldLabels.account_number)} *
                 </Label>
                 <Input
                   id="accountNumber"
@@ -243,57 +244,57 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
                     const formatted = formatAccountNumber(e.target.value)
                     setFormData({ ...formData, accountNumber: formatted })
                   }}
-                  placeholder={accountConfig.fieldPlaceholders.account_number}
+                  placeholder={accountFieldPlaceholder(t, "account_number", accountConfig.fieldPlaceholders.account_number)}
                   disabled={isSubmitting}
                 />
               </div>
               {/* Address Fields */}
               <div className="space-y-2">
                 <Label htmlFor="addressLine1">
-                  {accountConfig.fieldLabels.address_line1} *
+                  {accountFieldLabel(t, "address_line1", accountConfig.fieldLabels.address_line1)} *
                 </Label>
                 <Input
                   id="addressLine1"
                   value={formData.addressLine1 || ""}
                   onChange={(e) => setFormData({ ...formData, addressLine1: e.target.value })}
-                  placeholder={accountConfig.fieldPlaceholders.address_line1}
+                  placeholder={accountFieldPlaceholder(t, "address_line1", accountConfig.fieldPlaceholders.address_line1)}
                   disabled={isSubmitting}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="addressLine2">
-                  {accountConfig.fieldLabels.address_line2}
+                  {accountFieldLabel(t, "address_line2", accountConfig.fieldLabels.address_line2)}
                 </Label>
                 <Input
                   id="addressLine2"
                   value={formData.addressLine2 || ""}
                   onChange={(e) => setFormData({ ...formData, addressLine2: e.target.value })}
-                  placeholder={accountConfig.fieldPlaceholders.address_line2}
+                  placeholder={accountFieldPlaceholder(t, "address_line2", accountConfig.fieldPlaceholders.address_line2)}
                   disabled={isSubmitting}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="city">
-                    {accountConfig.fieldLabels.city} *
+                    {accountFieldLabel(t, "city", accountConfig.fieldLabels.city)} *
                   </Label>
                   <Input
                     id="city"
                     value={formData.city || ""}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    placeholder={accountConfig.fieldPlaceholders.city}
+                    placeholder={accountFieldPlaceholder(t, "city", accountConfig.fieldPlaceholders.city)}
                     disabled={isSubmitting}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="state">
-                    {accountConfig.fieldLabels.state} *
+                    {accountFieldLabel(t, "state", accountConfig.fieldLabels.state)} *
                   </Label>
                   <Input
                     id="state"
                     value={formData.state || ""}
                     onChange={(e) => setFormData({ ...formData, state: e.target.value.toUpperCase() })}
-                    placeholder={accountConfig.fieldPlaceholders.state}
+                    placeholder={accountFieldPlaceholder(t, "state", accountConfig.fieldPlaceholders.state)}
                     maxLength={2}
                     disabled={isSubmitting}
                   />
@@ -301,7 +302,7 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
               </div>
               <div className="space-y-2">
                 <Label htmlFor="postalCode">
-                  {accountConfig.fieldLabels.postal_code} *
+                  {accountFieldLabel(t, "postal_code", accountConfig.fieldLabels.postal_code)} *
                 </Label>
                 <Input
                   id="postalCode"
@@ -310,7 +311,7 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
                     const value = e.target.value.replace(/\D/g, "").slice(0, 10)
                     setFormData({ ...formData, postalCode: value })
                   }}
-                  placeholder={accountConfig.fieldPlaceholders.postal_code}
+                  placeholder={accountFieldPlaceholder(t, "postal_code", accountConfig.fieldPlaceholders.postal_code)}
                   maxLength={10}
                   disabled={isSubmitting}
                 />
@@ -324,7 +325,7 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="sortCode">
-                    {accountConfig.fieldLabels.sort_code} *
+                    {accountFieldLabel(t, "sort_code", accountConfig.fieldLabels.sort_code)} *
                   </Label>
                   <Input
                     id="sortCode"
@@ -333,14 +334,14 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
                       const formatted = formatSortCode(e.target.value)
                       setFormData({ ...formData, sortCode: formatted })
                     }}
-                    placeholder={accountConfig.fieldPlaceholders.sort_code}
+                    placeholder={accountFieldPlaceholder(t, "sort_code", accountConfig.fieldPlaceholders.sort_code)}
                     maxLength={8}
                     disabled={isSubmitting}
                   />
                 </div>
       <div className="space-y-2">
                   <Label htmlFor="accountNumber">
-                    {accountConfig.fieldLabels.account_number} *
+                    {accountFieldLabel(t, "account_number", accountConfig.fieldLabels.account_number)} *
                   </Label>
         <Input
           id="accountNumber"
@@ -349,14 +350,14 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
             const formatted = formatAccountNumber(e.target.value)
             setFormData({ ...formData, accountNumber: formatted })
           }}
-                    placeholder={accountConfig.fieldPlaceholders.account_number}
+                    placeholder={accountFieldPlaceholder(t, "account_number", accountConfig.fieldPlaceholders.account_number)}
                     disabled={isSubmitting}
                   />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="iban">
-                  {accountConfig.fieldLabels.iban}
+                  {accountFieldLabel(t, "iban", accountConfig.fieldLabels.iban)}
                 </Label>
                 <Input
                   id="iban"
@@ -365,13 +366,13 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
                     const formatted = formatIBAN(e.target.value)
                     setFormData({ ...formData, iban: formatted })
                   }}
-                  placeholder={accountConfig.fieldPlaceholders.iban}
+                  placeholder={accountFieldPlaceholder(t, "iban", accountConfig.fieldPlaceholders.iban)}
                   disabled={isSubmitting}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="swiftBic">
-                  {accountConfig.fieldLabels.swift_bic}{t("recipients.optionalSuffix")}
+                  {accountFieldLabel(t, "swift_bic", accountConfig.fieldLabels.swift_bic)}{t("recipients.optionalSuffix")}
                 </Label>
                 <Input
                   id="swiftBic"
@@ -379,7 +380,7 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
                   onChange={(e) =>
                     setFormData({ ...formData, swiftBic: e.target.value.toUpperCase() })
                   }
-                  placeholder={accountConfig.fieldPlaceholders.swift_bic}
+                  placeholder={accountFieldPlaceholder(t, "swift_bic", accountConfig.fieldPlaceholders.swift_bic)}
                   disabled={isSubmitting}
                 />
               </div>
@@ -391,7 +392,7 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
             <>
               <div className="space-y-2">
                 <Label htmlFor="iban">
-                  {accountConfig.fieldLabels.iban} *
+                  {accountFieldLabel(t, "iban", accountConfig.fieldLabels.iban)} *
                 </Label>
                 <Input
                   id="iban"
@@ -400,13 +401,13 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
                     const formatted = formatIBAN(e.target.value)
                     setFormData({ ...formData, iban: formatted })
                   }}
-                  placeholder={accountConfig.fieldPlaceholders.iban}
+                  placeholder={accountFieldPlaceholder(t, "iban", accountConfig.fieldPlaceholders.iban)}
                   disabled={isSubmitting}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="swiftBic">
-                  {accountConfig.fieldLabels.swift_bic}{t("recipients.optionalSuffix")}
+                  {accountFieldLabel(t, "swift_bic", accountConfig.fieldLabels.swift_bic)}{t("recipients.optionalSuffix")}
                 </Label>
                 <Input
                   id="swiftBic"
@@ -414,7 +415,7 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
                   onChange={(e) =>
                     setFormData({ ...formData, swiftBic: e.target.value.toUpperCase() })
                   }
-                  placeholder={accountConfig.fieldPlaceholders.swift_bic}
+                  placeholder={accountFieldPlaceholder(t, "swift_bic", accountConfig.fieldPlaceholders.swift_bic)}
           disabled={isSubmitting}
         />
       </div>
@@ -425,13 +426,13 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
           {accountConfig.accountType === "generic" && (
       <div className="space-y-2">
               <Label htmlFor="accountNumber">
-                {accountConfig.fieldLabels.account_number} *
+                {accountFieldLabel(t, "account_number", accountConfig.fieldLabels.account_number)} *
               </Label>
         <Input
                 id="accountNumber"
                 value={formData.accountNumber}
                 onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
-                placeholder={accountConfig.fieldPlaceholders.account_number}
+                placeholder={accountFieldPlaceholder(t, "account_number", accountConfig.fieldPlaceholders.account_number)}
           disabled={isSubmitting}
         />
       </div>
@@ -709,7 +710,7 @@ export default function UserRecipientsPage() {
                 {searchTerm ? t("recipients.noMatchSearch") : t("recipients.noneFound")}
               </p>
               <p className="text-sm text-gray-500">
-                {searchTerm ? "Try adjusting your search terms" : "Add your first recipient to get started"}
+                {searchTerm ? t("transactions.adjustSearch") : t("recipients.emptyAddHint")}
               </p>
             </div>
           ) : (

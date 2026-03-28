@@ -14,7 +14,7 @@
     "account": "Аккаунт",
     "yourProfile": "Профиль",
     "accountVerification": "Верификация",
-    "affiliatesReferrals": "Партнёрская программа",
+    "affiliatesReferrals": "Рефералы",
     "loginPin": "PIN входа",
     "app": "Приложение",
     "recipients": "Получатели",
@@ -45,10 +45,19 @@
   "app": {
     "language": "Язык"
   },
+  "pinSetup": {
+    "createTitle": "Создайте PIN для входа",
+    "createSubtitle": "Введите 4-значный PIN",
+    "confirmTitle": "Подтвердите PIN",
+    "confirmSubtitle": "Введите тот же PIN ещё раз",
+    "benefitLine": "Быстрый доступ при возврате в приложение. Пароль по-прежнему нужен при полном выходе.",
+    "mismatch": "PIN не совпадают. Попробуйте снова.",
+    "saving": "Сохранение…"
+  },
   "pinDialog": {
     "createTitle": "Создать PIN",
     "changeTitle": "Сменить PIN",
-    "createDescription": "Задайте 4-значный PIN для разблокировки после простоя. Пароль понадобится при выходе из аккаунта.",
+    "createDescription": "Задайте 4-значный PIN для быстрого доступа при следующем открытии приложения. После блокировки из‑за простоя вводите PIN вместо пароля. При выходе из аккаунта вход снова по паролю.",
     "changeDescription": "Введите текущий PIN, затем новый 4-значный PIN.",
     "currentPin": "Текущий PIN",
     "pin": "PIN",

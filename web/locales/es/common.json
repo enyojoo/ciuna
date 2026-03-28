@@ -14,7 +14,7 @@
     "account": "Cuenta",
     "yourProfile": "Tu perfil",
     "accountVerification": "Verificación de cuenta",
-    "affiliatesReferrals": "Afiliados y referidos",
+    "affiliatesReferrals": "Referidos",
     "loginPin": "PIN de acceso",
     "app": "Aplicación",
     "recipients": "Destinatarios",
@@ -45,10 +45,19 @@
   "app": {
     "language": "Idioma"
   },
+  "pinSetup": {
+    "createTitle": "Crea tu PIN de acceso",
+    "createSubtitle": "Introduce un PIN de 4 dígitos",
+    "confirmTitle": "Confirma tu PIN",
+    "confirmSubtitle": "Introduce el mismo PIN otra vez",
+    "benefitLine": "Acceso rápido al volver. Seguirás usando la contraseña si cierras sesión por completo.",
+    "mismatch": "Los PIN no coinciden. Inténtalo de nuevo.",
+    "saving": "Guardando…"
+  },
   "pinDialog": {
     "createTitle": "Crear PIN",
     "changeTitle": "Cambiar PIN",
-    "createDescription": "Elige un PIN de 4 dígitos para desbloquear la app tras inactividad. Seguirás necesitando tu contraseña si cierras sesión.",
+    "createDescription": "Elige un PIN de 4 dígitos para acceder rápido la próxima vez que abras la app. Tras el bloqueo por inactividad, usa el PIN en lugar de la contraseña. Si cierras sesión, volverás a iniciar sesión con la contraseña.",
     "changeDescription": "Introduce tu PIN actual y luego un nuevo PIN de 4 dígitos.",
     "currentPin": "PIN actual",
     "pin": "PIN",

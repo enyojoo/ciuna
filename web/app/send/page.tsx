@@ -40,6 +40,7 @@ import {
   getAccountTypeConfigFromCurrency,
   formatFieldValue,
 } from "@/lib/currency-account-types"
+import { accountFieldLabel, accountFieldPlaceholder } from "@/lib/account-field-i18n"
 import {
   formatRoutingNumber,
   formatSortCode,
@@ -566,14 +567,13 @@ export default function UserSendPage() {
       })
       
       if (response.ok) {
-        // Show success message
-        alert('Verification email sent! Please check your inbox.')
+        alert(t("send.resendVerificationSuccess"))
       } else {
-        alert('Failed to send verification email. Please try again.')
+        alert(t("send.resendVerificationFailed"))
       }
     } catch (error) {
       console.error('Error resending verification email:', error)
-      alert('Failed to send verification email. Please try again.')
+      alert(t("send.resendVerificationFailed"))
     } finally {
       setIsResendingVerification(false)
     }
@@ -656,31 +656,33 @@ export default function UserSendPage() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <div className="flex justify-between">
-            <span className="text-gray-600">{t("send.youSendLabel")}</span>
-            <span className="font-semibold">{formatCurrency(Number.parseFloat(sendAmount) || 0, sendCurrency)}</span>
+          <div className="flex min-w-0 items-start justify-between gap-2">
+            <span className="min-w-0 text-gray-600">{t("send.youSendLabel")}</span>
+            <span className="shrink-0 text-right font-semibold tabular-nums">
+              {formatCurrency(Number.parseFloat(sendAmount) || 0, sendCurrency)}
+            </span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">{t("send.fee")}</span>
-            <span className={`font-semibold ${fee === 0 ? "text-green-600" : "text-gray-900"}`}>
+          <div className="flex min-w-0 items-start justify-between gap-2">
+            <span className="min-w-0 text-gray-600">{t("send.fee")}</span>
+            <span className={`shrink-0 text-right font-semibold tabular-nums ${fee === 0 ? "text-green-600" : "text-gray-900"}`}>
               {fee === 0 ? t("send.free") : formatCurrency(fee, sendCurrency)}
             </span>
           </div>
-          <div className="flex justify-between border-t pt-2">
-            <span className="text-gray-600">{t("send.totalToPay")}</span>
-            <span className="font-semibold text-lg">
+          <div className="flex min-w-0 items-start justify-between gap-2 border-t pt-2">
+            <span className="min-w-0 text-gray-600">{t("send.totalToPay")}</span>
+            <span className="shrink-0 text-right text-[clamp(1rem,2.8vmin,1.125rem)] font-semibold tabular-nums">
               {formatCurrency((Number.parseFloat(sendAmount) || 0) + fee, sendCurrency)}
             </span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">{t("send.recipientGetsLabel")}</span>
-            <span className="font-semibold">
+          <div className="flex min-w-0 items-start justify-between gap-2">
+            <span className="min-w-0 text-gray-600">{t("send.recipientGetsLabel")}</span>
+            <span className="shrink-0 text-right font-semibold tabular-nums">
               {formatCurrency(Number.parseFloat(receiveAmount) || 0, receiveCurrency)}
             </span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">{t("send.exchangeRateLabel")}</span>
-            <span className="text-sm">
+          <div className="flex min-w-0 items-start justify-between gap-2">
+            <span className="min-w-0 text-gray-600">{t("send.exchangeRateLabel")}</span>
+            <span className="shrink-0 text-right text-sm">
               1 {sendCurrency} = {exchangeRateData?.rate.toFixed(2)} {receiveCurrency}
             </span>
           </div>
@@ -712,7 +714,7 @@ export default function UserSendPage() {
 
   if (error) {
     return (
-      <div className="p-6">
+      <div className="min-w-0 px-4 py-5 sm:p-6">
           <div className="max-w-6xl mx-auto">
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <p className="text-red-700">{error}</p>
@@ -727,7 +729,7 @@ export default function UserSendPage() {
 
   if (currencies.length === 0) {
     return (
-      <div className="p-6">
+      <div className="min-w-0 px-4 py-5 sm:p-6">
           <div className="max-w-6xl mx-auto">
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
               <p className="text-yellow-700">{t("send.noCurrencies")}</p>
@@ -739,11 +741,11 @@ export default function UserSendPage() {
 
   return (
     <>
-    <div className="p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="min-w-0 px-4 py-5 sm:p-6">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
             {/* Main Content */}
-            <div className="lg:col-span-2">
+            <div className="min-w-0 lg:col-span-2">
               {/* Step 1: Send Money */}
               {currentStep === 1 && (
                 <Card>
@@ -776,7 +778,7 @@ export default function UserSendPage() {
                                 setSendAmount(maxAmount.toString())
                               }
                             }}
-                            className="min-w-0 flex-1 text-3xl font-bold bg-transparent border-0 outline-none"
+                            className="text-app-money-input min-w-0 flex-1 border-0 bg-transparent font-bold outline-none"
                             placeholder="0.00"
                           />
                           <div className="md:hidden shrink-0">
@@ -879,7 +881,7 @@ export default function UserSendPage() {
                                 }
                               }
                             }}
-                            className="min-w-0 flex-1 text-3xl font-bold bg-transparent border-0 outline-none"
+                            className="text-app-money-input min-w-0 flex-1 border-0 bg-transparent font-bold outline-none"
                             placeholder="0.00"
                           />
                           <div className="md:hidden shrink-0">
@@ -997,7 +999,7 @@ export default function UserSendPage() {
                                 {/* Bank Name - Always required */}
                           <div className="space-y-2">
                                   <Label htmlFor="newRecipientBank">
-                                    {accountConfig.fieldLabels.bank_name} *
+                                    {accountFieldLabel(t, "bank_name", accountConfig.fieldLabels.bank_name)} *
                                   </Label>
                                   <Input
                                     id="newRecipientBank"
@@ -1005,7 +1007,7 @@ export default function UserSendPage() {
                                     onChange={(e) =>
                                       setNewRecipientData({ ...newRecipientData, bankName: e.target.value })
                                     }
-                                    placeholder={accountConfig.fieldPlaceholders.bank_name}
+                                    placeholder={accountFieldPlaceholder(t, "bank_name", accountConfig.fieldPlaceholders.bank_name)}
                                     required
                                   />
                                 </div>
@@ -1044,7 +1046,7 @@ export default function UserSendPage() {
                                     {/* Account Type Selection (Checking/Savings) */}
                                     <div className="space-y-2">
                                       <Label htmlFor="newRecipientAccountType">
-                                        {accountConfig.fieldLabels.checking_or_savings} *
+                                        {accountFieldLabel(t, "checking_or_savings", accountConfig.fieldLabels.checking_or_savings)} *
                                       </Label>
                                       <div className="grid grid-cols-2 gap-3">
                                         <button
@@ -1056,7 +1058,7 @@ export default function UserSendPage() {
                                               : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
                                           }`}
                                         >
-                                          {t("send.checking")}
+                                          {t("recipients.checking")}
                                         </button>
                                         <button
                                           type="button"
@@ -1067,13 +1069,13 @@ export default function UserSendPage() {
                                               : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
                                           }`}
                                         >
-                                          {t("send.savings")}
+                                          {t("recipients.savings")}
                                         </button>
                                       </div>
                                     </div>
                                     <div className="space-y-2">
                                       <Label htmlFor="newRecipientRoutingNumber">
-                                        {accountConfig.fieldLabels.routing_number} *
+                                        {accountFieldLabel(t, "routing_number", accountConfig.fieldLabels.routing_number)} *
                                       </Label>
                                       <Input
                                         id="newRecipientRoutingNumber"
@@ -1082,14 +1084,14 @@ export default function UserSendPage() {
                                           const formatted = formatRoutingNumber(e.target.value)
                                           setNewRecipientData({ ...newRecipientData, routingNumber: formatted })
                                         }}
-                                        placeholder={accountConfig.fieldPlaceholders.routing_number}
+                                        placeholder={accountFieldPlaceholder(t, "routing_number", accountConfig.fieldPlaceholders.routing_number)}
                                         maxLength={9}
                                         required
                                       />
                                     </div>
                                     <div className="space-y-2">
                                       <Label htmlFor="newRecipientAccount">
-                                        {accountConfig.fieldLabels.account_number} *
+                                        {accountFieldLabel(t, "account_number", accountConfig.fieldLabels.account_number)} *
                                       </Label>
                             <Input
                               id="newRecipientAccount"
@@ -1098,56 +1100,56 @@ export default function UserSendPage() {
                                 const formatted = formatAccountNumber(e.target.value)
                                 setNewRecipientData({ ...newRecipientData, accountNumber: formatted })
                               }}
-                                        placeholder={accountConfig.fieldPlaceholders.account_number}
+                                        placeholder={accountFieldPlaceholder(t, "account_number", accountConfig.fieldPlaceholders.account_number)}
                               required
                             />
                           </div>
                                     {/* Address Fields */}
                                     <div className="space-y-2">
                                       <Label htmlFor="newRecipientAddressLine1">
-                                        {accountConfig.fieldLabels.address_line1} *
+                                        {accountFieldLabel(t, "address_line1", accountConfig.fieldLabels.address_line1)} *
                                       </Label>
                                       <Input
                                         id="newRecipientAddressLine1"
                                         value={newRecipientData.addressLine1}
                                         onChange={(e) => setNewRecipientData({ ...newRecipientData, addressLine1: e.target.value })}
-                                        placeholder={accountConfig.fieldPlaceholders.address_line1}
+                                        placeholder={accountFieldPlaceholder(t, "address_line1", accountConfig.fieldPlaceholders.address_line1)}
                                         required
                                       />
                                     </div>
                                     <div className="space-y-2">
                                       <Label htmlFor="newRecipientAddressLine2">
-                                        {accountConfig.fieldLabels.address_line2}
+                                        {accountFieldLabel(t, "address_line2", accountConfig.fieldLabels.address_line2)}
                                       </Label>
                                       <Input
                                         id="newRecipientAddressLine2"
                                         value={newRecipientData.addressLine2}
                                         onChange={(e) => setNewRecipientData({ ...newRecipientData, addressLine2: e.target.value })}
-                                        placeholder={accountConfig.fieldPlaceholders.address_line2}
+                                        placeholder={accountFieldPlaceholder(t, "address_line2", accountConfig.fieldPlaceholders.address_line2)}
                                       />
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                       <div className="space-y-2">
                                         <Label htmlFor="newRecipientCity">
-                                          {accountConfig.fieldLabels.city} *
+                                          {accountFieldLabel(t, "city", accountConfig.fieldLabels.city)} *
                                         </Label>
                                         <Input
                                           id="newRecipientCity"
                                           value={newRecipientData.city}
                                           onChange={(e) => setNewRecipientData({ ...newRecipientData, city: e.target.value })}
-                                          placeholder={accountConfig.fieldPlaceholders.city}
+                                          placeholder={accountFieldPlaceholder(t, "city", accountConfig.fieldPlaceholders.city)}
                                           required
                                         />
                                       </div>
                                       <div className="space-y-2">
                                         <Label htmlFor="newRecipientState">
-                                          {accountConfig.fieldLabels.state} *
+                                          {accountFieldLabel(t, "state", accountConfig.fieldLabels.state)} *
                                         </Label>
                                         <Input
                                           id="newRecipientState"
                                           value={newRecipientData.state}
                                           onChange={(e) => setNewRecipientData({ ...newRecipientData, state: e.target.value.toUpperCase() })}
-                                          placeholder={accountConfig.fieldPlaceholders.state}
+                                          placeholder={accountFieldPlaceholder(t, "state", accountConfig.fieldPlaceholders.state)}
                                           maxLength={2}
                                           required
                                         />
@@ -1155,7 +1157,7 @@ export default function UserSendPage() {
                                     </div>
                                     <div className="space-y-2">
                                       <Label htmlFor="newRecipientPostalCode">
-                                        {accountConfig.fieldLabels.postal_code} *
+                                        {accountFieldLabel(t, "postal_code", accountConfig.fieldLabels.postal_code)} *
                                       </Label>
                                       <Input
                                         id="newRecipientPostalCode"
@@ -1164,7 +1166,7 @@ export default function UserSendPage() {
                                           const value = e.target.value.replace(/\D/g, "").slice(0, 10)
                                           setNewRecipientData({ ...newRecipientData, postalCode: value })
                                         }}
-                                        placeholder={accountConfig.fieldPlaceholders.postal_code}
+                                        placeholder={accountFieldPlaceholder(t, "postal_code", accountConfig.fieldPlaceholders.postal_code)}
                                         maxLength={10}
                                         required
                                       />
@@ -1178,7 +1180,7 @@ export default function UserSendPage() {
                                     <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                                         <Label htmlFor="newRecipientSortCode">
-                                          {accountConfig.fieldLabels.sort_code} *
+                                          {accountFieldLabel(t, "sort_code", accountConfig.fieldLabels.sort_code)} *
                                         </Label>
                             <Input
                                           id="newRecipientSortCode"
@@ -1187,14 +1189,14 @@ export default function UserSendPage() {
                                             const formatted = formatSortCode(e.target.value)
                                             setNewRecipientData({ ...newRecipientData, sortCode: formatted })
                                           }}
-                                          placeholder={accountConfig.fieldPlaceholders.sort_code}
+                                          placeholder={accountFieldPlaceholder(t, "sort_code", accountConfig.fieldPlaceholders.sort_code)}
                                           maxLength={8}
                               required
                             />
                           </div>
                           <div className="space-y-2">
                                         <Label htmlFor="newRecipientAccount">
-                                          {accountConfig.fieldLabels.account_number} *
+                                          {accountFieldLabel(t, "account_number", accountConfig.fieldLabels.account_number)} *
                                         </Label>
                                         <Input
                                           id="newRecipientAccount"
@@ -1203,14 +1205,14 @@ export default function UserSendPage() {
                                             const formatted = formatAccountNumber(e.target.value)
                                             setNewRecipientData({ ...newRecipientData, accountNumber: formatted })
                                           }}
-                                          placeholder={accountConfig.fieldPlaceholders.account_number}
+                                          placeholder={accountFieldPlaceholder(t, "account_number", accountConfig.fieldPlaceholders.account_number)}
                                           required
                                         />
                               </div>
                             </div>
                                     <div className="space-y-2">
                                       <Label htmlFor="newRecipientIban">
-                                        {accountConfig.fieldLabels.iban}
+                                        {accountFieldLabel(t, "iban", accountConfig.fieldLabels.iban)}
                                       </Label>
                                       <Input
                                         id="newRecipientIban"
@@ -1219,12 +1221,12 @@ export default function UserSendPage() {
                                           const formatted = formatIBAN(e.target.value)
                                           setNewRecipientData({ ...newRecipientData, iban: formatted })
                                         }}
-                                        placeholder={accountConfig.fieldPlaceholders.iban}
+                                        placeholder={accountFieldPlaceholder(t, "iban", accountConfig.fieldPlaceholders.iban)}
                                       />
                           </div>
                                     <div className="space-y-2">
                                       <Label htmlFor="newRecipientSwiftBic">
-                                        {accountConfig.fieldLabels.swift_bic}{t("send.optionalSuffix")}
+                                        {accountFieldLabel(t, "swift_bic", accountConfig.fieldLabels.swift_bic)}{t("send.optionalSuffix")}
                                       </Label>
                                       <Input
                                         id="newRecipientSwiftBic"
@@ -1235,7 +1237,7 @@ export default function UserSendPage() {
                                             swiftBic: e.target.value.toUpperCase(),
                                           })
                                         }
-                                        placeholder={accountConfig.fieldPlaceholders.swift_bic}
+                                        placeholder={accountFieldPlaceholder(t, "swift_bic", accountConfig.fieldPlaceholders.swift_bic)}
                                       />
                                     </div>
                                   </>
@@ -1246,7 +1248,7 @@ export default function UserSendPage() {
                                   <>
                                     <div className="space-y-2">
                                       <Label htmlFor="newRecipientIban">
-                                        {accountConfig.fieldLabels.iban} *
+                                        {accountFieldLabel(t, "iban", accountConfig.fieldLabels.iban)} *
                                       </Label>
                                       <Input
                                         id="newRecipientIban"
@@ -1254,13 +1256,13 @@ export default function UserSendPage() {
                                         onChange={(e) =>
                                           setNewRecipientData({ ...newRecipientData, iban: e.target.value.toUpperCase() })
                                         }
-                                        placeholder={accountConfig.fieldPlaceholders.iban}
+                                        placeholder={accountFieldPlaceholder(t, "iban", accountConfig.fieldPlaceholders.iban)}
                                         required
                                       />
                                     </div>
                                     <div className="space-y-2">
                                       <Label htmlFor="newRecipientSwiftBic">
-                                        {accountConfig.fieldLabels.swift_bic}{t("send.optionalSuffix")}
+                                        {accountFieldLabel(t, "swift_bic", accountConfig.fieldLabels.swift_bic)}{t("send.optionalSuffix")}
                                       </Label>
                                       <Input
                                         id="newRecipientSwiftBic"
@@ -1271,7 +1273,7 @@ export default function UserSendPage() {
                                             swiftBic: e.target.value.toUpperCase(),
                                           })
                                         }
-                                        placeholder={accountConfig.fieldPlaceholders.swift_bic}
+                                        placeholder={accountFieldPlaceholder(t, "swift_bic", accountConfig.fieldPlaceholders.swift_bic)}
                                       />
                                     </div>
                                   </>
@@ -1281,7 +1283,7 @@ export default function UserSendPage() {
                                 {accountConfig.accountType === "generic" && (
                                   <div className="space-y-2">
                                     <Label htmlFor="newRecipientAccount">
-                                      {accountConfig.fieldLabels.account_number} *
+                                      {accountFieldLabel(t, "account_number", accountConfig.fieldLabels.account_number)} *
                                     </Label>
                                     <Input
                                       id="newRecipientAccount"
@@ -1290,7 +1292,7 @@ export default function UserSendPage() {
                                         const formatted = formatAccountNumber(e.target.value)
                                         setNewRecipientData({ ...newRecipientData, accountNumber: formatted })
                                       }}
-                                      placeholder={accountConfig.fieldPlaceholders.account_number}
+                                      placeholder={accountFieldPlaceholder(t, "account_number", accountConfig.fieldPlaceholders.account_number)}
                                       required
                                     />
                                   </div>
@@ -1502,7 +1504,7 @@ export default function UserSendPage() {
                                     {/* Account Name */}
                                     <div className="space-y-1">
                                       <span className="text-gray-600 text-xs">
-                                        {accountConfig.fieldLabels.account_name}
+                                        {accountFieldLabel(t, "account_name", accountConfig.fieldLabels.account_name)}
                                       </span>
                                       <div className="flex items-center gap-2">
                                         <span className="font-medium text-sm">{virtualAccountDetails.accountName}</span>
@@ -1525,7 +1527,7 @@ export default function UserSendPage() {
                                     {accountType === "us" && virtualAccountDetails.routingNumber && (
                                       <div className="space-y-1">
                                         <span className="text-gray-600 text-xs">
-                                          {accountConfig.fieldLabels.routing_number}
+                                          {accountFieldLabel(t, "routing_number", accountConfig.fieldLabels.routing_number)}
                                         </span>
                                         <div className="flex items-center gap-2">
                                           <span className="font-medium font-mono text-sm">
@@ -1551,7 +1553,7 @@ export default function UserSendPage() {
                                     {virtualAccountDetails.accountNumber && (
                                       <div className="space-y-1">
                                         <span className="text-gray-600 text-xs">
-                                          {accountConfig.fieldLabels.account_number}
+                                          {accountFieldLabel(t, "account_number", accountConfig.fieldLabels.account_number)}
                                         </span>
                                         <div className="flex items-center gap-2">
                                           <span className="font-medium font-mono text-sm">
@@ -1577,7 +1579,7 @@ export default function UserSendPage() {
                                     {virtualAccountDetails.iban && (
                                       <div className="space-y-1">
                                         <span className="text-gray-600 text-xs">
-                                          {accountConfig.fieldLabels.iban}
+                                          {accountFieldLabel(t, "iban", accountConfig.fieldLabels.iban)}
                                         </span>
                                         <div className="flex items-center gap-2">
                                           <span className="font-medium font-mono text-xs">
@@ -1603,7 +1605,7 @@ export default function UserSendPage() {
                                     {virtualAccountDetails.swiftBic && (
                                       <div className="space-y-1">
                                         <span className="text-gray-600 text-xs">
-                                          {accountConfig.fieldLabels.swift_bic}
+                                          {accountFieldLabel(t, "swift_bic", accountConfig.fieldLabels.swift_bic)}
                                         </span>
                                         <div className="flex items-center gap-2">
                                           <span className="font-medium font-mono text-xs">
@@ -1652,7 +1654,7 @@ export default function UserSendPage() {
                                     {/* Bank Name */}
                                     <div className="space-y-1">
                                       <span className="text-gray-600 text-xs">
-                                        {accountConfig.fieldLabels.bank_name}
+                                        {accountFieldLabel(t, "bank_name", accountConfig.fieldLabels.bank_name)}
                                       </span>
                                       <div className="flex items-center gap-2">
                                         <span className="font-medium text-sm">{virtualAccountDetails.bankName}</span>
@@ -1705,7 +1707,7 @@ export default function UserSendPage() {
                                       {/* Account Name - Always shown */}
                                       <div className="space-y-1">
                                         <span className="text-gray-600 text-xs">
-                                          {accountConfig.fieldLabels.account_name}
+                                          {accountFieldLabel(t, "account_name", accountConfig.fieldLabels.account_name)}
                                         </span>
                                         <div className="flex items-center gap-2">
                                         <span className="font-medium text-sm">{defaultMethod.account_name}</span>
@@ -1728,7 +1730,7 @@ export default function UserSendPage() {
                                       {accountType === "us" && defaultMethod.routing_number && (
                                         <div className="space-y-1">
                                           <span className="text-gray-600 text-xs">
-                                            {accountConfig.fieldLabels.routing_number}
+                                            {accountFieldLabel(t, "routing_number", accountConfig.fieldLabels.routing_number)}
                                           </span>
                                           <div className="flex items-center gap-2">
                                             <span className="font-medium font-mono text-sm">
@@ -1754,7 +1756,7 @@ export default function UserSendPage() {
                                       {accountType === "uk" && defaultMethod.sort_code && (
                                         <div className="space-y-1">
                                           <span className="text-gray-600 text-xs">
-                                            {accountConfig.fieldLabels.sort_code}
+                                            {accountFieldLabel(t, "sort_code", accountConfig.fieldLabels.sort_code)}
                                           </span>
                                           <div className="flex items-center gap-2">
                                             <span className="font-medium font-mono text-sm">
@@ -1781,7 +1783,7 @@ export default function UserSendPage() {
                                         defaultMethod.account_number && (
                                           <div className="space-y-1">
                                             <span className="text-gray-600 text-xs">
-                                              {accountConfig.fieldLabels.account_number}
+                                              {accountFieldLabel(t, "account_number", accountConfig.fieldLabels.account_number)}
                                             </span>
                                             <div className="flex items-center gap-2">
                                         <span className="font-medium font-mono text-sm">
@@ -1807,7 +1809,7 @@ export default function UserSendPage() {
                                       {(accountType === "uk" || accountType === "euro") && defaultMethod.iban && (
                                         <div className="space-y-1">
                                           <span className="text-gray-600 text-xs">
-                                            {accountConfig.fieldLabels.iban}
+                                            {accountFieldLabel(t, "iban", accountConfig.fieldLabels.iban)}
                                           </span>
                                           <div className="flex items-center gap-2">
                                             <span className="font-medium font-mono text-xs">
@@ -1833,7 +1835,7 @@ export default function UserSendPage() {
                                       {(accountType === "uk" || accountType === "euro") && defaultMethod.swift_bic && (
                                         <div className="space-y-1">
                                           <span className="text-gray-600 text-xs">
-                                            {accountConfig.fieldLabels.swift_bic}
+                                            {accountFieldLabel(t, "swift_bic", accountConfig.fieldLabels.swift_bic)}
                                           </span>
                                           <div className="flex items-center gap-2">
                                             <span className="font-medium font-mono text-xs">
@@ -1858,7 +1860,7 @@ export default function UserSendPage() {
                                       {/* Bank Name - Always shown */}
                                       <div className="space-y-1">
                                         <span className="text-gray-600 text-xs">
-                                          {accountConfig.fieldLabels.bank_name}
+                                          {accountFieldLabel(t, "bank_name", accountConfig.fieldLabels.bank_name)}
                                         </span>
                                         <div className="flex items-center gap-2">
                                           <span className="font-medium text-sm">{defaultMethod.bank_name}</span>
@@ -2131,7 +2133,7 @@ export default function UserSendPage() {
             </div>
 
             {/* Transaction Summary Sidebar */}
-            <div className="lg:col-span-1">
+            <div className="min-w-0 lg:col-span-1">
               <TransactionSummary />
             </div>
           </div>

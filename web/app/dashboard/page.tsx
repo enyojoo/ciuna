@@ -12,6 +12,7 @@ import { useUserData } from "@/hooks/use-user-data"
 import { useRouter } from "next/navigation"
 import { DashboardSkeleton } from "@/components/dashboard-skeleton"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
+import { formatLocaleDateShort } from "@/lib/format-date-locale"
 
 interface Transaction {
   id: string
@@ -75,7 +76,7 @@ function VolumeAmountWithFullDetail({
         sideOffset={8}
         className="w-auto max-w-[min(100vw-2rem,22rem)] px-5 py-4 sm:px-6 sm:py-5"
       >
-        <p className="text-base sm:text-lg font-semibold tabular-nums text-center text-foreground">
+        <p className="text-[clamp(0.9375rem,2.5vmin,1.125rem)] sm:text-lg font-semibold tabular-nums text-center text-foreground break-words">
           {fullLabel}
         </p>
         <p className="text-xs text-muted-foreground text-center mt-2.5">{t("dashboard.fullAmountCaption")}</p>
@@ -85,7 +86,8 @@ function VolumeAmountWithFullDetail({
 }
 
 export default function UserDashboardPage() {
-  const { t } = useTranslation("app")
+  const { t, i18n } = useTranslation("app")
+  const dateLocale = i18n.resolvedLanguage || i18n.language || "en"
   const router = useRouter()
   const { userProfile } = useAuth()
   const { transactions, currencies, exchangeRates, loading } = useUserData()
@@ -275,14 +277,7 @@ export default function UserDashboardPage() {
     }
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const month = date.toLocaleString("en-US", { month: "short" })
-    const day = date.getDate().toString().padStart(2, "0")
-    const year = date.getFullYear()
-    // Format: "Nov 07, 2025"
-    return `${month} ${day}, ${year}`
-  }
+  const formatDate = (dateString: string) => formatLocaleDateShort(dateString, dateLocale)
 
   // Send + referral payouts on web (receive/card_funding are mobile-only); card sends excluded unless payout
   const recentTransactions = (transactions || [])
@@ -313,26 +308,26 @@ export default function UserDashboardPage() {
   }
 
   return (
-    <div className="space-y-5 sm:space-y-6 pb-5 sm:pb-6">
+    <div className="min-w-0 space-y-5 pb-5 sm:space-y-6 sm:pb-6">
         {/* Page Header - Mobile Style */}
-        <div className="bg-card p-5 sm:p-6 mb-5 sm:mb-6">
-          <div className="flex items-center justify-between gap-3 min-w-0">
+        <div className="mb-5 bg-card px-4 py-4 sm:mb-6 sm:p-6">
+          <div className="flex min-w-0 items-center justify-between gap-2 sm:gap-3">
             <Link
               href="/more/profile"
-              className="inline-flex shrink-0 rounded-full p-0.5 -ml-0.5 hover:bg-gray-50/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
+              className="-ml-0.5 inline-flex shrink-0 rounded-full p-0.5 hover:bg-gray-50/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
               aria-label={t("dashboard.profileAria")}
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 ring-2 ring-primary/20 text-sm font-bold tracking-tight text-primary tabular-nums">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-bold tracking-tight text-primary ring-2 ring-primary/20 tabular-nums sm:h-10 sm:w-10">
                 {profileInitials}
               </span>
             </Link>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex min-w-0 flex-1 items-center justify-end gap-1.5 sm:gap-2">
               <Link
                 href="/more/referrals"
-                className="inline-flex items-center gap-1.5 rounded-full border border-teal-200/90 bg-gradient-to-r from-teal-50 to-emerald-50/90 px-3 py-1.5 text-xs font-semibold text-teal-900 shadow-sm hover:from-teal-100 hover:to-emerald-50 transition-colors"
+                className="inline-flex min-w-0 max-w-[min(100%,11rem)] items-center gap-1 rounded-full border border-teal-200/90 bg-gradient-to-r from-teal-50 to-emerald-50/90 px-2 py-1.5 text-[11px] font-semibold leading-tight text-teal-900 shadow-sm hover:from-teal-100 hover:to-emerald-50 sm:max-w-none sm:gap-1.5 sm:px-3 sm:text-xs"
               >
                 <BadgeDollarSign className="h-3.5 w-3.5 shrink-0 text-teal-800" strokeWidth={2.25} aria-hidden />
-                {t("dashboard.referEarn")}
+                <span className="truncate">{t("dashboard.referEarn")}</span>
               </Link>
               <button
                 type="button"
@@ -347,56 +342,56 @@ export default function UserDashboardPage() {
         </div>
 
         {/* Stats — mobile only */}
-        <div className="px-5 sm:px-6 flex gap-3 min-w-0 sm:hidden">
-          <Card className="min-w-0 basis-0 flex-[1.5] shrink">
-            <CardContent className="p-5 sm:p-6 text-center min-w-0">
-              <div className="min-h-[3.5rem] flex items-center justify-center mb-2">
+        <div className="flex min-w-0 gap-2 px-4 sm:hidden sm:px-6">
+          <Card className="min-w-0 flex-[1.5] shrink basis-0">
+            <CardContent className="min-w-0 p-3 text-center sm:p-5">
+              <div className="mb-1.5 flex min-h-[clamp(2.5rem,12vmin,3.5rem)] items-center justify-center px-0.5">
                 <VolumeAmountWithFullDetail
                   fullLabel={fullVolumeLabel}
                   compactLabel={compactVolumeLabel}
-                  numberClassName="max-w-full text-3xl font-bold text-foreground tabular-nums leading-tight"
+                  numberClassName="text-app-stat-value max-w-full font-bold leading-none text-foreground tabular-nums"
                 />
               </div>
-              <div className="text-base sm:text-lg font-medium text-muted-foreground">{t("dashboard.totalVolume")}</div>
+              <div className="text-app-stat-label font-medium text-muted-foreground">{t("dashboard.totalVolume")}</div>
             </CardContent>
           </Card>
 
-          <Card className="min-w-0 basis-0 flex-1 shrink">
-            <CardContent className="p-5 sm:p-6 text-center min-w-0">
+          <Card className="min-w-0 shrink flex-1 basis-0">
+            <CardContent className="min-w-0 p-3 text-center sm:p-5">
               <div
-                className="min-h-[3.5rem] flex items-center justify-center mb-2"
+                className="mb-1.5 flex min-h-[clamp(2.5rem,12vmin,3.5rem)] items-center justify-center px-0.5"
                 title={String(completedTransactions)}
               >
-                <span className="max-w-full text-3xl font-bold text-foreground tabular-nums leading-tight truncate">
+                <span className="text-app-stat-value max-w-full truncate font-bold leading-none text-foreground tabular-nums">
                   {completedTransactions}
                 </span>
               </div>
-              <div className="text-base sm:text-lg font-medium text-muted-foreground">{t("dashboard.transactions")}</div>
+              <div className="text-app-stat-label font-medium text-muted-foreground">{t("dashboard.transactions")}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Stats — tablet/desktop (full amount; no compact K/M or popover) */}
-        <div className="px-5 sm:px-6 hidden sm:flex gap-3 sm:gap-6">
-          <Card className="flex-[1.5] sm:flex-1">
-            <CardContent className="p-5 sm:p-6 text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
+        <div className="hidden min-w-0 gap-4 px-4 sm:flex sm:gap-6 sm:px-6">
+          <Card className="min-w-0 flex-[1.5] sm:flex-1">
+            <CardContent className="p-4 text-center sm:p-6">
+              <div className="text-app-stat-value-lg mb-1.5 font-bold break-words text-foreground tabular-nums sm:mb-2">
                 {formatCurrencyValue(totalSentValue, baseCurrency)}
               </div>
-              <div className="text-base sm:text-lg font-medium text-muted-foreground">{t("dashboard.totalVolume")}</div>
+              <div className="text-app-stat-label font-medium text-muted-foreground">{t("dashboard.totalVolume")}</div>
             </CardContent>
           </Card>
 
-          <Card className="flex-1">
-            <CardContent className="p-5 sm:p-6 text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-foreground mb-2">{completedTransactions}</div>
-              <div className="text-base sm:text-lg font-medium text-muted-foreground">{t("dashboard.transactions")}</div>
+          <Card className="min-w-0 flex-1">
+            <CardContent className="p-4 text-center sm:p-6">
+              <div className="text-app-stat-value-lg mb-1.5 font-bold text-foreground tabular-nums sm:mb-2">{completedTransactions}</div>
+              <div className="text-app-stat-label font-medium text-muted-foreground">{t("dashboard.transactions")}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Quick Actions - Minimal Modern Banking Style (All Screen Sizes) */}
-        <div className="px-5 sm:px-6 grid grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+        <div className="grid grid-cols-2 gap-3 px-4 sm:gap-4 sm:px-6 lg:gap-6">
           {/* Send Button */}
           <Link href="/send" className="flex-1 group">
             <div className="w-full flex flex-col items-center justify-center gap-2 sm:gap-2.5 py-4 sm:py-5 cursor-pointer transition-all duration-200">
@@ -419,10 +414,16 @@ export default function UserDashboardPage() {
         </div>
 
         {/* Recent Transactions - Mobile Style */}
-        <div className="px-5 sm:px-6">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">{t("dashboard.recentTransactions")}</h2>
-            <Link href="/transactions" prefetch className="text-sm sm:text-base text-primary font-medium hover:underline">
+        <div className="px-4 sm:px-6">
+          <div className="mb-4 flex min-w-0 items-center justify-between gap-2 sm:mb-6">
+            <h2 className="min-w-0 text-[clamp(1rem,2.8vmin+0.5rem,1.25rem)] font-semibold leading-tight text-gray-900 sm:text-xl">
+              {t("dashboard.recentTransactions")}
+            </h2>
+            <Link
+              href="/transactions"
+              prefetch
+              className="shrink-0 text-sm text-primary font-medium hover:underline sm:text-base"
+            >
               {t("dashboard.seeAll")}
             </Link>
           </div>
@@ -458,7 +459,7 @@ export default function UserDashboardPage() {
                                 <span className="inline-flex rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-800">
                                   {t("dashboard.referralPayout")}
                                 </span>
-                                <p className="mt-1.5 text-2xl sm:text-3xl font-bold text-gray-900 tabular-nums leading-tight">
+                                <p className="text-app-tx-amount mt-1.5 font-bold tabular-nums text-gray-900">
                                   {formatAmount(transaction.send_amount || 0, transaction.send_currency || "")}
                                 </p>
                                 <p className="mt-1 font-mono text-[11px] text-gray-500 truncate">
@@ -487,7 +488,7 @@ export default function UserDashboardPage() {
                             {transaction.recipient?.bank_name && (
                               <p className="text-sm text-gray-600 mt-0.5">{transaction.recipient.bank_name}</p>
                             )}
-                            <div className="mt-3 pt-3 border-t border-indigo-100/80 flex items-center justify-between gap-2 text-base sm:text-lg">
+                            <div className="mt-3 flex items-center justify-between gap-2 border-t border-indigo-100/80 pt-3 text-[clamp(0.875rem,2.5vmin,1.125rem)] sm:text-lg">
                               <span className="text-gray-600">{t("dashboard.recipientReceives")}</span>
                               <span className="font-semibold tabular-nums text-indigo-800">
                                 {formatAmount(transaction.receive_amount || 0, transaction.receive_currency || "")}
@@ -538,20 +539,20 @@ export default function UserDashboardPage() {
                         </div>
 
                         {/* Amount Section */}
-                        <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide">
+                        <div className="mb-4 space-y-2 sm:mb-5 sm:space-y-3">
+                          <div className="flex min-w-0 items-center justify-between gap-2">
+                            <span className="min-w-0 text-xs uppercase tracking-wide text-gray-600 sm:text-sm">
                               {t("dashboard.sendAmount")}
                             </span>
-                            <span className="text-xl sm:text-2xl font-semibold text-gray-900 tabular-nums">
+                            <span className="shrink-0 text-right text-app-tx-amount font-semibold tabular-nums text-gray-900">
                               {formatAmount(transaction.send_amount || 0, transaction.send_currency || "")}
                             </span>
                           </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide">
+                          <div className="flex min-w-0 items-center justify-between gap-2">
+                            <span className="min-w-0 text-xs uppercase tracking-wide text-gray-600 sm:text-sm">
                               {t("dashboard.receiveAmount")}
                             </span>
-                            <span className="text-xl sm:text-2xl font-semibold text-green-600 tabular-nums">
+                            <span className="shrink-0 text-right text-app-tx-amount font-semibold tabular-nums text-green-600">
                               {formatAmount(transaction.receive_amount || 0, transaction.receive_currency || "")}
                             </span>
                           </div>

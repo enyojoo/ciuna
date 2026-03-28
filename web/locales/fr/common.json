@@ -14,7 +14,7 @@
     "account": "Compte",
     "yourProfile": "Votre profil",
     "accountVerification": "Vérification du compte",
-    "affiliatesReferrals": "Affiliation et parrainage",
+    "affiliatesReferrals": "Parrainage",
     "loginPin": "Code PIN",
     "app": "Application",
     "recipients": "Bénéficiaires",
@@ -45,10 +45,19 @@
   "app": {
     "language": "Langue"
   },
+  "pinSetup": {
+    "createTitle": "Créer un PIN applicatif",
+    "createSubtitle": "Saisissez votre PIN à 4 chiffres",
+    "confirmTitle": "Confirmer le PIN",
+    "confirmSubtitle": "Saisissez le même PIN à nouveau",
+    "benefitLine": "Accès rapide au retour. Votre mot de passe reste nécessaire si vous vous déconnectez complètement.",
+    "mismatch": "Les PIN ne correspondent pas. Réessayez.",
+    "saving": "Enregistrement…"
+  },
   "pinDialog": {
     "createTitle": "Créer un PIN",
     "changeTitle": "Modifier le PIN",
-    "createDescription": "Choisissez un PIN à 4 chiffres pour déverrouiller l'application après une période d'inactivité. Vous aurez toujours besoin de votre mot de passe si vous vous déconnectez.",
+    "createDescription": "Choisissez un PIN à 4 chiffres pour un accès rapide à la prochaine ouverture. Après verrouillage pour inactivité, utilisez ce PIN plutôt que votre mot de passe. Vous vous connecterez encore avec le mot de passe si vous vous déconnectez.",
     "changeDescription": "Saisissez votre PIN actuel, puis choisissez un nouveau PIN à 4 chiffres.",
     "currentPin": "PIN actuel",
     "pin": "PIN",

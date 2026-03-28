@@ -4,6 +4,7 @@ import { ArrowUp, ArrowRight, Check } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import type { Transaction } from "@/types"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
+import { formatLocaleDateTimeLine } from "@/lib/format-date-locale"
 
 interface TimelineStage {
   id: string
@@ -19,19 +20,10 @@ interface TransactionTimelineProps {
 }
 
 export function TransactionTimeline({ transaction }: TransactionTimelineProps) {
-  const { t } = useTranslation("app")
-  const formatTimestamp = (dateString: string) => {
-    const date = new Date(dateString)
-    const month = date.toLocaleString("en-US", { month: "short" })
-    const day = date.getDate().toString().padStart(2, "0")
-    const year = date.getFullYear()
-    const hours = date.getHours()
-    const minutes = date.getMinutes().toString().padStart(2, "0")
-    const ampm = hours >= 12 ? "PM" : "AM"
-    const displayHours = hours % 12 || 12
-    // Format: "Nov 05, 2025 • 2:22 PM"
-    return `${month} ${day}, ${year} • ${displayHours}:${minutes} ${ampm}`
-  }
+  const { t, i18n } = useTranslation("app")
+  const locale = i18n.resolvedLanguage || i18n.language || "en"
+
+  const formatTimestamp = (dateString: string) => formatLocaleDateTimeLine(dateString, locale)
 
   const getStages = (): TimelineStage[] => {
     const status = transaction.status

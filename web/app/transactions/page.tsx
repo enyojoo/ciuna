@@ -15,6 +15,7 @@ import { supabase } from "@/lib/supabase"
 import Link from "next/link"
 import { AppPageHeader } from "@/components/layout/app-page-header"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
+import { formatLocaleDateShort } from "@/lib/format-date-locale"
 
 interface CombinedTransaction {
   id: string
@@ -75,7 +76,8 @@ function isReferralPayoutRow(t: CombinedTransaction): boolean {
 }
 
 export default function UserTransactionsPage() {
-  const { t } = useTranslation("app")
+  const { t, i18n } = useTranslation("app")
+  const dateLocale = i18n.resolvedLanguage || i18n.language || "en"
   const { userProfile } = useAuth()
   const { transactions: userTransactions, currencies, refreshTransactions } = useUserData()
   const [searchTerm, setSearchTerm] = useState("")
@@ -283,23 +285,16 @@ export default function UserTransactionsPage() {
     return `${symbol}${amount.toLocaleString()}`
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const month = date.toLocaleString("en-US", { month: "short" })
-    const day = date.getDate().toString().padStart(2, "0")
-    const year = date.getFullYear()
-    // Format: "Nov 07, 2025"
-    return `${month} ${day}, ${year}`
-  }
+  const formatDate = (dateString: string) => formatLocaleDateShort(dateString, dateLocale)
 
 
 
   return (
-    <div className="space-y-0">
+    <div className="min-w-0 space-y-0">
         <AppPageHeader title={t("transactions.title")} backHref="/dashboard" />
 
         {/* Search Bar */}
-        <div className="p-5 sm:p-6 pb-3 sm:pb-4">
+        <div className="px-4 pb-3 pt-4 sm:px-6 sm:pb-4 sm:pt-5">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <Input
@@ -312,7 +307,7 @@ export default function UserTransactionsPage() {
         </div>
 
         {/* Transactions List */}
-        <div className="px-5 sm:px-6 pb-5 sm:pb-6 space-y-4 sm:space-y-5">
+        <div className="space-y-4 px-4 pb-5 sm:space-y-5 sm:px-6 sm:pb-6">
           {loading && transactions.length === 0 ? (
             <TransactionsListSkeleton />
           ) : transactions.length === 0 ? (
@@ -346,7 +341,7 @@ export default function UserTransactionsPage() {
                               <span className="inline-flex rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-800">
                                 {t("transactions.referralPayout")}
                               </span>
-                              <p className="mt-1.5 text-2xl sm:text-3xl font-bold text-gray-900 tabular-nums leading-tight">
+                              <p className="text-app-tx-amount mt-1.5 font-bold tabular-nums text-gray-900">
                                 {formatAmount(transaction.send_amount || 0, transaction.send_currency || "")}
                               </p>
                               <p className="mt-1 font-mono text-[11px] text-gray-500 truncate">
@@ -375,9 +370,9 @@ export default function UserTransactionsPage() {
                           {transaction.recipient?.bank_name && (
                             <p className="text-sm text-gray-600 mt-0.5">{transaction.recipient.bank_name}</p>
                           )}
-                          <div className="mt-3 pt-3 border-t border-indigo-100/80 flex items-center justify-between gap-2 text-base sm:text-lg">
-                            <span className="text-gray-600">{t("transactions.recipientReceives")}</span>
-                            <span className="font-semibold tabular-nums text-indigo-800">
+                          <div className="mt-3 flex items-center justify-between gap-2 border-t border-indigo-100/80 pt-3 text-[clamp(0.875rem,2.5vmin,1.125rem)] sm:text-lg">
+                            <span className="min-w-0 text-gray-600">{t("transactions.recipientReceives")}</span>
+                            <span className="shrink-0 font-semibold tabular-nums text-indigo-800">
                               {formatAmount(transaction.receive_amount || 0, transaction.receive_currency || "")}
                             </span>
                           </div>
@@ -426,20 +421,20 @@ export default function UserTransactionsPage() {
                           </div>
 
                           {/* Amount Section */}
-                          <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-5">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide">
+                          <div className="mb-4 space-y-2 sm:mb-5 sm:space-y-3">
+                            <div className="flex min-w-0 items-center justify-between gap-2">
+                              <span className="min-w-0 text-xs uppercase tracking-wide text-gray-600 sm:text-sm">
                                 {t("transactions.sendAmount")}
                               </span>
-                              <span className="text-xl sm:text-2xl font-semibold text-gray-900 tabular-nums">
+                              <span className="shrink-0 text-right text-app-tx-amount font-semibold tabular-nums text-gray-900">
                                 {formatAmount(transaction.send_amount || 0, transaction.send_currency || "")}
                               </span>
                             </div>
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide">
+                            <div className="flex min-w-0 items-center justify-between gap-2">
+                              <span className="min-w-0 text-xs uppercase tracking-wide text-gray-600 sm:text-sm">
                                 {t("transactions.receiveAmount")}
                               </span>
-                              <span className="text-xl sm:text-2xl font-semibold text-green-600 tabular-nums">
+                              <span className="shrink-0 text-right text-app-tx-amount font-semibold tabular-nums text-green-600">
                                 {formatAmount(transaction.receive_amount || 0, transaction.receive_currency || "")}
                               </span>
                             </div>

@@ -293,4 +293,27 @@ html[data-pwa-standalone="true"] body {
   .animate-pin-shake {
     animation: pin-shake 0.4s ease-in-out;
   }
+
+  /* Dashboard / money: scale with viewport so narrow phones don’t clip or feel oversized */
+  .text-app-stat-value {
+    font-size: clamp(1.0625rem, 4.2vmin + 0.35rem, 1.875rem);
+    line-height: 1.12;
+  }
+  .text-app-stat-value-lg {
+    font-size: clamp(1.25rem, 2.2vmin + 1rem, 2.25rem);
+    line-height: 1.15;
+  }
+  .text-app-stat-label {
+    font-size: clamp(0.6875rem, 1.35vmin + 0.42rem, 1.125rem);
+    line-height: 1.2;
+  }
+  .text-app-tx-amount {
+    font-size: clamp(1.0625rem, 3.5vmin + 0.5rem, 1.875rem);
+    line-height: 1.15;
+  }
+  /* Send flow amount fields (replaces fixed text-3xl on narrow phones) */
+  .text-app-money-input {
+    font-size: clamp(1.125rem, 4.5vmin + 0.35rem, 1.875rem);
+    line-height: 1.1;
+  }
 }
