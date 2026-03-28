@@ -1,13 +1,14 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useEffect, useState, useMemo, useCallback } from "react"
+import { createContext, useContext, useEffect, useState, useMemo, useCallback, useRef } from "react"
 import type { Session, User } from "@supabase/supabase-js"
 import { supabase } from "./supabase"
 import { userDataStore } from "./user-data-store"
 import { getSecuritySettings } from "./security-settings"
 import { hasPin, removePin, setAppLocked } from "./login-pin"
 import { emitAppLocked } from "./app-lock-bus"
+import { claimReferralWithRetry, getStoredReferralSlug } from "./referral-client"
 
 interface UserProfile {
   id: string
@@ -65,10 +66,17 @@ export const useAuth = () => {
   return context
 }
 
+function cookieHasReferralSlug(): boolean {
+  if (typeof document === "undefined") return false
+  return document.cookie.split("; ").some((row) => row.startsWith("ciuna_ref_slug="))
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  /** After email verification, Supabase may redirect to /dashboard with a session but skip /auth/login — run claim once if ref was stored. */
+  const referralClaimBootstrappedForUserId = useRef<string | null>(null)
   const [sessionTimeout, setSessionTimeout] = useState(30) // Default 30 minutes
   const [lastActivity, setLastActivity] = useState<number>(Date.now())
   const [isAdmin, setIsAdmin] = useState(false)
@@ -426,6 +434,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const interval = setInterval(checkSessionTimeout, 60000) // Check every minute
     return () => clearInterval(interval)
   }, [user, lastActivity, sessionTimeout, signOut])
+
+  useEffect(() => {
+    if (!user) {
+      referralClaimBootstrappedForUserId.current = null
+    }
+  }, [user])
+
+  useEffect(() => {
+    if (!user || loading) return
+    if (referralClaimBootstrappedForUserId.current === user.id) return
+    const hasStoredRef = !!(getStoredReferralSlug() || cookieHasReferralSlug())
+    if (!hasStoredRef) return
+    referralClaimBootstrappedForUserId.current = user.id
+    void claimReferralWithRetry()
+  }, [user, loading])
 
   const value = useMemo(() => ({
     user,
