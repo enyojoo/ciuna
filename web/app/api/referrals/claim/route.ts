@@ -8,7 +8,8 @@ const REF_COOKIE = "ciuna_ref_slug"
 const SIGNUP_ATTRIBUTION_WINDOW_MS = 48 * 60 * 60 * 1000
 
 export const POST = withErrorHandling(async (request: NextRequest) => {
-  const user = await requireUser(request)
+  // JWT can exist before `public.users` row (async trigger); do not 401 that case — handler returns 404 until row exists.
+  const user = await requireUser(request, { allowMissingProfile: true })
   const supabase = createServerClient()
 
   let referralSlug: string | undefined

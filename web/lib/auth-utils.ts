@@ -10,11 +10,22 @@ export interface AuthenticatedUser {
   profile: any
 }
 
+export type AuthRequestOptions = {
+  /**
+   * When true, a valid JWT without a `public.users` / `admin_users` row still authenticates
+   * (minimal profile). Use for flows where the profile row is created async after auth signup.
+   */
+  allowMissingProfile?: boolean
+}
+
 /**
  * Get authenticated user from request - uses same pattern as admin-auth-utils
  * First gets user from session using anon key, then checks users/admin_users with service role
  */
-export async function getAuthenticatedUser(request: NextRequest): Promise<AuthenticatedUser | null> {
+export async function getAuthenticatedUser(
+  request: NextRequest,
+  options?: AuthRequestOptions
+): Promise<AuthenticatedUser | null> {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -74,6 +85,14 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<Authen
     }
 
     if (!userProfile) {
+      if (options?.allowMissingProfile) {
+        return {
+          id: user.id,
+          email: user.email!,
+          isAdmin: false,
+          profile: { id: user.id, status: null },
+        }
+      }
       console.log("User profile not found in database")
       return null
     }
@@ -101,8 +120,11 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<Authen
 /**
  * Require authentication - throws error if not authenticated
  */
-export async function requireAuth(request: NextRequest): Promise<AuthenticatedUser> {
-  const user = await getAuthenticatedUser(request)
+export async function requireAuth(
+  request: NextRequest,
+  options?: AuthRequestOptions
+): Promise<AuthenticatedUser> {
+  const user = await getAuthenticatedUser(request, options)
   
   if (!user) {
     throw new Error("Authentication required")
@@ -133,8 +155,11 @@ export async function requireAdmin(request: NextRequest): Promise<AuthenticatedU
 /**
  * Require user authentication (non-admin) - throws error if admin or not authenticated
  */
-export async function requireUser(request: NextRequest): Promise<AuthenticatedUser> {
-  const user = await requireAuth(request)
+export async function requireUser(
+  request: NextRequest,
+  options?: AuthRequestOptions
+): Promise<AuthenticatedUser> {
+  const user = await requireAuth(request, options)
   
   if (user.isAdmin) {
     throw new Error("Admin users cannot access user APIs")
