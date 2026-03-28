@@ -26,13 +26,12 @@ export function getStoredReferralSlug(): string | null {
  */
 export async function claimReferralIfNeeded(preferredSlug?: string | null): Promise<boolean> {
   const slug = (preferredSlug?.trim() || getStoredReferralSlug())?.trim()
-  if (!slug) return true
-
   try {
     const res = await fetchWithAuth("/api/referrals/claim", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ referralSlug: slug }),
+      // Empty body is ok: server reads ciuna_ref_slug cookie (middleware sets it on ?ref= / ?via=).
+      body: JSON.stringify(slug ? { referralSlug: slug } : {}),
     })
     if (!res.ok) return false
 
@@ -68,7 +67,10 @@ export async function claimReferralIfNeeded(preferredSlug?: string | null): Prom
 export async function claimReferralWithRetry(opts?: { maxAttempts?: number; slug?: string | null }): Promise<void> {
   const maxAttempts = opts?.maxAttempts ?? 12
   const pinned = opts?.slug?.trim() || null
-  if (!pinned && !getStoredReferralSlug()) return
+  if (!pinned && !getStoredReferralSlug()) {
+    await claimReferralIfNeeded()
+    return
+  }
   try {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const done = await claimReferralIfNeeded(pinned || undefined)

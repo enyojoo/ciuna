@@ -288,9 +288,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error }
       }
 
-      // If remember me is checked, extend session duration
-      if (rememberMe && data.session) {
-        // Set a longer session duration (30 days)
+      // Persist session before any code runs fetchWithAuth (e.g. referral claim). Previously only
+      // remember-me called setSession, so getSession() could briefly return null after sign-in.
+      if (data.session) {
         await supabase.auth.setSession({
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token,

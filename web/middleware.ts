@@ -31,6 +31,22 @@ export function middleware(request: NextRequest) {
 
   const response = NextResponse.next()
 
+  // Persist referral slug for /api/referrals/claim cookie fallback (email confirm may drop ?ref= from URL).
+  const refParam =
+    request.nextUrl.searchParams.get("ref")?.trim() ||
+    request.nextUrl.searchParams.get("via")?.trim()
+  if (
+    refParam &&
+    (pathname.startsWith("/auth/login") || pathname.startsWith("/auth/register"))
+  ) {
+    response.cookies.set("ciuna_ref_slug", refParam, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 14,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    })
+  }
+
   // Set cache headers for API routes
   if (pathname.startsWith('/api/')) {
     response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
