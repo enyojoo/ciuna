@@ -43,7 +43,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       id: string
     }
 
-    const receiveCurrency = recipient.currency
+    const receiveCurrency = recipient?.currency
+    if (!receiveCurrency) {
+      return NextResponse.json({ error: "Recipient currency is missing for this payout" }, { status: 400 })
+    }
     const receiveAmount =
       convertWithRateMap(sendAmount, sendCurrency, receiveCurrency, rateMap) || sendAmount
     const exchangeRate = sendAmount > 0 ? receiveAmount / sendAmount : 1
@@ -65,7 +68,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         updated_at: now,
       })
       .eq("transaction_id", transactionId)
-      .in("status", ["pending", "processing"])
+      // Include failed so admins can complete after a mistaken failure; not cancelled.
+      .in("status", ["pending", "processing", "failed"])
       .select("id")
 
     if (updErr) {
@@ -76,27 +80,55 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const updatedExisting = updatedRows && updatedRows.length > 0
 
     if (!updatedExisting) {
-      const { error: insErr } = await supabase.from("transactions").insert({
-        transaction_id: transactionId,
-        user_id: pay.user_id,
-        recipient_id: pay.recipient_id,
-        send_amount: sendAmount,
-        send_currency: sendCurrency,
-        receive_amount: receiveAmount,
-        receive_currency: receiveCurrency,
-        exchange_rate: exchangeRate,
-        fee_amount: 0,
-        fee_type: "free",
-        total_amount: sendAmount,
-        reference,
-        status: "completed",
-        completed_at: now,
-        updated_at: now,
-      })
+      const { data: existingTx } = await supabase
+        .from("transactions")
+        .select("status")
+        .eq("transaction_id", transactionId)
+        .maybeSingle()
 
-      if (insErr) {
-        console.error("referral payout insert tx:", insErr)
-        return NextResponse.json({ error: insErr.message }, { status: 400 })
+      if (existingTx?.status === "cancelled") {
+        return NextResponse.json({ error: "Cannot complete a cancelled transfer" }, { status: 400 })
+      }
+
+      if (existingTx?.status === "completed") {
+        // Linked transaction already completed; sync payout request below.
+      } else if (!existingTx) {
+        const { error: insErr } = await supabase.from("transactions").insert({
+          transaction_id: transactionId,
+          user_id: pay.user_id,
+          recipient_id: pay.recipient_id,
+          send_amount: sendAmount,
+          send_currency: sendCurrency,
+          receive_amount: receiveAmount,
+          receive_currency: receiveCurrency,
+          exchange_rate: exchangeRate,
+          fee_amount: 0,
+          fee_type: "free",
+          total_amount: sendAmount,
+          reference,
+          status: "completed",
+          completed_at: now,
+          updated_at: now,
+        })
+
+        if (insErr) {
+          console.error("referral payout insert tx:", insErr)
+          return NextResponse.json({ error: insErr.message || "Insert failed" }, { status: 400 })
+        }
+      } else {
+        const { error: forceErr } = await supabase
+          .from("transactions")
+          .update({
+            status: "completed",
+            completed_at: now,
+            updated_at: now,
+          })
+          .eq("transaction_id", transactionId)
+
+        if (forceErr) {
+          console.error("referral payout force-complete tx:", forceErr)
+          return NextResponse.json({ error: forceErr.message || "Update failed" }, { status: 400 })
+        }
       }
     }
 

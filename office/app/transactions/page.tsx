@@ -25,7 +25,6 @@ import {
 } from "lucide-react"
 import type { Transaction } from "@/types"
 import { formatCurrency } from "@/utils/currency"
-import { supabase } from "@/lib/supabase"
 import { paymentMethodService } from "@/lib/payment-methods"
 import {
   getAccountTypeConfigFromCurrency,
@@ -534,34 +533,17 @@ export default function AdminTransactionsPage() {
     }
   }
 
-  /** Same status grid as send transactions; keeps `referral_payout_requests` and linked `transactions` in sync. */
-  const handleReferralPayoutStatusUpdate = async (tx: CombinedTransaction, newStatus: string) => {
+  /** Referral payouts: complete/cancel via web admin APIs (URLs joined without `//` in `officeFetch`). */
+  const handleReferralPayoutStatusUpdate = async (tx: CombinedTransaction, newStatus: "completed" | "cancelled") => {
     const payoutId = tx.payout_request_id
     if (!payoutId || !tx.transaction_id) return
     try {
       if (newStatus === "completed") {
         const res = await officeFetch(`/api/admin/referral-payouts/${payoutId}/complete`, { method: "POST" })
         if (!res.ok) return
-      } else if (newStatus === "cancelled") {
+      } else {
         const res = await officeFetch(`/api/admin/referral-payouts/${payoutId}/cancel`, { method: "POST" })
         if (!res.ok) return
-      } else {
-        const now = new Date().toISOString()
-        const { error: e1 } = await supabase
-          .from("referral_payout_requests")
-          .update({ status: newStatus, updated_at: now })
-          .eq("id", payoutId)
-        if (e1) throw e1
-        const { error: e2 } = await supabase
-          .from("transactions")
-          .update({ status: newStatus, updated_at: now })
-          .eq("transaction_id", tx.transaction_id)
-        if (e2) throw e2
-        void officeFetch("/api/send-email-notification", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: "transaction", transactionId: tx.transaction_id, status: newStatus }),
-        }).catch(() => {})
       }
       await officeDataStore.refreshAllData()
       if (selectedTransaction?.transaction_id === tx.transaction_id) {
@@ -1199,63 +1181,82 @@ export default function AdminTransactionsPage() {
 
                                 <div className="border-t pt-4">
                                   <label className="text-sm font-medium text-gray-600">Update Status</label>
-                                  <div className="grid grid-cols-2 gap-2 mt-2">
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() =>
-                                        transaction.type === "referral_payout"
-                                          ? void handleReferralPayoutStatusUpdate(transaction, "processing")
-                                          : handleStatusUpdate(transaction.transaction_id, "processing")
-                                      }
-                                      disabled={transaction.status === "processing"}
-                                    >
-                                      Payment Received
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() =>
-                                        transaction.type === "referral_payout"
-                                          ? void handleReferralPayoutStatusUpdate(transaction, "completed")
-                                          : handleStatusUpdate(transaction.transaction_id, "completed")
-                                      }
-                                      disabled={transaction.status === "completed"}
-                                      className="text-green-600 hover:text-green-700"
-                                    >
-                                      Transfer Complete
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() =>
-                                        transaction.type === "referral_payout"
-                                          ? void handleReferralPayoutStatusUpdate(transaction, "failed")
-                                          : handleStatusUpdate(transaction.transaction_id, "failed")
-                                      }
-                                      disabled={transaction.status === "failed"}
-                                      className="text-red-600 hover:text-red-700"
-                                    >
-                                      Mark Failed
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() =>
-                                        transaction.type === "referral_payout"
-                                          ? void handleReferralPayoutStatusUpdate(transaction, "cancelled")
-                                          : handleStatusUpdate(transaction.transaction_id, "cancelled")
-                                      }
-                                      disabled={transaction.status === "cancelled"}
-                                      className="text-gray-600 hover:text-gray-700"
-                                    >
-                                      Cancel Transfer
-                                    </Button>
-                                  </div>
+                                  {transaction.type === "referral_payout" ? (
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() =>
+                                          void handleReferralPayoutStatusUpdate(transaction, "cancelled")
+                                        }
+                                        disabled={transaction.status === "cancelled"}
+                                        className="text-gray-600 hover:text-gray-700"
+                                      >
+                                        Cancel Transfer
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() =>
+                                          void handleReferralPayoutStatusUpdate(transaction, "completed")
+                                        }
+                                        disabled={transaction.status === "completed"}
+                                        className="text-green-600 hover:text-green-700"
+                                      >
+                                        Transfer Complete
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <div className="grid grid-cols-2 gap-2 mt-2">
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() =>
+                                          handleStatusUpdate(transaction.transaction_id, "processing")
+                                        }
+                                        disabled={transaction.status === "processing"}
+                                      >
+                                        Payment Received
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() =>
+                                          handleStatusUpdate(transaction.transaction_id, "completed")
+                                        }
+                                        disabled={transaction.status === "completed"}
+                                        className="text-green-600 hover:text-green-700"
+                                      >
+                                        Transfer Complete
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleStatusUpdate(transaction.transaction_id, "failed")}
+                                        disabled={transaction.status === "failed"}
+                                        className="text-red-600 hover:text-red-700"
+                                      >
+                                        Mark Failed
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() =>
+                                          handleStatusUpdate(transaction.transaction_id, "cancelled")
+                                        }
+                                        disabled={transaction.status === "cancelled"}
+                                        className="text-gray-600 hover:text-gray-700"
+                                      >
+                                        Cancel Transfer
+                                      </Button>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                           </DialogContent>

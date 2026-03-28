@@ -77,7 +77,12 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
       .gte("referral_first_qualifying_completed_at", quarterStart.toISOString())
       .lte("referral_first_qualifying_completed_at", quarterEnd.toISOString())
     if (tierCountErr) {
-      console.error("referrals/me: qualified referees this quarter", tierCountErr)
+      console.error("referrals/me: qualified referees this quarter", {
+        message: tierCountErr.message,
+        code: (tierCountErr as { code?: string }).code,
+        details: (tierCountErr as { details?: string }).details,
+        hint: (tierCountErr as { hint?: string }).hint,
+      })
     } else {
       qualifiedRefereesThisQuarter = count ?? 0
     }
