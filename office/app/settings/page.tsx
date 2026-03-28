@@ -40,6 +40,8 @@ const REFERRAL_HELP_PERCENT_OF_SEND =
   "Enter as a percentage (e.g. 0.5 means 0.5% of each send in policy currency)."
 const REFERRAL_HELP_DURATION =
   "From each referral's first qualifying completed send; end date is fixed when first calculated. Later changes here do not move existing referrals' windows."
+const REFERRAL_HELP_COMMISSION_TIERS =
+  "Minimum qualified referees in the current calendar quarter (UTC) for each rate. First qualifying send per referee counts toward the quarter it completes in."
 import {
   getAccountTypeConfigFromCurrency,
   getAccountTypeFromCurrency,
@@ -2176,12 +2178,22 @@ export default function AdminSettingsPage() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-3">
-                      <div>
+                      <div className="flex items-center gap-1.5">
                         <Label>Commission tiers</Label>
-                        <p className="text-xs text-gray-500">
-                          Minimum qualified referees in the current calendar quarter (UTC) for each rate. First
-                          qualifying send per referee counts toward the quarter it completes in.
-                        </p>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              className="inline-flex size-6 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                              aria-label={REFERRAL_HELP_COMMISSION_TIERS}
+                            >
+                              <Info className="h-3.5 w-3.5" aria-hidden />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-sm">
+                            {REFERRAL_HELP_COMMISSION_TIERS}
+                          </TooltipContent>
+                        </Tooltip>
                       </div>
                       {referralProgram.percent_tiers.map((row, i) => (
                         <div key={i} className="flex flex-wrap items-end gap-2">

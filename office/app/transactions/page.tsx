@@ -534,21 +534,41 @@ export default function AdminTransactionsPage() {
     }
   }
 
-  const completeReferralPayout = async (payoutId: string) => {
+  /** Same status grid as send transactions; keeps `referral_payout_requests` and linked `transactions` in sync. */
+  const handleReferralPayoutStatusUpdate = async (tx: CombinedTransaction, newStatus: string) => {
+    const payoutId = tx.payout_request_id
+    if (!payoutId || !tx.transaction_id) return
     try {
-      const res = await officeFetch(`/api/admin/referral-payouts/${payoutId}/complete`, { method: "POST" })
-      if (res.ok) await officeDataStore.refreshAllData()
+      if (newStatus === "completed") {
+        const res = await officeFetch(`/api/admin/referral-payouts/${payoutId}/complete`, { method: "POST" })
+        if (!res.ok) return
+      } else if (newStatus === "cancelled") {
+        const res = await officeFetch(`/api/admin/referral-payouts/${payoutId}/cancel`, { method: "POST" })
+        if (!res.ok) return
+      } else {
+        const now = new Date().toISOString()
+        const { error: e1 } = await supabase
+          .from("referral_payout_requests")
+          .update({ status: newStatus, updated_at: now })
+          .eq("id", payoutId)
+        if (e1) throw e1
+        const { error: e2 } = await supabase
+          .from("transactions")
+          .update({ status: newStatus, updated_at: now })
+          .eq("transaction_id", tx.transaction_id)
+        if (e2) throw e2
+        void officeFetch("/api/send-email-notification", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "transaction", transactionId: tx.transaction_id, status: newStatus }),
+        }).catch(() => {})
+      }
+      await officeDataStore.refreshAllData()
+      if (selectedTransaction?.transaction_id === tx.transaction_id) {
+        setSelectedTransaction((prev) => (prev ? { ...prev, status: newStatus } : null))
+      }
     } catch (e) {
-      console.error(e)
-    }
-  }
-
-  const cancelReferralPayout = async (payoutId: string) => {
-    try {
-      const res = await officeFetch(`/api/admin/referral-payouts/${payoutId}/cancel`, { method: "POST" })
-      if (res.ok) await officeDataStore.refreshAllData()
-    } catch (e) {
-      console.error(e)
+      console.error("Error updating referral payout status:", e)
     }
   }
 
@@ -1118,32 +1138,6 @@ export default function AdminTransactionsPage() {
                                   )}
                                 </div>
 
-                                {transaction.type === "referral_payout" &&
-                                  (transaction.status === "pending" || transaction.status === "processing") &&
-                                  transaction.payout_request_id && (
-                                    <div className="border-t border-gray-200 pt-4">
-                                      <label className="text-sm font-medium text-gray-600">Actions</label>
-                                      <div className="flex flex-wrap gap-2 mt-2">
-                                        <Button
-                                          type="button"
-                                          size="sm"
-                                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                                          onClick={() => void completeReferralPayout(transaction.payout_request_id!)}
-                                        >
-                                          Complete
-                                        </Button>
-                                        <Button
-                                          type="button"
-                                          size="sm"
-                                          variant="outline"
-                                          onClick={() => void cancelReferralPayout(transaction.payout_request_id!)}
-                                        >
-                                          Cancel
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  )}
-
                                 {transaction.type !== "referral_payout" && (
                                 <div>
                                   <label className="text-sm font-medium text-gray-600">Receipt</label>
@@ -1203,7 +1197,6 @@ export default function AdminTransactionsPage() {
                                 </div>
                                 )}
 
-                                {transaction.type !== "referral_payout" && (
                                 <div className="border-t pt-4">
                                   <label className="text-sm font-medium text-gray-600">Update Status</label>
                                   <div className="grid grid-cols-2 gap-2 mt-2">
@@ -1212,7 +1205,9 @@ export default function AdminTransactionsPage() {
                                       size="sm"
                                       variant="outline"
                                       onClick={() =>
-                                        handleStatusUpdate(transaction.transaction_id, "processing")
+                                        transaction.type === "referral_payout"
+                                          ? void handleReferralPayoutStatusUpdate(transaction, "processing")
+                                          : handleStatusUpdate(transaction.transaction_id, "processing")
                                       }
                                       disabled={transaction.status === "processing"}
                                     >
@@ -1223,7 +1218,9 @@ export default function AdminTransactionsPage() {
                                       size="sm"
                                       variant="outline"
                                       onClick={() =>
-                                        handleStatusUpdate(transaction.transaction_id, "completed")
+                                        transaction.type === "referral_payout"
+                                          ? void handleReferralPayoutStatusUpdate(transaction, "completed")
+                                          : handleStatusUpdate(transaction.transaction_id, "completed")
                                       }
                                       disabled={transaction.status === "completed"}
                                       className="text-green-600 hover:text-green-700"
@@ -1234,7 +1231,11 @@ export default function AdminTransactionsPage() {
                                       type="button"
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => handleStatusUpdate(transaction.transaction_id, "failed")}
+                                      onClick={() =>
+                                        transaction.type === "referral_payout"
+                                          ? void handleReferralPayoutStatusUpdate(transaction, "failed")
+                                          : handleStatusUpdate(transaction.transaction_id, "failed")
+                                      }
                                       disabled={transaction.status === "failed"}
                                       className="text-red-600 hover:text-red-700"
                                     >
@@ -1244,7 +1245,11 @@ export default function AdminTransactionsPage() {
                                       type="button"
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => handleStatusUpdate(transaction.transaction_id, "cancelled")}
+                                      onClick={() =>
+                                        transaction.type === "referral_payout"
+                                          ? void handleReferralPayoutStatusUpdate(transaction, "cancelled")
+                                          : handleStatusUpdate(transaction.transaction_id, "cancelled")
+                                      }
                                       disabled={transaction.status === "cancelled"}
                                       className="text-gray-600 hover:text-gray-700"
                                     >
@@ -1252,7 +1257,6 @@ export default function AdminTransactionsPage() {
                                     </Button>
                                   </div>
                                 </div>
-                                )}
                               </div>
                           </DialogContent>
                         </Dialog>

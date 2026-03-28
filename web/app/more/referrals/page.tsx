@@ -330,11 +330,9 @@ export default function ReferralsPage() {
             {data?.tierCommission && data.tierCommission.tiers.length > 0 && (
               <div className="mb-4 rounded-xl border border-teal-200/70 bg-white/70 p-4 shadow-sm">
                 <h3 className="text-base font-semibold text-gray-900">Commission rate rules</h3>
-                <p className="text-sm text-gray-600 mt-1 mb-1">
-                  Your rate depends on how many referred users qualify in the current calendar quarter.
-                  The more friends qualify this quarter, the higher your commission rate.
+                <p className="text-sm text-gray-600 mt-1 mb-3">
+                  The more friends you refer and they complete transactions, the higher your commission rate!
                 </p>
-                <p className="text-xs text-gray-500 mb-3">{data.tierCommission.quarterLabel}</p>
                 <ul className="rounded-lg border border-gray-200/80 divide-y divide-gray-100 overflow-hidden bg-white/90">
                   {data.tierCommission.tiers.map((t, i) => {
                     const active = i === data.tierCommission!.currentTierIndex
@@ -348,7 +346,8 @@ export default function ReferralsPage() {
                         <span
                           className={`text-sm ${active ? "text-gray-900 font-medium" : "text-gray-700"}`}
                         >
-                          {t.minQualifiedRefereesInQuarter} qualified referees this quarter
+                          {t.minQualifiedRefereesInQuarter} signed up and completed{" "}
+                          {t.minQualifiedRefereesInQuarter === 1 ? "a transaction" : "transactions"}
                         </span>
                         <span
                           className={`text-sm font-semibold tabular-nums shrink-0 ${active ? "text-primary" : "text-gray-900"}`}
