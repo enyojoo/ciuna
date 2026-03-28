@@ -67,9 +67,16 @@ function VolumeAmountWithFullDetail({
           {compactLabel}
         </button>
       </PopoverTrigger>
-      <PopoverContent align="center" side="top" className="w-auto max-w-[min(100vw-2rem,22rem)]">
-        <p className="text-base sm:text-lg font-semibold tabular-nums text-center text-foreground">{fullLabel}</p>
-        <p className="text-xs text-muted-foreground text-center mt-1">Full amount</p>
+      <PopoverContent
+        align="center"
+        side="top"
+        sideOffset={8}
+        className="w-auto max-w-[min(100vw-2rem,22rem)] px-5 py-4 sm:px-6 sm:py-5"
+      >
+        <p className="text-base sm:text-lg font-semibold tabular-nums text-center text-foreground">
+          {fullLabel}
+        </p>
+        <p className="text-xs text-muted-foreground text-center mt-2.5">Full amount</p>
       </PopoverContent>
     </Popover>
   )
