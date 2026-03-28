@@ -350,8 +350,9 @@ export class EmailNotificationService {
   }
 
   /**
-   * Legacy referral-only templates (no `transactions` row). New payout flow uses
-   * `sendTransactionStatusEmail` / `sendAdminTransactionNotification` like POST /api/transactions.
+   * Referral payout lifecycle (`referralPayoutPending` / `referralPayoutCompleted` / `referralPayoutCancelled`).
+   * Used from POST /api/referrals/payout-request (pending) and admin complete/cancel routes.
+   * Admin notification for new payout requests still uses `sendAdminTransactionNotification` (transaction id).
    */
   static async sendReferralPayoutStatusEmail(
     payoutRequestId: string,

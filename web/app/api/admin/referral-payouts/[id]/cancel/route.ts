@@ -19,8 +19,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!pay) {
       return NextResponse.json({ error: "Not found" }, { status: 404 })
     }
-    if (pay.status === "completed" || pay.status === "cancelled") {
-      return NextResponse.json({ error: "Cannot cancel" }, { status: 400 })
+    // Allow cancelling a completed payout (admin mistake). Only block if already cancelled.
+    if (pay.status === "cancelled") {
+      return NextResponse.json({ error: "Already cancelled" }, { status: 400 })
     }
 
     const etid =
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         .from("transactions")
         .update({ status: "cancelled", updated_at: now })
         .eq("transaction_id", etid)
-        .in("status", ["pending", "processing"])
+        .in("status", ["pending", "processing", "completed", "failed"])
 
       if (txErr) {
         return NextResponse.json({ error: txErr.message }, { status: 400 })
@@ -60,11 +61,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       /* ignore */
     }
 
-    if (etid) {
-      void EmailNotificationService.sendTransactionStatusEmail(etid, "cancelled").catch(() => {})
-    } else {
-      void EmailNotificationService.sendReferralPayoutStatusEmail(id, "cancelled").catch(() => {})
-    }
+    // Always use referral payout template (referralPayoutCancelled); linked tx may or may not exist.
+    void EmailNotificationService.sendReferralPayoutStatusEmail(id, "cancelled").catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (e: any) {

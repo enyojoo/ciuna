@@ -118,7 +118,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     /* ignore */
   }
 
-  void EmailNotificationService.sendTransactionStatusEmail(payoutTransactionId, "pending").catch(() => {})
+  void EmailNotificationService.sendReferralPayoutStatusEmail(inserted.id, "pending").catch(() => {})
   void EmailNotificationService.sendAdminTransactionNotification(payoutTransactionId, "pending").catch(() => {})
 
   return NextResponse.json({ success: true, id: inserted.id, payoutTransactionId })

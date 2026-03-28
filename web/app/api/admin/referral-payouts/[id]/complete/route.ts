@@ -29,8 +29,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: "Payout request not found" }, { status: 404 })
     }
 
-    if (pay.status === "completed" || pay.status === "cancelled") {
-      return NextResponse.json({ error: "Invalid status" }, { status: 400 })
+    // Idempotent: repeated "Transfer Complete" after success should not error.
+    if (pay.status === "completed") {
+      const tid =
+        typeof pay.payout_transaction_id === "string" && pay.payout_transaction_id.trim()
+          ? pay.payout_transaction_id.trim()
+          : typeof pay.linked_transaction_id === "string" && pay.linked_transaction_id.trim()
+            ? pay.linked_transaction_id.trim()
+            : null
+      if (!tid) {
+        return NextResponse.json({ error: "Payout completed but transaction id missing" }, { status: 400 })
+      }
+      return NextResponse.json({ success: true, transactionId: tid, idempotent: true })
     }
 
     const { data: exchangeRates } = await supabase.from("exchange_rates").select("*").eq("status", "active")
@@ -68,8 +78,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         updated_at: now,
       })
       .eq("transaction_id", transactionId)
-      // Include failed so admins can complete after a mistaken failure; not cancelled.
-      .in("status", ["pending", "processing", "failed"])
+      .in("status", ["pending", "processing", "failed", "cancelled"])
       .select("id")
 
     if (updErr) {
@@ -85,10 +94,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         .select("status")
         .eq("transaction_id", transactionId)
         .maybeSingle()
-
-      if (existingTx?.status === "cancelled") {
-        return NextResponse.json({ error: "Cannot complete a cancelled transfer" }, { status: 400 })
-      }
 
       if (existingTx?.status === "completed") {
         // Linked transaction already completed; sync payout request below.
@@ -150,7 +155,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       /* ignore */
     }
 
-    void EmailNotificationService.sendTransactionStatusEmail(transactionId, "completed").catch(() => {})
+    // Referral-specific copy (referralPayoutCompleted template), not generic transfer completed.
+    void EmailNotificationService.sendReferralPayoutStatusEmail(id, "completed", transactionId).catch(() => {})
 
     return NextResponse.json({ success: true, transactionId })
   } catch (e: any) {
