@@ -8,8 +8,10 @@ import { VerificationHubSkeleton } from "@/components/verification-hub-skeleton"
 import { useAuth } from "@/lib/auth-context"
 import { kycService, KYCSubmission } from "@/lib/kyc-service"
 import { supabase } from "@/lib/supabase"
+import { useTranslation } from "react-i18next"
 
 export default function VerificationPage() {
+  const { t } = useTranslation("app")
   const { userProfile } = useAuth()
   
   // Initialize from cache synchronously to prevent flicker
@@ -191,25 +193,25 @@ export default function VerificationPage() {
       case "approved":
         return (
           <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-            Done
+            {t("verification.badgeDone")}
           </span>
         )
       case "in_review":
         return (
           <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
-            In review
+            {t("verification.badgeInReview")}
           </span>
         )
       case "rejected":
         return (
           <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
-            Rejected
+            {t("verification.badgeRejected")}
           </span>
         )
       default:
         return (
           <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-            Pending
+            {t("verification.badgePending")}
           </span>
         )
     }
@@ -217,18 +219,18 @@ export default function VerificationPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-        <AppPageHeader title="Account Verification" backHref="/more" />
+        <AppPageHeader title={t("verification.hubTitle")} backHref="/more" />
 
         <div className="max-w-4xl mx-auto px-6 py-6 lg:px-8 space-y-6">
         <p className="text-base text-gray-600 -mt-1">
-          Complete identity and address verification for compliance.
+          {t("verification.hubSubtitle")}
         </p>
 
         {/* Info Message - Only show if both are not completed */}
         {!bothCompleted && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-700">
-                Please complete KYC Identity and Address information for compliance.
+                {t("verification.infoKyc")}
               </p>
             </div>
         )}
@@ -246,17 +248,17 @@ export default function VerificationPage() {
                       <MapPin className="h-5 w-5 text-primary" />
                     </div>
                     {/* Title below icon */}
-                    <h3 className="text-base font-semibold text-gray-900 mb-1">Identity verification</h3>
+                    <h3 className="text-base font-semibold text-gray-900 mb-1">{t("verification.identityTitle")}</h3>
                     {/* Description below title */}
                     <p className="text-sm text-gray-600 leading-relaxed">
-                      Your ID verification information.
+                      {t("verification.identityCardDesc")}
                     </p>
                   </div>
                   {/* Status Badge and Arrow on the right */}
                   <div className="flex items-center gap-3 flex-shrink-0">
                     {identitySubmission ? getStatusBadge(identitySubmission.status) : (
                       <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                        Not started
+                        {t("verification.notStarted")}
                       </span>
                     )}
                     <ChevronRight className="h-5 w-5 text-gray-400" />
@@ -277,17 +279,17 @@ export default function VerificationPage() {
                       <User className="h-5 w-5 text-primary" />
                     </div>
                     {/* Title below icon */}
-                    <h3 className="text-base font-semibold text-gray-900 mb-1">Address information</h3>
+                    <h3 className="text-base font-semibold text-gray-900 mb-1">{t("verification.addressInformation")}</h3>
                     {/* Description below title */}
                     <p className="text-sm text-gray-600 leading-relaxed">
-                      Your home address and document.
+                      {t("verification.addressCardDesc")}
                     </p>
                   </div>
                   {/* Status Badge and Arrow on the right */}
                   <div className="flex items-center gap-3 flex-shrink-0">
                     {addressSubmission ? getStatusBadge(addressSubmission.status) : (
                       <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                        Not started
+                        {t("verification.notStarted")}
                       </span>
                     )}
                     <ChevronRight className="h-5 w-5 text-gray-400" />

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useLayoutEffect } from "react"
+import { useTranslation } from "react-i18next"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -74,6 +75,7 @@ function isReferralPayoutRow(t: CombinedTransaction): boolean {
 }
 
 export default function UserTransactionsPage() {
+  const { t } = useTranslation("app")
   const { userProfile } = useAuth()
   const { transactions: userTransactions, currencies, refreshTransactions } = useUserData()
   const [searchTerm, setSearchTerm] = useState("")
@@ -294,14 +296,14 @@ export default function UserTransactionsPage() {
 
   return (
     <div className="space-y-0">
-        <AppPageHeader title="Transactions" backHref="/dashboard" />
+        <AppPageHeader title={t("transactions.title")} backHref="/dashboard" />
 
         {/* Search Bar */}
         <div className="p-5 sm:p-6 pb-3 sm:pb-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <Input
-              placeholder="Search transactions..."
+              placeholder={t("transactions.searchPlaceholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 h-12 border-gray-300"
@@ -315,15 +317,13 @@ export default function UserTransactionsPage() {
             <TransactionsListSkeleton />
           ) : transactions.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-base text-gray-600 mb-2">No transactions found</p>
-              <p className="text-sm text-gray-500">
-                Start by sending your first transfer
-              </p>
+              <p className="text-base text-gray-600 mb-2">{t("transactions.empty")}</p>
+              <p className="text-sm text-gray-500">{t("transactions.emptyHint")}</p>
             </div>
           ) : filteredTransactions.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-base text-gray-600 mb-2">No transactions match your search</p>
-              <p className="text-sm text-gray-500">Try adjusting your search terms</p>
+              <p className="text-base text-gray-600 mb-2">{t("transactions.noSearchResults")}</p>
+              <p className="text-sm text-gray-500">{t("transactions.adjustSearch")}</p>
             </div>
           ) : (
             filteredTransactions.map((transaction) => {
@@ -344,7 +344,7 @@ export default function UserTransactionsPage() {
                             </div>
                             <div className="min-w-0">
                               <span className="inline-flex rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-800">
-                                Referral payout
+                                {t("transactions.referralPayout")}
                               </span>
                               <p className="mt-1.5 text-2xl sm:text-3xl font-bold text-gray-900 tabular-nums leading-tight">
                                 {formatAmount(transaction.send_amount || 0, transaction.send_currency || "")}
@@ -367,16 +367,16 @@ export default function UserTransactionsPage() {
 
                         <div className="rounded-xl border border-indigo-100/90 bg-white/70 p-3 sm:p-4 mb-4">
                           <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                            Withdrawal to
+                            {t("transactions.withdrawalTo")}
                           </p>
                           <p className="text-base font-semibold text-gray-900">
-                            {transaction.recipient?.full_name || "Recipient"}
+                            {transaction.recipient?.full_name || t("transactions.recipientFallback")}
                           </p>
                           {transaction.recipient?.bank_name && (
                             <p className="text-sm text-gray-600 mt-0.5">{transaction.recipient.bank_name}</p>
                           )}
                           <div className="mt-3 pt-3 border-t border-indigo-100/80 flex items-center justify-between gap-2 text-base sm:text-lg">
-                            <span className="text-gray-600">Recipient receives</span>
+                            <span className="text-gray-600">{t("transactions.recipientReceives")}</span>
                             <span className="font-semibold tabular-nums text-indigo-800">
                               {formatAmount(transaction.receive_amount || 0, transaction.receive_currency || "")}
                             </span>
@@ -418,10 +418,10 @@ export default function UserTransactionsPage() {
                           {/* Recipient Info */}
                           <div className="mb-4 sm:mb-5">
                             <div className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide mb-1">
-                              To
+                              {t("transactions.to")}
                             </div>
                             <div className="text-base sm:text-lg font-semibold text-gray-900">
-                              {transaction.recipient?.full_name || "Unknown"}
+                              {transaction.recipient?.full_name || t("transactions.unknownRecipient")}
                             </div>
                           </div>
 
@@ -429,7 +429,7 @@ export default function UserTransactionsPage() {
                           <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-5">
                             <div className="flex items-center justify-between">
                               <span className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide">
-                                Send Amount
+                                {t("transactions.sendAmount")}
                               </span>
                               <span className="text-xl sm:text-2xl font-semibold text-gray-900 tabular-nums">
                                 {formatAmount(transaction.send_amount || 0, transaction.send_currency || "")}
@@ -437,7 +437,7 @@ export default function UserTransactionsPage() {
                             </div>
                             <div className="flex items-center justify-between">
                               <span className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide">
-                                Receive Amount
+                                {t("transactions.receiveAmount")}
                               </span>
                               <span className="text-xl sm:text-2xl font-semibold text-green-600 tabular-nums">
                                 {formatAmount(transaction.receive_amount || 0, transaction.receive_currency || "")}

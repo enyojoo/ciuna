@@ -1,6 +1,7 @@
 "use client"
 
 import { ArrowUp, ArrowRight, Check } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import type { Transaction } from "@/types"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 
@@ -18,6 +19,7 @@ interface TransactionTimelineProps {
 }
 
 export function TransactionTimeline({ transaction }: TransactionTimelineProps) {
+  const { t } = useTranslation("app")
   const formatTimestamp = (dateString: string) => {
     const date = new Date(dateString)
     const month = date.toLocaleString("en-US", { month: "short" })
@@ -40,16 +42,16 @@ export function TransactionTimeline({ transaction }: TransactionTimelineProps) {
       return [
         {
           id: "pending",
-          title: "Request submitted",
-          description: "Your referral withdrawal request was received.",
+          title: t("txTimeline.payoutSubmitted"),
+          description: t("txTimeline.payoutSubmittedDesc"),
           icon: <ArrowUp className="h-5 w-5" />,
           completed: true,
           timestamp: formatTimestamp(transaction.created_at),
         },
         {
           id: "processing",
-          title: "Processing",
-          description: "We're reviewing and sending your payout to your recipient.",
+          title: t("txTimeline.processing"),
+          description: t("txTimeline.processingDesc"),
           icon: <ArrowRight className="h-5 w-5" />,
           completed: status === "processing" || status === "completed",
           timestamp:
@@ -59,10 +61,10 @@ export function TransactionTimeline({ transaction }: TransactionTimelineProps) {
         },
         {
           id: "completed",
-          title: "Payout sent",
+          title: t("txTimeline.payoutSent"),
           description: transaction.recipient?.bank_name
-            ? `Funds are on the way to ${transaction.recipient.bank_name}.`
-            : "Your referral payout has been processed.",
+            ? t("txTimeline.payoutSentDescBank", { bank: transaction.recipient.bank_name })
+            : t("txTimeline.payoutSentDesc"),
           icon: <Check className="h-5 w-5" />,
           completed: status === "completed",
           timestamp:
@@ -76,16 +78,16 @@ export function TransactionTimeline({ transaction }: TransactionTimelineProps) {
     const stages: TimelineStage[] = [
       {
         id: "pending",
-        title: "Initiated",
-        description: "Pending payment confirmation",
+        title: t("txTimeline.initiated"),
+        description: t("txTimeline.initiatedDesc"),
         icon: <ArrowUp className="h-5 w-5" />,
         completed: true,
         timestamp: formatTimestamp(transaction.created_at),
       },
       {
         id: "processing",
-        title: "Processing",
-        description: "Your money is on its way.",
+        title: t("txTimeline.processingSend"),
+        description: t("txTimeline.processingSendDesc"),
         icon: <ArrowRight className="h-5 w-5" />,
         completed: status === "processing" || status === "completed",
         timestamp:
@@ -95,10 +97,10 @@ export function TransactionTimeline({ transaction }: TransactionTimelineProps) {
       },
       {
         id: "completed",
-        title: "Completed",
+        title: t("txTimeline.completed"),
         description: transaction.recipient?.bank_name
-          ? `${transaction.recipient.bank_name} received your transaction.`
-          : "Transaction completed successfully.",
+          ? t("txTimeline.completedDescBank", { bank: transaction.recipient.bank_name })
+          : t("txTimeline.completedDesc"),
         icon: <Check className="h-5 w-5" />,
         completed: status === "completed",
         timestamp:

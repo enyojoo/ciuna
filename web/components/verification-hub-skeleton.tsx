@@ -3,11 +3,13 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AppPageHeader } from "@/components/layout/app-page-header"
+import { useTranslation } from "react-i18next"
 
 export function VerificationHubSkeleton() {
+  const { t } = useTranslation("app")
   return (
     <div className="min-h-screen bg-gray-50">
-      <AppPageHeader title="Account Verification" backHref="/more" />
+      <AppPageHeader title={t("verification.hubTitle")} backHref="/more" />
       <div className="max-w-4xl mx-auto px-6 py-6 lg:px-8 space-y-6">
         <Skeleton className="h-5 w-full max-w-lg" />
         <div className="space-y-6">

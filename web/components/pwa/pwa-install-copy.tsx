@@ -1,7 +1,6 @@
 "use client"
 
-export const PWA_INSTALL_TITLE = "Ciuna App"
-export const PWA_INSTALL_SUBTITLE = "Use our app on the go without browser"
+import { useTranslation } from "react-i18next"
 
 export type PwaInstallCopyVariant = "banner" | "card"
 
@@ -19,6 +18,7 @@ function resolveVariant(variant: Props["variant"]): PwaInstallCopyVariant {
 
 /** Step-by-step Add to Home Screen instructions for iOS Safari vs Chrome. Returns null off-iOS. */
 export function PwaInstallIosGuide({ iosChrome, iosSafari, variant = "card" }: Props) {
+  const { t } = useTranslation("app")
   const tier = resolveVariant(variant)
   const banner = tier === "banner"
 
@@ -31,15 +31,17 @@ export function PwaInstallIosGuide({ iosChrome, iosSafari, variant = "card" }: P
       <p className={bodyClass}>
         {banner ? (
           <>
-            <span className="font-medium text-foreground">Share</span>
+            <span className="font-medium text-foreground">{t("pwa.share")}</span>
             {" → "}
-            <span className="font-medium text-foreground">View more</span>
+            <span className="font-medium text-foreground">{t("pwa.viewMore")}</span>
             {" → "}
-            <span className="font-medium text-foreground">Add to Home Screen</span>
+            <span className="font-medium text-foreground">{t("pwa.addHome")}</span>
           </>
         ) : (
           <>
-            Tap Share, then View more, then <span className="font-medium text-foreground">Add to Home Screen</span>
+            {t("pwa.iosChromeLong", {
+              addHome: t("pwa.addHome"),
+            })}
           </>
         )}
       </p>
@@ -51,18 +53,19 @@ export function PwaInstallIosGuide({ iosChrome, iosSafari, variant = "card" }: P
       <p className={bodyClass}>
         {banner ? (
           <>
-            <span className="font-medium text-foreground">Menu</span>
+            <span className="font-medium text-foreground">{t("pwa.menu")}</span>
             {" → "}
-            <span className="font-medium text-foreground">Share</span>
+            <span className="font-medium text-foreground">{t("pwa.share")}</span>
             {" → "}
-            <span className="font-medium text-foreground">View more</span>
+            <span className="font-medium text-foreground">{t("pwa.viewMore")}</span>
             {" → "}
-            <span className="font-medium text-foreground">Add to Home Screen</span>
+            <span className="font-medium text-foreground">{t("pwa.addHome")}</span>
           </>
         ) : (
           <>
-            Tap the menu (three dots), then Share, then View more, then{" "}
-            <span className="font-medium text-foreground">Add to Home Screen</span>
+            {t("pwa.iosSafariLong", {
+              addHome: t("pwa.addHome"),
+            })}
           </>
         )}
       </p>

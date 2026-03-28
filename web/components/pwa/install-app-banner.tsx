@@ -4,11 +4,8 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Download, X } from "lucide-react"
 import { usePwaInstallPrompt } from "@/hooks/use-pwa-install-prompt"
-import {
-  PWA_INSTALL_SUBTITLE,
-  PWA_INSTALL_TITLE,
-  PwaInstallIosGuide,
-} from "@/components/pwa/pwa-install-copy"
+import { PwaInstallIosGuide } from "@/components/pwa/pwa-install-copy"
+import { useTranslation } from "react-i18next"
 
 /**
  * Fixed overlay at the top — does not reserve layout space (no spacer), so the app header
@@ -26,7 +23,7 @@ export function InstallAppBanner() {
     <div
         className="fixed left-0 right-0 top-0 z-[60] pt-[env(safe-area-inset-top,0px)] pointer-events-none"
         role="region"
-        aria-label={PWA_INSTALL_TITLE}
+        aria-label={t("pwa.title")}
       >
         <div className="pointer-events-auto mx-auto max-w-lg px-2 sm:max-w-xl sm:px-3">
           <div className="rounded-b-xl border border-border bg-background/95 px-2 py-1.5 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/90 sm:px-2.5 sm:py-2">
@@ -35,10 +32,10 @@ export function InstallAppBanner() {
                 <Download className="h-3.5 w-3.5 text-primary sm:h-4 sm:w-4" aria-hidden />
               </div>
               <div className="min-w-0 flex-1 space-y-1">
-                <p className="text-sm font-semibold leading-tight text-foreground">{PWA_INSTALL_TITLE}</p>
+                <p className="text-sm font-semibold leading-tight text-foreground">{t("pwa.title")}</p>
                 <div className="flex items-start justify-between gap-3">
                   <p className="min-w-0 flex-1 text-xs leading-snug text-muted-foreground sm:text-sm">
-                    {PWA_INSTALL_SUBTITLE}
+                    {t("pwa.subtitle")}
                   </p>
                   {showInstallButton ? (
                     <Button
@@ -48,7 +45,7 @@ export function InstallAppBanner() {
                       className="h-6 shrink-0 rounded-full px-2.5 text-[11px] font-semibold shadow-none sm:h-7 sm:px-3 sm:text-xs"
                       onClick={() => void runInstall()}
                     >
-                      Install
+                      {t("pwa.install")}
                     </Button>
                   ) : null}
                 </div>
@@ -60,7 +57,7 @@ export function InstallAppBanner() {
                 size="icon"
                 className="-mr-1 -mt-0.5 h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground sm:h-8 sm:w-8"
                 onClick={dismiss}
-                aria-label="Dismiss"
+                aria-label={t("pwa.dismiss")}
               >
                 <X className="h-4 w-4" aria-hidden />
               </Button>

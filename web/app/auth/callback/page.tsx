@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { claimReferralIfNeeded } from "@/lib/referral-client"
+import { useTranslation } from "react-i18next"
 
 /** Read OAuth params from the live URL (query + hash). */
 function getOAuthParamsFromWindow(): URLSearchParams {
@@ -19,6 +20,7 @@ function getOAuthParamsFromWindow(): URLSearchParams {
 }
 
 export default function AuthCallbackPage() {
+  const { t } = useTranslation("app")
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
 
@@ -28,7 +30,7 @@ export default function AuthCallbackPage() {
       const errorParam = params.get("error")
 
       if (errorParam) {
-        setError(errorParam === "access_denied" ? "Sign in was cancelled" : errorParam)
+        setError(errorParam === "access_denied" ? t("auth.callbackCancelled") : errorParam)
         setTimeout(() => router.replace("/auth/login"), 2000)
         return
       }
@@ -55,7 +57,7 @@ export default function AuthCallbackPage() {
           const isAdmin = data?.user?.user_metadata?.isAdmin ?? false
           router.replace(isAdmin ? "/admin/dashboard" : "/dashboard")
         } catch (err: any) {
-          setError(err?.message || "Failed to complete sign in")
+          setError(err?.message || t("auth.callbackFailedSignIn"))
           setTimeout(() => router.replace("/auth/login"), 2000)
         }
         return
@@ -65,14 +67,14 @@ export default function AuthCallbackPage() {
     }
 
     handleCallback()
-  }, [router])
+  }, [router, t])
 
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center p-6">
           <p className="text-destructive mb-2">{error}</p>
-          <p className="text-sm text-muted-foreground">Redirecting to login...</p>
+          <p className="text-sm text-muted-foreground">{t("auth.callbackRedirectLogin")}</p>
         </div>
       </div>
     )

@@ -7,6 +7,7 @@ import { Send, MessageCircle, UserPlus, Wallet, BadgeDollarSign } from "lucide-r
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useUserData } from "@/hooks/use-user-data"
 import { useRouter } from "next/navigation"
 import { DashboardSkeleton } from "@/components/dashboard-skeleton"
@@ -44,6 +45,7 @@ function VolumeAmountWithFullDetail({
   compactLabel: string
   numberClassName: string
 }) {
+  const { t } = useTranslation("app")
   const [open, setOpen] = useState(false)
   const expandable = fullLabel !== compactLabel
 
@@ -62,7 +64,7 @@ function VolumeAmountWithFullDetail({
             "underline decoration-dotted underline-offset-[0.2em] hover:opacity-90",
             "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm",
           )}
-          aria-label={`Full amount: ${fullLabel}`}
+          aria-label={t("dashboard.fullAmountAria", { label: fullLabel })}
         >
           {compactLabel}
         </button>
@@ -76,13 +78,14 @@ function VolumeAmountWithFullDetail({
         <p className="text-base sm:text-lg font-semibold tabular-nums text-center text-foreground">
           {fullLabel}
         </p>
-        <p className="text-xs text-muted-foreground text-center mt-2.5">Full amount</p>
+        <p className="text-xs text-muted-foreground text-center mt-2.5">{t("dashboard.fullAmountCaption")}</p>
       </PopoverContent>
     </Popover>
   )
 }
 
 export default function UserDashboardPage() {
+  const { t } = useTranslation("app")
   const router = useRouter()
   const { userProfile } = useAuth()
   const { transactions, currencies, exchangeRates, loading } = useUserData()
@@ -317,7 +320,7 @@ export default function UserDashboardPage() {
             <Link
               href="/more/profile"
               className="inline-flex shrink-0 rounded-full p-0.5 -ml-0.5 hover:bg-gray-50/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
-              aria-label="Profile"
+              aria-label={t("dashboard.profileAria")}
             >
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 ring-2 ring-primary/20 text-sm font-bold tracking-tight text-primary tabular-nums">
                 {profileInitials}
@@ -329,13 +332,13 @@ export default function UserDashboardPage() {
                 className="inline-flex items-center gap-1.5 rounded-full border border-teal-200/90 bg-gradient-to-r from-teal-50 to-emerald-50/90 px-3 py-1.5 text-xs font-semibold text-teal-900 shadow-sm hover:from-teal-100 hover:to-emerald-50 transition-colors"
               >
                 <BadgeDollarSign className="h-3.5 w-3.5 shrink-0 text-teal-800" strokeWidth={2.25} aria-hidden />
-                Refer &amp; Earn
+                {t("dashboard.referEarn")}
               </Link>
               <button
                 type="button"
                 onClick={() => router.push("/support")}
                 className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-                aria-label="Support"
+                aria-label={t("dashboard.supportAria")}
               >
                 <MessageCircle className="h-6 w-6 text-gray-600" />
               </button>
@@ -354,7 +357,7 @@ export default function UserDashboardPage() {
                   numberClassName="max-w-full text-3xl font-bold text-foreground tabular-nums leading-tight"
                 />
               </div>
-              <div className="text-base sm:text-lg font-medium text-muted-foreground">Total Volume</div>
+              <div className="text-base sm:text-lg font-medium text-muted-foreground">{t("dashboard.totalVolume")}</div>
             </CardContent>
           </Card>
 
@@ -368,7 +371,7 @@ export default function UserDashboardPage() {
                   {completedTransactions}
                 </span>
               </div>
-              <div className="text-base sm:text-lg font-medium text-muted-foreground">Transactions</div>
+              <div className="text-base sm:text-lg font-medium text-muted-foreground">{t("dashboard.transactions")}</div>
             </CardContent>
           </Card>
         </div>
@@ -380,14 +383,14 @@ export default function UserDashboardPage() {
               <div className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
                 {formatCurrencyValue(totalSentValue, baseCurrency)}
               </div>
-              <div className="text-base sm:text-lg font-medium text-muted-foreground">Total Volume</div>
+              <div className="text-base sm:text-lg font-medium text-muted-foreground">{t("dashboard.totalVolume")}</div>
             </CardContent>
           </Card>
 
           <Card className="flex-1">
             <CardContent className="p-5 sm:p-6 text-center">
               <div className="text-3xl sm:text-4xl font-bold text-foreground mb-2">{completedTransactions}</div>
-              <div className="text-base sm:text-lg font-medium text-muted-foreground">Transactions</div>
+              <div className="text-base sm:text-lg font-medium text-muted-foreground">{t("dashboard.transactions")}</div>
             </CardContent>
           </Card>
         </div>
@@ -400,7 +403,7 @@ export default function UserDashboardPage() {
               <div className="p-3 sm:p-3.5 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
                 <Send className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
-              <span className="text-primary text-xs sm:text-sm font-semibold tracking-wide">Send</span>
+              <span className="text-primary text-xs sm:text-sm font-semibold tracking-wide">{t("dashboard.send")}</span>
             </div>
           </Link>
           
@@ -410,7 +413,7 @@ export default function UserDashboardPage() {
               <div className="p-3 sm:p-3.5 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
                 <UserPlus className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
-              <span className="text-primary text-xs sm:text-sm font-semibold tracking-wide">Recipient</span>
+              <span className="text-primary text-xs sm:text-sm font-semibold tracking-wide">{t("dashboard.recipient")}</span>
             </div>
           </Link>
         </div>
@@ -418,18 +421,18 @@ export default function UserDashboardPage() {
         {/* Recent Transactions - Mobile Style */}
         <div className="px-5 sm:px-6">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Recent Transactions</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">{t("dashboard.recentTransactions")}</h2>
             <Link href="/transactions" prefetch className="text-sm sm:text-base text-primary font-medium hover:underline">
-              See All
+              {t("dashboard.seeAll")}
             </Link>
           </div>
 
           {!transactions || transactions.length === 0 ? (
             <div className="bg-card rounded-xl p-8 sm:p-12 text-center border border-border">
-              <p className="text-base sm:text-lg text-gray-600 mb-4">No recent transactions</p>
+              <p className="text-base sm:text-lg text-gray-600 mb-4">{t("dashboard.noRecentTransactions")}</p>
               <Link href="/send">
                 <div className="inline-flex items-center justify-center px-6 py-3 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer">
-                  Send Your First Transfer
+                  {t("dashboard.sendFirstTransfer")}
                 </div>
               </Link>
             </div>
@@ -453,7 +456,7 @@ export default function UserDashboardPage() {
                               </div>
                               <div className="min-w-0">
                                 <span className="inline-flex rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-800">
-                                  Referral payout
+                                  {t("dashboard.referralPayout")}
                                 </span>
                                 <p className="mt-1.5 text-2xl sm:text-3xl font-bold text-gray-900 tabular-nums leading-tight">
                                   {formatAmount(transaction.send_amount || 0, transaction.send_currency || "")}
@@ -476,16 +479,16 @@ export default function UserDashboardPage() {
 
                           <div className="rounded-xl border border-indigo-100/90 bg-white/70 p-3 sm:p-4 mb-4">
                             <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                              Withdrawal to
+                              {t("dashboard.withdrawalTo")}
                             </p>
                             <p className="text-base font-semibold text-gray-900">
-                              {transaction.recipient?.full_name || "Recipient"}
+                              {transaction.recipient?.full_name || t("dashboard.recipientFallback")}
                             </p>
                             {transaction.recipient?.bank_name && (
                               <p className="text-sm text-gray-600 mt-0.5">{transaction.recipient.bank_name}</p>
                             )}
                             <div className="mt-3 pt-3 border-t border-indigo-100/80 flex items-center justify-between gap-2 text-base sm:text-lg">
-                              <span className="text-gray-600">Recipient receives</span>
+                              <span className="text-gray-600">{t("dashboard.recipientReceives")}</span>
                               <span className="font-semibold tabular-nums text-indigo-800">
                                 {formatAmount(transaction.receive_amount || 0, transaction.receive_currency || "")}
                               </span>
@@ -527,10 +530,10 @@ export default function UserDashboardPage() {
                         {/* Recipient Info */}
                         <div className="mb-4 sm:mb-5">
                           <div className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide mb-1">
-                            To
+                            {t("dashboard.to")}
                           </div>
                           <div className="text-base sm:text-lg font-semibold text-gray-900">
-                            {transaction.recipient?.full_name || "Unknown"}
+                            {transaction.recipient?.full_name || t("dashboard.unknownRecipient")}
                           </div>
                         </div>
 
@@ -538,7 +541,7 @@ export default function UserDashboardPage() {
                         <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-5">
                           <div className="flex items-center justify-between">
                             <span className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide">
-                              Send Amount
+                              {t("dashboard.sendAmount")}
                             </span>
                             <span className="text-xl sm:text-2xl font-semibold text-gray-900 tabular-nums">
                               {formatAmount(transaction.send_amount || 0, transaction.send_currency || "")}
@@ -546,7 +549,7 @@ export default function UserDashboardPage() {
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide">
-                              Receive Amount
+                              {t("dashboard.receiveAmount")}
                             </span>
                             <span className="text-xl sm:text-2xl font-semibold text-green-600 tabular-nums">
                               {formatAmount(transaction.receive_amount || 0, transaction.receive_currency || "")}

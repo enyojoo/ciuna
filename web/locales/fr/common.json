@@ -4,7 +4,7 @@
     "sendMoney": "Envoyer",
     "send": "Envoyer",
     "recipients": "Bénéficiaires",
-    "transactions": "Transactions",
+    "transactions": "Opérations",
     "more": "Plus",
     "logout": "Déconnexion"
   },
@@ -21,7 +21,7 @@
     "support": "Assistance",
     "privacyPolicy": "Politique de confidentialité",
     "termsOfService": "Conditions d'utilisation",
-    "version": "Version {{version}}",
+    "version": "Version : {{version}}",
     "logout": "Déconnexion",
     "signOutTitle": "Déconnexion",
     "signOutDescription": "Voulez-vous vraiment vous déconnecter ? Vous devrez vous reconnecter pour accéder à votre compte.",

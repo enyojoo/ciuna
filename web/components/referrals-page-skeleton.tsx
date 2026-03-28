@@ -3,11 +3,13 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AppPageHeader } from "@/components/layout/app-page-header"
+import { useTranslation } from "react-i18next"
 
 export function ReferralsPageSkeleton() {
+  const { t } = useTranslation("app")
   return (
     <div className="min-h-screen bg-gray-50">
-      <AppPageHeader title="Affiliates & Referrals" backHref="/more" />
+      <AppPageHeader title={t("referrals.pageTitle")} backHref="/more" />
       <div className="max-w-4xl mx-auto px-6 pt-6 pb-12 sm:pb-16 lg:px-8 lg:pb-10 space-y-6">
         <Skeleton className="h-5 w-full max-w-md" />
 

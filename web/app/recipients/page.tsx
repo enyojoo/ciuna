@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -27,6 +28,7 @@ import {
 import { AppPageHeader } from "@/components/layout/app-page-header"
 
 const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitting, currencies, onSubmit }) => {
+  const { t } = useTranslation("app")
   const selectedCurrency = currencies.find((c) => c.code === formData.currency)
   const accountConfig = formData.currency ? getAccountTypeConfigFromCurrency(formData.currency) : null
 
@@ -83,7 +85,7 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="currency">Currency</Label>
+        <Label htmlFor="currency">{t("recipients.currency")}</Label>
         <Select
           value={formData.currency}
           onValueChange={(value) => setFormData({ ...formData, currency: value })}
@@ -123,12 +125,12 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="name">Account Name *</Label>
+        <Label htmlFor="name">{t("recipients.accountName")}</Label>
         <Input
           id="name"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="Enter account name"
+          placeholder={t("recipients.enterAccountName")}
           disabled={isSubmitting}
         />
       </div>
@@ -154,7 +156,7 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
             <>
               {/* Transfer Type Selection */}
               <div className="space-y-2">
-                <Label>Transfer Type *</Label>
+                <Label>{t("recipients.transferType")}</Label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
@@ -198,7 +200,7 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
                     }`}
                     disabled={isSubmitting}
                   >
-                    Checking
+                    {t("recipients.checking")}
                   </button>
                   <button
                     type="button"
@@ -210,7 +212,7 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
                     }`}
                     disabled={isSubmitting}
                   >
-                    Savings
+                    {t("recipients.savings")}
                   </button>
                 </div>
               </div>
@@ -369,7 +371,7 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
               </div>
               <div className="space-y-2">
                 <Label htmlFor="swiftBic">
-                  {accountConfig.fieldLabels.swift_bic} (Optional)
+                  {accountConfig.fieldLabels.swift_bic}{t("recipients.optionalSuffix")}
                 </Label>
                 <Input
                   id="swiftBic"
@@ -404,7 +406,7 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
               </div>
               <div className="space-y-2">
                 <Label htmlFor="swiftBic">
-                  {accountConfig.fieldLabels.swift_bic} (Optional)
+                  {accountConfig.fieldLabels.swift_bic}{t("recipients.optionalSuffix")}
                 </Label>
                 <Input
                   id="swiftBic"
@@ -439,7 +441,7 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
 
       {!accountConfig && formData.currency && (
         <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
-          Please select a currency first to see the required fields
+          {t("recipients.selectCurrencyFirst")}
         </div>
       )}
 
@@ -448,13 +450,18 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
         className="w-full bg-primary hover:bg-primary/90"
         disabled={!isFormValid()}
       >
-        {isSubmitting ? "Saving..." : isEdit ? "Update Recipient" : "Add Recipient"}
+        {isSubmitting
+          ? t("recipients.saving")
+          : isEdit
+            ? t("recipients.updateRecipient")
+            : t("recipients.addRecipient")}
       </Button>
     </div>
   )
 }
 
 export default function UserRecipientsPage() {
+  const { t } = useTranslation("app")
   const { userProfile } = useAuth()
   const { recipients, currencies, loading, refreshRecipients } = useUserData()
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -522,7 +529,7 @@ export default function UserRecipientsPage() {
       setIsAddDialogOpen(false)
     } catch (error) {
       console.error("Error adding recipient:", error)
-      setError("Failed to add recipient")
+      setError(t("recipients.failedAdd"))
     } finally {
       setIsSubmitting(false)
     }
@@ -581,7 +588,7 @@ export default function UserRecipientsPage() {
       resetForm()
     } catch (error) {
       console.error("Error updating recipient:", error)
-      setError("Failed to update recipient")
+      setError(t("recipients.failedUpdate"))
     } finally {
       setIsSubmitting(false)
     }
@@ -596,9 +603,7 @@ export default function UserRecipientsPage() {
       setDeleteErrors((prev) => ({ ...prev, [id]: "" }))
     } catch (error) {
       console.error("Error deleting recipient:", error)
-      const errorMessage = error.message?.includes("linked to a transaction")
-        ? "Failed to delete - linked to a transaction"
-        : "Failed to delete - linked to a transaction"
+      const errorMessage = t("recipients.failedDeleteLinked")
       setDeleteErrors((prev) => ({ ...prev, [id]: errorMessage }))
     } finally {
       setDeletingId(null)
@@ -654,7 +659,7 @@ export default function UserRecipientsPage() {
 
   return (
     <div className="space-y-0">
-        <AppPageHeader title="Recipients" backHref="/dashboard" />
+        <AppPageHeader title={t("recipients.title")} backHref="/dashboard" />
 
         {/* Add Recipient Button */}
         <div className="p-5 sm:p-6 pb-3 sm:pb-4">
@@ -662,12 +667,12 @@ export default function UserRecipientsPage() {
               <DialogTrigger asChild>
                 <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Recipient
+                  {t("recipients.addRecipient")}
                 </Button>
               </DialogTrigger>
               <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] flex flex-col">
                 <DialogHeader>
-                  <DialogTitle>Add New Recipient</DialogTitle>
+                  <DialogTitle>{t("recipients.addNewTitle")}</DialogTitle>
                 </DialogHeader>
                 <div className="overflow-y-auto flex-1 pr-2 -mr-2">
                   <RecipientForm
@@ -688,7 +693,7 @@ export default function UserRecipientsPage() {
             <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <Input
-                placeholder="Search recipients..."
+                placeholder={t("recipients.searchPlaceholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 h-12 border-gray-300"
@@ -701,7 +706,7 @@ export default function UserRecipientsPage() {
           {filteredRecipients.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-base text-gray-600 mb-2">
-                {searchTerm ? "No recipients match your search" : "No recipients found"}
+                {searchTerm ? t("recipients.noMatchSearch") : t("recipients.noneFound")}
               </p>
               <p className="text-sm text-gray-500">
                 {searchTerm ? "Try adjusting your search terms" : "Add your first recipient to get started"}
@@ -777,7 +782,7 @@ export default function UserRecipientsPage() {
                         </DialogTrigger>
                         <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] flex flex-col">
                           <DialogHeader>
-                            <DialogTitle>Edit Recipient</DialogTitle>
+                            <DialogTitle>{t("recipients.editRecipientTitle")}</DialogTitle>
                           </DialogHeader>
                           <div className="overflow-y-auto flex-1 pr-2 -mr-2">
                             <RecipientForm

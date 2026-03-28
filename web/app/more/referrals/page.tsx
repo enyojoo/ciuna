@@ -18,10 +18,12 @@ import { useUserData } from "@/hooks/use-user-data"
 import { useRouteProtection } from "@/hooks/use-route-protection"
 import { AppPageHeader } from "@/components/layout/app-page-header"
 import { ReferralsPageSkeleton } from "@/components/referrals-page-skeleton"
-import { SEO_REFERRAL_SHARE_TITLE } from "@/lib/seo"
 import { fetchWithAuth } from "@/lib/fetch-with-auth"
+import { apiErrorMessage } from "@/lib/api-error-message"
+import type { ReferralProgramSettings } from "@/lib/referral-program"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 interface ReferralRow {
   id: string
@@ -43,14 +45,46 @@ interface TierCommissionPayload {
   }[]
 }
 
+function formatPolicyMoney(amount: number, currency: string) {
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency,
+      currencyDisplay: "narrowSymbol",
+      maximumFractionDigits: 2,
+    }).format(amount)
+  } catch {
+    return `${amount.toFixed(2)} ${currency}`
+  }
+}
+
+function programSummaryText(
+  program: ReferralProgramSettings | undefined,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): string {
+  if (!program) return ""
+  if (!program.program_active) return t("referrals.programPaused")
+  if (program.mode === "percent") {
+    const pct = program.percent_of_send * 100
+    return t("referrals.programPercent", {
+      pct: pct.toFixed(2),
+      months: program.percent_reward_duration_months,
+    })
+  }
+  if (program.mode === "tier") {
+    return t("referrals.programTier", { months: program.percent_reward_duration_months })
+  }
+  const pc = program.policy_currency
+  return t("referrals.programThreshold", {
+    reward: formatPolicyMoney(program.reward_amount, pc),
+    threshold: formatPolicyMoney(program.threshold_send_amount, pc),
+  })
+}
+
 interface MeResponse {
   slug: string
   shareUrl: string
-  shareMessage: string
-  shareTitle?: string
-  shareDescription?: string
-  programSummary: string
-  program?: { mode?: string; percent_reward_duration_months?: number }
+  program?: ReferralProgramSettings
   tierCommission?: TierCommissionPayload
   balances: {
     availableDisplay: string
@@ -126,6 +160,7 @@ function currencySymbolForCode(
 }
 
 export default function ReferralsPage() {
+  const { t } = useTranslation("app")
   useRouteProtection({ requireAuth: true })
   const { userProfile, loading: authLoading, user } = useAuth()
   const { recipients, refreshRecipients, currencies, refreshTransactions } = useUserData()
@@ -144,10 +179,10 @@ export default function ReferralsPage() {
     const res = await fetchWithAuth("/api/referrals/me")
     const j = await res.json()
     if (!res.ok) {
-      throw new Error(j.error || "Failed to load")
+      throw new Error(apiErrorMessage(j, t, "errors.loadFailed"))
     }
     return j as MeResponse
-  }, [])
+  }, [t])
 
   /** Refresh from network; `silent` avoids full-page loading state (e.g. after withdraw). */
   const load = useCallback(
@@ -161,12 +196,12 @@ export default function ReferralsPage() {
         setData(j)
         writeReferralsCache(uid, j)
       } catch (e: any) {
-        setError(e?.message || "Failed to load")
+        setError(e?.message || t("errors.loadFailed"))
       } finally {
         if (!options?.silent) setLoading(false)
       }
     },
-    [userProfile?.id, fetchReferralsMe],
+    [userProfile?.id, fetchReferralsMe, t],
   )
 
   // Seed from localStorage before paint; align loading with cache (same pattern as /transactions)
@@ -237,10 +272,11 @@ export default function ReferralsPage() {
 
   const shareReferral = async () => {
     if (!data?.shareUrl) return
+    const text = `${t("referrals.shareMessagePrefix")} ${data.shareUrl}`
     // Single link: `text` already includes the URL; omit `url` or iOS/Messages shows two links.
     const payload: ShareData = {
-      title: data.shareTitle ?? SEO_REFERRAL_SHARE_TITLE,
-      text: data.shareMessage,
+      title: t("referrals.shareTitle"),
+      text,
     }
     if (typeof navigator.share === "function") {
       try {
@@ -251,7 +287,7 @@ export default function ReferralsPage() {
       }
     }
     try {
-      await navigator.clipboard.writeText(data.shareMessage)
+      await navigator.clipboard.writeText(text)
     } catch {
       /* ignore */
     }
@@ -260,18 +296,18 @@ export default function ReferralsPage() {
   const submitWithdraw = async () => {
     setWithdrawError(null)
     if (!recipientId || !withdrawAmount) {
-      setWithdrawError("Choose a recipient and enter an amount.")
+      setWithdrawError(t("referrals.errRecipientAmount"))
       return
     }
     const amt = Number.parseFloat(withdrawAmount)
     if (!(amt > 0)) {
-      setWithdrawError("Enter an amount greater than zero.")
+      setWithdrawError(t("referrals.errAmountPositive"))
       return
     }
     const max = data?.balances.availableAmountBase
     if (max !== undefined && amt > max + 1e-6) {
       setWithdrawError(
-        `That amount is more than your available balance (${data?.balances.availableDisplay}). Enter a lower amount.`,
+        t("referrals.errAmountExceeds", { balance: data?.balances.availableDisplay ?? "" }),
       )
       return
     }
@@ -283,7 +319,7 @@ export default function ReferralsPage() {
         body: JSON.stringify({ recipientId, amount: amt }),
       })
       const j = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(j.error || "Request failed")
+      if (!res.ok) throw new Error(apiErrorMessage(j, t, "errors.generic"))
       setWithdrawOpen(false)
       setWithdrawAmount("")
       setWithdrawError(null)
@@ -296,7 +332,7 @@ export default function ReferralsPage() {
         router.push(`/send/${String(payoutTxId).toLowerCase()}`)
       }
     } catch (e: any) {
-      setWithdrawError(e?.message || "Withdraw failed")
+      setWithdrawError(e?.message || t("referrals.withdrawFailed"))
     } finally {
       setSubmitting(false)
     }
@@ -311,11 +347,11 @@ export default function ReferralsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AppPageHeader title="Affiliates & Referrals" backHref="/more" />
+      <AppPageHeader title={t("referrals.pageTitle")} backHref="/more" />
 
       <div className="max-w-4xl mx-auto px-6 pt-6 pb-12 sm:pb-16 lg:px-8 lg:pb-10 space-y-6">
         <p className="text-base text-gray-600 -mt-1">
-          Share your link and track rewards when friends send money.
+          {t("referrals.subtitle")}
         </p>
         {error && (
           <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm border border-destructive/20">
@@ -326,20 +362,20 @@ export default function ReferralsPage() {
         <Card className="overflow-hidden border-0 shadow-sm bg-gradient-to-br from-teal-50/90 to-white">
           <CardContent className="p-5 sm:p-6 space-y-5">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">Refer a friend</h2>
-              <p className="text-sm text-gray-600">{data?.programSummary}</p>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">{t("referrals.referFriend")}</h2>
+              <p className="text-sm text-gray-600">{programSummaryText(data?.program, t)}</p>
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-end gap-3">
               <div className="flex-1">
-                <Label className="text-xs text-gray-500 uppercase tracking-wide">Referral link</Label>
+                <Label className="text-xs text-gray-500 uppercase tracking-wide">{t("referrals.referralLink")}</Label>
                 <div className="mt-1 flex items-center gap-2 rounded-lg border border-dashed border-gray-300 bg-white/80 px-3 py-2">
                   <span className="font-mono text-sm truncate flex-1">{data?.shareUrl}</span>
                   <button
                     type="button"
                     onClick={() => void copyLinkUrl()}
                     className="p-1.5 rounded-md hover:bg-gray-100 text-gray-600"
-                    aria-label={linkCopied ? "Copied" : "Copy link"}
+                    aria-label={linkCopied ? t("referrals.copied") : t("referrals.copyLink")}
                   >
                     {linkCopied ? (
                       <Check className="h-4 w-4 text-green-600" aria-hidden />
@@ -353,33 +389,31 @@ export default function ReferralsPage() {
 
             {data?.tierCommission && data.tierCommission.tiers.length > 0 && (
               <div className="space-y-2">
-                <h3 className="text-base font-semibold text-gray-900">Commission rate rules</h3>
+                <h3 className="text-base font-semibold text-gray-900">{t("referrals.commissionRules")}</h3>
                 <p className="text-sm text-gray-600">
-                  The more friends you refer and they complete transactions, the higher your commission rate!
+                  {t("referrals.commissionRulesHint")}
                 </p>
                 <ul className="rounded-lg border border-gray-200/80 divide-y divide-gray-100 overflow-hidden bg-white/90">
-                  {data.tierCommission.tiers.map((t, i) => {
+                  {data.tierCommission.tiers.map((tierRow, i) => {
                     const active = i === data.tierCommission!.currentTierIndex
                     return (
                       <li
-                        key={`${t.minQualifiedRefereesInQuarter}-${i}`}
+                        key={`${tierRow.minQualifiedRefereesInQuarter}-${i}`}
                         className={`flex justify-between items-center gap-3 px-3 py-3 sm:px-4 ${
                           active ? "bg-primary/10" : ""
                         }`}
                       >
                         <span
-                          className={`text-sm ${active ? "text-gray-900 font-medium" : "text-gray-700"}`}
+                          className={`text-sm min-w-0 break-words ${active ? "text-gray-900 font-medium" : "text-gray-700"}`}
                         >
-                          <span className="font-semibold tabular-nums">
-                            {t.minQualifiedRefereesInQuarter}
-                          </span>{" "}
-                          signed up and completed{" "}
-                          {t.minQualifiedRefereesInQuarter === 1 ? "a transaction" : "transactions"} in this quarter
+                          {t("referrals.tierLine", {
+                            count: tierRow.minQualifiedRefereesInQuarter,
+                          })}
                         </span>
                         <span
                           className={`text-sm font-semibold tabular-nums shrink-0 ${active ? "text-primary" : "text-gray-900"}`}
                         >
-                          {t.percentDisplay}
+                          {tierRow.percentDisplay}
                         </span>
                       </li>
                     )
@@ -396,40 +430,43 @@ export default function ReferralsPage() {
               <Wallet className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Available to withdraw</p>
+              <p className="text-sm text-gray-500">{t("referrals.availableWithdraw")}</p>
               <p className="text-2xl font-bold text-primary">{data?.balances.availableDisplay ?? "—"}</p>
               <p className="text-xs text-gray-400 mt-1">
-                Lifetime earned (incl. paid out): {data?.balances.lifetimeDisplay}
+                {t("referrals.lifetimeEarned", { amount: data?.balances.lifetimeDisplay ?? "—" })}
               </p>
             </div>
           </CardContent>
         </Card>
 
         <div>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">My referrals</p>
+          <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">{t("referrals.myReferrals")}</p>
           <Card>
             <CardContent className="p-0">
               {!data?.referrals?.length ? (
                 <div className="py-12 text-center text-gray-500">
                   <Users className="h-10 w-10 mx-auto mb-2 opacity-40" />
-                  <p>You have no referrals yet</p>
+                  <p>{t("referrals.noReferrals")}</p>
                 </div>
               ) : (
                 <ul className="divide-y divide-gray-100">
                   {data.referrals.map((r) => (
                     <li key={r.id} className="px-4 py-3 flex justify-between items-center">
                       <div>
-                        <p className="font-medium text-gray-900">{r.name}</p>
+                        <p className="font-medium text-gray-900">
+                          {(r.name || "").trim() ? r.name : t("referrals.unnamedReferee")}
+                        </p>
                         <p className="text-xs text-gray-500">
-                          {Number(r.transactionCount ?? 0)} completed transactions
+                          {t("referrals.completedTxCount", { count: Number(r.transactionCount ?? 0) })}
                         </p>
                         {r.percentWindowEndsAt &&
                           (data?.program?.mode === "percent" || data?.program?.mode === "tier") && (
                           <p className="text-xs text-gray-400 mt-0.5">
-                            Reward window ends{" "}
-                            {new Date(r.percentWindowEndsAt).toLocaleString(undefined, {
-                              dateStyle: "medium",
-                              timeStyle: "short",
+                            {t("referrals.rewardWindowEnds", {
+                              date: new Date(r.percentWindowEndsAt).toLocaleString(undefined, {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                              }),
                             })}
                           </p>
                         )}
@@ -446,7 +483,7 @@ export default function ReferralsPage() {
         <div className="flex flex-row gap-3">
           <Button className="flex-1 min-w-0" onClick={() => void shareReferral()}>
             <Share2 className="h-4 w-4 mr-2" />
-            Share link
+            {t("referrals.shareLink")}
           </Button>
           <Button
             variant="outline"
@@ -456,7 +493,7 @@ export default function ReferralsPage() {
               setWithdrawOpen(true)
             }}
           >
-            Withdraw
+            {t("referrals.withdraw")}
           </Button>
         </div>
       </div>
@@ -470,7 +507,7 @@ export default function ReferralsPage() {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Request payout</DialogTitle>
+            <DialogTitle>{t("referrals.requestPayout")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             {withdrawError && (
@@ -482,11 +519,12 @@ export default function ReferralsPage() {
               </div>
             )}
             <p className="text-sm text-gray-600">
-              Choose a saved recipient and amount. Our team will process the transfer. Available:{" "}
-              <strong>{data?.balances.availableDisplay}</strong>
+              {t("referrals.payoutInstructions", {
+                available: data?.balances.availableDisplay ?? "",
+              })}
             </p>
             <div className="space-y-2">
-              <Label>Recipient</Label>
+              <Label>{t("referrals.recipient")}</Label>
               <Select
                 value={recipientId}
                 onValueChange={(v) => {
@@ -495,7 +533,7 @@ export default function ReferralsPage() {
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select recipient" />
+                  <SelectValue placeholder={t("referrals.selectRecipient")} />
                 </SelectTrigger>
                 <SelectContent>
                   {recipients.map((r) => (
@@ -507,7 +545,7 @@ export default function ReferralsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Amount ({baseCurrencySymbol})</Label>
+              <Label>{t("referrals.amount", { symbol: baseCurrencySymbol })}</Label>
               <Input
                 type="number"
                 min={0}
@@ -523,10 +561,10 @@ export default function ReferralsPage() {
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setWithdrawOpen(false)}>
-              Cancel
+              {t("referrals.cancel")}
             </Button>
             <Button onClick={submitWithdraw} disabled={submitting || !recipientId}>
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit request"}
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : t("referrals.submitRequest")}
             </Button>
           </DialogFooter>
         </DialogContent>

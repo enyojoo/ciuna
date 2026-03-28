@@ -10,8 +10,10 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Eye, EyeOff } from "lucide-react"
 import { getSecuritySettings, validatePassword } from "@/lib/security-settings"
+import { useTranslation } from "react-i18next"
 
 function ResetPasswordForm() {
+  const { t } = useTranslation("app")
   const router = useRouter()
   const searchParams = useSearchParams()
   const [newPassword, setNewPassword] = useState("")
@@ -27,7 +29,7 @@ function ResetPasswordForm() {
     if (typeof window === "undefined") return ""
     const token = searchParams.get("token") || sessionStorage.getItem("reset-token")
     const email = searchParams.get("email") || sessionStorage.getItem("reset-email")
-    return !(token && email) ? "Invalid or expired reset link. Please request a new password reset." : ""
+    return !(token && email) ? t("auth.invalidResetLink") : ""
   })
   const [securitySettings, setSecuritySettings] = useState<any>(null)
 
@@ -51,7 +53,7 @@ function ResetPasswordForm() {
     // Use security settings for password validation
     const passwordValidation = validatePassword(newPassword, securitySettings?.passwordMinLength)
     if (!passwordValidation.valid) {
-      setError(passwordValidation.error || "Password validation failed")
+      setError(passwordValidation.error || t("auth.passwordValidationFailed"))
       setIsLoading(false)
       return
     }
@@ -80,12 +82,12 @@ function ResetPasswordForm() {
         sessionStorage.removeItem("reset-email")
 
         // Redirect to login with success message
-        router.push("/auth/login?message=Password reset successful. Please sign in with your new password.")
+        router.push(`/auth/login?message=${encodeURIComponent(t("auth.resetSuccessRedirect"))}`)
       } else {
-        setError(data.error || "Failed to reset password")
+        setError(data.error || t("auth.resetPasswordFailed"))
       }
     } catch (error) {
-      setError("An error occurred. Please try again.")
+      setError(t("auth.genericError"))
     } finally {
       setIsLoading(false)
     }
@@ -94,8 +96,8 @@ function ResetPasswordForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-xl sm:text-2xl font-bold">Reset Password</CardTitle>
-        <CardDescription>Enter your new password below</CardDescription>
+        <CardTitle className="text-xl sm:text-2xl font-bold">{t("auth.resetPasswordTitle")}</CardTitle>
+        <CardDescription>{t("auth.resetPasswordDesc")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4 sm:space-y-5">
@@ -108,12 +110,12 @@ function ResetPasswordForm() {
           {isValidSession && (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password</Label>
+                <Label htmlFor="newPassword">{t("auth.newPassword")}</Label>
                 <div className="relative">
                   <Input
                     id="newPassword"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter new password"
+                    placeholder={t("auth.newPasswordPlaceholder")}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="h-10 sm:h-11 pr-10"
@@ -134,7 +136,7 @@ function ResetPasswordForm() {
               </div>
 
               <Button type="submit" className="w-full h-10 sm:h-11" disabled={isLoading}>
-                {isLoading ? "Resetting..." : "Reset Password"}
+                {isLoading ? t("auth.resetting") : t("auth.resetPasswordTitle")}
               </Button>
             </form>
           )}
@@ -142,7 +144,7 @@ function ResetPasswordForm() {
           <div className="mt-6 text-center">
             <Link href="/auth/login" className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
               <ArrowLeft className="h-4 w-4" />
-              Back to Sign In
+              {t("auth.backToSignIn")}
             </Link>
           </div>
         </div>

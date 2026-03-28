@@ -3,6 +3,7 @@
 import type { ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -22,10 +23,12 @@ interface AppPageHeaderProps {
 export function AppPageHeader({
   title,
   backHref,
-  backLabel = "Back",
+  backLabel,
   className,
   trailing,
 }: AppPageHeaderProps) {
+  const { t } = useTranslation("app")
+  const resolvedBackLabel = backLabel ?? t("layout.back")
   const router = useRouter()
 
   const handleBack = () => {
@@ -50,14 +53,16 @@ export function AppPageHeader({
           size="icon"
           className="shrink-0 -ml-2 h-11 w-11"
           onClick={handleBack}
-          aria-label={backLabel}
+          aria-label={resolvedBackLabel}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
       ) : (
         <div className="w-11 shrink-0" aria-hidden />
       )}
-      <h1 className="min-w-0 flex-1 truncate text-lg font-semibold leading-tight">{title}</h1>
+      <h1 className="min-w-0 flex-1 line-clamp-2 break-words text-lg font-semibold leading-tight text-balance">
+        {title}
+      </h1>
       {trailing ? <div className="shrink-0">{trailing}</div> : <div className="w-11 shrink-0 sm:w-0" aria-hidden />}
     </header>
   )

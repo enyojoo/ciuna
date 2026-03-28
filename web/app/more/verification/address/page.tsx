@@ -18,8 +18,10 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { kycService, KYCSubmission } from "@/lib/kyc-service"
 import { countryService, Country, getCountryFlag } from "@/lib/country-service"
+import { useTranslation } from "react-i18next"
 
 export default function AddressVerificationPage() {
+  const { t } = useTranslation("app")
   const { userProfile } = useAuth()
   
   // Initialize from cache synchronously to prevent flicker
@@ -171,13 +173,13 @@ export default function AddressVerificationPage() {
     setUploadError(null)
 
     if (file.size > 10 * 1024 * 1024) {
-      setUploadError("File size must be less than 10MB")
+      setUploadError(t("verification.fileTooLarge"))
       return
     }
 
     const allowedTypes = ["image/jpeg", "image/png", "application/pdf"]
     if (!allowedTypes.includes(file.type)) {
-      setUploadError("Only JPG, PNG, and PDF files are allowed")
+      setUploadError(t("verification.fileTypeInvalid"))
       return
     }
 
@@ -224,13 +226,13 @@ export default function AddressVerificationPage() {
 
   const handleSubmit = async () => {
     if (!selectedCountry || !address.trim() || !selectedDocumentType || !addressFile || !userProfile?.id) {
-      setUploadError("Please fill in all fields and upload a file")
+      setUploadError(t("verification.fillAllFields"))
       return
     }
 
     // Don't allow if already in review or approved
     if (submission && (submission.status === "in_review" || submission.status === "approved")) {
-      setUploadError("Your address verification is already under review or approved. You cannot upload a new document.")
+      setUploadError(t("verification.addressLocked"))
       return
     }
 
@@ -280,7 +282,7 @@ export default function AddressVerificationPage() {
       } catch {}
     } catch (error: any) {
       console.error("Error uploading address document:", error)
-      setUploadError(error.message || "Failed to upload document")
+      setUploadError(error.message || t("verification.failedUploadDocument"))
     } finally {
       setUploading(false)
     }
@@ -291,25 +293,25 @@ export default function AddressVerificationPage() {
       case "approved":
         return (
           <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-            Done
+            {t("verification.badgeDone")}
           </span>
         )
       case "in_review":
         return (
           <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
-            In review
+            {t("verification.badgeInReview")}
           </span>
         )
       case "rejected":
         return (
           <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
-            Rejected
+            {t("verification.badgeRejected")}
           </span>
         )
       default:
         return (
           <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-            Pending
+            {t("verification.badgePending")}
           </span>
         )
     }
@@ -319,7 +321,7 @@ export default function AddressVerificationPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-        <AppPageHeader title="Address Information" backHref="/more/verification" />
+        <AppPageHeader title={t("verification.addressPageTitle")} backHref="/more/verification" />
 
         <div className="px-5 sm:px-6 py-6 max-w-2xl mx-auto">
           {loading && !submission ? (
@@ -341,7 +343,7 @@ export default function AddressVerificationPage() {
               <div className="bg-gray-50 rounded-lg p-6">
                 <div className="space-y-4">
                   <div>
-                    <Label className="text-sm text-gray-600">Country</Label>
+                    <Label className="text-sm text-gray-600">{t("verification.labelCountry")}</Label>
                     <p className="text-base text-gray-900 mt-1">
                       {selectedCountryData ? (
                         <span className="flex items-center gap-2">
@@ -354,26 +356,26 @@ export default function AddressVerificationPage() {
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-600">Address</Label>
+                    <Label className="text-sm text-gray-600">{t("verification.labelAddress")}</Label>
                     <p className="text-base text-gray-900 mt-1 whitespace-pre-wrap">
                       {submission.address || "-"}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-600">Document Type</Label>
+                    <Label className="text-sm text-gray-600">{t("verification.labelDocumentType")}</Label>
                     <p className="text-base text-gray-900 mt-1">
-                      {submission.document_type === "utility_bill" ? "Utility Bill" : 
-                       submission.document_type === "bank_statement" ? "Bank Statement" : "-"}
+                      {submission.document_type === "utility_bill" ? t("verification.utilityBill") :
+                       submission.document_type === "bank_statement" ? t("verification.bankStatement") : "-"}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-600">Document</Label>
+                    <Label className="text-sm text-gray-600">{t("verification.labelDocument")}</Label>
                     <p className="text-base text-gray-900 mt-1">
                       {submission.address_document_filename || "-"}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-600">Status</Label>
+                    <Label className="text-sm text-gray-600">{t("verification.labelStatus")}</Label>
                     <div className="mt-1">
                       {getStatusBadge(submission.status)}
                     </div>
@@ -383,7 +385,7 @@ export default function AddressVerificationPage() {
               {submission.status === "in_review" && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <p className="text-sm text-blue-700">
-                    Your KYC address information is in review. We will provide an update account soonest. Please check your email for updates.
+                    {t("verification.addressInReview")}
                   </p>
                 </div>
               )}
@@ -392,17 +394,17 @@ export default function AddressVerificationPage() {
             // Show form view
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label>Country</Label>
+                <Label>{t("verification.labelCountry")}</Label>
                 <Select value={selectedCountry} onValueChange={setSelectedCountry}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select your country" />
+                    <SelectValue placeholder={t("verification.placeholderSelectCountry")} />
                   </SelectTrigger>
                   <SelectContent>
                     <div className="p-2 border-b">
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                         <Input
-                          placeholder="Search countries..."
+                          placeholder={t("verification.searchCountries")}
                           value={countrySearch}
                           onChange={(e) => setCountrySearch(e.target.value)}
                           className="h-9 pl-9"
@@ -431,30 +433,30 @@ export default function AddressVerificationPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Address</Label>
+                <Label>{t("verification.labelAddress")}</Label>
                 <Textarea
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Enter your full address"
+                  placeholder={t("verification.placeholderAddress")}
                   rows={4}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Document Type</Label>
+                <Label>{t("verification.labelDocumentType")}</Label>
                 <Select value={selectedDocumentType} onValueChange={(value) => setSelectedDocumentType(value as "utility_bill" | "bank_statement")}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select document type" />
+                    <SelectValue placeholder={t("verification.placeholderSelectDocType")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="utility_bill">Utility Bill</SelectItem>
-                    <SelectItem value="bank_statement">Bank Statement</SelectItem>
+                    <SelectItem value="utility_bill">{t("verification.utilityBill")}</SelectItem>
+                    <SelectItem value="bank_statement">{t("verification.bankStatement")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-3">
-                <Label>Address Document</Label>
+                <Label>{t("verification.labelAddressDocument")}</Label>
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -469,7 +471,7 @@ export default function AddressVerificationPage() {
                     <div className="flex items-start gap-2">
                       <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                       <div className="flex-1">
-                        <p className="text-sm text-red-700 font-medium">Upload Error</p>
+                        <p className="text-sm text-red-700 font-medium">{t("verification.uploadErrorTitle")}</p>
                         <p className="text-xs text-red-600 mt-1">{uploadError}</p>
                       </div>
                       <Button
@@ -528,15 +530,15 @@ export default function AddressVerificationPage() {
                         {addressFile
                           ? addressFile.name
                           : uploadError
-                            ? "Upload Failed"
-                            : "Upload Address Document"}
+                            ? t("verification.uploadFailed")
+                            : t("verification.uploadAddressTitle")}
                       </h3>
                       <p className="text-xs text-gray-500">
                         {addressFile
                           ? `${(addressFile.size / 1024 / 1024).toFixed(2)} MB`
                           : uploadError
-                            ? "Click to try again"
-                            : "JPG, PNG or PDF (Max 10MB)"}
+                            ? t("verification.clickToTryAgain")
+                            : t("verification.fileHint")}
                       </p>
                     </div>
                     {addressFile && (
@@ -561,7 +563,7 @@ export default function AddressVerificationPage() {
                 disabled={!selectedCountry || !address.trim() || !selectedDocumentType || !addressFile || uploading}
                 className="w-full"
               >
-                {uploading ? "Uploading..." : "Submit"}
+                {uploading ? t("verification.uploading") : t("verification.submit")}
               </Button>
             </div>
           )}

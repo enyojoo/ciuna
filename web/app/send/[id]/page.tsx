@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, memo } from "react"
+import { useTranslation } from "react-i18next"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -17,6 +18,7 @@ import type { Transaction } from "@/types"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 
 function TransactionStatusPage() {
+  const { t } = useTranslation("app")
   const router = useRouter()
   const params = useParams()
   const { user, userProfile, loading: authLoading } = useAuth()
@@ -94,7 +96,7 @@ function TransactionStatusPage() {
 
         // Verify this transaction belongs to the current user
         if (transactionData.user_id !== user.id) {
-          setError("Transaction not found or access denied")
+          setError(t("txDetail.errorNotFound"))
           setHasAttemptedLoad(true)
           return
         }
@@ -103,7 +105,7 @@ function TransactionStatusPage() {
         setHasAttemptedLoad(true)
       } catch (error) {
         console.error("Error loading transaction:", error)
-        setError("Failed to load transaction details")
+        setError(t("txDetail.errorLoadFailed"))
         setHasAttemptedLoad(true)
       } finally {
         setLoading(false)
@@ -301,9 +303,9 @@ function TransactionStatusPage() {
       const delay = getDelay()
       
       if (delay > 0) {
-        return `Took ${formatTime(elapsed)} • Delayed ${formatTime(delay)}`
+        return t("txDetail.timerTookDelayed", { elapsed: formatTime(elapsed), delay: formatTime(delay) })
       } else {
-        return `Took ${formatTime(elapsed)}`
+        return t("txDetail.timerTook", { elapsed: formatTime(elapsed) })
       }
     } else {
       // Pending or processing
@@ -312,11 +314,11 @@ function TransactionStatusPage() {
       
       // If timer has finished (remaining <= 0), show delayed time
       if (remaining <= 0 && delay > 0) {
-        return `Delayed ${formatTime(delay)}`
+        return t("txDetail.timerDelayed", { delay: formatTime(delay) })
       }
       
       // Otherwise show countdown
-      return `Time left ${formatTime(remaining)}`
+      return t("txDetail.timerTimeLeft", { time: formatTime(remaining) })
     }
   }
 
@@ -327,25 +329,25 @@ function TransactionStatusPage() {
       return [
         {
           id: "pending",
-          title: "Transaction Initiated",
+          title: t("txDetail.stepTxnInitiated"),
           completed: true,
           icon: <Check className="h-4 w-4 text-white" />,
         },
         {
           id: "processing",
-          title: "Payment Received",
+          title: t("txDetail.stepPaymentReceived"),
           completed: false,
           icon: <XCircle className="h-4 w-4 text-white" />,
         },
         {
           id: "initiated",
-          title: "Transfer Initiated",
+          title: t("txDetail.stepTransferInitiated"),
           completed: false,
           icon: <XCircle className="h-4 w-4 text-white" />,
         },
         {
           id: "completed",
-          title: currentStatus === "failed" ? "Transfer Failed" : "Transfer Cancelled",
+          title: currentStatus === "failed" ? t("txDetail.stepTransferFailed") : t("txDetail.stepTransferCancelled"),
           completed: false,
           icon: <XCircle className="h-4 w-4 text-white" />,
         },
@@ -355,13 +357,13 @@ function TransactionStatusPage() {
     return [
       {
         id: "pending",
-        title: "Transaction Created",
+        title: t("txDetail.stepTxnCreated"),
         completed: true,
         icon: <Check className="h-4 w-4 text-white" />,
       },
         {
           id: "processing",
-          title: "Payment Received",
+          title: t("txDetail.stepPaymentReceived"),
           completed: ["processing", "completed"].includes(currentStatus),
           icon: ["processing", "completed"].includes(currentStatus) ? (
             <Check className="h-4 w-4 text-white" />
@@ -373,7 +375,7 @@ function TransactionStatusPage() {
         },
         {
           id: "completed",
-          title: "Transfer Complete",
+          title: t("txDetail.stepTransferComplete"),
           completed: currentStatus === "completed",
             icon:
             currentStatus === "completed" ? (
@@ -441,38 +443,38 @@ function TransactionStatusPage() {
       switch (status) {
         case "pending":
           return {
-            title: "Request submitted",
-            description: "Your referral withdrawal is queued for processing.",
+            title: t("txDetail.payoutRequestSubmitted"),
+            description: t("txDetail.payoutRequestSubmittedDesc"),
             isCompleted: false,
           }
         case "processing":
           return {
-            title: "Processing payout",
-            description: "We're sending funds to your saved recipient.",
+            title: t("txDetail.payoutProcessing"),
+            description: t("txDetail.payoutProcessingDesc"),
             isCompleted: false,
           }
         case "completed":
           return {
-            title: "Payout complete",
-            description: "Your referral reward has been sent to your recipient.",
+            title: t("txDetail.payoutComplete"),
+            description: t("txDetail.payoutCompleteDesc"),
             isCompleted: true,
           }
         case "failed":
           return {
-            title: "Payout failed",
-            description: "There was an issue processing this withdrawal. Please contact support.",
+            title: t("txDetail.payoutFailed"),
+            description: t("txDetail.payoutFailedDesc"),
             isCompleted: false,
           }
         case "cancelled":
           return {
-            title: "Request cancelled",
-            description: "This payout request was cancelled. Your referral balance was not reduced.",
+            title: t("txDetail.payoutCancelled"),
+            description: t("txDetail.payoutCancelledDesc"),
             isCompleted: false,
           }
         default:
           return {
-            title: "Processing",
-            description: "Your withdrawal is being processed.",
+            title: t("txDetail.payoutProcessingGeneric"),
+            description: t("txDetail.payoutProcessingGenericDesc"),
             isCompleted: false,
           }
       }
@@ -480,38 +482,38 @@ function TransactionStatusPage() {
     switch (status) {
       case "pending":
         return {
-          title: "Transaction Created",
-          description: "Your transfer has been created and is being processed",
+          title: t("txDetail.statusTxnCreated"),
+          description: t("txDetail.statusTxnCreatedDesc"),
           isCompleted: false,
         }
       case "processing":
         return {
-          title: "Payment Received",
-          description: "Your payment has been received and is being processed",
+          title: t("txDetail.statusPaymentReceived"),
+          description: t("txDetail.statusPaymentReceivedDesc"),
           isCompleted: false,
         }
       case "completed":
         return {
-          title: "Transfer Complete!",
-          description: "Your money has been successfully transferred",
+          title: t("txDetail.statusTransferComplete"),
+          description: t("txDetail.statusTransferCompleteDesc"),
           isCompleted: true,
         }
       case "failed":
         return {
-          title: "Transaction Failed",
-          description: "There was an issue with your transaction. Please contact support.",
+          title: t("txDetail.statusTxnFailed"),
+          description: t("txDetail.statusTxnFailedDesc"),
           isCompleted: false,
         }
       case "cancelled":
         return {
-          title: "Transaction Cancelled",
-          description: "This transaction has been cancelled. You will receive a refund if payment was made.",
+          title: t("txDetail.statusTxnCancelled"),
+          description: t("txDetail.statusTxnCancelledDesc"),
           isCompleted: false,
         }
       default:
         return {
-          title: "Transaction Processing",
-          description: "Your transaction is being processed",
+          title: t("txDetail.statusProcessing"),
+          description: t("txDetail.statusProcessingDesc"),
           isCompleted: false,
         }
     }
@@ -522,20 +524,20 @@ function TransactionStatusPage() {
       <div className="p-6">
           <div className="max-w-6xl mx-auto">
             <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-              <p className="text-red-700 mb-4">{error || "Transaction not found"}</p>
+              <p className="text-red-700 mb-4">{error || t("txDetail.notFound")}</p>
               <div className="flex gap-4 justify-center">
                 <Button
                   onClick={() => router.push("/dashboard")}
                   className="bg-primary hover:bg-primary/90"
                 >
-                  Back to Dashboard
+                  {t("txDetail.backToDashboard")}
                 </Button>
-                {error && error.includes("access denied") && (
+                {error && error === t("txDetail.errorNotFound") && (
                   <Button
                     onClick={() => router.push("/auth/login")}
                     variant="outline"
                   >
-                    Login
+                    {t("txDetail.login")}
                   </Button>
                 )}
               </div>
@@ -561,7 +563,7 @@ function TransactionStatusPage() {
   return (
     <div className="space-y-0">
       <AppPageHeader
-        title={isReferralPayout ? "Referral payout" : "Transfer"}
+        title={isReferralPayout ? t("txDetail.referralPayout") : t("txDetail.transfer")}
         backHref={isReferralPayout ? "/more/referrals" : "/transactions"}
       />
     <div className="p-6">
@@ -574,7 +576,7 @@ function TransactionStatusPage() {
                   <CardTitle className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-0 leading-none">
                     <div className="flex flex-col gap-1 items-center sm:items-start">
                       <span className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-tight">
-                        {isReferralPayout ? "Payout status" : "Transaction Status"}
+                        {isReferralPayout ? t("txDetail.payoutStatus") : t("txDetail.transactionStatus")}
                       </span>
                       <span className="text-3xl font-bold text-gray-900 leading-tight">
                         {transaction && formatCurrency(transaction.send_amount, transaction.send_currency)}
@@ -601,13 +603,13 @@ function TransactionStatusPage() {
                   transaction.status === "completed" ? (
                     <div className="pb-4 border-b">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm text-gray-600">Transaction ID</span>
+                        <span className="text-sm text-gray-600">{t("txDetail.transactionId")}</span>
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-sm text-gray-900">{transaction.transaction_id}</span>
                           <button
                             onClick={() => handleCopy(transaction.transaction_id, "transactionId")}
                             className="p-1 hover:bg-gray-100 rounded transition-colors"
-                            title="Copy Transaction ID"
+                            title={t("txDetail.copyTxnId")}
                           >
                             {copiedStates.transactionId ? (
                               <Check className="h-3 w-3 text-green-600" />
@@ -654,11 +656,11 @@ function TransactionStatusPage() {
                         {/* Transaction ID and Created for failed/cancelled */}
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-2 sm:gap-4 text-sm">
                           <div className="flex items-center gap-2">
-                            <span className="text-gray-600">Transaction ID:</span>
+                            <span className="text-gray-600">{t("txDetail.transactionId")}:</span>
                             <span className="font-mono text-gray-900">{transaction.transaction_id}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-gray-600">Created:</span>
+                            <span className="text-gray-600">{t("txDetail.createdLabel")}</span>
                             <span className="text-gray-900">{formatTimestamp(transaction.created_at)}</span>
                           </div>
                         </div>
@@ -672,7 +674,7 @@ function TransactionStatusPage() {
                       >
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">
-                            {transaction.status === "failed" ? "Failed:" : "Status:"}
+                            {transaction.status === "failed" ? t("txDetail.failedLabel") : t("txDetail.statusLabel")}
                           </span>
                           <span className="font-medium text-sm sm:text-base">
                             {formatTimestamp(transaction.updated_at)}
@@ -691,8 +693,8 @@ function TransactionStatusPage() {
                             <Check className="h-5 w-5 text-green-600" />
                           </div>
                           <div>
-                          <p className="font-medium text-gray-900">Payment Receipt Uploaded</p>
-                          <p className="text-sm text-gray-600">{transaction.receipt_filename || "Receipt file"}</p>
+                          <p className="font-medium text-gray-900">{t("txDetail.receiptUploaded")}</p>
+                          <p className="text-sm text-gray-600">{transaction.receipt_filename || t("txDetail.receiptFile")}</p>
                         </div>
                       </div>
                     </div>
@@ -702,7 +704,7 @@ function TransactionStatusPage() {
                   <div className="flex gap-4">
                     {!isReferralPayout && (
                       <Button variant="outline" onClick={() => router.push("/send")} className="flex-1">
-                        Send Again
+                        {t("txDetail.sendAgain")}
                       </Button>
                     )}
                     {isReferralPayout && (
@@ -711,7 +713,7 @@ function TransactionStatusPage() {
                         onClick={() => router.push("/more/referrals")}
                         className="flex-1"
                       >
-                        Back to referrals
+                        {t("txDetail.backToReferrals")}
                       </Button>
                     )}
                     {isOverdue && transaction.status !== "completed" && transaction.status !== "failed" ? (
@@ -719,14 +721,14 @@ function TransactionStatusPage() {
                         onClick={() => router.push("/support")}
                         className="flex-1 bg-orange-600 hover:bg-orange-700"
                       >
-                        Contact Support
+                        {t("txDetail.contactSupport")}
                       </Button>
                     ) : (
                       <Button
                         onClick={() => router.push("/dashboard")}
                         className="flex-1 bg-primary hover:bg-primary/90"
                       >
-                        Dashboard
+                        {t("txDetail.dashboard")}
                       </Button>
                     )}
                   </div>
@@ -739,41 +741,41 @@ function TransactionStatusPage() {
               <Card className="sticky top-6">
                 <CardHeader>
                   <CardTitle className="text-base sm:text-lg">
-                    {isReferralPayout ? "Payout summary" : "Transaction Summary"}
+                    {isReferralPayout ? t("txDetail.payoutSummary") : t("txDetail.transactionSummary")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">{isReferralPayout ? "Withdrawal amount" : "You Sent"}</span>
+                      <span className="text-gray-600">{isReferralPayout ? t("txDetail.withdrawalAmount") : t("txDetail.youSent")}</span>
                       <span className="font-semibold">
                         {formatCurrency(transaction.send_amount, transaction.send_currency)}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Fee</span>
+                      <span className="text-gray-600">{t("txDetail.fee")}</span>
                       <span
                         className={`font-medium ${transaction.fee_amount === 0 ? "text-green-600" : "text-gray-900"}`}
                       >
                         {transaction.fee_amount === 0
-                          ? "FREE"
+                          ? t("txDetail.free")
                           : formatCurrency(transaction.fee_amount, transaction.send_currency)}
                       </span>
                     </div>
                     <div className="flex justify-between border-t pt-2">
-                      <span className="text-gray-600">Total Paid</span>
+                      <span className="text-gray-600">{t("txDetail.totalPaid")}</span>
                       <span className="font-semibold">
                         {formatCurrency(transaction.total_amount, transaction.send_currency)}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Recipient Gets</span>
+                      <span className="text-gray-600">{t("txDetail.recipientGets")}</span>
                       <span className="font-semibold">
                         {formatCurrency(transaction.receive_amount, transaction.receive_currency)}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Exchange Rate</span>
+                      <span className="text-gray-600">{t("txDetail.exchangeRate")}</span>
                       <span className="text-sm">
                         1 {transaction.send_currency} = {transaction.exchange_rate.toFixed(2)}{" "}
                         {transaction.receive_currency}
@@ -783,7 +785,7 @@ function TransactionStatusPage() {
 
                   {transaction.recipient && (
                     <div className="pt-4 border-t">
-                      <h4 className="font-medium mb-2">Recipient</h4>
+                      <h4 className="font-medium mb-2">{t("txDetail.recipient")}</h4>
                       <div className="space-y-1 text-sm">
                         <p className="text-sm sm:text-base font-medium">{transaction.recipient.full_name}</p>
                         <p className="text-gray-600">{transaction.recipient.account_number}</p>

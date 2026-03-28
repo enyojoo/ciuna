@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from "react"
+import { useTranslation } from "react-i18next"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -47,6 +48,7 @@ import {
 } from "@/lib/formatters"
 
 export default function UserSendPage() {
+  const { t } = useTranslation("app")
   const router = useRouter()
   const { user, userProfile } = useAuth()
   const { currencies, exchangeRates, recipients, refreshRecipients, loading: userDataLoading } = useUserData()
@@ -326,7 +328,7 @@ export default function UserSendPage() {
       setIsAddRecipientDialogOpen(false)
     } catch (error) {
       console.error("Error adding recipient:", error)
-      setError("Failed to add recipient. Please try again.")
+      setError(t("send.failedAddRecipient"))
     }
   }
 
@@ -349,13 +351,13 @@ export default function UserSendPage() {
     setUploadError(null)
 
     if (file.size > 5 * 1024 * 1024) {
-      setUploadError("File size must be less than 5MB")
+      setUploadError(t("send.fileTooLarge"))
       return
     }
 
     const allowedTypes = ["image/jpeg", "image/png", "application/pdf"]
     if (!allowedTypes.includes(file.type)) {
-      setUploadError("Only JPG, PNG, and PDF files are allowed")
+      setUploadError(t("send.fileTypeInvalid"))
       return
     }
 
@@ -628,7 +630,7 @@ export default function UserSendPage() {
         }
       } catch (error) {
         console.error("Error creating transaction:", error)
-        setError("Failed to create transaction. Please try again.")
+        setError(t("send.failedCreateTxn"))
       } finally {
         setIsCreatingTransaction(false)
       }
@@ -650,34 +652,34 @@ export default function UserSendPage() {
   const TransactionSummary = () => (
     <Card className="sticky top-6">
       <CardHeader>
-        <CardTitle className="text-lg">Transaction Summary</CardTitle>
+        <CardTitle className="text-lg">{t("send.transactionSummary")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span className="text-gray-600">You Send</span>
+            <span className="text-gray-600">{t("send.youSendLabel")}</span>
             <span className="font-semibold">{formatCurrency(Number.parseFloat(sendAmount) || 0, sendCurrency)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Fee</span>
+            <span className="text-gray-600">{t("send.fee")}</span>
             <span className={`font-semibold ${fee === 0 ? "text-green-600" : "text-gray-900"}`}>
-              {fee === 0 ? "FREE" : formatCurrency(fee, sendCurrency)}
+              {fee === 0 ? t("send.free") : formatCurrency(fee, sendCurrency)}
             </span>
           </div>
           <div className="flex justify-between border-t pt-2">
-            <span className="text-gray-600">Total to Pay</span>
+            <span className="text-gray-600">{t("send.totalToPay")}</span>
             <span className="font-semibold text-lg">
               {formatCurrency((Number.parseFloat(sendAmount) || 0) + fee, sendCurrency)}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Recipient Gets</span>
+            <span className="text-gray-600">{t("send.recipientGetsLabel")}</span>
             <span className="font-semibold">
               {formatCurrency(Number.parseFloat(receiveAmount) || 0, receiveCurrency)}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Exchange Rate</span>
+            <span className="text-gray-600">{t("send.exchangeRateLabel")}</span>
             <span className="text-sm">
               1 {sendCurrency} = {exchangeRateData?.rate.toFixed(2)} {receiveCurrency}
             </span>
@@ -686,7 +688,7 @@ export default function UserSendPage() {
 
         {currentStep >= 2 && recipientData.fullName && (
           <div className="pt-4 border-t">
-            <h4 className="font-medium mb-2">Recipient</h4>
+            <h4 className="font-medium mb-2">{t("send.recipientLabel")}</h4>
             <div className="space-y-1 text-sm">
               <p className="font-medium">{recipientData.fullName}</p>
               <p className="text-gray-600">{recipientData.accountNumber}</p>
@@ -696,7 +698,7 @@ export default function UserSendPage() {
         )}
         {currentStep >= 3 && transactionId && (
           <div className="pt-4 border-t">
-            <p className="text-sm text-gray-600">Transaction ID</p>
+            <p className="text-sm text-gray-600">{t("send.transactionId")}</p>
             <p className="font-mono text-sm">{transactionId}</p>
           </div>
         )}
@@ -715,7 +717,7 @@ export default function UserSendPage() {
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <p className="text-red-700">{error}</p>
               <Button onClick={() => router.refresh()} className="mt-2">
-                Retry
+                {t("send.retry")}
               </Button>
             </div>
           </div>
@@ -728,7 +730,7 @@ export default function UserSendPage() {
       <div className="p-6">
           <div className="max-w-6xl mx-auto">
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-              <p className="text-yellow-700">No currencies available. Please contact support.</p>
+              <p className="text-yellow-700">{t("send.noCurrencies")}</p>
             </div>
           </div>
         </div>
@@ -746,13 +748,13 @@ export default function UserSendPage() {
               {currentStep === 1 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Send Money</CardTitle>
-                    <p className="text-base text-gray-500 mt-1">Enter amount and select currencies</p>
+                    <CardTitle>{t("send.sendMoney")}</CardTitle>
+                    <p className="text-base text-gray-500 mt-1">{t("send.subtitleStep1")}</p>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     {/* You Send Section */}
                     <div className="space-y-4">
-                      <h3 className="text-sm font-medium text-gray-700">You Send</h3>
+                      <h3 className="text-sm font-medium text-gray-700">{t("send.youSend")}</h3>
                       <div className="bg-gray-50 rounded-xl p-4">
                         <div className="flex justify-between items-center gap-2">
                           <input
@@ -807,9 +809,9 @@ export default function UserSendPage() {
                         if (rate && (rate.min_amount || rate.max_amount)) {
                           return (
                             <div className="text-xs text-gray-500 mt-2">
-                              {rate.min_amount && `Min: ${formatCurrency(rate.min_amount, sendCurrency)}`}
+                              {rate.min_amount && t("send.min", { amount: formatCurrency(rate.min_amount, sendCurrency) })}
                               {rate.min_amount && rate.max_amount && " • "}
-                              {rate.max_amount && `Max: ${formatCurrency(rate.max_amount, sendCurrency)}`}
+                              {rate.max_amount && t("send.max", { amount: formatCurrency(rate.max_amount, sendCurrency) })}
                             </div>
                           )
                         }
@@ -824,10 +826,10 @@ export default function UserSendPage() {
                           <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
                             <span className="text-green-600 text-xs">✓</span>
                           </div>
-                          <span className="text-sm text-gray-600">Fee</span>
+                          <span className="text-sm text-gray-600">{t("send.fee")}</span>
                         </div>
                         <span className={`font-medium ${fee === 0 ? "text-green-600" : "text-gray-900"}`}>
-                          {fee === 0 ? "FREE" : formatCurrency(fee, sendCurrency)}
+                          {fee === 0 ? t("send.free") : formatCurrency(fee, sendCurrency)}
                         </span>
                       </div>
 
@@ -836,7 +838,7 @@ export default function UserSendPage() {
                           <div className="w-5 h-5 bg-primary/10 rounded-full flex items-center justify-center">
                             <span className="text-primary text-xs">%</span>
                           </div>
-                          <span className="text-sm text-gray-600">Rate</span>
+                          <span className="text-sm text-gray-600">{t("send.rate")}</span>
                         </div>
                         <span className="font-medium text-primary">
                           1 {sendCurrency} = {exchangeRate?.toFixed(2) || "0.00"} {receiveCurrency}
@@ -846,7 +848,7 @@ export default function UserSendPage() {
 
                     {/* Receiver Gets Section */}
                     <div className="space-y-4">
-                      <h3 className="text-sm font-medium text-gray-700">Receiver Gets</h3>
+                      <h3 className="text-sm font-medium text-gray-700">{t("send.receiverGets")}</h3>
                       <div className="bg-gray-50 rounded-xl p-4">
                         <div className="flex justify-between items-center gap-2">
                           <input
@@ -913,7 +915,7 @@ export default function UserSendPage() {
                         className="min-h-12 w-full rounded-xl bg-primary text-base font-semibold hover:bg-primary/90"
                         disabled={!sendCurrency || !receiveCurrency || !sendAmount}
                       >
-                        Continue
+                        {t("send.continue")}
                       </Button>
                     </div>
                   </CardContent>
@@ -924,14 +926,14 @@ export default function UserSendPage() {
               {currentStep === 2 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Add Recipient</CardTitle>
+                    <CardTitle>{t("send.addRecipient")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     {/* Search Bar */}
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                       <Input
-                        placeholder="Search recipients"
+                        placeholder={t("send.searchRecipients")}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-10 h-12 bg-gray-50 border-0 rounded-xl"
@@ -946,7 +948,7 @@ export default function UserSendPage() {
                             <div className="w-12 h-12 bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                               <Plus className="h-6 w-6 text-white" />
                             </div>
-                            <span className="font-medium text-gray-900">Add new recipient</span>
+                            <span className="font-medium text-gray-900">{t("send.addNewRecipient")}</span>
                           </div>
                           <ChevronRight className="h-5 w-5 text-gray-400" />
                         </div>
@@ -954,26 +956,26 @@ export default function UserSendPage() {
 
                       <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] flex flex-col">
                         <DialogHeader>
-                          <DialogTitle>Add New Recipient</DialogTitle>
+                          <DialogTitle>{t("send.addNewRecipientTitle")}</DialogTitle>
                         </DialogHeader>
                         <div className="min-h-0 overflow-y-auto flex-1 pr-2 -mr-2 space-y-4">
                           <div className="space-y-2">
-                            <Label htmlFor="newRecipientCurrency">Currency</Label>
+                            <Label htmlFor="newRecipientCurrency">{t("send.currency")}</Label>
                             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
                               {receiveCurrencyData && <CurrencyFlagIcon currency={receiveCurrencyData} />}
                               <div>
                                 <div className="font-medium">{receiveCurrency}</div>
                               </div>
-                              <span className="ml-auto text-xs text-gray-500">Auto-selected</span>
+                              <span className="ml-auto text-xs text-gray-500">{t("send.autoSelected")}</span>
                             </div>
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="newRecipientName">Account Name *</Label>
+                            <Label htmlFor="newRecipientName">{t("send.accountName")}</Label>
                             <Input
                               id="newRecipientName"
                               value={newRecipientData.fullName}
                               onChange={(e) => setNewRecipientData({ ...newRecipientData, fullName: e.target.value })}
-                              placeholder="Enter account name"
+                              placeholder={t("send.enterAccountName")}
                               required
                             />
                           </div>
@@ -985,7 +987,7 @@ export default function UserSendPage() {
                             if (!accountConfig) {
                               return (
                                 <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
-                                  Please select a currency first to see the required fields
+                                  {t("send.selectCurrencyFirst")}
                                 </div>
                               )
                             }
@@ -1013,7 +1015,7 @@ export default function UserSendPage() {
                                   <>
                                     {/* Transfer Type Selection */}
                                     <div className="space-y-2">
-                                      <Label>Transfer Type *</Label>
+                                      <Label>{t("send.transferType")}</Label>
                                       <div className="grid grid-cols-2 gap-3">
                                         <button
                                           type="button"
@@ -1054,7 +1056,7 @@ export default function UserSendPage() {
                                               : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
                                           }`}
                                         >
-                                          Checking
+                                          {t("send.checking")}
                                         </button>
                                         <button
                                           type="button"
@@ -1065,7 +1067,7 @@ export default function UserSendPage() {
                                               : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
                                           }`}
                                         >
-                                          Savings
+                                          {t("send.savings")}
                                         </button>
                                       </div>
                                     </div>
@@ -1222,7 +1224,7 @@ export default function UserSendPage() {
                           </div>
                                     <div className="space-y-2">
                                       <Label htmlFor="newRecipientSwiftBic">
-                                        {accountConfig.fieldLabels.swift_bic} (Optional)
+                                        {accountConfig.fieldLabels.swift_bic}{t("send.optionalSuffix")}
                                       </Label>
                                       <Input
                                         id="newRecipientSwiftBic"
@@ -1258,7 +1260,7 @@ export default function UserSendPage() {
                                     </div>
                                     <div className="space-y-2">
                                       <Label htmlFor="newRecipientSwiftBic">
-                                        {accountConfig.fieldLabels.swift_bic} (Optional)
+                                        {accountConfig.fieldLabels.swift_bic}{t("send.optionalSuffix")}
                                       </Label>
                                       <Input
                                         id="newRecipientSwiftBic"
@@ -1343,7 +1345,7 @@ export default function UserSendPage() {
                             })()}
                             className="w-full bg-primary hover:bg-primary/90"
                           >
-                            Add Recipient
+                            {t("send.addRecipientBtn")}
                           </Button>
                         </div>
                       </DialogContent>
@@ -1416,28 +1418,28 @@ export default function UserSendPage() {
 
                     {filteredSavedRecipients.length === 0 && searchTerm && (
                       <div className="text-center py-8 text-gray-500">
-                        <p>No recipients found matching "{searchTerm}"</p>
+                        <p>{t("send.noRecipientsSearch", { term: searchTerm })}</p>
                       </div>
                     )}
 
                     {filteredSavedRecipients.length === 0 && !searchTerm && (
                       <div className="text-center py-8 text-gray-500">
-                        <p>No recipients found for {receiveCurrency}</p>
-                        <p className="text-sm">Add a new recipient to get started</p>
+                        <p>{t("send.noRecipientsCurrency", { currency: receiveCurrency })}</p>
+                        <p className="text-sm">{t("send.addRecipientHint")}</p>
                       </div>
                     )}
 
                     <div className="flex gap-3 sm:gap-4">
                       <Button variant="outline" onClick={handleBack} className="min-h-12 flex-1 bg-transparent">
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back
+                        {t("send.back")}
                       </Button>
                       <Button
                         onClick={handleContinue}
                         disabled={!selectedRecipientId}
                         className="min-h-12 flex-1 rounded-xl bg-primary text-base font-semibold hover:bg-primary/90"
                       >
-                        Continue
+                        {t("send.continue")}
                       </Button>
                     </div>
                   </CardContent>
@@ -1448,7 +1450,7 @@ export default function UserSendPage() {
               {currentStep === 3 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Make Payment</CardTitle>
+                    <CardTitle>{t("send.makePayment")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     {/* Transfer amount and description */}
@@ -1458,12 +1460,15 @@ export default function UserSendPage() {
                         </div>
                         <div>
                           <h3 className="font-semibold text-primary">
-                            Transfer {formatCurrency((Number.parseFloat(sendAmount) || 0) + fee, sendCurrency)}
+                            {t("send.transferLine", { amount: formatCurrency((Number.parseFloat(sendAmount) || 0) + fee, sendCurrency) })}
                           </h3>
                           <p className="text-xs text-gray-600">
                             {fee > 0
-                              ? `Send amount: ${formatCurrency(Number.parseFloat(sendAmount) || 0, sendCurrency)} + Fee: ${formatCurrency(fee, sendCurrency)}`
-                              : "Send money to complete your transfer"}
+                              ? t("send.sendAmountPlusFee", {
+                                  send: formatCurrency(Number.parseFloat(sendAmount) || 0, sendCurrency),
+                                  fee: formatCurrency(fee, sendCurrency),
+                                })
+                              : t("send.sendMoneyCompleteHint")}
                           </p>
                         </div>
                       </div>
@@ -1485,7 +1490,12 @@ export default function UserSendPage() {
                                   <div className="flex items-center gap-2 mb-3">
                                     <Building2 className="h-4 w-4 text-gray-600" />
                                     <span className="font-medium text-sm">
-                                      {virtualAccountDetails.provider === "yellow_card" ? "Yellow Card" : "Bridge"} Virtual Account
+                                      {t("send.virtualAccount", {
+                                        provider:
+                                          virtualAccountDetails.provider === "yellow_card"
+                                            ? t("send.yellowCard")
+                                            : t("send.bridge"),
+                                      })}
                                     </span>
                                   </div>
                                   <div className="space-y-2">
@@ -1618,7 +1628,7 @@ export default function UserSendPage() {
                                     {/* Mobile Money Number (Yellow Card) */}
                                     {virtualAccountDetails.mobileMoneyNumber && (
                                       <div className="space-y-1">
-                                        <span className="text-gray-600 text-xs">Mobile Money Number</span>
+                                        <span className="text-gray-600 text-xs">{t("send.mobileMoneyNumber")}</span>
                                         <div className="flex items-center gap-2">
                                           <span className="font-medium font-mono text-sm">
                                             {virtualAccountDetails.mobileMoneyNumber}
@@ -1674,8 +1684,8 @@ export default function UserSendPage() {
                         if (paymentMethodsForCurrency.length === 0) {
                           return (
                             <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-                              <p className="text-red-700">No payment methods configured for {sendCurrency}</p>
-                              <p className="text-red-600 text-sm">Please contact support</p>
+                              <p className="text-red-700">{t("send.noPaymentMethods", { currency: sendCurrency })}</p>
+                              <p className="text-red-600 text-sm">{t("send.contactSupport")}</p>
                             </div>
                           )
                         }
@@ -1882,7 +1892,7 @@ export default function UserSendPage() {
                                       defaultMethod.qr_code_data.endsWith(".svg") ? (
                                         <img
                                           src={defaultMethod.qr_code_data || "/placeholder.svg"}
-                                          alt="QR Code"
+                                          alt={t("send.qrCodeAlt")}
                                           className="w-full h-full object-contain"
                                         />
                                       ) : defaultMethod.qr_code_data.endsWith(".pdf") ? (
@@ -1894,13 +1904,13 @@ export default function UserSendPage() {
                                             rel="noopener noreferrer"
                                             className="text-blue-600 hover:text-blue-800 text-sm underline"
                                           >
-                                            View QR Code PDF
+                                            {t("send.viewQrPdf")}
                                           </a>
                                         </div>
                                       ) : (
                                         <img
                                           src={defaultMethod.qr_code_data || "/placeholder.svg"}
-                                          alt="QR Code"
+                                          alt={t("send.qrCodeAlt")}
                                           className="w-full h-full object-contain"
                                         />
                                       )
@@ -1918,21 +1928,23 @@ export default function UserSendPage() {
                             {/* Important Instructions */}
                             <div className="space-y-3">
                               <h4 className="font-medium text-gray-900 text-xs uppercase tracking-wide">
-                                Important Instructions
+                                {t("send.importantInstructions")}
                               </h4>
                               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                                 <ul className="text-xs text-amber-700 space-y-1.5">
                                   <li className="flex items-start gap-2">
                                     <span className="text-amber-500 mt-0.5 text-xs">•</span>
                                     <span>
-                                      Transfer exactly{" "}
+                                      {t("send.transferExactly")}{" "}
                                       <strong>
                                         {formatCurrency((Number.parseFloat(sendAmount) || 0) + fee, sendCurrency)}
                                       </strong>
                                       {fee > 0 && (
                                         <span className="text-xs block text-amber-600">
-                                          (Amount: {formatCurrency(Number.parseFloat(sendAmount) || 0, sendCurrency)} +
-                                          Fee: {formatCurrency(fee, sendCurrency)})
+                                          {t("send.amountFeeBreakdown", {
+                                            send: formatCurrency(Number.parseFloat(sendAmount) || 0, sendCurrency),
+                                            fee: formatCurrency(fee, sendCurrency),
+                                          })}
                                         </span>
                                       )}
                                     </span>
@@ -1940,7 +1952,7 @@ export default function UserSendPage() {
                                   <li className="flex items-start gap-2">
                                     <span className="text-amber-500 mt-0.5 text-xs">•</span>
                                     <span className="flex-1">
-                                      Note Transaction ID{" "}
+                                      {t("send.noteTransactionId")}{" "}
                                       <span className="inline-flex items-center gap-1">
                                         <strong>{transactionId}</strong>
                                         <Button
@@ -1961,17 +1973,17 @@ export default function UserSendPage() {
                                   <li className="flex items-start gap-2">
                                     <span className="text-amber-500 mt-0.5 text-xs">•</span>
                                     <span>
-                                      Complete within <strong>a few minutes</strong>
+                                      {t("send.completeWithin")} <strong>{t("send.aFewMinutes")}</strong>
                                     </span>
                                   </li>
                                   <li className="flex items-start gap-2">
                                     <span className="text-amber-500 mt-0.5 text-xs">•</span>
-                                    <span>Upload receipt for quick verification</span>
+                                    <span>{t("send.uploadReceiptVerify")}</span>
                                   </li>
                                   {defaultMethod?.type === "qr_code" && (
                                     <li className="flex items-start gap-2">
                                       <span className="text-amber-500 mt-0.5 text-xs">•</span>
-                                      <span>Scan QR code with your mobile banking app</span>
+                                      <span>{t("send.scanQrBanking")}</span>
                                     </li>
                                   )}
                                 </ul>
@@ -1997,7 +2009,7 @@ export default function UserSendPage() {
                           <div className="flex items-start gap-2">
                             <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                             <div className="flex-1">
-                              <p className="text-sm text-red-700 font-medium">Upload Error</p>
+                              <p className="text-sm text-red-700 font-medium">{t("send.uploadError")}</p>
                               <p className="text-xs text-red-600 mt-1">{uploadError}</p>
                             </div>
                             <Button
@@ -2056,15 +2068,15 @@ export default function UserSendPage() {
                               {uploadedFile
                                 ? uploadedFile.name
                                 : uploadError
-                                  ? "Upload Failed"
-                                  : "Upload Payment Receipt"}
+                                  ? t("send.uploadFailed")
+                                  : t("send.uploadReceipt")}
                             </h3>
                             <p className="text-xs text-gray-500">
                               {uploadedFile
                                 ? `${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB`
                                 : uploadError
-                                  ? "Click to try again"
-                                  : "JPG, PNG or PDF (Max 5MB)"}
+                                  ? t("send.clickTryAgain")
+                                  : t("send.fileTypesHint")}
                             </p>
                           </div>
                           {uploadedFile && (
@@ -2086,7 +2098,7 @@ export default function UserSendPage() {
                         {isUploading && (
                           <div className="mt-3">
                             <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-                              <span>Uploading...</span>
+                              <span>{t("send.uploading")}</span>
                               <span>{uploadProgress}%</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-1.5">
@@ -2102,14 +2114,14 @@ export default function UserSendPage() {
                       <div className="flex gap-3 sm:gap-4">
                         <Button variant="outline" onClick={handleBack} className="min-h-12 flex-1 bg-transparent">
                           <ArrowLeft className="h-4 w-4 mr-2" />
-                          Back
+                          {t("send.back")}
                         </Button>
                         <Button
                           onClick={handleContinue}
                           disabled={isCreatingTransaction}
                           className="min-h-12 flex-1 rounded-xl bg-primary text-base font-semibold hover:bg-primary/90"
                         >
-                          {isCreatingTransaction ? "Sending..." : "I've Paid"}
+                          {isCreatingTransaction ? t("send.sending") : t("send.ivePaid")}
                         </Button>
                       </div>
                     </div>
@@ -2132,30 +2144,28 @@ export default function UserSendPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-amber-500" />
-              Email Verification Required
+              {t("send.emailVerificationTitle")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-gray-600">
-              Please verify your email address before you can send money. We've sent a verification link to <strong>{user?.email}</strong>.
+              {t("send.emailVerificationBody", { email: user?.email ?? "" })}
             </p>
-            <p className="text-sm text-gray-600">
-              Check your email and click the verification link to continue.
-            </p>
+            <p className="text-sm text-gray-600">{t("send.emailVerificationCheck")}</p>
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 onClick={() => setShowEmailVerificationModal(false)}
                 className="flex-1"
               >
-                Cancel
+                {t("send.cancel")}
               </Button>
               <Button
                 onClick={handleResendVerificationEmail}
                 disabled={isResendingVerification}
                 className="flex-1 bg-primary hover:bg-primary/90"
               >
-                {isResendingVerification ? "Sending..." : "Resend Email"}
+                {isResendingVerification ? t("send.resending") : t("send.resendEmail")}
               </Button>
             </div>
           </div>

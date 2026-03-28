@@ -18,8 +18,10 @@ import { Input } from "@/components/ui/input"
 import { getIdTypesForCountry, getIdTypeLabel } from "@/lib/country-id-types"
 import { kycService, KYCSubmission } from "@/lib/kyc-service"
 import { countryService, Country, getCountryFlag } from "@/lib/country-service"
+import { useTranslation } from "react-i18next"
 
 export default function IdentityVerificationPage() {
+  const { t } = useTranslation("app")
   const { userProfile } = useAuth()
   
   // Initialize from cache synchronously to prevent flicker
@@ -173,13 +175,13 @@ export default function IdentityVerificationPage() {
     setUploadError(null)
 
     if (file.size > 10 * 1024 * 1024) {
-      setUploadError("File size must be less than 10MB")
+      setUploadError(t("verification.fileTooLarge"))
       return
     }
 
     const allowedTypes = ["image/jpeg", "image/png", "application/pdf"]
     if (!allowedTypes.includes(file.type)) {
-      setUploadError("Only JPG, PNG, and PDF files are allowed")
+      setUploadError(t("verification.fileTypeInvalid"))
       return
     }
 
@@ -226,13 +228,13 @@ export default function IdentityVerificationPage() {
 
   const handleSubmit = async () => {
     if (!fullName || !dateOfBirth || !selectedCountry || !selectedIdType || !identityFile || !userProfile?.id) {
-      setUploadError("Please fill in all fields and upload a file")
+      setUploadError(t("verification.fillAllFields"))
       return
     }
 
     // Don't allow if already in review or approved
     if (submission && (submission.status === "in_review" || submission.status === "approved")) {
-      setUploadError("Your identity verification is already under review or approved. You cannot upload a new document.")
+      setUploadError(t("verification.identityLocked"))
       return
     }
 
@@ -278,7 +280,7 @@ export default function IdentityVerificationPage() {
       } catch {}
     } catch (error: any) {
       console.error("Error uploading identity document:", error)
-      setUploadError(error.message || "Failed to upload document")
+      setUploadError(error.message || t("verification.failedUploadDocument"))
     } finally {
       setUploading(false)
     }
@@ -289,25 +291,25 @@ export default function IdentityVerificationPage() {
       case "approved":
         return (
           <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-            Done
+            {t("verification.badgeDone")}
           </span>
         )
       case "in_review":
         return (
           <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
-            In review
+            {t("verification.badgeInReview")}
           </span>
         )
       case "rejected":
         return (
           <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
-            Rejected
+            {t("verification.badgeRejected")}
           </span>
         )
       default:
         return (
           <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-            Pending
+            {t("verification.badgePending")}
           </span>
         )
     }
@@ -317,7 +319,7 @@ export default function IdentityVerificationPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-        <AppPageHeader title="Identity Verification" backHref="/more/verification" />
+        <AppPageHeader title={t("verification.identityPageTitle")} backHref="/more/verification" />
 
         <div className="px-5 sm:px-6 py-6 max-w-2xl mx-auto">
           {loading && !submission ? (
@@ -339,19 +341,19 @@ export default function IdentityVerificationPage() {
               <div className="bg-gray-50 rounded-lg p-6">
                 <div className="space-y-4">
                   <div>
-                    <Label className="text-sm text-gray-600">Full Name</Label>
+                    <Label className="text-sm text-gray-600">{t("verification.labelFullName")}</Label>
                     <p className="text-base text-gray-900 mt-1">
                       {submission.full_name || "-"}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-600">Date of Birth</Label>
+                    <Label className="text-sm text-gray-600">{t("verification.labelDateOfBirth")}</Label>
                     <p className="text-base text-gray-900 mt-1">
                       {submission.date_of_birth ? new Date(submission.date_of_birth).toLocaleDateString() : "-"}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-600">Country</Label>
+                    <Label className="text-sm text-gray-600">{t("verification.labelCountry")}</Label>
                     <p className="text-base text-gray-900 mt-1">
                       {selectedCountryData ? (
                         <span className="flex items-center gap-2">
@@ -364,19 +366,19 @@ export default function IdentityVerificationPage() {
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-600">ID Type</Label>
+                    <Label className="text-sm text-gray-600">{t("verification.labelIdType")}</Label>
                     <p className="text-base text-gray-900 mt-1">
                       {submission.id_type ? getIdTypeLabel(submission.id_type) : "-"}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-600">Document</Label>
+                    <Label className="text-sm text-gray-600">{t("verification.labelDocument")}</Label>
                     <p className="text-base text-gray-900 mt-1">
                       {submission.id_document_filename || "-"}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-600">Status</Label>
+                    <Label className="text-sm text-gray-600">{t("verification.labelStatus")}</Label>
                     <div className="mt-1">
                       {getStatusBadge(submission.status)}
                     </div>
@@ -386,7 +388,7 @@ export default function IdentityVerificationPage() {
               {submission.status === "in_review" && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <p className="text-sm text-blue-700">
-                    Your KYC identity information is in review. We will provide an update account soonest. Please check your email for updates.
+                    {t("verification.identityInReview")}
                   </p>
                 </div>
               )}
@@ -394,24 +396,24 @@ export default function IdentityVerificationPage() {
                 <div className="space-y-4">
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <p className="text-sm text-blue-700">
-                      Your submission is pending review. You can update it below.
+                      {t("verification.identityPendingNote")}
                     </p>
                   </div>
                   <div className="border-t pt-6">
-                    <h3 className="text-lg font-semibold mb-4">Update Submission</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t("verification.updateSubmissionHeading")}</h3>
                     {/* Form fields for update */}
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label>Full Name</Label>
+                        <Label>{t("verification.labelFullName")}</Label>
                         <Input
                           type="text"
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
-                          placeholder="Enter your full name as it appears on your ID"
+                          placeholder={t("verification.placeholderFullName")}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Date of Birth</Label>
+                        <Label>{t("verification.labelDateOfBirth")}</Label>
                         <Input
                           type="date"
                           value={dateOfBirth}
@@ -420,17 +422,17 @@ export default function IdentityVerificationPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Country</Label>
+                        <Label>{t("verification.labelCountry")}</Label>
                         <Select value={selectedCountry} onValueChange={setSelectedCountry}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select your country" />
+                            <SelectValue placeholder={t("verification.placeholderSelectCountry")} />
                           </SelectTrigger>
                           <SelectContent>
                             <div className="p-2 border-b">
                               <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                                 <Input
-                                  placeholder="Search countries..."
+                                  placeholder={t("verification.searchCountries")}
                                   value={countrySearch}
                                   onChange={(e) => setCountrySearch(e.target.value)}
                                   className="h-9 pl-9"
@@ -460,10 +462,10 @@ export default function IdentityVerificationPage() {
 
                       {selectedCountry && (
                         <div className="space-y-2">
-                          <Label>ID Type</Label>
+                          <Label>{t("verification.labelIdType")}</Label>
                           <Select value={selectedIdType} onValueChange={setSelectedIdType}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select ID type" />
+                              <SelectValue placeholder={t("verification.placeholderSelectIdType")} />
                             </SelectTrigger>
                             <SelectContent>
                               {getIdTypesForCountry(selectedCountry).map((idType) => (
@@ -477,7 +479,7 @@ export default function IdentityVerificationPage() {
                       )}
 
                       <div className="space-y-3">
-                        <Label>ID Document</Label>
+                        <Label>{t("verification.labelIdDocument")}</Label>
                         <input
                           type="file"
                           ref={fileInputRef}
@@ -492,7 +494,7 @@ export default function IdentityVerificationPage() {
                             <div className="flex items-start gap-2">
                               <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                               <div className="flex-1">
-                                <p className="text-sm text-red-700 font-medium">Upload Error</p>
+                                <p className="text-sm text-red-700 font-medium">{t("verification.uploadErrorTitle")}</p>
                                 <p className="text-xs text-red-600 mt-1">{uploadError}</p>
                               </div>
                               <Button
@@ -551,15 +553,15 @@ export default function IdentityVerificationPage() {
                                 {identityFile
                                   ? identityFile.name
                                   : uploadError
-                                    ? "Upload Failed"
-                                    : "Upload ID Document"}
+                                    ? t("verification.uploadFailed")
+                                    : t("verification.uploadIdTitle")}
                               </h3>
                               <p className="text-xs text-gray-500">
                                 {identityFile
                                   ? `${(identityFile.size / 1024 / 1024).toFixed(2)} MB`
                                   : uploadError
-                                    ? "Click to try again"
-                                    : "JPG, PNG or PDF (Max 10MB)"}
+                                    ? t("verification.clickToTryAgain")
+                                    : t("verification.fileHint")}
                               </p>
                             </div>
                             {identityFile && (
@@ -584,7 +586,7 @@ export default function IdentityVerificationPage() {
                         disabled={!fullName || !dateOfBirth || !selectedCountry || !selectedIdType || !identityFile || uploading}
                         className="w-full"
                       >
-                        {uploading ? "Updating..." : "Update Submission"}
+                        {uploading ? t("verification.updating") : t("verification.updateSubmission")}
                       </Button>
                     </div>
                   </div>
@@ -595,16 +597,16 @@ export default function IdentityVerificationPage() {
             // Show form view
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label>Full Name</Label>
+                <Label>{t("verification.labelFullName")}</Label>
                 <Input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Enter your full name as it appears on your ID"
+                  placeholder={t("verification.placeholderFullName")}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Date of Birth</Label>
+                <Label>{t("verification.labelDateOfBirth")}</Label>
                 <Input
                   type="date"
                   value={dateOfBirth}
@@ -613,17 +615,17 @@ export default function IdentityVerificationPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Country</Label>
+                <Label>{t("verification.labelCountry")}</Label>
                 <Select value={selectedCountry} onValueChange={setSelectedCountry}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select your country" />
+                    <SelectValue placeholder={t("verification.placeholderSelectCountry")} />
                   </SelectTrigger>
                   <SelectContent>
                     <div className="p-2 border-b">
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                         <Input
-                          placeholder="Search countries..."
+                          placeholder={t("verification.searchCountries")}
                           value={countrySearch}
                           onChange={(e) => setCountrySearch(e.target.value)}
                           className="h-9 pl-9"
@@ -653,10 +655,10 @@ export default function IdentityVerificationPage() {
 
               {selectedCountry && (
                 <div className="space-y-2">
-                  <Label>ID Type</Label>
+                  <Label>{t("verification.labelIdType")}</Label>
                   <Select value={selectedIdType} onValueChange={setSelectedIdType}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select ID type" />
+                      <SelectValue placeholder={t("verification.placeholderSelectIdType")} />
                     </SelectTrigger>
                     <SelectContent>
                       {getIdTypesForCountry(selectedCountry).map((idType) => (
@@ -685,7 +687,7 @@ export default function IdentityVerificationPage() {
                     <div className="flex items-start gap-2">
                       <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                       <div className="flex-1">
-                        <p className="text-sm text-red-700 font-medium">Upload Error</p>
+                        <p className="text-sm text-red-700 font-medium">{t("verification.uploadErrorTitle")}</p>
                         <p className="text-xs text-red-600 mt-1">{uploadError}</p>
                       </div>
                       <Button
@@ -744,15 +746,15 @@ export default function IdentityVerificationPage() {
                         {identityFile
                           ? identityFile.name
                           : uploadError
-                            ? "Upload Failed"
-                            : "Upload ID Document"}
+                            ? t("verification.uploadFailed")
+                            : t("verification.uploadIdTitle")}
                       </h3>
                       <p className="text-xs text-gray-500">
                         {identityFile
                           ? `${(identityFile.size / 1024 / 1024).toFixed(2)} MB`
                           : uploadError
-                            ? "Click to try again"
-                            : "JPG, PNG or PDF (Max 10MB)"}
+                            ? t("verification.clickToTryAgain")
+                            : t("verification.fileHint")}
                       </p>
                     </div>
                     {identityFile && (
@@ -777,7 +779,7 @@ export default function IdentityVerificationPage() {
                 disabled={!fullName || !dateOfBirth || !selectedCountry || !selectedIdType || !identityFile || uploading}
                 className="w-full"
               >
-                {uploading ? "Uploading..." : "Submit"}
+                {uploading ? t("verification.uploading") : t("verification.submit")}
               </Button>
             </div>
           )}

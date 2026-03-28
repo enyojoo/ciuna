@@ -12,11 +12,6 @@ import {
 import { buildRateMap, convertWithRateMap } from "@/lib/referral-currency"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 import { APP_URLS } from "@ciuna/shared"
-import {
-  SEO_REFERRAL_SHARE_DESCRIPTION,
-  SEO_REFERRAL_SHARE_MESSAGE_PREFIX,
-  SEO_REFERRAL_SHARE_TITLE,
-} from "@/lib/seo"
 
 function formatMoney(amount: number, currency: string) {
   try {
@@ -37,7 +32,6 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
 
   const slug = await ensureUserReferralSlug(supabase, user.id)
   const shareUrl = `${APP_URLS.app}/${slug}`
-  const shareMessage = `${SEO_REFERRAL_SHARE_MESSAGE_PREFIX} ${shareUrl}`
 
   const program = await getReferralProgramSettingsServer()
   const balances = await computeReferralBalances(supabase, user.id)
@@ -51,20 +45,6 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
 
   const availableDisplay = convertWithRateMap(balances.availablePolicy, policy, base, rateMap)
   const lifetimeDisplay = convertWithRateMap(balances.totalEarnedPolicy, policy, base, rateMap)
-
-  let programSummary = ""
-  if (!program.program_active) {
-    programSummary = "The referral program is paused. Check back later."
-  } else if (program.mode === "percent") {
-    const pct = program.percent_of_send * 100
-    const months = program.percent_reward_duration_months
-    programSummary = `Earn ${pct.toFixed(2)}% on each referred user's completed transactions for ${months} months from their first transaction on Ciuna.`
-  } else if (program.mode === "tier") {
-    const months = program.percent_reward_duration_months
-    programSummary = `Earn tiered commission on each referred user's completed transactions for ${months} months from their first transaction on Ciuna.`
-  } else {
-    programSummary = `Earn ${formatMoney(program.reward_amount, policy)} when each referral sends a combined ${formatMoney(program.threshold_send_amount, policy)} or more in completed transactions on Ciuna.`
-  }
 
   const now = new Date()
   const { start: quarterStart, end: quarterEnd } = getUtcQuarterBoundsForDate(now)
@@ -152,7 +132,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
 
     referralsList.push({
       id: rid,
-      name: `${ref.first_name || ""} ${ref.last_name || ""}`.trim() || "User",
+      name: `${ref.first_name || ""} ${ref.last_name || ""}`.trim(),
       transactionCount: txCount,
       earningsDisplay: formatMoney(earnedDisplay > 0 ? earnedDisplay : earnedPolicy, base),
       ...((program.mode === "percent" || program.mode === "tier") && ref.referral_percent_window_ends_at
@@ -171,10 +151,6 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   return NextResponse.json({
     slug,
     shareUrl,
-    shareMessage,
-    shareTitle: SEO_REFERRAL_SHARE_TITLE,
-    shareDescription: SEO_REFERRAL_SHARE_DESCRIPTION,
-    programSummary,
     program,
     tierCommission,
     balances: {

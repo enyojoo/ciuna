@@ -6,12 +6,16 @@ import enCommon from "@/locales/en/common.json"
 import ruCommon from "@/locales/ru/common.json"
 import frCommon from "@/locales/fr/common.json"
 import esCommon from "@/locales/es/common.json"
+import enApp from "@/locales/en/app.json"
+import ruApp from "@/locales/ru/app.json"
+import frApp from "@/locales/fr/app.json"
+import esApp from "@/locales/es/app.json"
 
 const resources = {
-  en: { common: enCommon },
-  ru: { common: ruCommon },
-  fr: { common: frCommon },
-  es: { common: esCommon },
+  en: { common: enCommon, app: enApp },
+  ru: { common: ruCommon, app: ruApp },
+  fr: { common: frCommon, app: frApp },
+  es: { common: esCommon, app: esApp },
 } as const
 
 const isBrowser = typeof window !== "undefined"
@@ -28,7 +32,7 @@ if (!i18n.isInitialized) {
     supportedLngs: ["en", "ru", "fr", "es"],
     load: "languageOnly",
     nonExplicitSupportedLngs: true,
-    ns: ["common"],
+    ns: ["common", "app"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
     react: { useSuspense: false },

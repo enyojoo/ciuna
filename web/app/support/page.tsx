@@ -3,26 +3,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Clock } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { AppPageHeader } from "@/components/layout/app-page-header"
 
 export default function UserSupportPage() {
+  const { t } = useTranslation("app")
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null)
 
-  const faqItems = [
-    {
-      question: 'How do I send money?',
-      answer: 'To send money, click the "Send Money" button on your dashboard, enter the amount and select currencies, choose a recipient, make payment using the displayed method, and confirm your transaction.'
-    },
-    {
-      question: 'What are the fees?',
-      answer: 'We charge absolutely no fees on any transaction. Send money worldwide completely free with Ciuna.'
-    },
-    {
-      question: 'How long does it take?',
-      answer: 'All transactions are completed within minutes, ensuring your money reaches its destination quickly and efficiently.'
-    }
-  ]
+  const faqItems = useMemo(
+    () => [
+      { question: t("support.faq1q"), answer: t("support.faq1a") },
+      { question: t("support.faq2q"), answer: t("support.faq2a") },
+      { question: t("support.faq3q"), answer: t("support.faq3a") },
+    ],
+    [t],
+  )
 
   const handleEmailSupport = () => {
     window.open("mailto:support@ciuna.com?subject=Support Request", "_blank")
@@ -39,12 +35,12 @@ export default function UserSupportPage() {
 
   return (
     <div className="space-y-0">
-        <AppPageHeader title="Support" backHref="/dashboard" />
+        <AppPageHeader title={t("support.title")} backHref="/dashboard" />
         <div className="px-5 sm:px-6 pt-3 sm:pt-4 pb-5 sm:pb-6 space-y-4 sm:space-y-5">
           {/* Contact Options */}
           <Card className="bg-white gap-2 py-5">
             <CardHeader className="pb-0">
-              <CardTitle className="text-lg font-semibold text-gray-900">Get in Touch</CardTitle>
+              <CardTitle className="text-lg font-semibold text-gray-900">{t("support.getInTouch")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-0 pt-1">
               {/* Email Support */}
@@ -55,7 +51,7 @@ export default function UserSupportPage() {
                 <div className="flex items-center space-x-4">
                   <div className="text-2xl">📧</div>
                   <div>
-                    <h3 className="font-medium text-gray-900">Email Support</h3>
+                    <h3 className="font-medium text-gray-900">{t("support.emailSupport")}</h3>
                     <p className="text-sm text-gray-600">support@ciuna.com</p>
                   </div>
                 </div>
@@ -70,8 +66,8 @@ export default function UserSupportPage() {
                 <div className="flex items-center space-x-4">
                   <div className="text-2xl">💬</div>
                   <div>
-                    <h3 className="font-medium text-gray-900">Telegram Chat</h3>
-                    <p className="text-sm text-gray-600">Chat with us on Telegram</p>
+                    <h3 className="font-medium text-gray-900">{t("support.telegramChat")}</h3>
+                    <p className="text-sm text-gray-600">{t("support.telegramSubtitle")}</p>
                   </div>
                 </div>
                 <div className="text-gray-400">›</div>
@@ -82,7 +78,7 @@ export default function UserSupportPage() {
           {/* FAQ Section */}
           <Card className="bg-white gap-2 py-5">
             <CardHeader className="pb-0">
-              <CardTitle className="text-lg font-semibold text-gray-900">Frequently Asked Questions</CardTitle>
+              <CardTitle className="text-lg font-semibold text-gray-900">{t("support.faqTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-0 pt-1">
               {faqItems.map((item, index) => (
@@ -113,12 +109,12 @@ export default function UserSupportPage() {
             <CardHeader className="pb-0">
               <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <Clock className="h-5 w-5" />
-                Support Hours
+                {t("support.hoursTitle")}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-1">
               <div className="space-y-2">
-                <p className="text-sm text-gray-600">All week from 8 am to 11pm GMT+3</p>
+                <p className="text-sm text-gray-600">{t("support.hoursBody")}</p>
               </div>
             </CardContent>
           </Card>

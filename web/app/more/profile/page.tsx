@@ -20,8 +20,10 @@ import { useAuth } from "@/lib/auth-context"
 import { userService } from "@/lib/database"
 import { useUserData } from "@/hooks/use-user-data"
 import { AppPageHeader } from "@/components/layout/app-page-header"
+import { useTranslation } from "react-i18next"
 
 export default function ProfilePage() {
+  const { t } = useTranslation("app")
   const router = useRouter()
   const { user, userProfile, refreshUserProfile } = useAuth()
   const { currencies } = useUserData()
@@ -91,11 +93,11 @@ export default function ProfilePage() {
     try {
       // TODO: Implement account deletion API call
       // await deleteAccount(user.id)
-      alert("Account deletion is not yet implemented")
+      alert(t("profile.deleteNotImplemented"))
       setShowDeleteDialog(false)
     } catch (error) {
       console.error("Error deleting account:", error)
-      alert("Failed to delete account. Please try again.")
+      alert(t("profile.deleteFailed"))
     } finally {
       setIsDeleting(false)
     }
@@ -108,13 +110,13 @@ export default function ProfilePage() {
   return (
     <>
     <div className="min-h-screen bg-gray-50">
-        <AppPageHeader title="Your profile" backHref="/more" />
+        <AppPageHeader title={t("profile.title")} backHref="/more" />
 
         <div className="max-w-4xl mx-auto px-6 py-6 lg:px-8 space-y-6">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold">Profile Information</CardTitle>
+                <CardTitle className="text-lg font-semibold">{t("profile.profileInfo")}</CardTitle>
                 {!isEditingProfile ? (
                   <Button
                     variant="outline"
@@ -123,7 +125,7 @@ export default function ProfilePage() {
                     className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary"
                   >
                     <Pencil className="h-4 w-4 mr-2" />
-                    <span className="font-semibold">Edit</span>
+                    <span className="font-semibold">{t("profile.edit")}</span>
                   </Button>
                 ) : (
                   <div className="flex gap-3">
@@ -134,7 +136,7 @@ export default function ProfilePage() {
                       disabled={loading}
                       className="bg-gray-50"
                     >
-                      Discard
+                      {t("profile.discard")}
                     </Button>
                     <Button
                       size="sm"
@@ -142,7 +144,7 @@ export default function ProfilePage() {
                       disabled={loading}
                       className="bg-primary hover:bg-primary/90"
                     >
-                      {loading ? "Saving..." : "Save"}
+                      {loading ? t("profile.saving") : t("profile.save")}
                     </Button>
                   </div>
                 )}
@@ -153,7 +155,7 @@ export default function ProfilePage() {
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <Label htmlFor="firstName" className="text-xs font-normal text-gray-500 uppercase tracking-wide">First Name</Label>
+                      <Label htmlFor="firstName" className="text-xs font-normal text-gray-500 uppercase tracking-wide">{t("profile.firstName")}</Label>
                       <Input
                         id="firstName"
                         value={editProfileData.firstName}
@@ -163,7 +165,7 @@ export default function ProfilePage() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label htmlFor="lastName" className="text-xs font-normal text-gray-500 uppercase tracking-wide">Last Name</Label>
+                      <Label htmlFor="lastName" className="text-xs font-normal text-gray-500 uppercase tracking-wide">{t("profile.lastName")}</Label>
                       <Input
                         id="lastName"
                         value={editProfileData.lastName}
@@ -174,12 +176,12 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="email" className="text-xs font-normal text-gray-500 uppercase tracking-wide">Email Address</Label>
+                    <Label htmlFor="email" className="text-xs font-normal text-gray-500 uppercase tracking-wide">{t("profile.email")}</Label>
                     <Input id="email" type="email" value={editProfileData.email} disabled className="bg-gray-50 font-medium" />
-                    <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+                    <p className="text-xs text-gray-500 mt-1">{t("profile.emailLocked")}</p>
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="phone" className="text-xs font-normal text-gray-500 uppercase tracking-wide">Phone Number</Label>
+                    <Label htmlFor="phone" className="text-xs font-normal text-gray-500 uppercase tracking-wide">{t("profile.phone")}</Label>
                     <Input
                       id="phone"
                       value={editProfileData.phone}
@@ -189,14 +191,14 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="baseCurrency" className="text-xs font-normal text-gray-500 uppercase tracking-wide">Base Currency</Label>
+                    <Label htmlFor="baseCurrency" className="text-xs font-normal text-gray-500 uppercase tracking-wide">{t("profile.baseCurrency")}</Label>
                     <Select
                       value={editProfileData.baseCurrency}
                       onValueChange={(value) => setEditProfileData({ ...editProfileData, baseCurrency: value })}
                       disabled={loading}
                     >
                       <SelectTrigger className="font-medium">
-                        <SelectValue placeholder="Select base currency" />
+                        <SelectValue placeholder={t("profile.selectBaseCurrency")} />
                       </SelectTrigger>
                       <SelectContent>
                         {currencies.map((currency) => (
@@ -210,36 +212,36 @@ export default function ProfilePage() {
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-gray-500 mt-1">
-                      Used for reporting your total sent amount
+                      {t("profile.baseCurrencyHint")}
                     </p>
                   </div>
                 </>
               ) : (
                 <div className="space-y-4">
                   <div className="space-y-1">
-                    <Label className="text-xs font-normal text-gray-500 uppercase tracking-wide">First Name</Label>
-                    <p className="text-base font-medium text-gray-900 pt-2">{profileData.firstName || "Not set"}</p>
+                    <Label className="text-xs font-normal text-gray-500 uppercase tracking-wide">{t("profile.firstName")}</Label>
+                    <p className="text-base font-medium text-gray-900 pt-2">{profileData.firstName || t("profile.notSet")}</p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs font-normal text-gray-500 uppercase tracking-wide">Last Name</Label>
-                    <p className="text-base font-medium text-gray-900 pt-2">{profileData.lastName || "Not set"}</p>
+                    <Label className="text-xs font-normal text-gray-500 uppercase tracking-wide">{t("profile.lastName")}</Label>
+                    <p className="text-base font-medium text-gray-900 pt-2">{profileData.lastName || t("profile.notSet")}</p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs font-normal text-gray-500 uppercase tracking-wide">Email Address</Label>
+                    <Label className="text-xs font-normal text-gray-500 uppercase tracking-wide">{t("profile.email")}</Label>
                     <p className="text-base font-medium text-gray-900 pt-2">{profileData.email}</p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs font-normal text-gray-500 uppercase tracking-wide">Phone Number</Label>
-                    <p className="text-base font-medium text-gray-900 pt-2">{profileData.phone || "Not set"}</p>
+                    <Label className="text-xs font-normal text-gray-500 uppercase tracking-wide">{t("profile.phone")}</Label>
+                    <p className="text-base font-medium text-gray-900 pt-2">{profileData.phone || t("profile.notSet")}</p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs font-normal text-gray-500 uppercase tracking-wide">Base Currency</Label>
+                    <Label className="text-xs font-normal text-gray-500 uppercase tracking-wide">{t("profile.baseCurrency")}</Label>
                     <div className="flex items-center gap-2 pt-2">
                       <div dangerouslySetInnerHTML={{ __html: getSelectedCurrency()?.flag_svg || "" }} />
                       <span className="text-base font-semibold text-gray-900">{getSelectedCurrency()?.code}</span>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
-                      Used for reporting your total sent amount
+                      {t("profile.baseCurrencyHint")}
                     </p>
                   </div>
                 </div>
@@ -255,7 +257,7 @@ export default function ProfilePage() {
                 onClick={() => setShowDeleteDialog(true)}
                 className="text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-2"
               >
-                <span>Delete Account</span>
+                <span>{t("profile.deleteAccount")}</span>
               </Button>
             </div>
           </div>
@@ -266,9 +268,9 @@ export default function ProfilePage() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete Account</DialogTitle>
+            <DialogTitle>{t("profile.deleteTitle")}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete your account? This action cannot be undone. All your data, transactions, and account information will be permanently deleted.
+              {t("profile.deleteDescription")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
@@ -277,14 +279,14 @@ export default function ProfilePage() {
               onClick={() => setShowDeleteDialog(false)}
               disabled={isDeleting}
             >
-              Cancel
+              {t("profile.cancel")}
             </Button>
             <Button
               onClick={handleDeleteAccount}
               disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
-              {isDeleting ? "Deleting..." : "Delete Account"}
+              {isDeleting ? t("profile.deleting") : t("profile.deleteAccount")}
             </Button>
           </DialogFooter>
         </DialogContent>

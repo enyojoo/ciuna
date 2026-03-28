@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 export default function ForgotPasswordPage() {
+  const { t } = useTranslation("app")
   const [step, setStep] = useState<"email" | "otp">("email")
   const [email, setEmail] = useState("")
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
@@ -40,13 +42,13 @@ export default function ForgotPasswordPage() {
 
       if (response.ok) {
         setStep("otp")
-        setMessage("We've sent a 6-digit code to your email address.")
+        setMessage(t("auth.codeSentToast"))
         startResendCooldown()
       } else {
-        setError(data.error || "An error occurred")
+        setError(data.error || t("auth.apiError"))
       }
     } catch (error) {
-      setError("An error occurred. Please try again.")
+      setError(t("auth.genericError"))
     } finally {
       setIsLoading(false)
     }
@@ -79,7 +81,7 @@ export default function ForgotPasswordPage() {
     const otpCode = otp.join("")
 
     if (otpCode.length !== 6) {
-      setError("Please enter all 6 digits")
+      setError(t("auth.enterAllDigits"))
       return
     }
 
@@ -103,10 +105,10 @@ export default function ForgotPasswordPage() {
         sessionStorage.setItem("reset-email", email)
         router.push("/auth/reset-password")
       } else {
-        setError(data.error || "Invalid code. Please try again.")
+        setError(data.error || t("auth.invalidOtp"))
       }
     } catch (error) {
-      setError("An error occurred. Please try again.")
+      setError(t("auth.genericError"))
     } finally {
       setIsLoading(false)
     }
@@ -128,13 +130,13 @@ export default function ForgotPasswordPage() {
       })
 
       if (response.ok) {
-        setMessage("New code sent to your email address.")
+        setMessage(t("auth.newCodeSent"))
         startResendCooldown()
       } else {
-        setError("Failed to resend code. Please try again.")
+        setError(t("auth.resendFailed"))
       }
     } catch (error) {
-      setError("An error occurred. Please try again.")
+      setError(t("auth.genericError"))
     } finally {
       setIsLoading(false)
     }
@@ -157,12 +159,12 @@ export default function ForgotPasswordPage() {
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
         <CardTitle className="text-xl sm:text-2xl font-bold">
-          {step === "email" ? "Forgot Password" : "Enter Verification Code"}
+          {step === "email" ? t("auth.forgotPasswordTitle") : t("auth.enterCodeTitle")}
         </CardTitle>
         <CardDescription>
           {step === "email"
-            ? "Enter your email for verification code"
-            : `We've sent a 6-digit code to ${email}`}
+            ? t("auth.forgotEmailDesc")
+            : t("auth.codeSentTo", { email })}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -182,11 +184,11 @@ export default function ForgotPasswordPage() {
           {step === "email" ? (
             <form onSubmit={handleEmailSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email">{t("auth.emailAddress")}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter your email address"
+                  placeholder={t("auth.enterEmailAddress")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="h-10 sm:h-11"
@@ -196,13 +198,13 @@ export default function ForgotPasswordPage() {
               </div>
 
               <Button type="submit" className="w-full h-10 sm:h-11" disabled={isLoading}>
-                {isLoading ? "Sending..." : "Send Verification Code"}
+                {isLoading ? t("auth.sending") : t("auth.sendVerificationCode")}
               </Button>
             </form>
           ) : (
             <form onSubmit={handleOtpSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label>Enter 6-digit code</Label>
+                <Label>{t("auth.enterSixDigit")}</Label>
                 <div className="flex gap-2 justify-center">
                   {otp.map((digit, index) => (
                     <Input
@@ -226,7 +228,7 @@ export default function ForgotPasswordPage() {
                 className="w-full h-10 sm:h-11"
                 disabled={isLoading || otp.join("").length !== 6}
               >
-                {isLoading ? "Verifying..." : "Verify Code"}
+                {isLoading ? t("auth.verifying") : t("auth.verifyCode")}
               </Button>
 
               <div className="text-center">
@@ -236,7 +238,7 @@ export default function ForgotPasswordPage() {
                   disabled={resendCooldown > 0 || isLoading}
                   className="text-sm text-primary hover:underline disabled:text-muted-foreground disabled:cursor-not-allowed"
                 >
-                  {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Resend code"}
+                  {resendCooldown > 0 ? t("auth.resendIn", { seconds: resendCooldown }) : t("auth.resendCode")}
                 </button>
               </div>
             </form>
@@ -258,12 +260,12 @@ export default function ForgotPasswordPage() {
               className="inline-flex items-center justify-center gap-2 text-sm text-primary hover:underline"
             >
               <ArrowLeft className="h-4 w-4" />
-              {step === "otp" ? "Change Email" : "Back to Sign In"}
+              {step === "otp" ? t("auth.changeEmail") : t("auth.backToSignIn")}
             </button>
             <p className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
+              {t("auth.noAccountForgot")}{" "}
               <Link href="/auth/register" className="text-primary font-medium hover:underline">
-                Sign up
+                {t("auth.signUp")}
               </Link>
             </p>
           </div>

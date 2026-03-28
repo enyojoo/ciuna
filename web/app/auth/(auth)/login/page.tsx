@@ -12,8 +12,10 @@ import { useAuth } from "@/lib/auth-context"
 import { Check, Eye, EyeOff } from "lucide-react"
 import { useEffect } from "react"
 import { claimReferralIfNeeded } from "@/lib/referral-client"
+import { useTranslation } from "react-i18next"
 
 function LoginPageContent() {
+  const { t } = useTranslation("app")
   const router = useRouter()
   const { signIn, signInWithGoogle, user, userProfile, isAdmin, loading } = useAuth()
   const [email, setEmail] = useState("")
@@ -76,7 +78,7 @@ function LoginPageContent() {
         router.push("/dashboard")
       }
     } catch (err: any) {
-      setError(err.message || "An error occurred during login")
+      setError(err.message || t("auth.loginError"))
     } finally {
       setFormLoading(false)
     }
@@ -92,7 +94,7 @@ function LoginPageContent() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle className="text-xl sm:text-2xl font-bold">Welcome back</CardTitle>
+        <CardTitle className="text-xl sm:text-2xl font-bold">{t("auth.welcomeBack")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4 sm:space-y-5">
@@ -115,7 +117,7 @@ function LoginPageContent() {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
             </svg>
-            Sign in with Google
+            {t("auth.signInGoogle")}
           </Button>
 
           <div className="relative">
@@ -123,33 +125,33 @@ function LoginPageContent() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Or</span>
+              <span className="bg-card px-2 text-muted-foreground">{t("auth.or")}</span>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("auth.email")}</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder={t("auth.emailPlaceholder")}
                 className="h-10 sm:h-11"
                 required
                 disabled={formLoading}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t("auth.password")}</Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
+                  placeholder={t("auth.passwordPlaceholder")}
                   className="h-10 sm:h-11 pr-10"
                   required
                   disabled={formLoading}
@@ -176,23 +178,23 @@ function LoginPageContent() {
                 <div className={`w-5 h-5 border-2 rounded flex items-center justify-center flex-shrink-0 ${rememberMe ? "bg-primary border-primary" : "border-input bg-background"}`}>
                   {rememberMe ? <Check className="h-3 w-3 text-primary-foreground" /> : null}
                 </div>
-                <Label className="text-sm font-medium cursor-pointer">Remember me</Label>
+                <Label className="text-sm font-medium cursor-pointer">{t("auth.rememberMe")}</Label>
               </button>
             </div>
             <div className="flex items-center justify-between">
               <Link href="/auth/forgot-password" className="text-sm text-primary hover:underline">
-                Forgot password?
+                {t("auth.forgotPassword")}
               </Link>
             </div>
             <Button type="submit" className="w-full h-10 sm:h-11" disabled={formLoading}>
-              {formLoading ? "Signing In..." : "Sign in"}
+              {formLoading ? t("auth.signingIn") : t("auth.signIn")}
             </Button>
           </form>
 
           <div className="text-center text-sm">
-            Don&apos;t have an account?{" "}
+            {t("auth.noAccount")}{" "}
             <Link href="/auth/register" className="text-primary hover:underline font-semibold">
-              Sign up
+              {t("auth.signUp")}
             </Link>
           </div>
         </div>

@@ -17,8 +17,10 @@ import {
   getReferralSlugFromSearchParams,
   persistReferralSlugFromSearchParam,
 } from "@/lib/referral-client"
+import { useTranslation } from "react-i18next"
 
 function RegisterPageContent() {
+  const { t } = useTranslation("app")
   const router = useRouter()
   const searchParams = useSearchParams()
   const { signUp, signInWithGoogle } = useAuth()
@@ -60,7 +62,7 @@ function RegisterPageContent() {
     // Use security settings for password validation
     const passwordValidation = validatePassword(formData.password, securitySettings?.passwordMinLength)
     if (!passwordValidation.valid) {
-      setError(passwordValidation.error || "Password validation failed")
+      setError(passwordValidation.error || t("auth.passwordValidationFailed"))
       setLoading(false)
       return
     }
@@ -88,7 +90,7 @@ function RegisterPageContent() {
         router.push("/auth/login")
       }, 2000)
     } catch (err: any) {
-      setError(err.message || "An error occurred during registration")
+      setError(err.message || t("auth.registerError"))
     } finally {
       setLoading(false)
     }
@@ -108,10 +110,10 @@ function RegisterPageContent() {
           <div className="w-14 h-14 sm:w-16 sm:h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="h-7 w-7 sm:h-8 sm:w-8 text-green-600 dark:text-green-400" />
           </div>
-          <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">Account Created Successfully!</h3>
-          <p className="text-muted-foreground mb-2 text-sm sm:text-base">Welcome to Ciuna! Please check your email to verify your account.</p>
-          <p className="text-sm text-muted-foreground mb-4">After verification, you can sign in to start sending money.</p>
-          <p className="text-sm text-muted-foreground">Redirecting to login...</p>
+          <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">{t("auth.registerSuccessTitle")}</h3>
+          <p className="text-muted-foreground mb-2 text-sm sm:text-base">{t("auth.registerSuccessBody")}</p>
+          <p className="text-sm text-muted-foreground mb-4">{t("auth.registerSuccessHint")}</p>
+          <p className="text-sm text-muted-foreground">{t("auth.redirectingLogin")}</p>
         </CardContent>
       </Card>
     )
@@ -120,7 +122,7 @@ function RegisterPageContent() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle className="text-xl sm:text-2xl font-bold">Create an Account</CardTitle>
+        <CardTitle className="text-xl sm:text-2xl font-bold">{t("auth.createAccountTitle")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4 sm:space-y-5">
@@ -131,9 +133,9 @@ function RegisterPageContent() {
           )}
 
           <p className="text-sm text-muted-foreground text-center">
-            By creating an account you agree to our{" "}
+            {t("auth.termsPrefix")}{" "}
             <a href={`${APP_URLS.website}/terms?from=register`} target="_blank" rel="noopener noreferrer" className="text-primary font-medium hover:underline">
-              Terms
+              {t("auth.termsLink")}
             </a>
             .
           </p>
@@ -154,7 +156,7 @@ function RegisterPageContent() {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
             </svg>
-            Sign up with Google
+            {t("auth.signUpGoogle")}
           </Button>
 
           <div className="relative">
@@ -162,20 +164,20 @@ function RegisterPageContent() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Or</span>
+              <span className="bg-card px-2 text-muted-foreground">{t("auth.or")}</span>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName">First Name *</Label>
+                <Label htmlFor="firstName">{t("auth.firstNameRequired")}</Label>
                 <Input
                   id="firstName"
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleChange}
-                  placeholder="First name"
+                  placeholder={t("auth.firstNamePlaceholder")}
                   className="h-10 sm:h-11"
                   required
                   disabled={loading}
@@ -183,13 +185,13 @@ function RegisterPageContent() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name *</Label>
+                <Label htmlFor="lastName">{t("auth.lastNameRequired")}</Label>
                 <Input
                   id="lastName"
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleChange}
-                  placeholder="Last name"
+                  placeholder={t("auth.lastNamePlaceholder")}
                   className="h-10 sm:h-11"
                   required
                   disabled={loading}
@@ -198,14 +200,14 @@ function RegisterPageContent() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email">{t("auth.emailRequired")}</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="Enter your email"
+                placeholder={t("auth.enterEmail")}
                 className="h-10 sm:h-11"
                 required
                 disabled={loading}
@@ -213,7 +215,7 @@ function RegisterPageContent() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password *</Label>
+              <Label htmlFor="password">{t("auth.passwordRequired")}</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -221,7 +223,7 @@ function RegisterPageContent() {
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Create a password"
+                  placeholder={t("auth.createPasswordPlaceholder")}
                   className="h-10 sm:h-11 pr-10"
                   required
                   disabled={loading}
@@ -240,14 +242,14 @@ function RegisterPageContent() {
             </div>
 
             <Button type="submit" className="w-full h-10 sm:h-11" disabled={loading}>
-              {loading ? "Creating Account..." : "Create Account"}
+              {loading ? t("auth.creatingAccount") : t("auth.createAccount")}
             </Button>
           </form>
 
           <div className="mt-6 text-center text-sm">
-            Already have an account?{" "}
+            {t("auth.alreadyHaveAccount")}{" "}
             <Link href="/auth/login" className="text-primary font-medium hover:underline">
-              Sign In
+              {t("auth.signInLink")}
             </Link>
           </div>
         </div>
