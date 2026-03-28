@@ -1,10 +1,11 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Home, LayoutDashboard, Send, History, LogOut, X, UserPlus } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { BrandLogo } from "@/components/brand/brand-logo"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
@@ -14,25 +15,32 @@ interface UserDashboardLayoutProps {
   children: React.ReactNode
 }
 
-const baseNavigation = [
-  { name: "Home", href: "/dashboard", icon: Home },
-  { name: "Send Money", href: "/send", icon: Send },
-  { name: "Recipients", href: "/recipients", icon: UserPlus },
-  { name: "Transactions", href: "/transactions", icon: History },
-  { name: "More", href: "/more", icon: LayoutDashboard },
-]
-
-const bottomNavItems = [
-  { name: "Home", href: "/dashboard", icon: Home },
-  { name: "Send", href: "/send", icon: Send },
-  { name: "More", href: "/more", icon: LayoutDashboard },
-]
-
 export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
+  const { t } = useTranslation("common")
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { signOut } = useAuth()
+
+  const baseNavigation = useMemo(
+    () => [
+      { name: t("nav.home"), href: "/dashboard", icon: Home },
+      { name: t("nav.sendMoney"), href: "/send", icon: Send },
+      { name: t("nav.recipients"), href: "/recipients", icon: UserPlus },
+      { name: t("nav.transactions"), href: "/transactions", icon: History },
+      { name: t("nav.more"), href: "/more", icon: LayoutDashboard },
+    ],
+    [t],
+  )
+
+  const bottomNavItems = useMemo(
+    () => [
+      { name: t("nav.home"), href: "/dashboard", icon: Home },
+      { name: t("nav.send"), href: "/send", icon: Send },
+      { name: t("nav.more"), href: "/more", icon: LayoutDashboard },
+    ],
+    [t],
+  )
 
   const handleLogout = async () => {
     await signOut()
@@ -71,7 +79,7 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
                   : pathname === item.href
               return (
                 <Link
-                  key={item.name}
+                  key={item.href}
                   href={item.href}
                   prefetch={true}
                   className={`flex items-center w-full px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 ${
@@ -96,7 +104,7 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
               onClick={handleLogout}
             >
               <LogOut className="mr-3 h-5 w-5 flex-shrink-0" />
-              <span className="truncate">Logout</span>
+              <span className="truncate">{t("nav.logout")}</span>
             </Button>
           </div>
         </div>
@@ -125,7 +133,7 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
 
               return (
                 <Link
-                  key={item.name}
+                  key={item.href}
                   href={item.href}
                   prefetch={true}
                   className="flex flex-col items-center justify-center p-2 min-w-0 flex-1"

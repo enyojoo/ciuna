@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,7 @@ export function LoginPinDialog({
   mode: "create" | "change"
   onSaved?: () => void
 }) {
+  const { t } = useTranslation("common")
   const [current, setCurrent] = useState("")
   const [pin, setPinValue] = useState("")
   const [confirm, setConfirm] = useState("")
@@ -51,11 +53,11 @@ export function LoginPinDialog({
     setError(null)
     if (mode === "create") {
       if (!isValidPinFormat(pin) || !isValidPinFormat(confirm)) {
-        setError("Enter a 4-digit PIN in both fields.")
+        setError(t("pinDialog.errorBothFields"))
         return
       }
       if (pin !== confirm) {
-        setError("PINs do not match.")
+        setError(t("pinDialog.errorPinsNoMatch"))
         return
       }
       setBusy(true)
@@ -64,35 +66,34 @@ export function LoginPinDialog({
         onSaved?.()
         onOpenChange(false)
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Could not save PIN.")
+        setError(e instanceof Error ? e.message : t("pinDialog.errorSave"))
       } finally {
         setBusy(false)
       }
       return
     }
 
-    // change
     if (!isValidPinFormat(current)) {
-      setError("Enter your current 4-digit PIN.")
+      setError(t("pinDialog.errorCurrentRequired"))
       return
     }
     if (!isValidPinFormat(pin) || !isValidPinFormat(confirm)) {
-      setError("Enter a new 4-digit PIN in both fields.")
+      setError(t("pinDialog.errorNewBothFields"))
       return
     }
     if (pin !== confirm) {
-      setError("New PINs do not match.")
+      setError(t("pinDialog.errorNewNoMatch"))
       return
     }
     if (pin === current) {
-      setError("New PIN must be different from your current PIN.")
+      setError(t("pinDialog.errorNewSameAsOld"))
       return
     }
     setBusy(true)
     try {
       const ok = await verifyPin(userId, current)
       if (!ok) {
-        setError("Current PIN is incorrect.")
+        setError(t("pinDialog.errorWrongCurrent"))
         setBusy(false)
         return
       }
@@ -100,17 +101,15 @@ export function LoginPinDialog({
       onSaved?.()
       onOpenChange(false)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not update PIN.")
+      setError(e instanceof Error ? e.message : t("pinDialog.errorUpdate"))
     } finally {
       setBusy(false)
     }
   }
 
-  const title = mode === "create" ? "Create PIN" : "Change PIN"
+  const title = mode === "create" ? t("pinDialog.createTitle") : t("pinDialog.changeTitle")
   const description =
-    mode === "create"
-      ? "Choose a 4-digit PIN to unlock the app after it locks when you are inactive. You will still need your password if you log out."
-      : "Enter your current PIN, then choose a new 4-digit PIN."
+    mode === "create" ? t("pinDialog.createDescription") : t("pinDialog.changeDescription")
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -123,7 +122,7 @@ export function LoginPinDialog({
         <div className="space-y-4 py-2">
           {mode === "change" && (
             <div className="space-y-2">
-              <Label htmlFor="pin-current">Current PIN</Label>
+              <Label htmlFor="pin-current">{t("pinDialog.currentPin")}</Label>
               <Input
                 id="pin-current"
                 inputMode="numeric"
@@ -138,7 +137,7 @@ export function LoginPinDialog({
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="pin-new">{mode === "create" ? "PIN" : "New PIN"}</Label>
+            <Label htmlFor="pin-new">{mode === "create" ? t("pinDialog.pin") : t("pinDialog.newPin")}</Label>
             <Input
               id="pin-new"
               inputMode="numeric"
@@ -152,7 +151,7 @@ export function LoginPinDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="pin-confirm">Confirm PIN</Label>
+            <Label htmlFor="pin-confirm">{t("pinDialog.confirmPin")}</Label>
             <Input
               id="pin-confirm"
               inputMode="numeric"
@@ -170,10 +169,10 @@ export function LoginPinDialog({
 
         <DialogFooter className="gap-2 sm:gap-0">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
-            Cancel
+            {t("pinDialog.cancel")}
           </Button>
           <Button type="button" onClick={() => void handleSave()} disabled={busy}>
-            {busy ? "Saving…" : "Save"}
+            {busy ? t("pinDialog.saving") : t("pinDialog.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

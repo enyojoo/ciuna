@@ -8,6 +8,7 @@ import { ProtectedRouteWrapper } from "@/components/auth/protected-route-wrapper
 import { PwaStandaloneRoot } from "@/components/pwa/pwa-standalone-root"
 import { InstallAppBanner } from "@/components/pwa/install-app-banner"
 import { PwaInstallProvider } from "@/hooks/use-pwa-install-prompt"
+import { I18nProvider } from "@/components/i18n/i18n-provider"
 import "./globals.css"
 import { PWA_APP_ICON_URL, SITE_FAVICON_URL } from "@/lib/pwa-brand"
 import {
@@ -127,9 +128,11 @@ export default function RootLayout({
           <PwaStandaloneRoot />
           <InstallAppBanner />
           <PostHogProvider>
-            <AuthProvider>
-              <ProtectedRouteWrapper>{children}</ProtectedRouteWrapper>
-            </AuthProvider>
+            <I18nProvider>
+              <AuthProvider>
+                <ProtectedRouteWrapper>{children}</ProtectedRouteWrapper>
+              </AuthProvider>
+            </I18nProvider>
           </PostHogProvider>
         </PwaInstallProvider>
       </body>

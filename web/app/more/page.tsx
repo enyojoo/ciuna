@@ -14,13 +14,16 @@ import {
 import { ChevronRight, LogOut } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
+import { useTranslation } from "react-i18next"
+import { LanguagePicker } from "@/components/i18n/language-picker"
 import type { KYCSubmission } from "@/lib/kyc-service"
 import { InstallAppCard } from "@/components/pwa/install-app-card"
 import { LoginPinDialog } from "@/components/app-lock/login-pin-dialog"
 import { hasPin } from "@/lib/login-pin"
 
 export default function MorePage() {
+  const { t } = useTranslation("common")
   const router = useRouter()
   const { signOut, userProfile } = useAuth()
   const [pinDialogOpen, setPinDialogOpen] = useState(false)
@@ -149,44 +152,36 @@ export default function MorePage() {
     loadKycSubmissions()
   }, [userProfile?.id])
 
-  // Determine verification status and badge
-  const getVerificationStatus = () => {
-    const identitySubmission = kycSubmissions.find(s => s.type === "identity")
-    const addressSubmission = kycSubmissions.find(s => s.type === "address")
+  const verificationStatus = useMemo(() => {
+    const identitySubmission = kycSubmissions.find((s) => s.type === "identity")
+    const addressSubmission = kycSubmissions.find((s) => s.type === "address")
 
-    // Both must be approved to be "Verified"
     if (identitySubmission?.status === "approved" && addressSubmission?.status === "approved") {
-      return { status: "verified", label: "Verified", className: "bg-green-100 text-green-700" }
+      return { status: "verified" as const, label: t("kyc.verified"), className: "bg-green-100 text-green-700" }
     }
 
-    // Check for in_review status (either one)
     if (identitySubmission?.status === "in_review" || addressSubmission?.status === "in_review") {
-      return { status: "in_review", label: "In review", className: "bg-yellow-100 text-yellow-700" }
+      return { status: "in_review" as const, label: t("kyc.inReview"), className: "bg-yellow-100 text-yellow-700" }
     }
 
-    // Check for rejected status (either one)
     if (identitySubmission?.status === "rejected" || addressSubmission?.status === "rejected") {
-      return { status: "rejected", label: "Rejected", className: "bg-red-100 text-red-700" }
+      return { status: "rejected" as const, label: t("kyc.rejected"), className: "bg-red-100 text-red-700" }
     }
 
-    // If at least one submission exists but not approved, show pending
     if (identitySubmission || addressSubmission) {
-      return { status: "pending", label: "Pending", className: "bg-gray-100 text-gray-700" }
+      return { status: "pending" as const, label: t("kyc.pending"), className: "bg-gray-100 text-gray-700" }
     }
 
-    // No submissions yet
-    return { status: "not_started", label: "Take action", className: "bg-amber-100 text-amber-700" }
-  }
-
-  const verificationStatus = getVerificationStatus()
+    return { status: "not_started" as const, label: t("kyc.takeAction"), className: "bg-amber-100 text-amber-700" }
+  }, [kycSubmissions, t])
 
   return (
     <>
     <div className="space-y-0">
         {/* Header - Mobile Style */}
         <div className="bg-white p-5 sm:p-6 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">More</h1>
-          <p className="text-base text-gray-600">Manage your account information</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">{t("more.title")}</h1>
+          <p className="text-base text-gray-600">{t("more.subtitle")}</p>
         </div>
 
         {/* Content */}
@@ -196,21 +191,21 @@ export default function MorePage() {
           {/* Account Section */}
           <Card className="gap-2 py-5">
             <CardHeader className="pb-0">
-              <CardTitle className="text-lg font-semibold">Account</CardTitle>
+              <CardTitle className="text-lg font-semibold">{t("more.account")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-0 pt-1">
               <Link
                 href="/more/profile"
                 className="w-full flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
               >
-                <span className="text-base text-gray-900">Your Profile</span>
+                <span className="text-base text-gray-900">{t("more.yourProfile")}</span>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
               </Link>
               <Link
                 href="/more/verification"
                 className="w-full flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
               >
-                <span className="text-base text-gray-900">Account Verification</span>
+                <span className="text-base text-gray-900">{t("more.accountVerification")}</span>
                 <div className="flex items-center gap-2">
                   <span
                     className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${verificationStatus.className}`}
@@ -224,7 +219,7 @@ export default function MorePage() {
                 href="/more/referrals"
                 className="w-full flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
               >
-                <span className="text-base text-gray-900">Affiliates &amp; Referrals</span>
+                <span className="text-base text-gray-900">{t("more.affiliatesReferrals")}</span>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
               </Link>
               <button
@@ -232,7 +227,7 @@ export default function MorePage() {
                 onClick={openLoginPin}
                 className="w-full flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors text-left"
               >
-                <span className="text-base text-gray-900">Login PIN</span>
+                <span className="text-base text-gray-900">{t("more.loginPin")}</span>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
               </button>
             </CardContent>
@@ -241,35 +236,36 @@ export default function MorePage() {
           {/* App Section */}
           <Card className="gap-2 py-5">
             <CardHeader className="pb-0">
-              <CardTitle className="text-lg font-semibold">App</CardTitle>
+              <CardTitle className="text-lg font-semibold">{t("more.app")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-0 pt-1">
+              <LanguagePicker />
               <Link
                 href="/recipients"
                 className="w-full flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
               >
-                <span className="text-base text-gray-900">Recipients</span>
+                <span className="text-base text-gray-900">{t("more.recipients")}</span>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
               </Link>
               <Link
                 href="/support"
                 className="w-full flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
               >
-                <span className="text-base text-gray-900">Support</span>
+                <span className="text-base text-gray-900">{t("more.support")}</span>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
               </Link>
               <button
                 onClick={handlePrivacy}
                 className="w-full flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
               >
-                <span className="text-base text-gray-900">Privacy Policy</span>
+                <span className="text-base text-gray-900">{t("more.privacyPolicy")}</span>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
               </button>
               <button
                 onClick={handleTerms}
                 className="w-full flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
               >
-                <span className="text-base text-gray-900">Terms of Service</span>
+                <span className="text-base text-gray-900">{t("more.termsOfService")}</span>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
               </button>
             </CardContent>
@@ -284,14 +280,14 @@ export default function MorePage() {
                 className="text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-2"
               >
                 <LogOut className="mr-2 h-5 w-5" />
-                <span>Logout</span>
+                <span>{t("more.logout")}</span>
               </Button>
             </div>
           </div>
 
           {/* App Version */}
           <div className="text-center py-5">
-            <p className="text-sm text-gray-400">Version 1.0.0</p>
+            <p className="text-sm text-gray-400">{t("more.version", { version: "1.0.0" })}</p>
           </div>
         </div>
       </div>
@@ -300,10 +296,8 @@ export default function MorePage() {
       <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Sign Out</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to sign out? You'll need to sign in again to access your account.
-            </DialogDescription>
+            <DialogTitle>{t("more.signOutTitle")}</DialogTitle>
+            <DialogDescription>{t("more.signOutDescription")}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
@@ -311,14 +305,14 @@ export default function MorePage() {
               onClick={() => setShowLogoutDialog(false)}
               disabled={isLoggingOut}
             >
-              Cancel
+              {t("more.cancel")}
             </Button>
             <Button
               onClick={handleSignOut}
               disabled={isLoggingOut}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
-              {isLoggingOut ? "Signing out..." : "Sign Out"}
+              {isLoggingOut ? t("more.signingOut") : t("more.signOut")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Delete } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getLockoutState } from "@/lib/login-pin"
@@ -21,6 +22,7 @@ export function AppPinLockScreen({
   onUnlock: (pin: string) => Promise<boolean>
   onLogout: () => void
 }) {
+  const { t } = useTranslation("common")
   const [digits, setDigits] = useState("")
   const [busy, setBusy] = useState(false)
   const [shake, setShake] = useState(false)
@@ -31,8 +33,8 @@ export function AppPinLockScreen({
 
   useEffect(() => {
     if (!lockout.locked || lockout.lockUntil == null) return
-    const t = window.setInterval(() => setLockoutTick((n) => n + 1), 15_000)
-    return () => window.clearInterval(t)
+    const timer = window.setInterval(() => setLockoutTick((n) => n + 1), 15_000)
+    return () => window.clearInterval(timer)
   }, [lockout.locked, lockout.lockUntil])
 
   const submit = useCallback(
@@ -45,7 +47,7 @@ export function AppPinLockScreen({
         if (!ok) {
           setShake(true)
           setDigits("")
-          setError("Incorrect PIN")
+          setError(t("pinLock.incorrectPin"))
           setLockoutTick((n) => n + 1)
           window.setTimeout(() => setShake(false), 400)
         }
@@ -53,7 +55,7 @@ export function AppPinLockScreen({
         setBusy(false)
       }
     },
-    [busy, onUnlock],
+    [busy, onUnlock, t],
   )
 
   const appendDigit = (d: string) => {
@@ -103,14 +105,19 @@ export function AppPinLockScreen({
       ? Math.max(1, Math.ceil((lockout.lockUntil - Date.now()) / 60_000))
       : 0
 
+  const lockoutMessage =
+    lockMinutes === 1 ? t("pinLock.tooManyAttemptsOne") : t("pinLock.tooManyAttempts", { minutes: lockMinutes })
+
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-background">
       <div className="flex-1 flex flex-col items-center px-6 pt-10 pb-6 max-w-md mx-auto w-full min-h-0">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-muted text-lg font-semibold text-foreground">
           {initials}
         </div>
-        <h1 className="mt-6 text-2xl font-bold text-foreground text-center">Welcome back{welcomeName ? ` ${welcomeName}` : ""}</h1>
-        <p className="mt-2 text-sm text-muted-foreground text-center">Enter your 4-digit PIN</p>
+        <h1 className="mt-6 text-2xl font-bold text-foreground text-center">
+          {welcomeName ? `${t("pinLock.welcomeBack")} ${welcomeName}` : t("pinLock.welcomeBack")}
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground text-center">{t("pinLock.enterPin")}</p>
 
         <div className={cn("mt-10 flex justify-center gap-3 sm:gap-4", shake && "animate-pin-shake")}>
           {Array.from({ length: PIN_LEN }).map((_, i) => {
@@ -132,14 +139,12 @@ export function AppPinLockScreen({
         </div>
 
         {lockout.locked ? (
-          <p className="mt-4 text-sm text-destructive text-center">
-            Too many attempts. Try again in {lockMinutes} minute{lockMinutes === 1 ? "" : "s"}.
-          </p>
+          <p className="mt-4 text-sm text-destructive text-center">{lockoutMessage}</p>
         ) : error ? (
           <p className="mt-4 text-sm text-destructive text-center">{error}</p>
         ) : (
           <p className="mt-4 text-sm text-muted-foreground text-center min-h-[1.25rem]">
-            {busy ? "Verifying…" : "\u00a0"}
+            {busy ? t("pinLock.verifying") : "\u00a0"}
           </p>
         )}
 
@@ -159,7 +164,7 @@ export function AppPinLockScreen({
                       disabled={busy || lockout.locked}
                       className="h-[52px] text-destructive hover:text-destructive hover:bg-destructive/10"
                       onClick={backspace}
-                      aria-label="Delete"
+                      aria-label={t("pinLock.backspaceAria")}
                     >
                       <Delete className="h-6 w-6" />
                     </Button>
@@ -182,13 +187,16 @@ export function AppPinLockScreen({
           ))}
         </div>
 
-        <button
-          type="button"
-          onClick={() => void onLogout()}
-          className="mt-4 text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
-        >
-          Not your account? Log out
-        </button>
+        <p className="mt-4 text-sm text-muted-foreground text-center">
+          <span>{t("pinLock.notYourAccount")} </span>
+          <button
+            type="button"
+            onClick={() => void onLogout()}
+            className="text-foreground underline underline-offset-2 hover:opacity-90"
+          >
+            {t("pinLock.logOut")}
+          </button>
+        </p>
       </div>
     </div>
   )
