@@ -149,7 +149,9 @@ export async function processReferralRewardsOnCompletedSend(transaction: Transac
       if (sendInPolicy <= 0) return
 
       let effectiveFraction = program.percent_of_send
-      let rewardType: "percent_of_send" | "tier_percent_of_send" = "percent_of_send"
+      // Persist percent-based rewards under the existing DB enum/constraint value.
+      // In tier mode the amount still reflects the active tier percentage.
+      const rewardType: "percent_of_send" = "percent_of_send"
 
       if (program.mode === "tier") {
         const txDate = parseISO(completedAtIso)
@@ -161,7 +163,6 @@ export async function processReferralRewardsOnCompletedSend(transaction: Transac
           end.toISOString(),
         )
         effectiveFraction = resolveTierPercent(program.percent_tiers, count)
-        rewardType = "tier_percent_of_send"
       }
 
       if (effectiveFraction <= 0) return
