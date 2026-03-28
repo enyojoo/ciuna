@@ -60,11 +60,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const reference = `${REFERRAL_PAYOUT_PREFIX}${pay.id}`
     const now = new Date().toISOString()
 
+    // Use only columns present on all deployments: `completed_at` is optional (see docs/supabase/transactions_add_completed_at.sql).
     const { data: updatedRows, error: updErr } = await supabase
       .from("transactions")
       .update({
         status: "completed",
-        completed_at: now,
         updated_at: now,
       })
       .eq("transaction_id", transactionId)
@@ -107,7 +107,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           total_amount: sendAmount,
           reference,
           status: "completed",
-          completed_at: now,
           updated_at: now,
         })
 
@@ -120,7 +119,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           .from("transactions")
           .update({
             status: "completed",
-            completed_at: now,
             updated_at: now,
           })
           .eq("transaction_id", transactionId)
