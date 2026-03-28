@@ -281,10 +281,10 @@ export default function UserDashboardPage() {
           <Card className="min-w-0 basis-0 flex-[1.5] shrink">
             <CardContent className="p-5 sm:p-6 text-center min-w-0">
               <div
-                className="min-h-[4rem] flex items-center justify-center mb-2"
+                className="min-h-[3.5rem] flex items-center justify-center mb-2"
                 title={formatCurrencyValue(totalSentValue, baseCurrency)}
               >
-                <span className="max-w-full text-4xl font-bold text-foreground tabular-nums leading-tight">
+                <span className="max-w-full text-3xl font-bold text-foreground tabular-nums leading-tight">
                   {formatCurrencyValueMobileVolume(totalSentValue, baseCurrency)}
                 </span>
               </div>
@@ -295,10 +295,10 @@ export default function UserDashboardPage() {
           <Card className="min-w-0 basis-0 flex-1 shrink">
             <CardContent className="p-5 sm:p-6 text-center min-w-0">
               <div
-                className="min-h-[4rem] flex items-center justify-center mb-2"
+                className="min-h-[3.5rem] flex items-center justify-center mb-2"
                 title={String(completedTransactions)}
               >
-                <span className="max-w-full text-4xl font-bold text-foreground tabular-nums leading-tight truncate">
+                <span className="max-w-full text-3xl font-bold text-foreground tabular-nums leading-tight truncate">
                   {completedTransactions}
                 </span>
               </div>
@@ -311,7 +311,7 @@ export default function UserDashboardPage() {
         <div className="px-5 sm:px-6 hidden sm:flex gap-3 sm:gap-6">
           <Card className="flex-[1.5] sm:flex-1">
             <CardContent className="p-5 sm:p-6 text-center">
-              <div className="text-4xl sm:text-5xl font-bold text-foreground mb-2">
+              <div className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
                 {formatCurrencyValue(totalSentValue, baseCurrency)}
               </div>
               <div className="text-base sm:text-lg font-medium text-muted-foreground">Total Volume</div>
@@ -320,7 +320,7 @@ export default function UserDashboardPage() {
 
           <Card className="flex-1">
             <CardContent className="p-5 sm:p-6 text-center">
-              <div className="text-4xl sm:text-5xl font-bold text-foreground mb-2">{completedTransactions}</div>
+              <div className="text-3xl sm:text-4xl font-bold text-foreground mb-2">{completedTransactions}</div>
               <div className="text-base sm:text-lg font-medium text-muted-foreground">Transactions</div>
             </CardContent>
           </Card>
