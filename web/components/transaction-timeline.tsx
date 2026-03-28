@@ -2,6 +2,7 @@
 
 import { ArrowUp, ArrowRight, Check } from "lucide-react"
 import type { Transaction } from "@/types"
+import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 
 interface TimelineStage {
   id: string
@@ -32,6 +33,45 @@ export function TransactionTimeline({ transaction }: TransactionTimelineProps) {
 
   const getStages = (): TimelineStage[] => {
     const status = transaction.status
+    const isReferralPayout =
+      typeof transaction.reference === "string" && transaction.reference.startsWith(REFERRAL_PAYOUT_PREFIX)
+
+    if (isReferralPayout) {
+      return [
+        {
+          id: "pending",
+          title: "Request submitted",
+          description: "Your referral withdrawal request was received.",
+          icon: <ArrowUp className="h-5 w-5" />,
+          completed: true,
+          timestamp: formatTimestamp(transaction.created_at),
+        },
+        {
+          id: "processing",
+          title: "Processing",
+          description: "We're reviewing and sending your payout to your recipient.",
+          icon: <ArrowRight className="h-5 w-5" />,
+          completed: status === "processing" || status === "completed",
+          timestamp:
+            status === "processing" || status === "completed"
+              ? formatTimestamp(transaction.updated_at)
+              : "",
+        },
+        {
+          id: "completed",
+          title: "Payout sent",
+          description: transaction.recipient?.bank_name
+            ? `Funds are on the way to ${transaction.recipient.bank_name}.`
+            : "Your referral payout has been processed.",
+          icon: <Check className="h-5 w-5" />,
+          completed: status === "completed",
+          timestamp:
+            status === "completed"
+              ? formatTimestamp(transaction.completed_at || transaction.updated_at)
+              : "",
+        },
+      ]
+    }
 
     const stages: TimelineStage[] = [
       {

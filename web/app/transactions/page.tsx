@@ -4,7 +4,7 @@ import { useState, useEffect, useLayoutEffect } from "react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Search } from "lucide-react"
+import { Search, Wallet } from "lucide-react"
 import { TransactionsListSkeleton } from "@/components/transactions-skeleton"
 import { useAuth } from "@/lib/auth-context"
 import { useUserData } from "@/hooks/use-user-data"
@@ -13,6 +13,7 @@ import { fetchWithAuth } from "@/lib/fetch-with-auth"
 import { supabase } from "@/lib/supabase"
 import Link from "next/link"
 import { AppPageHeader } from "@/components/layout/app-page-header"
+import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 
 interface CombinedTransaction {
   id: string
@@ -20,6 +21,7 @@ interface CombinedTransaction {
   type: "send" | "receive"
   status: string
   created_at: string
+  reference?: string | null
   // Send transaction fields
   send_amount?: number
   send_currency?: string
@@ -65,6 +67,10 @@ function isTransactionsCacheFresh(userId: string): boolean {
   } catch {
     return false
   }
+}
+
+function isReferralPayoutRow(t: CombinedTransaction): boolean {
+  return typeof t.reference === "string" && t.reference.startsWith(REFERRAL_PAYOUT_PREFIX)
 }
 
 export default function UserTransactionsPage() {
@@ -241,7 +247,10 @@ export default function UserTransactionsPage() {
     const searchLower = searchTerm.toLowerCase()
     const matchesSearch =
       transaction.transaction_id?.toLowerCase().includes(searchLower) ||
-      transaction.recipient?.full_name?.toLowerCase().includes(searchLower)
+      transaction.recipient?.full_name?.toLowerCase().includes(searchLower) ||
+      (isReferralPayoutRow(transaction) &&
+        searchLower.length >= 4 &&
+        /referral|payout|withdraw/i.test(searchLower))
     return matchesSearch
   })
 
@@ -321,6 +330,68 @@ export default function UserTransactionsPage() {
               if (!transaction) return null
               const statusColor = getStatusColor(transaction.status)
               const detailUrl = `/send/${transaction.transaction_id.toLowerCase()}`
+              const payout = isReferralPayoutRow(transaction)
+
+              if (payout) {
+                return (
+                  <Link href={detailUrl} key={transaction.id} className="block">
+                    <Card className="overflow-hidden border border-indigo-200/80 bg-gradient-to-br from-indigo-50/90 via-white to-teal-50/40 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                      <CardContent className="p-4 sm:p-5">
+                        <div className="flex items-start justify-between gap-3 mb-4">
+                          <div className="flex items-start gap-3 min-w-0">
+                            <div className="shrink-0 flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700">
+                              <Wallet className="h-5 w-5" aria-hidden />
+                            </div>
+                            <div className="min-w-0">
+                              <span className="inline-flex rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-800">
+                                Referral payout
+                              </span>
+                              <p className="mt-1.5 text-2xl sm:text-3xl font-bold text-gray-900 tabular-nums leading-tight">
+                                {formatAmount(transaction.send_amount || 0, transaction.send_currency || "")}
+                              </p>
+                              <p className="mt-1 font-mono text-[11px] text-gray-500 truncate">
+                                {transaction.transaction_id}
+                              </p>
+                            </div>
+                          </div>
+                          <span
+                            className="shrink-0 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold"
+                            style={{
+                              backgroundColor: `${statusColor}20`,
+                              color: statusColor,
+                            }}
+                          >
+                            {transaction.status.toUpperCase()}
+                          </span>
+                        </div>
+
+                        <div className="rounded-xl border border-indigo-100/90 bg-white/70 p-3 sm:p-4 mb-4">
+                          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                            Withdrawal to
+                          </p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {transaction.recipient?.full_name || "Recipient"}
+                          </p>
+                          {transaction.recipient?.bank_name && (
+                            <p className="text-sm text-gray-600 mt-0.5">{transaction.recipient.bank_name}</p>
+                          )}
+                          <div className="mt-3 pt-3 border-t border-indigo-100/80 flex items-center justify-between gap-2 text-base sm:text-lg">
+                            <span className="text-gray-600">Recipient receives</span>
+                            <span className="font-semibold tabular-nums text-indigo-800">
+                              {formatAmount(transaction.receive_amount || 0, transaction.receive_currency || "")}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-1">
+                          <span className="text-xs sm:text-sm text-gray-500">{formatDate(transaction.created_at)}</span>
+                          <span className="text-lg sm:text-xl text-indigo-300/80 font-light">›</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                )
+              }
 
               return (
                 <Link href={detailUrl} key={transaction.id} className="block">
@@ -360,7 +431,7 @@ export default function UserTransactionsPage() {
                               <span className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide">
                                 Send Amount
                               </span>
-                              <span className="text-base sm:text-lg font-semibold text-gray-900">
+                              <span className="text-xl sm:text-2xl font-semibold text-gray-900 tabular-nums">
                                 {formatAmount(transaction.send_amount || 0, transaction.send_currency || "")}
                               </span>
                             </div>
@@ -368,7 +439,7 @@ export default function UserTransactionsPage() {
                               <span className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide">
                                 Receive Amount
                               </span>
-                              <span className="text-base sm:text-lg font-semibold text-green-600">
+                              <span className="text-xl sm:text-2xl font-semibold text-green-600 tabular-nums">
                                 {formatAmount(transaction.receive_amount || 0, transaction.receive_currency || "")}
                               </span>
                             </div>

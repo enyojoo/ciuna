@@ -21,6 +21,7 @@ import { ReferralsPageSkeleton } from "@/components/referrals-page-skeleton"
 import { SEO_REFERRAL_SHARE_TITLE } from "@/lib/seo"
 import { fetchWithAuth } from "@/lib/fetch-with-auth"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useRouter } from "next/navigation"
 
 interface ReferralRow {
   id: string
@@ -127,7 +128,8 @@ function currencySymbolForCode(
 export default function ReferralsPage() {
   useRouteProtection({ requireAuth: true })
   const { userProfile, loading: authLoading, user } = useAuth()
-  const { recipients, refreshRecipients, currencies } = useUserData()
+  const { recipients, refreshRecipients, currencies, refreshTransactions } = useUserData()
+  const router = useRouter()
   const [data, setData] = useState<MeResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -285,7 +287,14 @@ export default function ReferralsPage() {
       setWithdrawOpen(false)
       setWithdrawAmount("")
       setWithdrawError(null)
+      if (userProfile?.id) {
+        await refreshTransactions?.(userProfile.id)
+      }
       await load({ silent: true })
+      const payoutTxId = j.payoutTransactionId as string | undefined
+      if (payoutTxId) {
+        router.push(`/send/${String(payoutTxId).toLowerCase()}`)
+      }
     } catch (e: any) {
       setWithdrawError(e?.message || "Withdraw failed")
     } finally {

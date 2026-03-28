@@ -29,6 +29,8 @@ export interface CombinedTransaction {
   crypto_wallet?: any
   destination_type?: "bank" | "card"
   bridge_card_account_id?: string
+  /** Set for referral withdrawal rows (`REFERRAL_PAYOUT:…`). */
+  reference?: string | null
 }
 
 export const combinedTransactionService = {
@@ -77,6 +79,7 @@ export const combinedTransactionService = {
       receive_amount: tx.receive_amount,
       receive_currency: tx.receive_currency,
       recipient: tx.recipient,
+      reference: tx.reference ?? null,
     }))
 
     let combined: CombinedTransaction[] = [...sendTxns]

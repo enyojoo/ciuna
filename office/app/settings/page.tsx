@@ -24,13 +24,22 @@ import {
   X,
   Upload,
   Gift,
+  Info,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { supabase } from "@/lib/supabase"
+
+const REFERRAL_HELP_POLICY_CURRENCY =
+  "Thresholds and fixed rewards are interpreted in this currency (FX uses your exchange rates)."
+const REFERRAL_HELP_PERCENT_OF_SEND =
+  "Enter as a percentage (e.g. 0.5 means 0.5% of each send in policy currency)."
+const REFERRAL_HELP_DURATION =
+  "From each referral's first qualifying completed send; end date is fixed when first calculated. Later changes here do not move existing referrals' windows."
 import {
   getAccountTypeConfigFromCurrency,
   getAccountTypeFromCurrency,
@@ -1969,27 +1978,41 @@ export default function AdminSettingsPage() {
                   currency below—not money received on the other side.
                 </p>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="referral-active">Program active</Label>
-                    <p className="text-sm text-gray-500">When off, no new referral rewards are granted.</p>
-                  </div>
-                  <Switch
-                    id="referral-active"
+              <TooltipProvider delayDuration={200}>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="referral-active">Program active</Label>
+                      <p className="text-sm text-gray-500">When off, no new referral rewards are granted.</p>
+                    </div>
+                    <Switch
+                      id="referral-active"
                     checked={referralProgram.program_active}
                     onCheckedChange={(checked) => setReferralProgram((p) => ({ ...p, program_active: checked }))}
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Policy currency</Label>
-                    <p className="text-xs text-gray-500">
-                      Thresholds and fixed rewards are interpreted in this currency (FX uses your exchange rates).
-                    </p>
-                    <Select
-                      value={referralProgram.policy_currency}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1.5">
+                        <Label>Policy currency</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              className="inline-flex size-6 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                              aria-label={REFERRAL_HELP_POLICY_CURRENCY}
+                            >
+                              <Info className="h-3.5 w-3.5" aria-hidden />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-sm">
+                            {REFERRAL_HELP_POLICY_CURRENCY}
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <Select
+                        value={referralProgram.policy_currency}
                       onValueChange={(value) => setReferralProgram((p) => ({ ...p, policy_currency: value }))}
                     >
                       <SelectTrigger className="w-full md:max-w-md">
@@ -2080,10 +2103,23 @@ export default function AdminSettingsPage() {
                 ) : referralProgram.mode === "percent" ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Percent of each completed send</Label>
-                      <p className="text-xs text-gray-500">
-                        Enter as a percentage (e.g. 0.5 means 0.5% of each send in policy currency).
-                      </p>
+                      <div className="flex items-center gap-1.5">
+                        <Label>Percent of each completed send</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              className="inline-flex size-6 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                              aria-label={REFERRAL_HELP_PERCENT_OF_SEND}
+                            >
+                              <Info className="h-3.5 w-3.5" aria-hidden />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-sm">
+                            {REFERRAL_HELP_PERCENT_OF_SEND}
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                       <Input
                         type="number"
                         min={0}
@@ -2098,11 +2134,23 @@ export default function AdminSettingsPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Duration</Label>
-                      <p className="text-xs text-gray-500">
-                        From each referral&apos;s first qualifying completed send; end date is fixed when first
-                        calculated. Later changes here do not move existing referrals&apos; windows.
-                      </p>
+                      <div className="flex items-center gap-1.5">
+                        <Label>Duration</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              className="inline-flex size-6 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                              aria-label={REFERRAL_HELP_DURATION}
+                            >
+                              <Info className="h-3.5 w-3.5" aria-hidden />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-sm">
+                            {REFERRAL_HELP_DURATION}
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                       <Select
                         value={String(referralProgram.percent_reward_duration_months)}
                         onValueChange={(v) =>
@@ -2220,11 +2268,23 @@ export default function AdminSettingsPage() {
                       </Button>
                     </div>
                     <div className="space-y-2">
-                      <Label>Duration</Label>
-                      <p className="text-xs text-gray-500">
-                        From each referral&apos;s first qualifying completed send; end date is fixed when first
-                        calculated. Later changes here do not move existing referrals&apos; windows.
-                      </p>
+                      <div className="flex items-center gap-1.5">
+                        <Label>Duration</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              className="inline-flex size-6 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                              aria-label={REFERRAL_HELP_DURATION}
+                            >
+                              <Info className="h-3.5 w-3.5" aria-hidden />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-sm">
+                            {REFERRAL_HELP_DURATION}
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                       <Select
                         value={String(referralProgram.percent_reward_duration_months)}
                         onValueChange={(v) =>
@@ -2258,6 +2318,7 @@ export default function AdminSettingsPage() {
                   {saving ? "Saving..." : "Save referral program"}
                 </Button>
               </CardContent>
+              </TooltipProvider>
             </Card>
           </TabsContent>
         </Tabs>

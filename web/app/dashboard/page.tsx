@@ -1,8 +1,7 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Send, MessageCircle, UserPlus } from "lucide-react"
+import { Send, MessageCircle, UserPlus, User } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { useEffect, useState } from "react"
@@ -130,8 +129,14 @@ export default function UserDashboardPage() {
     }
   }, [transactions, exchangeRates, userProfile])
 
-  // Extract first name only (in case first_name contains full name)
-  const userName = userProfile?.first_name?.split(' ')[0] || "User"
+  const profileInitials = (() => {
+    const first = (userProfile?.first_name || "").trim()
+    const last = (userProfile?.last_name || "").trim()
+    if (first && last) return `${first[0]}${last[0]}`.toUpperCase()
+    if (first.length >= 2) return first.slice(0, 2).toUpperCase()
+    if (first.length === 1) return `${first[0]}`.toUpperCase()
+    return "U"
+  })()
   const baseCurrency = userProfile?.base_currency || "NGN"
   const completedTransactions = transactions?.filter((t) => t && t.status === "completed").length || 0
   const totalSentValue = totalSent > 0 ? totalSent : 0
@@ -232,27 +237,46 @@ export default function UserDashboardPage() {
     <div className="space-y-5 sm:space-y-6 pb-5 sm:pb-6">
         {/* Page Header - Mobile Style */}
         <div className="bg-card p-5 sm:p-6 mb-5 sm:mb-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">Hi {userName} 👋🏻</h1>
-            <button
-              onClick={() => router.push("/support")}
-              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-              aria-label="Support"
+          <div className="flex items-center justify-between gap-3 min-w-0">
+            <Link
+              href="/more/profile"
+              className="flex items-center gap-2.5 min-w-0 rounded-xl py-1 pr-2 -ml-1 hover:bg-gray-50/80 transition-colors"
             >
-              <MessageCircle className="h-6 w-6 text-gray-600" />
-            </button>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 ring-2 ring-primary/20">
+                <User className="h-5 w-5 text-primary" aria-hidden />
+              </span>
+              <span className="text-lg font-bold text-gray-900 tracking-tight tabular-nums">
+                {profileInitials}
+              </span>
+            </Link>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href="/more/referrals"
+                className="inline-flex items-center rounded-full border border-teal-200/90 bg-gradient-to-r from-teal-50 to-emerald-50/90 px-3 py-1.5 text-xs font-semibold text-teal-900 shadow-sm hover:from-teal-100 hover:to-emerald-50 transition-colors"
+              >
+                Refer &amp; Earn
+              </Link>
+              <button
+                type="button"
+                onClick={() => router.push("/support")}
+                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                aria-label="Support"
+              >
+                <MessageCircle className="h-6 w-6 text-gray-600" />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Stats — mobile only: stable flex + compact volume ≥1M */}
+        {/* Stats — mobile only */}
         <div className="px-5 sm:px-6 flex gap-3 min-w-0 sm:hidden">
           <Card className="min-w-0 basis-0 flex-[1.5] shrink">
             <CardContent className="p-5 sm:p-6 text-center min-w-0">
               <div
-                className="min-h-[3.25rem] flex items-center justify-center mb-2"
+                className="min-h-[4rem] flex items-center justify-center mb-2"
                 title={formatCurrencyValue(totalSentValue, baseCurrency)}
               >
-                <span className="max-w-full text-[clamp(1rem,4.2vw,2.25rem)] font-bold text-foreground tabular-nums leading-tight">
+                <span className="max-w-full text-4xl font-bold text-foreground tabular-nums leading-tight">
                   {formatCurrencyValueMobileVolume(totalSentValue, baseCurrency)}
                 </span>
               </div>
@@ -263,10 +287,10 @@ export default function UserDashboardPage() {
           <Card className="min-w-0 basis-0 flex-1 shrink">
             <CardContent className="p-5 sm:p-6 text-center min-w-0">
               <div
-                className="min-h-[3.25rem] flex items-center justify-center mb-2"
+                className="min-h-[4rem] flex items-center justify-center mb-2"
                 title={String(completedTransactions)}
               >
-                <span className="max-w-full text-[clamp(1rem,4.2vw,2.25rem)] font-bold text-foreground tabular-nums leading-tight truncate">
+                <span className="max-w-full text-4xl font-bold text-foreground tabular-nums leading-tight truncate">
                   {completedTransactions}
                 </span>
               </div>
@@ -275,11 +299,11 @@ export default function UserDashboardPage() {
           </Card>
         </div>
 
-        {/* Stats — tablet/desktop: unchanged from original */}
+        {/* Stats — tablet/desktop */}
         <div className="px-5 sm:px-6 hidden sm:flex gap-3 sm:gap-6">
           <Card className="flex-[1.5] sm:flex-1">
             <CardContent className="p-5 sm:p-6 text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
+              <div className="text-4xl sm:text-5xl font-bold text-foreground mb-2">
                 {formatCurrencyValue(totalSentValue, baseCurrency)}
               </div>
               <div className="text-base sm:text-lg font-medium text-muted-foreground">Total Volume</div>
@@ -288,7 +312,7 @@ export default function UserDashboardPage() {
 
           <Card className="flex-1">
             <CardContent className="p-5 sm:p-6 text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-foreground mb-2">{completedTransactions}</div>
+              <div className="text-4xl sm:text-5xl font-bold text-foreground mb-2">{completedTransactions}</div>
               <div className="text-base sm:text-lg font-medium text-muted-foreground">Transactions</div>
             </CardContent>
           </Card>
@@ -383,7 +407,7 @@ export default function UserDashboardPage() {
                             <span className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide">
                               Send Amount
                             </span>
-                            <span className="text-base sm:text-lg font-semibold text-gray-900">
+                            <span className="text-xl sm:text-2xl font-semibold text-gray-900 tabular-nums">
                               {formatAmount(transaction.send_amount || 0, transaction.send_currency || "")}
                             </span>
                           </div>
@@ -391,7 +415,7 @@ export default function UserDashboardPage() {
                             <span className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide">
                               Receive Amount
                             </span>
-                            <span className="text-base sm:text-lg font-semibold text-green-600">
+                            <span className="text-xl sm:text-2xl font-semibold text-green-600 tabular-nums">
                               {formatAmount(transaction.receive_amount || 0, transaction.receive_currency || "")}
                             </span>
                           </div>

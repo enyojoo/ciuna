@@ -15,7 +15,6 @@ import {
   Download,
   Filter,
   Eye,
-  MoreHorizontal,
   CheckCircle,
   Clock,
   XCircle,
@@ -24,7 +23,6 @@ import {
   X,
   ChevronDown,
 } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import type { Transaction } from "@/types"
 import { formatCurrency } from "@/utils/currency"
 import { supabase } from "@/lib/supabase"
@@ -806,11 +804,12 @@ export default function AdminTransactionsPage() {
                     <TableCell>
                       {transaction.type === "referral_payout" ? (
                         <div>
-                          <Badge className="mb-1 bg-indigo-100 text-indigo-800 hover:bg-indigo-100">Referral payout</Badge>
+                          <Badge className="mb-0.5 bg-indigo-100 text-indigo-800 hover:bg-indigo-100 text-[10px] font-medium px-1.5 py-0 h-5 leading-none">
+                            Referral payout
+                          </Badge>
                           <div className="font-medium">
                             {formatCurrency(transaction.send_amount || 0, transaction.send_currency || "")}
                           </div>
-                          <div className="text-sm text-gray-500">To {transaction.recipient?.full_name}</div>
                         </div>
                       ) : transaction.type === "send" ? (
                         <div>
@@ -838,25 +837,6 @@ export default function AdminTransactionsPage() {
                     <TableCell>{getStatusBadge(transaction.status)}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 flex-wrap">
-                        {transaction.type === "referral_payout" &&
-                          (transaction.status === "pending" || transaction.status === "processing") && (
-                            <>
-                              <Button
-                                size="sm"
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                                onClick={() => transaction.payout_request_id && completeReferralPayout(transaction.payout_request_id)}
-                              >
-                                Complete
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => transaction.payout_request_id && cancelReferralPayout(transaction.payout_request_id)}
-                              >
-                                Cancel
-                              </Button>
-                            </>
-                          )}
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button variant="outline" size="sm" onClick={() => setSelectedTransaction(transaction)}>
@@ -902,23 +882,51 @@ export default function AdminTransactionsPage() {
                                     <p>{formatTimestamp(selectedTransaction.created_at)}</p>
                                   </div>
                                   {selectedTransaction.type === "referral_payout" ? (
-                                    <div className="col-span-2 rounded-lg border border-indigo-200 bg-indigo-50/60 p-4 space-y-2">
-                                      <Badge className="bg-indigo-100 text-indigo-800">Referral payout</Badge>
-                                      <p className="text-sm">
-                                        <span className="font-medium">Amount: </span>
-                                        {formatCurrency(
-                                          selectedTransaction.send_amount || 0,
-                                          selectedTransaction.send_currency || "",
+                                    <>
+                                      <div className="col-span-2 rounded-lg border border-indigo-200 bg-indigo-50/60 p-4 space-y-2">
+                                        <Badge className="bg-indigo-100 text-indigo-800">Referral payout</Badge>
+                                        <p className="text-sm">
+                                          <span className="font-medium">Amount: </span>
+                                          {formatCurrency(
+                                            selectedTransaction.send_amount || 0,
+                                            selectedTransaction.send_currency || "",
+                                          )}
+                                        </p>
+                                        <p className="text-sm">
+                                          <span className="font-medium">Recipient: </span>
+                                          {selectedTransaction.recipient?.full_name} ({selectedTransaction.recipient?.bank_name})
+                                        </p>
+                                      </div>
+                                      {(selectedTransaction.status === "pending" ||
+                                        selectedTransaction.status === "processing") &&
+                                        selectedTransaction.payout_request_id && (
+                                          <div className="col-span-2 border-t border-gray-200 pt-4">
+                                            <label className="text-sm font-medium text-gray-600">Actions</label>
+                                            <div className="flex flex-wrap gap-2 mt-2">
+                                              <Button
+                                                size="sm"
+                                                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                                                onClick={() =>
+                                                  selectedTransaction.payout_request_id &&
+                                                  void completeReferralPayout(selectedTransaction.payout_request_id)
+                                                }
+                                              >
+                                                Complete
+                                              </Button>
+                                              <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() =>
+                                                  selectedTransaction.payout_request_id &&
+                                                  void cancelReferralPayout(selectedTransaction.payout_request_id)
+                                                }
+                                              >
+                                                Cancel
+                                              </Button>
+                                            </div>
+                                          </div>
                                         )}
-                                      </p>
-                                      <p className="text-sm">
-                                        <span className="font-medium">Recipient: </span>
-                                        {selectedTransaction.recipient?.full_name} ({selectedTransaction.recipient?.bank_name})
-                                      </p>
-                                      <p className="text-xs text-gray-500">
-                                        Use Complete or Cancel in the row for pending requests.
-                                      </p>
-                                    </div>
+                                    </>
                                   ) : selectedTransaction.type === "send" ? (
                                     <>
                                       <div>
@@ -1066,6 +1074,7 @@ export default function AdminTransactionsPage() {
                                   )}
                                 </div>
 
+                                {selectedTransaction.type !== "referral_payout" && (
                                 <div>
                                   <label className="text-sm font-medium text-gray-600">Receipt</label>
                                   {selectedTransaction.receipt_url ? (
@@ -1121,6 +1130,7 @@ export default function AdminTransactionsPage() {
                                     <p className="text-sm text-gray-500 mt-1">No receipt uploaded</p>
                                   )}
                                 </div>
+                                )}
 
                                 {selectedTransaction.type !== "referral_payout" && (
                                 <div className="border-t pt-4">
@@ -1172,40 +1182,6 @@ export default function AdminTransactionsPage() {
                             )}
                           </DialogContent>
                         </Dialog>
-
-                        {transaction.type !== "referral_payout" && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => handleStatusUpdate(transaction.transaction_id, "processing")}
-                              >
-                                Payment Received
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleStatusUpdate(transaction.transaction_id, "completed")}
-                              >
-                                Transfer Complete
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleStatusUpdate(transaction.transaction_id, "failed")}
-                                className="text-red-600"
-                              >
-                                Mark as Failed
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleStatusUpdate(transaction.transaction_id, "cancelled")}
-                                className="text-gray-600"
-                              >
-                                Cancel Transfer
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
                       </div>
                     </TableCell>
                   </TableRow>

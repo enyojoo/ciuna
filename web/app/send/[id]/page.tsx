@@ -14,6 +14,7 @@ import { TransactionDetailsSkeleton } from "@/components/transaction-details-ske
 import { AppPageHeader } from "@/components/layout/app-page-header"
 import { supabase } from "@/lib/supabase"
 import type { Transaction } from "@/types"
+import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 
 function TransactionStatusPage() {
   const router = useRouter()
@@ -285,7 +286,11 @@ function TransactionStatusPage() {
   // Get timer display text
   const getTimerDisplay = (): string | null => {
     if (!transaction) return null
-    
+
+    if (typeof transaction.reference === "string" && transaction.reference.startsWith(REFERRAL_PAYOUT_PREFIX)) {
+      return null
+    }
+
     // Don't show timer for failed/cancelled
     if (transaction.status === "failed" || transaction.status === "cancelled") {
       return null
@@ -431,7 +436,47 @@ function TransactionStatusPage() {
   }
 
 
-  const getStatusMessage = (status: string) => {
+  const getStatusMessage = (status: string, isReferralPayout: boolean) => {
+    if (isReferralPayout) {
+      switch (status) {
+        case "pending":
+          return {
+            title: "Request submitted",
+            description: "Your referral withdrawal is queued for processing.",
+            isCompleted: false,
+          }
+        case "processing":
+          return {
+            title: "Processing payout",
+            description: "We're sending funds to your saved recipient.",
+            isCompleted: false,
+          }
+        case "completed":
+          return {
+            title: "Payout complete",
+            description: "Your referral reward has been sent to your recipient.",
+            isCompleted: true,
+          }
+        case "failed":
+          return {
+            title: "Payout failed",
+            description: "There was an issue processing this withdrawal. Please contact support.",
+            isCompleted: false,
+          }
+        case "cancelled":
+          return {
+            title: "Request cancelled",
+            description: "This payout request was cancelled. Your referral balance was not reduced.",
+            isCompleted: false,
+          }
+        default:
+          return {
+            title: "Processing",
+            description: "Your withdrawal is being processed.",
+            isCompleted: false,
+          }
+      }
+    }
     switch (status) {
       case "pending":
         return {
@@ -507,13 +552,18 @@ function TransactionStatusPage() {
     )
   }
 
-  const statusMessage = getStatusMessage(transaction.status)
+  const isReferralPayout =
+    typeof transaction.reference === "string" && transaction.reference.startsWith(REFERRAL_PAYOUT_PREFIX)
+  const statusMessage = getStatusMessage(transaction.status, isReferralPayout)
   const statusSteps = getStatusSteps(transaction.status)
   const { timeRemaining, isOverdue } = getTimeInfo()
 
   return (
     <div className="space-y-0">
-      <AppPageHeader title="Transfer" backHref="/transactions" />
+      <AppPageHeader
+        title={isReferralPayout ? "Referral payout" : "Transfer"}
+        backHref={isReferralPayout ? "/more/referrals" : "/transactions"}
+      />
     <div className="p-6">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -523,7 +573,9 @@ function TransactionStatusPage() {
                 <CardHeader>
                   <CardTitle className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-0 leading-none">
                     <div className="flex flex-col gap-1 items-center sm:items-start">
-                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-tight">Transaction Status</span>
+                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-tight">
+                        {isReferralPayout ? "Payout status" : "Transaction Status"}
+                      </span>
                       <span className="text-3xl font-bold text-gray-900 leading-tight">
                         {transaction && formatCurrency(transaction.send_amount, transaction.send_currency)}
                       </span>
@@ -648,9 +700,20 @@ function TransactionStatusPage() {
 
                   {/* Action Buttons */}
                   <div className="flex gap-4">
-                    <Button variant="outline" onClick={() => router.push("/send")} className="flex-1">
-                      Send Again
-                    </Button>
+                    {!isReferralPayout && (
+                      <Button variant="outline" onClick={() => router.push("/send")} className="flex-1">
+                        Send Again
+                      </Button>
+                    )}
+                    {isReferralPayout && (
+                      <Button
+                        variant="outline"
+                        onClick={() => router.push("/more/referrals")}
+                        className="flex-1"
+                      >
+                        Back to referrals
+                      </Button>
+                    )}
                     {isOverdue && transaction.status !== "completed" && transaction.status !== "failed" ? (
                       <Button
                         onClick={() => router.push("/support")}
@@ -675,12 +738,14 @@ function TransactionStatusPage() {
             <div className="lg:col-span-1">
               <Card className="sticky top-6">
                 <CardHeader>
-                  <CardTitle className="text-base sm:text-lg">Transaction Summary</CardTitle>
+                  <CardTitle className="text-base sm:text-lg">
+                    {isReferralPayout ? "Payout summary" : "Transaction Summary"}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">You Sent</span>
+                      <span className="text-gray-600">{isReferralPayout ? "Withdrawal amount" : "You Sent"}</span>
                       <span className="font-semibold">
                         {formatCurrency(transaction.send_amount, transaction.send_currency)}
                       </span>
