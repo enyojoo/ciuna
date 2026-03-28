@@ -26,6 +26,19 @@ function transactionCompletedAtIso(tx: Transaction): string {
   return raw
 }
 
+type CompletedTxRow = {
+  transaction_id: string
+  send_amount: number | string
+  send_currency: string
+  receive_amount: number | string
+  receive_currency: string
+  exchange_rate: number | string
+  completed_at?: string | null
+  updated_at?: string | null
+  created_at?: string | null
+  reference?: string | null
+}
+
 function resolveTransactionAmountInPolicyCurrency(
   transaction: Transaction,
   policyCurrency: string,
@@ -54,23 +67,78 @@ async function minQualifyingCompletedAt(
   refereeUserId: string,
   fallbackIso: string,
 ): Promise<Date> {
-  const { data: rows } = await supabase
-    .from("transactions")
-    .select("completed_at, reference")
-    .eq("user_id", refereeUserId)
-    .eq("status", "completed")
+  const rows = await listCompletedNonPayoutTransactions(supabase, refereeUserId)
 
   let minMs = Infinity
-  for (const row of rows || []) {
-    const ref = row.reference as string | undefined
-    if (ref?.startsWith(REFERRAL_PAYOUT_PREFIX)) continue
-    const ca = row.completed_at as string | undefined
+  for (const row of rows) {
+    const ca = transactionCompletedAtIso(row as Transaction)
     if (!ca) continue
     const t = parseISO(ca).getTime()
     if (!Number.isNaN(t) && t < minMs) minMs = t
   }
   if (minMs === Infinity) return parseISO(fallbackIso)
   return new Date(minMs)
+}
+
+async function listCompletedNonPayoutTransactions(
+  supabase: ReturnType<typeof createServerClient>,
+  refereeUserId: string,
+): Promise<CompletedTxRow[]> {
+  const { data } = await supabase
+    .from("transactions")
+    .select(
+      "transaction_id, send_amount, send_currency, receive_amount, receive_currency, exchange_rate, completed_at, updated_at, created_at, reference",
+    )
+    .eq("user_id", refereeUserId)
+    .eq("status", "completed")
+
+  return (data || []).filter((row) => {
+    const ref = row.reference as string | undefined
+    return !ref?.startsWith(REFERRAL_PAYOUT_PREFIX)
+  }) as CompletedTxRow[]
+}
+
+async function recomputeReferralQualificationState(
+  supabase: ReturnType<typeof createServerClient>,
+  refereeUserId: string,
+  durationMonths: number,
+): Promise<void> {
+  const rows = await listCompletedNonPayoutTransactions(supabase, refereeUserId)
+  if (rows.length === 0) {
+    const { error } = await supabase
+      .from("users")
+      .update({
+        referral_first_qualifying_completed_at: null,
+        referral_percent_window_ends_at: null,
+      })
+      .eq("id", refereeUserId)
+    if (error) {
+      console.error("recomputeReferralQualificationState clear:", error)
+    }
+    return
+  }
+
+  let minIso = transactionCompletedAtIso(rows[0] as Transaction)
+  for (const row of rows.slice(1)) {
+    const iso = transactionCompletedAtIso(row as Transaction)
+    if (!iso) continue
+    if (!minIso || parseISO(iso).getTime() < parseISO(minIso).getTime()) {
+      minIso = iso
+    }
+  }
+  if (!minIso) return
+
+  const endsAt = addMonths(parseISO(minIso), durationMonths).toISOString()
+  const { error } = await supabase
+    .from("users")
+    .update({
+      referral_first_qualifying_completed_at: minIso,
+      referral_percent_window_ends_at: endsAt,
+    })
+    .eq("id", refereeUserId)
+  if (error) {
+    console.error("recomputeReferralQualificationState set:", error)
+  }
 }
 
 async function countQualifiedRefereesInQuarter(
@@ -257,5 +325,52 @@ export async function processReferralRewardsOnCompletedSend(transaction: Transac
     }
   } catch (e) {
     console.error("processReferralRewardsOnCompletedSend:", e)
+  }
+}
+
+export async function rollbackReferralRewardsForTransaction(transaction: Transaction): Promise<void> {
+  try {
+    if (transaction.reference?.startsWith(REFERRAL_PAYOUT_PREFIX)) return
+
+    const program = await getReferralProgramSettingsServer()
+    const supabase = createServerClient()
+
+    const { error: deletePercentErr } = await supabase
+      .from("referral_rewards")
+      .delete()
+      .eq("source_transaction_id", transaction.transaction_id)
+      .eq("reward_type", "percent_of_send")
+    if (deletePercentErr) {
+      console.error("rollback referral_rewards delete percent:", deletePercentErr)
+    }
+
+    if (program.mode === "percent" || program.mode === "tier") {
+      await recomputeReferralQualificationState(
+        supabase,
+        transaction.user_id,
+        program.percent_reward_duration_months,
+      )
+      return
+    }
+
+    const { data: exchangeRates } = await supabase.from("exchange_rates").select("*").eq("status", "active")
+    const rateMap = buildRateMap(exchangeRates || [])
+    const rows = await listCompletedNonPayoutTransactions(supabase, transaction.user_id)
+    let sumPolicy = 0
+    for (const row of rows) {
+      sumPolicy += resolveTransactionAmountInPolicyCurrency(row as Transaction, program.policy_currency, rateMap)
+    }
+    if (sumPolicy >= program.threshold_send_amount) return
+
+    const { error: deleteThresholdErr } = await supabase
+      .from("referral_rewards")
+      .delete()
+      .eq("referee_user_id", transaction.user_id)
+      .eq("reward_type", "threshold_unlock")
+    if (deleteThresholdErr) {
+      console.error("rollback referral_rewards delete threshold:", deleteThresholdErr)
+    }
+  } catch (e) {
+    console.error("rollbackReferralRewardsForTransaction:", e)
   }
 }

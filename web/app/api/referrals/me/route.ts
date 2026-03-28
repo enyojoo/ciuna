@@ -75,7 +75,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
           qualifiedRefereesThisQuarter,
           currentTierIndex: resolveTierIndex(program.percent_tiers, qualifiedRefereesThisQuarter),
           tiers: program.percent_tiers.map((t) => ({
-            minQualifiedRefereesInQuarter: t.min_qualified_referees_in_quarter,
+            configuredQualifiedRefereesInQuarter: t.min_qualified_referees_in_quarter,
             percentFraction: t.percent_of_send,
             percentDisplay: `${(t.percent_of_send * 100).toFixed(2)}%`,
           })),

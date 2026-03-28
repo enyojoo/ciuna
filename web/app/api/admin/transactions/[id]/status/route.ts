@@ -2,7 +2,10 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
-import { processReferralRewardsOnCompletedSend } from "@/lib/referral-reward-service"
+import {
+  processReferralRewardsOnCompletedSend,
+  rollbackReferralRewardsForTransaction,
+} from "@/lib/referral-reward-service"
 
 export async function PATCH(
   request: NextRequest,
@@ -29,6 +32,22 @@ export async function PATCH(
 
     // Use service role client for admin operations
     const supabase = createServerClient()
+
+    const { data: currentTransaction, error: currentError } = await supabase
+      .from("transactions")
+      .select(`
+        *,
+        recipient:recipients(*),
+        user:users(first_name, last_name, email)
+      `)
+      .eq("transaction_id", transactionId)
+      .single()
+    if (currentError || !currentTransaction) {
+      return NextResponse.json({
+        error: "Transaction not found"
+      }, { status: 404 })
+    }
+    const previousStatus = currentTransaction.status as string
 
     // Update transaction status directly
     const updateData: any = {
@@ -73,8 +92,10 @@ export async function PATCH(
       }, { status: 404 })
     }
 
-    if (status === "completed" && updatedTransaction) {
+    if (previousStatus !== "completed" && status === "completed") {
       await processReferralRewardsOnCompletedSend(updatedTransaction as any)
+    } else if (previousStatus === "completed" && status !== "completed") {
+      await rollbackReferralRewardsForTransaction(currentTransaction as any)
     }
 
     return NextResponse.json({ 

@@ -41,7 +41,7 @@ const REFERRAL_HELP_PERCENT_OF_SEND =
 const REFERRAL_HELP_DURATION =
   "From each referral's first qualifying completed send; end date is fixed when first calculated. Later changes here do not move existing referrals' windows."
 const REFERRAL_HELP_COMMISSION_TIERS =
-  "Minimum qualified referees in the current calendar quarter (UTC) for each rate. First qualifying send per referee counts toward the quarter it completes in."
+  "Each number is the top of a range for the current UTC quarter. Example: 5 means that rate applies from 1 to 5 qualified referees, 10 means the next rate applies from 6 to 10."
 import {
   getAccountTypeConfigFromCurrency,
   getAccountTypeFromCurrency,
@@ -57,12 +57,12 @@ type ReferralPercentTierRow = {
 }
 
 function defaultReferralPercentTiers(): ReferralPercentTierRow[] {
-  return [{ min_qualified_referees_in_quarter: 0, percent_of_send: 0.005 }]
+  return [{ min_qualified_referees_in_quarter: 5, percent_of_send: 0.005 }]
 }
 
 function parseReferralPercentTiers(raw: unknown, fallbackPercent: number): ReferralPercentTierRow[] {
   if (!Array.isArray(raw) || raw.length === 0) {
-    return [{ min_qualified_referees_in_quarter: 0, percent_of_send: fallbackPercent }]
+    return [{ min_qualified_referees_in_quarter: 5, percent_of_send: fallbackPercent }]
   }
   const rows: ReferralPercentTierRow[] = []
   for (const item of raw) {
@@ -77,7 +77,7 @@ function parseReferralPercentTiers(raw: unknown, fallbackPercent: number): Refer
     })
   }
   if (rows.length === 0) {
-    return [{ min_qualified_referees_in_quarter: 0, percent_of_send: fallbackPercent }]
+    return [{ min_qualified_referees_in_quarter: 5, percent_of_send: fallbackPercent }]
   }
   rows.sort((a, b) => a.min_qualified_referees_in_quarter - b.min_qualified_referees_in_quarter)
   const dedup: ReferralPercentTierRow[] = []
@@ -2198,7 +2198,7 @@ export default function AdminSettingsPage() {
                       {referralProgram.percent_tiers.map((row, i) => (
                         <div key={i} className="flex flex-wrap items-end gap-2">
                           <div className="space-y-1 flex-1 min-w-[8rem]">
-                            <Label className="text-xs">Min qualified (this quarter)</Label>
+                            <Label className="text-xs">Qualified referees up to (this quarter)</Label>
                             <Input
                               type="number"
                               min={0}
@@ -2210,7 +2210,7 @@ export default function AdminSettingsPage() {
                                   next[i] = {
                                     ...next[i],
                                     min_qualified_referees_in_quarter: Math.max(
-                                      0,
+                                      1,
                                       Math.floor(Number(e.target.value) || 0),
                                     ),
                                   }

@@ -33,7 +33,7 @@ const DEFAULT_SETTINGS: ReferralProgramSettings = {
   threshold_send_amount: 500,
   percent_of_send: 0.005,
   percent_reward_duration_months: 6,
-  percent_tiers: [{ min_qualified_referees_in_quarter: 0, percent_of_send: 0.005 }],
+  percent_tiers: [{ min_qualified_referees_in_quarter: 5, percent_of_send: 0.005 }],
 }
 
 function clampDurationMonths(n: number): PercentRewardDurationMonths {
@@ -50,7 +50,7 @@ function parseMode(raw: unknown): ReferralProgramMode {
 
 export function normalizePercentTiers(raw: unknown, fallbackPercent: number): ReferralPercentTier[] {
   if (!Array.isArray(raw) || raw.length === 0) {
-    return [{ min_qualified_referees_in_quarter: 0, percent_of_send: fallbackPercent }]
+    return [{ min_qualified_referees_in_quarter: 5, percent_of_send: fallbackPercent }]
   }
   const rows: ReferralPercentTier[] = []
   for (const item of raw) {
@@ -65,7 +65,7 @@ export function normalizePercentTiers(raw: unknown, fallbackPercent: number): Re
     })
   }
   if (rows.length === 0) {
-    return [{ min_qualified_referees_in_quarter: 0, percent_of_send: fallbackPercent }]
+    return [{ min_qualified_referees_in_quarter: 5, percent_of_send: fallbackPercent }]
   }
   rows.sort((a, b) => a.min_qualified_referees_in_quarter - b.min_qualified_referees_in_quarter)
   const dedup: ReferralPercentTier[] = []
@@ -80,28 +80,50 @@ export function normalizePercentTiers(raw: unknown, fallbackPercent: number): Re
   return dedup
 }
 
-/** Largest tier percent where qualifiedCount >= min (tiers sorted by min ascending). */
-export function resolveTierPercent(tiers: ReferralPercentTier[], qualifiedCount: number): number {
-  const sorted = [...tiers].sort((a, b) => a.min_qualified_referees_in_quarter - b.min_qualified_referees_in_quarter)
-  let best = 0
-  for (const t of sorted) {
-    if (qualifiedCount >= t.min_qualified_referees_in_quarter) {
-      best = t.percent_of_send
-    }
-  }
-  return best
+function sortedTiers(tiers: ReferralPercentTier[]): ReferralPercentTier[] {
+  return [...tiers].sort((a, b) => a.min_qualified_referees_in_quarter - b.min_qualified_referees_in_quarter)
 }
 
-/** Index into sorted-by-min tiers for the active tier at this count (for UI highlight). */
-export function resolveTierIndex(tiers: ReferralPercentTier[], qualifiedCount: number): number {
-  const sorted = [...tiers].sort((a, b) => a.min_qualified_referees_in_quarter - b.min_qualified_referees_in_quarter)
-  let idx = 0
+/**
+ * Tier numbers act as inclusive upper bounds:
+ * 5 => 1-5 qualified referees, 10 => 6-10, etc.
+ * Legacy leading 0 is preserved as an immediate first tier that runs until the next bound.
+ */
+export function resolveTierUpperBound(tiers: ReferralPercentTier[], index: number): number {
+  const sorted = sortedTiers(tiers)
+  if (index < 0 || index >= sorted.length) return Infinity
+  if (sorted.length === 1) return Infinity
+  if (sorted[0].min_qualified_referees_in_quarter <= 0) {
+    return index < sorted.length - 1
+      ? sorted[index + 1].min_qualified_referees_in_quarter
+      : Infinity
+  }
+  return index < sorted.length - 1 ? sorted[index].min_qualified_referees_in_quarter : Infinity
+}
+
+/** Commission percent by qualified referee count using tier ranges instead of minimum thresholds. */
+export function resolveTierPercent(tiers: ReferralPercentTier[], qualifiedCount: number): number {
+  if (qualifiedCount <= 0) return 0
+  const sorted = sortedTiers(tiers)
   for (let i = 0; i < sorted.length; i++) {
-    if (qualifiedCount >= sorted[i].min_qualified_referees_in_quarter) {
-      idx = i
+    if (qualifiedCount <= resolveTierUpperBound(sorted, i)) {
+      return sorted[i].percent_of_send
     }
   }
-  return idx
+  return sorted[sorted.length - 1]?.percent_of_send ?? 0
+}
+
+/** Index into the active tier range for the current qualified-referee count. */
+export function resolveTierIndex(tiers: ReferralPercentTier[], qualifiedCount: number): number {
+  const sorted = sortedTiers(tiers)
+  if (sorted.length === 0) return 0
+  if (qualifiedCount <= 0) return 0
+  for (let i = 0; i < sorted.length; i++) {
+    if (qualifiedCount <= resolveTierUpperBound(sorted, i)) {
+      return i
+    }
+  }
+  return sorted.length - 1
 }
 
 /** UTC calendar quarter containing `date` (inclusive start, inclusive end). */

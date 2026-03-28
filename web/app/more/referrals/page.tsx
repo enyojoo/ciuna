@@ -40,7 +40,7 @@ interface TierCommissionPayload {
   qualifiedRefereesThisQuarter: number
   currentTierIndex: number
   tiers: {
-    minQualifiedRefereesInQuarter: number
+    configuredQualifiedRefereesInQuarter: number
     percentFraction: number
     percentDisplay: string
   }[]
@@ -328,7 +328,7 @@ export default function ReferralsPage() {
       setWithdrawAmount("")
       setWithdrawError(null)
       if (userProfile?.id) {
-        await refreshTransactions?.(userProfile.id)
+        await refreshTransactions?.()
       }
       await load({ silent: true })
       const payoutTxId = j.payoutTransactionId as string | undefined
@@ -397,12 +397,15 @@ export default function ReferralsPage() {
                 <p className="text-sm text-gray-600">
                   {t("referrals.commissionRulesHint")}
                 </p>
+                <p className="text-xs text-gray-500">
+                  {t("referrals.commissionRulesExample")}
+                </p>
                 <ul className="rounded-lg border border-gray-200/80 divide-y divide-gray-100 overflow-hidden bg-white/90">
                   {data.tierCommission.tiers.map((tierRow, i) => {
                     const active = i === data.tierCommission!.currentTierIndex
                     return (
                       <li
-                        key={`${tierRow.minQualifiedRefereesInQuarter}-${i}`}
+                        key={`${tierRow.configuredQualifiedRefereesInQuarter}-${i}`}
                         className={`flex justify-between items-center gap-3 px-3 py-3 sm:px-4 ${
                           active ? "bg-primary/10" : ""
                         }`}
@@ -413,8 +416,8 @@ export default function ReferralsPage() {
                           <Trans
                             ns="app"
                             i18nKey="referrals.tierLine"
-                            count={tierRow.minQualifiedRefereesInQuarter}
-                            values={{ count: tierRow.minQualifiedRefereesInQuarter }}
+                            count={tierRow.configuredQualifiedRefereesInQuarter}
+                            values={{ count: tierRow.configuredQualifiedRefereesInQuarter }}
                             components={{
                               bold: <span className="font-bold tabular-nums" />,
                             }}
