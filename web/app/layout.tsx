@@ -126,9 +126,9 @@ export default function RootLayout({
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
         <PwaInstallProvider>
           <PwaStandaloneRoot />
-          <InstallAppBanner />
           <PostHogProvider>
             <I18nProvider>
+              <InstallAppBanner />
               <AuthProvider>
                 <ProtectedRouteWrapper>{children}</ProtectedRouteWrapper>
               </AuthProvider>
