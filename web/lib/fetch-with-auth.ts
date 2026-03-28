@@ -3,28 +3,14 @@ import { supabase } from "./supabase"
 /** After signInWithPassword, getSession() can lag briefly — wait before attaching Authorization. */
 const SESSION_WAIT_MS = 4000
 
-export type FetchWithAuthOptions = {
-  /** Use this token instead of getSession() (e.g. token from signInWithPassword response). */
-  accessToken?: string | null
-}
-
 /**
  * Same-origin API calls with `requireUser` / `getAccessTokenFromRequest` need the bearer token
  * when the session lives in localStorage (default Supabase browser client) and is not mirrored to cookies.
  */
-export async function fetchWithAuth(
-  input: RequestInfo | URL,
-  init?: RequestInit,
-  authOptions?: FetchWithAuthOptions
-): Promise<Response> {
+export async function fetchWithAuth(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const headers = new Headers(init?.headers)
-  let explicitToken = authOptions?.accessToken ?? null
 
   const attachSessionToken = async () => {
-    if (explicitToken) {
-      headers.set("Authorization", `Bearer ${explicitToken}`)
-      return
-    }
     let {
       data: { session },
     } = await supabase.auth.getSession()
@@ -59,7 +45,6 @@ export async function fetchWithAuth(
 
   let res = await doFetch()
   if (res.status === 401) {
-    explicitToken = null
     await supabase.auth.refreshSession()
     headers.delete("Authorization")
     await attachSessionToken()

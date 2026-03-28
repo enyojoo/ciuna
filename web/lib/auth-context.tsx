@@ -26,11 +26,7 @@ interface AuthContextType {
   user: User | null
   userProfile: UserProfile | null
   loading: boolean
-  signIn: (
-    email: string,
-    password: string,
-    rememberMe?: boolean
-  ) => Promise<{ error: any; session?: Session | null }>
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: any }>
   signInWithGoogle: () => Promise<{ error: any }>
   signUp: (
     email: string,
@@ -48,7 +44,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   userProfile: null,
   loading: true,
-  signIn: async () => ({ error: null, session: null }),
+  signIn: async () => ({ error: null }),
   signInWithGoogle: async () => ({ error: null }),
   signUp: async () => ({ error: null, session: null }),
   signOut: async () => {},
@@ -293,7 +289,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) {
-        return { error, session: null }
+        return { error }
       }
 
       // Persist session before any code runs fetchWithAuth (e.g. referral claim). Previously only
@@ -306,10 +302,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // The auth state change listener will handle setting user and profile
-      return { error: null, session: data.session ?? null }
+      return { error: null }
     } catch (error) {
       console.error("Sign in error:", error)
-      return { error, session: null }
+      return { error }
     }
   }, [])
 
@@ -354,6 +350,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error, session: null }
       }
 
+      // If email confirmation is required, session is null — do not call /api/referrals/claim until login.
       return { error: null, session: data.session ?? null }
     } catch (error) {
       console.error("Sign up error:", error)

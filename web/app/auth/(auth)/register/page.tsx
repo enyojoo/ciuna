@@ -82,9 +82,9 @@ function RegisterPageContent() {
         return
       }
 
-      // Email confirmation: no session until they verify — do not POST /claim (would 401). Claim runs at login.
-      if (signUpSession?.access_token) {
-        await claimReferralIfNeeded(refSlug, { accessToken: signUpSession.access_token })
+      // Email verification: no session yet — claim would 401. Referral is applied after login (?ref= + cookie + metadata).
+      if (signUpSession) {
+        await claimReferralIfNeeded(refSlug)
       }
 
       setSuccess(true)
