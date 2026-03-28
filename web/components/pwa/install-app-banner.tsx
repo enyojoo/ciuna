@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next"
  * Same dismiss key as {@link InstallAppCard}. Hidden on `/more` where the card lives.
  */
 export function InstallAppBanner() {
+  const { t } = useTranslation("app")
   const pathname = usePathname()
   const { visible, iosChrome, iosSafari, showInstallButton, dismiss, runInstall } = usePwaInstallPrompt()
 
