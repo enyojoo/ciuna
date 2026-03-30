@@ -563,28 +563,15 @@ class AdminDataStore {
     const completedTransactions = transactions.filter((tx) => tx.status === "completed")
 
     for (const tx of completedTransactions) {
-      const txType = tx.type || (tx.send_amount ? "send" : tx.crypto_amount ? "receive" : null)
+      const txType = tx.type || (tx.send_amount ? "send" : null)
 
       if (txType === "send") {
-        // Send transactions: use receive_amount (what recipient gets)
-        const amount = Number(tx.receive_amount) || Number(tx.send_amount) || 0
-        const currency = tx.receive_currency || tx.send_currency || baseCurrency
+        const amount = Number(tx.send_amount) || 0
+        const currency = tx.send_currency || baseCurrency
         if (amount > 0) {
           totalVolume += convertCurrency(amount, currency)
         }
-      } else if (txType === "receive") {
-        // Receive transactions: use fiat_amount (what user received as payout)
-        // Only include bank payouts (not card funding)
-        if (tx.destination_type === "bank" && tx.fiat_amount && tx.fiat_currency) {
-          const amount = Number(tx.fiat_amount) || 0
-          if (amount > 0) {
-            totalVolume += convertCurrency(amount, tx.fiat_currency)
-          }
-        }
       }
-      // Note: Card funding and card spending are not included in admin volume
-      // Card funding is just moving money to card, not actual spending
-      // Card spending would need to be fetched from Bridge Cards API separately
     }
 
     return totalVolume
@@ -613,20 +600,14 @@ class AdminDataStore {
 
   private processRecentActivity(transactions: any[]) {
     return transactions.map((tx) => {
-      // Determine transaction type
-      const txType = tx.type || (tx.send_amount ? "send" : tx.crypto_amount ? "receive" : null)
+      const txType = tx.type || (tx.send_amount ? "send" : null)
       const isCardFunding = txType === "card_funding" || (tx.destination_type === "card" || tx.bridge_card_account_id)
-      
-      // Format amount based on transaction type
+
       let amount = ""
       if (txType === "send") {
-        amount = this.formatCurrency(tx.receive_amount || tx.send_amount || 0, tx.receive_currency || tx.send_currency || "")
-      } else if (txType === "receive" || isCardFunding) {
-        if (isCardFunding) {
-          amount = `${tx.crypto_amount || 0} ${tx.crypto_currency || ""}`
-        } else {
-          amount = this.formatCurrency(tx.fiat_amount || 0, tx.fiat_currency || "")
-        }
+        amount = this.formatCurrency(tx.send_amount || 0, tx.send_currency || "")
+      } else if (isCardFunding) {
+        amount = `${tx.crypto_amount || 0} ${tx.crypto_currency || ""}`
       } else {
         amount = this.formatCurrency(tx.send_amount || 0, tx.send_currency || "")
       }
@@ -699,8 +680,6 @@ class AdminDataStore {
       typeLabel = "Send Money"
     } else if (isCardFunding) {
       typeLabel = "Card Funding"
-    } else if (txType === "receive") {
-      typeLabel = "Receive Money"
     }
 
     switch (transaction.status) {
@@ -1655,26 +1634,14 @@ export function calculateUserVolume(
   const completedTransactions = transactions.filter((tx) => tx.status === "completed")
 
   for (const tx of completedTransactions) {
-    const txType = tx.type || (tx.send_amount ? "send" : tx.crypto_amount ? "receive" : null)
+    const txType = tx.type || (tx.send_amount ? "send" : null)
 
     if (txType === "send") {
-      // Send transactions: use receive_amount (what recipient gets)
-      const amount = Number(tx.receive_amount) || Number(tx.send_amount) || 0
-      const currency = tx.receive_currency || tx.send_currency || baseCurrency
+      const amount = Number(tx.send_amount) || 0
+      const currency = tx.send_currency || baseCurrency
       if (amount > 0) {
         totalVolume += convertCurrency(amount, currency)
       }
-    } else if (txType === "receive" || txType === "card_funding") {
-      // Receive transactions: use fiat_amount (what user received as payout)
-      // Only include bank payouts (not card funding)
-      if (txType === "receive" && tx.destination_type === "bank" && tx.fiat_amount && tx.fiat_currency) {
-        const amount = Number(tx.fiat_amount) || 0
-        if (amount > 0) {
-          totalVolume += convertCurrency(amount, tx.fiat_currency)
-        }
-      }
-      // Note: Card funding is not included in volume (it's just moving money to card)
-      // Card spending would need to be fetched from Bridge Cards API separately
     }
   }
 

@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const type = (searchParams.get("type") || "all") as "all" | "send" | "receive"
+    const type = (searchParams.get("type") || "all") as "all" | "send"
     const status = searchParams.get("status") || undefined
     const search = searchParams.get("search") || undefined
     const limit = parseInt(searchParams.get("limit") || "100")

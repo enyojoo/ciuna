@@ -48,7 +48,7 @@ function excludeReferralPayoutMirrorTransactions<T extends { reference?: string 
 interface CombinedTransaction {
   id: string
   transaction_id: string
-  type: "send" | "receive" | "card_funding" | "referral_payout"
+  type: "send" | "card_funding" | "referral_payout"
   payout_request_id?: string
   status: string
   created_at: string
@@ -193,7 +193,7 @@ export default function AdminTransactionsPage() {
         return {
           id: tx.id,
           transaction_id: tx.transaction_id || tx.id,
-          type: tx.type,
+          type: tx.type === "receive" ? "send" : tx.type,
           status: tx.status,
           created_at: tx.created_at,
           updated_at: tx.updated_at,
@@ -221,13 +221,11 @@ export default function AdminTransactionsPage() {
           exchange_rate: tx.exchange_rate,
         }
       }
-      // Otherwise, determine type from transaction structure
-      const isReceive = tx.crypto_amount || tx.fiat_amount
       const isCardFunding = tx.destination_type === "card" || tx.bridge_card_account_id
       return {
         id: tx.id,
         transaction_id: tx.transaction_id || tx.id,
-        type: isReceive ? (isCardFunding ? "card_funding" : "receive") : "send",
+        type: isCardFunding ? "card_funding" : "send",
         status: tx.status,
         created_at: tx.created_at,
         updated_at: tx.updated_at,
@@ -316,7 +314,7 @@ export default function AdminTransactionsPage() {
           return {
             id: tx.id,
             transaction_id: tx.transaction_id || tx.id,
-            type: tx.type,
+            type: tx.type === "receive" ? "send" : tx.type,
             status: tx.status,
             created_at: tx.created_at,
             updated_at: tx.updated_at,
@@ -344,13 +342,11 @@ export default function AdminTransactionsPage() {
             exchange_rate: tx.exchange_rate,
           }
         }
-        // Otherwise, determine type from transaction structure
-        const isReceive = tx.crypto_amount || tx.fiat_amount
         const isCardFunding = tx.destination_type === "card" || tx.bridge_card_account_id
         return {
           id: tx.id,
           transaction_id: tx.transaction_id || tx.id,
-          type: isReceive ? (isCardFunding ? "card_funding" : "receive") : "send",
+          type: isCardFunding ? "card_funding" : "send",
           status: tx.status,
           created_at: tx.created_at,
           updated_at: tx.updated_at,
@@ -425,7 +421,7 @@ export default function AdminTransactionsPage() {
       transaction.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (transaction.type === "referral_payout" &&
         transaction.recipient?.full_name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      ((transaction.type === "receive" || transaction.type === "card_funding") &&
+      (transaction.type === "card_funding" &&
         (transaction.stellar_transaction_hash?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           transaction.blockchain_tx_hash?.toLowerCase().includes(searchTerm.toLowerCase())))
 
@@ -436,7 +432,7 @@ export default function AdminTransactionsPage() {
         (transaction.send_currency === currencyFilter || transaction.receive_currency === currencyFilter)) ||
       (transaction.type === "referral_payout" &&
         (transaction.send_currency === currencyFilter || transaction.recipient?.currency === currencyFilter)) ||
-      ((transaction.type === "receive" || transaction.type === "card_funding") &&
+      (transaction.type === "card_funding" &&
         (transaction.crypto_currency === currencyFilter || transaction.fiat_currency === currencyFilter))
 
     return matchesSearch && matchesStatus && matchesCurrency

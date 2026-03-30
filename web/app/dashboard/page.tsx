@@ -17,7 +17,7 @@ import { formatLocaleDateShort } from "@/lib/format-date-locale"
 interface Transaction {
   id: string
   transaction_id: string
-  type?: "send" | "receive" | "card_funding"
+  type?: "send" | "card_funding"
   send_amount?: number
   send_currency?: string
   receive_amount?: number
@@ -147,26 +147,20 @@ export default function UserDashboardPage() {
 
         const transactionsList = transactions || []
 
-        // 1. Send transactions: use receive_amount (what recipient gets)
+        // 1. Send transactions: total volume = sum of send_amount in send_currency (converted to base)
         const sendTransactions = transactionsList.filter((t) => {
           if (!t) return false
-          // Must be completed
           if (t.status !== "completed") return false
-          // If type is explicitly set, use it
           if (t.type === "send") return true
-          // Exclude receive and card_funding
-          if (t.type === "receive" || t.type === "card_funding") return false
-          // If type is not set but has send_amount/receive_amount, it's a send transaction
-          // Also check if it has recipient (send transactions have recipients)
+          if (t.type === "card_funding") return false
           if (t.send_amount || t.receive_amount || t.recipient) return true
           return false
         })
 
 
         for (const transaction of sendTransactions) {
-          // Use receive_amount if available, otherwise fall back to send_amount
-          const amount = transaction.receive_amount || transaction.send_amount || 0
-          const currency = transaction.receive_currency || transaction.send_currency || baseCurrency
+          const amount = transaction.send_amount || 0
+          const currency = transaction.send_currency || baseCurrency
           
           if (amount > 0) {
             const amountInBaseCurrency = convertToBaseCurrency(
@@ -283,12 +277,12 @@ export default function UserDashboardPage() {
 
   const formatDate = (dateString: string) => formatLocaleDateShort(dateString, dateLocale)
 
-  // Send + referral payouts on web (receive/card_funding are mobile-only); card sends excluded unless payout
+  // Sends + referral payouts (referral rows are sends). Card destination excluded except referral payout rows.
   const recentTransactions = (transactions || [])
     .filter((t) => {
       if (!t) return false
       const payout = isReferralPayoutRow(t)
-      if (t.type === "receive" || t.type === "card_funding") return false
+      if (t.type === "card_funding") return false
       if (t.destination_type === "card" && !payout) return false
       if (t.type === "send") return true
       if (t.send_amount || t.receive_amount || t.recipient) return true

@@ -5,7 +5,7 @@ import { adminService } from "./database"
 export interface CombinedTransaction {
   id: string
   transaction_id: string
-  type: "send" | "receive" | "card_funding"
+  type: "send" | "card_funding"
   user_id: string
   status: string
   created_at: string
@@ -43,7 +43,7 @@ export const combinedTransactionService = {
   async getUserAllTransactions(
     userId: string,
     filters: {
-      type?: "all" | "send" | "receive"
+      type?: "all" | "send"
       status?: string
       limit?: number
     } = {},
@@ -86,8 +86,6 @@ export const combinedTransactionService = {
 
     if (filters.type === "send") {
       combined = sendTxns
-    } else if (filters.type === "receive") {
-      combined = []
     }
 
     if (filters.status) {
@@ -103,7 +101,7 @@ export const combinedTransactionService = {
 
   async getAdminAllTransactions(
     filters: {
-      type?: "all" | "send" | "receive"
+      type?: "all" | "send"
       status?: string
       search?: string
       limit?: number
@@ -144,8 +142,6 @@ export const combinedTransactionService = {
 
     if (filters.type === "send") {
       combined = sendTxns
-    } else if (filters.type === "receive") {
-      combined = []
     }
 
     if (filters.status) {

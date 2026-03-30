@@ -108,7 +108,7 @@ class UserDataStore {
       )
 
       // Load all data with timeout protection
-      // Fetch combined transactions (send + receive) from API
+      // Fetch user send transactions from API
       const transactionsPromise = (async () => {
         try {
           const res = await fetchWithAuth(`/api/transactions?type=all&limit=20`)
@@ -271,7 +271,7 @@ class UserDataStore {
   async refreshTransactions(userId: string) {
     try {
       this.updateActivity()
-      // Fetch combined transactions (send + receive) from API
+      // Fetch user send transactions from API
       const response = await fetchWithAuth(`/api/transactions?type=all&limit=20`)
       if (response.ok) {
         const data = await response.json()

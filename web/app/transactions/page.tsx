@@ -20,11 +20,10 @@ import { formatLocaleDateShort } from "@/lib/format-date-locale"
 interface CombinedTransaction {
   id: string
   transaction_id: string
-  type: "send" | "receive"
+  type: "send"
   status: string
   created_at: string
   reference?: string | null
-  // Send transaction fields
   send_amount?: number
   send_currency?: string
   receive_amount?: number
@@ -33,15 +32,6 @@ interface CombinedTransaction {
     full_name: string
     account_number: string
     bank_name: string
-  }
-  // Receive transaction fields
-  crypto_amount?: number
-  crypto_currency?: string
-  fiat_amount?: number
-  fiat_currency?: string
-  crypto_wallet?: {
-    wallet_address: string
-    crypto_currency: string
   }
 }
 
@@ -240,7 +230,7 @@ export default function UserTransactionsPage() {
   const filteredTransactions = transactions.filter((transaction) => {
     if (!transaction) return false
     
-    // Only show send transactions (filter out receive, card, etc.)
+    // Only show send transactions
     if (transaction.type && transaction.type !== "send") {
       return false
     }
