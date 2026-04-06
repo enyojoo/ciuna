@@ -8,6 +8,7 @@ export interface Currency {
   status: string
   can_send?: boolean
   can_receive?: boolean
+  receive_completion_timer_seconds?: number
   created_at: string
   updated_at: string
 }

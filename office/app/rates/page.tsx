@@ -35,6 +35,17 @@ const AdminRatesPage = () => {
     can_send: true,
     can_receive: true,
   })
+  const [receiveCompletionTimer, setReceiveCompletionTimer] = useState({ hours: 1, minutes: 0, seconds: 0 })
+
+  const secondsToTime = (totalSeconds: number) => {
+    const hours = Math.floor(totalSeconds / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    const seconds = totalSeconds % 60
+    return { hours, minutes, seconds }
+  }
+
+  const timeToSeconds = (hours: number, minutes: number, seconds: number) =>
+    hours * 3600 + minutes * 60 + seconds
 
   // Only show skeleton if we're truly loading and have no cached data
   if (loading && !data) {
@@ -140,6 +151,7 @@ const AdminRatesPage = () => {
       can_send: currency.can_send ?? true,
       can_receive: currency.can_receive ?? true,
     })
+    setReceiveCompletionTimer(secondsToTime(currency.receive_completion_timer_seconds ?? 3600))
     setIsEditingRates(true)
   }
 
@@ -172,6 +184,11 @@ const AdminRatesPage = () => {
         await officeDataStore.updateCurrency(selectedCurrency.id, {
           can_send: currencySettings.can_send,
           can_receive: currencySettings.can_receive,
+          receive_completion_timer_seconds: timeToSeconds(
+            receiveCompletionTimer.hours,
+            receiveCompletionTimer.minutes,
+            receiveCompletionTimer.seconds,
+          ),
         })
       }
 
@@ -179,6 +196,7 @@ const AdminRatesPage = () => {
       setSelectedCurrency(null)
       setRateUpdates({})
       setCurrencySettings({ can_send: true, can_receive: true })
+      setReceiveCompletionTimer({ hours: 1, minutes: 0, seconds: 0 })
     } catch (error) {
       console.error("Error saving rates:", error)
     } finally {
@@ -423,6 +441,61 @@ const AdminRatesPage = () => {
                 </div>
               </div>
             </DialogHeader>
+            <div className="space-y-4 border-b pb-4">
+              <Label className="text-sm font-semibold">Completion Timer</Label>
+              <div className="grid grid-cols-3 gap-4 max-w-lg">
+                <div className="space-y-2">
+                  <Label htmlFor="rateTimerHours">Hours</Label>
+                  <Input
+                    id="rateTimerHours"
+                    type="number"
+                    min={0}
+                    value={receiveCompletionTimer.hours}
+                    onChange={(e) =>
+                      setReceiveCompletionTimer({
+                        ...receiveCompletionTimer,
+                        hours: Math.max(0, Number.parseInt(e.target.value, 10) || 0),
+                      })
+                    }
+                    placeholder="0"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="rateTimerMinutes">Minutes</Label>
+                  <Input
+                    id="rateTimerMinutes"
+                    type="number"
+                    min={0}
+                    max={59}
+                    value={receiveCompletionTimer.minutes}
+                    onChange={(e) =>
+                      setReceiveCompletionTimer({
+                        ...receiveCompletionTimer,
+                        minutes: Math.max(0, Math.min(59, Number.parseInt(e.target.value, 10) || 0)),
+                      })
+                    }
+                    placeholder="0"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="rateTimerSeconds">Seconds</Label>
+                  <Input
+                    id="rateTimerSeconds"
+                    type="number"
+                    min={0}
+                    max={59}
+                    value={receiveCompletionTimer.seconds}
+                    onChange={(e) =>
+                      setReceiveCompletionTimer({
+                        ...receiveCompletionTimer,
+                        seconds: Math.max(0, Math.min(59, Number.parseInt(e.target.value, 10) || 0)),
+                      })
+                    }
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+            </div>
             <div className="space-y-6">
               <div className="max-h-[400px] overflow-y-auto space-y-4 pr-2">
                 {getCurrencyRates(selectedCurrency?.code || "").map((rate: any) => (
@@ -522,7 +595,14 @@ const AdminRatesPage = () => {
               </div>
 
               <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button variant="outline" onClick={() => setIsEditingRates(false)} disabled={saving}>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsEditingRates(false)
+                    setReceiveCompletionTimer({ hours: 1, minutes: 0, seconds: 0 })
+                  }}
+                  disabled={saving}
+                >
                   Cancel
                 </Button>
                 <Button

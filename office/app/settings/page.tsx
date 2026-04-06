@@ -151,7 +151,6 @@ export default function AdminSettingsPage() {
   const [isAddPaymentMethodOpen, setIsAddPaymentMethodOpen] = useState(false)
   const [isEditPaymentMethodOpen, setIsEditPaymentMethodOpen] = useState(false)
   const [editingPaymentMethod, setEditingPaymentMethod] = useState<PaymentMethod | null>(null)
-  const [editingTimer, setEditingTimer] = useState({ hours: 1, minutes: 0, seconds: 0 })
   const [isEditingSecuritySettings, setIsEditingSecuritySettings] = useState(false)
   const [newPaymentMethod, setNewPaymentMethod] = useState({
     currency: "",
@@ -169,9 +168,6 @@ export default function AdminSettingsPage() {
     crypto_network: "",
     wallet_address: "",
     instructions: "",
-    timerHours: 1,
-    timerMinutes: 0,
-    timerSeconds: 0,
     is_default: false,
   })
 
@@ -516,12 +512,6 @@ export default function AdminSettingsPage() {
         qrCodeData = await uploadQrCodeFile(qrCodeFile)
       }
 
-      const completionTimerSeconds = timeToSeconds(
-        newPaymentMethod.timerHours,
-        newPaymentMethod.timerMinutes,
-        newPaymentMethod.timerSeconds,
-      )
-
       const pt = newPaymentMethod.type
       const bankish = pt === "bank_account"
       const mobile = pt === "mobile_money"
@@ -546,7 +536,6 @@ export default function AdminSettingsPage() {
           crypto_network: stable ? newPaymentMethod.crypto_network.trim() || null : null,
           wallet_address: stable ? newPaymentMethod.wallet_address.trim() || null : null,
           instructions: newPaymentMethod.instructions || null,
-          completion_timer_seconds: completionTimerSeconds,
           is_default: newPaymentMethod.is_default,
           status: "active",
         })
@@ -572,9 +561,6 @@ export default function AdminSettingsPage() {
         crypto_network: "",
         wallet_address: "",
         instructions: "",
-        timerHours: 1,
-        timerMinutes: 0,
-        timerSeconds: 0,
         is_default: false,
       })
       setQrCodeFile(null)
@@ -610,8 +596,6 @@ export default function AdminSettingsPage() {
         qrCodeData = await uploadQrCodeFile(editingQrCodeFile)
       }
 
-      const completionTimerSeconds = timeToSeconds(editingTimer.hours, editingTimer.minutes, editingTimer.seconds)
-
       const ept = editingPaymentMethod.type
       const ebank = ept === "bank_account"
       const emobile = ept === "mobile_money"
@@ -636,7 +620,6 @@ export default function AdminSettingsPage() {
           crypto_network: estable ? (editingPaymentMethod.crypto_network || "").trim() || null : null,
           wallet_address: estable ? (editingPaymentMethod.wallet_address || "").trim() || null : null,
           instructions: editingPaymentMethod.instructions || null,
-          completion_timer_seconds: completionTimerSeconds,
           is_default: editingPaymentMethod.is_default,
           updated_at: new Date().toISOString(),
         })
@@ -722,22 +705,8 @@ export default function AdminSettingsPage() {
   }
 
 
-  // Helper functions to convert between seconds and hours/minutes/seconds
-  const secondsToTime = (totalSeconds: number) => {
-    const hours = Math.floor(totalSeconds / 3600)
-    const minutes = Math.floor((totalSeconds % 3600) / 60)
-    const seconds = totalSeconds % 60
-    return { hours, minutes, seconds }
-  }
-
-  const timeToSeconds = (hours: number, minutes: number, seconds: number) => {
-    return hours * 3600 + minutes * 60 + seconds
-  }
-
   const handleEditClick = (method: PaymentMethod) => {
     setEditingPaymentMethod({ ...method })
-    const timerSeconds = method.completion_timer_seconds ?? 3600
-    setEditingTimer(secondsToTime(timerSeconds))
     setIsEditPaymentMethodOpen(true)
   }
 
@@ -1305,65 +1274,6 @@ export default function AdminSettingsPage() {
                           </>
                         )}
 
-                        <div className="space-y-4 border-t pt-4">
-                          <Label className="text-sm font-semibold">Completion Timer</Label>
-                          <div className="grid grid-cols-3 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="timerHours">Hours</Label>
-                              <Input
-                                id="timerHours"
-                                type="number"
-                                min="0"
-                                value={newPaymentMethod.timerHours}
-                                onChange={(e) =>
-                                  setNewPaymentMethod({
-                                    ...newPaymentMethod,
-                                    timerHours: Math.max(0, Number.parseInt(e.target.value) || 0),
-                                  })
-                                }
-                                placeholder="0"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="timerMinutes">Minutes</Label>
-                              <Input
-                                id="timerMinutes"
-                                type="number"
-                                min="0"
-                                max="59"
-                                value={newPaymentMethod.timerMinutes}
-                                onChange={(e) =>
-                                  setNewPaymentMethod({
-                                    ...newPaymentMethod,
-                                    timerMinutes: Math.max(0, Math.min(59, Number.parseInt(e.target.value) || 0)),
-                                  })
-                                }
-                                placeholder="0"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="timerSeconds">Seconds</Label>
-                              <Input
-                                id="timerSeconds"
-                                type="number"
-                                min="0"
-                                max="59"
-                                value={newPaymentMethod.timerSeconds}
-                                onChange={(e) =>
-                                  setNewPaymentMethod({
-                                    ...newPaymentMethod,
-                                    timerSeconds: Math.max(0, Math.min(59, Number.parseInt(e.target.value) || 0)),
-                                  })
-                                }
-                                placeholder="0"
-                              />
-                            </div>
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            Time limit for users to complete the payment (default: 1 hour)
-                          </p>
-                        </div>
-
                         <div className="flex items-center space-x-2">
                           <Checkbox
                             id="isDefault"
@@ -1917,65 +1827,6 @@ export default function AdminSettingsPage() {
                               </div>
                             </>
                           )}
-
-                          <div className="space-y-4 border-t pt-4">
-                            <Label className="text-sm font-semibold">Completion Timer</Label>
-                            <div className="grid grid-cols-3 gap-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="editTimerHours">Hours</Label>
-                                <Input
-                                  id="editTimerHours"
-                                  type="number"
-                                  min="0"
-                                  value={editingTimer.hours}
-                                  onChange={(e) =>
-                                    setEditingTimer({
-                                      ...editingTimer,
-                                      hours: Math.max(0, Number.parseInt(e.target.value) || 0),
-                                    })
-                                  }
-                                  placeholder="0"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="editTimerMinutes">Minutes</Label>
-                                <Input
-                                  id="editTimerMinutes"
-                                  type="number"
-                                  min="0"
-                                  max="59"
-                                  value={editingTimer.minutes}
-                                  onChange={(e) =>
-                                    setEditingTimer({
-                                      ...editingTimer,
-                                      minutes: Math.max(0, Math.min(59, Number.parseInt(e.target.value) || 0)),
-                                    })
-                                  }
-                                  placeholder="0"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="editTimerSeconds">Seconds</Label>
-                                <Input
-                                  id="editTimerSeconds"
-                                  type="number"
-                                  min="0"
-                                  max="59"
-                                  value={editingTimer.seconds}
-                                  onChange={(e) =>
-                                    setEditingTimer({
-                                      ...editingTimer,
-                                      seconds: Math.max(0, Math.min(59, Number.parseInt(e.target.value) || 0)),
-                                    })
-                                  }
-                                  placeholder="0"
-                                />
-                              </div>
-                            </div>
-                            <p className="text-xs text-gray-500">
-                              Time limit for users to complete the payment (default: 1 hour)
-                            </p>
-                          </div>
 
                           <div className="flex items-center space-x-2">
                             <Checkbox

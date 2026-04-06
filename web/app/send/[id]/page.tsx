@@ -33,7 +33,7 @@ function TransactionStatusPage() {
   const [error, setError] = useState<string | null>(null)
   const [currentTime, setCurrentTime] = useState(Date.now())
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false)
-  const [timerDuration, setTimerDuration] = useState(3600) // Payment method's completion_timer_seconds
+  const [timerDuration, setTimerDuration] = useState(3600) // receive_currency: currencies.receive_completion_timer_seconds
   const [paymentMethods, setPaymentMethods] = useState<any[]>([])
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({})
 
@@ -51,19 +51,11 @@ function TransactionStatusPage() {
     loadPaymentMethods()
   }, [])
 
-  // Initialize timer duration from payment method when transaction is loaded
   useEffect(() => {
-    if (transaction && paymentMethods.length > 0) {
-      const getDefaultPaymentMethod = (currency: string) => {
-        const methods = paymentMethods.filter((pm) => pm.currency === currency && pm.status === "active")
-        return methods.find((pm) => pm.is_default) || methods[0]
-      }
-
-      const defaultMethod = getDefaultPaymentMethod(transaction.send_currency)
-      const timerSeconds = defaultMethod?.completion_timer_seconds ?? 3600
-      setTimerDuration(timerSeconds)
-    }
-  }, [transaction, paymentMethods])
+    if (!transaction || currencies.length === 0) return
+    const row = currencies.find((c) => c.code === transaction.receive_currency)
+    setTimerDuration(row?.receive_completion_timer_seconds ?? 3600)
+  }, [transaction, currencies])
 
   // Update current time every second
   useEffect(() => {

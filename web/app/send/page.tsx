@@ -51,6 +51,23 @@ import {
   formatAccountNumber,
 } from "@/lib/formatters"
 
+function formatReceiveArrivalDuration(
+  totalSeconds: number,
+  t: (key: string, options?: Record<string, unknown>) => string,
+) {
+  const safe = Math.max(60, totalSeconds)
+  const totalMinutes = Math.max(1, Math.round(safe / 60))
+  if (totalMinutes < 60) {
+    return t("send.arrivalDurationMinutes", { count: totalMinutes })
+  }
+  const h = Math.floor(totalMinutes / 60)
+  const m = totalMinutes % 60
+  if (m === 0) {
+    return t("send.arrivalDurationHours", { count: h })
+  }
+  return t("send.arrivalDurationHoursMinutes", { hours: h, minutes: m })
+}
+
 export default function UserSendPage() {
   const { t } = useTranslation("app")
   const router = useRouter()
@@ -768,37 +785,10 @@ export default function UserSendPage() {
                       })()}
                     </div>
 
-                    {/* Fee and Rate Information */}
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                            <span className="text-green-600 text-xs">✓</span>
-                          </div>
-                          <span className="text-sm text-gray-600">{t("send.fee")}</span>
-                        </div>
-                        <span className={`font-medium ${fee === 0 ? "text-green-600" : "text-gray-900"}`}>
-                          {fee === 0 ? t("send.free") : formatCurrency(fee, sendCurrency)}
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 bg-primary/10 rounded-full flex items-center justify-center">
-                            <span className="text-primary text-xs">%</span>
-                          </div>
-                          <span className="text-sm text-gray-600">{t("send.rate")}</span>
-                        </div>
-                        <span className="font-medium text-primary">
-                          1 {sendCurrency} = {exchangeRate?.toFixed(2) || "0.00"} {receiveCurrency}
-                        </span>
-                      </div>
-                    </div>
-
                     {/* Receiver Gets Section */}
                     <div className="space-y-4">
                       <h3 className="text-sm font-medium text-gray-700">{t("send.receiverGets")}</h3>
-                      <div className="bg-gray-50 rounded-xl p-4">
+                      <div className="bg-gray-50 rounded-xl p-4 space-y-3">
                         <div className="flex justify-between items-center gap-2">
                           <input
                             type="number"
@@ -853,6 +843,47 @@ export default function UserSendPage() {
                               currencies={currencies}
                               type="receive"
                             />
+                          </div>
+                        </div>
+
+                        <div className="border-t border-gray-200/80 pt-3 space-y-3">
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                                <span className="text-green-600 text-xs">✓</span>
+                              </div>
+                              <span className="text-sm text-gray-600">{t("send.fee")}</span>
+                            </div>
+                            <span className={`font-medium ${fee === 0 ? "text-green-600" : "text-gray-900"}`}>
+                              {fee === 0 ? t("send.free") : formatCurrency(fee, sendCurrency)}
+                            </span>
+                          </div>
+
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <div className="w-5 h-5 bg-primary/10 rounded-full flex items-center justify-center">
+                                <span className="text-primary text-xs">%</span>
+                              </div>
+                              <span className="text-sm text-gray-600">{t("send.rate")}</span>
+                            </div>
+                            <span className="font-medium text-primary">
+                              1 {sendCurrency} = {exchangeRate?.toFixed(2) || "0.00"} {receiveCurrency}
+                            </span>
+                          </div>
+
+                          <div className="flex justify-between items-center gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div className="w-5 h-5 shrink-0 bg-orange-100 rounded-full flex items-center justify-center">
+                                <Clock className="h-3 w-3 text-orange-600" />
+                              </div>
+                              <span className="text-sm text-gray-600">{t("send.arrivesIn")}</span>
+                            </div>
+                            <span className="shrink-0 font-medium text-sm text-gray-900 text-right tabular-nums">
+                              {formatReceiveArrivalDuration(
+                                receiveCurrencyData?.receive_completion_timer_seconds ?? 3600,
+                                t,
+                              )}
+                            </span>
                           </div>
                         </div>
                       </div>

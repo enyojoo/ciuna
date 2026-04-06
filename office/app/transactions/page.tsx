@@ -25,7 +25,6 @@ import {
 } from "lucide-react"
 import type { Transaction } from "@/types"
 import { formatCurrency } from "@/utils/currency"
-import { paymentMethodService } from "@/lib/payment-methods"
 import {
   getAccountTypeConfigFromCurrency,
   formatFieldValue,
@@ -212,36 +211,13 @@ export default function AdminTransactionsPage() {
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>([])
   const [selectedTransaction, setSelectedTransaction] = useState<CombinedTransaction | null>(null)
   const [currentTime, setCurrentTime] = useState(Date.now())
-  const [timerDuration, setTimerDuration] = useState(3600) // Payment method's completion_timer_seconds
-  const [paymentMethods, setPaymentMethods] = useState<any[]>([])
+  const [timerDuration, setTimerDuration] = useState(3600)
 
-  // Load payment methods
   useEffect(() => {
-    const loadPaymentMethods = async () => {
-      try {
-        const paymentMethodsData = await paymentMethodService.getAll()
-        setPaymentMethods(paymentMethodsData || [])
-      } catch (error) {
-        console.error("Error loading payment methods:", error)
-      }
-    }
-
-    loadPaymentMethods()
-  }, [])
-
-  // Initialize timer duration from payment method when transaction is selected
-  useEffect(() => {
-    if (selectedTransaction && paymentMethods.length > 0) {
-      const getDefaultPaymentMethod = (currency: string) => {
-        const methods = paymentMethods.filter((pm) => pm.currency === currency && pm.status === "active")
-        return methods.find((pm) => pm.is_default) || methods[0]
-      }
-
-      const defaultMethod = getDefaultPaymentMethod(selectedTransaction.send_currency ?? "")
-      const timerSeconds = defaultMethod?.completion_timer_seconds ?? 3600
-      setTimerDuration(timerSeconds)
-    }
-  }, [selectedTransaction, paymentMethods])
+    if (!selectedTransaction?.receive_currency || !adminData?.currencies?.length) return
+    const row = adminData.currencies.find((c: { code: string }) => c.code === selectedTransaction.receive_currency)
+    setTimerDuration(row?.receive_completion_timer_seconds ?? 3600)
+  }, [selectedTransaction, adminData?.currencies])
 
   // Update transactions when adminData changes (from realtime updates or initial load)
   useEffect(() => {

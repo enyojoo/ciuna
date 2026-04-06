@@ -8,6 +8,8 @@ export interface Currency {
   status: string
   can_send?: boolean
   can_receive?: boolean
+  /** Seconds; used when this currency is the receive leg (timers, /send "Arrives in"). */
+  receive_completion_timer_seconds?: number
   created_at: string
   updated_at: string
 }

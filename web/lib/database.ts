@@ -751,7 +751,6 @@ export const paymentMethodService = {
     cryptoNetwork?: string
     walletAddress?: string
     instructions?: string
-    completionTimerSeconds?: number
     isDefault?: boolean
   }) {
     const serverClient = createServerClient()
@@ -782,7 +781,6 @@ export const paymentMethodService = {
         crypto_network: paymentMethodData.cryptoNetwork,
         wallet_address: paymentMethodData.walletAddress,
         instructions: paymentMethodData.instructions,
-        completion_timer_seconds: paymentMethodData.completionTimerSeconds ?? 3600,
         is_default: paymentMethodData.isDefault || false,
         status: "active",
       })
@@ -815,7 +813,6 @@ export const paymentMethodService = {
       cryptoNetwork?: string
       walletAddress?: string
       instructions?: string
-      completionTimerSeconds?: number
       isDefault?: boolean
     },
   ) {
@@ -846,7 +843,6 @@ export const paymentMethodService = {
     if (updates.cryptoNetwork !== undefined) updateData.crypto_network = updates.cryptoNetwork
     if (updates.walletAddress !== undefined) updateData.wallet_address = updates.walletAddress
     if (updates.instructions !== undefined) updateData.instructions = updates.instructions
-    if (updates.completionTimerSeconds !== undefined) updateData.completion_timer_seconds = updates.completionTimerSeconds
     if (updates.isDefault !== undefined) updateData.is_default = updates.isDefault
 
     const { data, error } = await serverClient
