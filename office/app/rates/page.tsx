@@ -409,7 +409,10 @@ const AdminRatesPage = () => {
 
         {/* Edit Rates Dialog */}
         <Dialog open={isEditingRates} onOpenChange={setIsEditingRates}>
-          <DialogContent hideClose className="max-w-4xl max-h-[80vh]">
+          <DialogContent
+            hideClose
+            className="max-w-4xl max-h-[80vh] [&_input[type=number]]:[-moz-appearance:textfield] [&_input[type=number]::-webkit-inner-spin-button]:appearance-none [&_input[type=number]::-webkit-outer-spin-button]:appearance-none [&_input]:focus-visible:ring-0 [&_input]:focus-visible:ring-offset-0 [&_input]:focus-visible:border-primary [&_select]:focus-visible:ring-0 [&_select]:focus-visible:ring-offset-0 [&_select]:focus-visible:outline-none [&_select]:focus-visible:border-primary"
+          >
             <DialogHeader className="flex flex-row flex-nowrap items-center gap-3 space-y-0 overflow-x-auto border-b pb-4 text-left [scrollbar-width:thin]">
               <DialogTitle className="m-0 min-w-0 flex-1 truncate text-base font-semibold leading-tight">
                 Edit Exchange Rates - {selectedCurrency?.name} ({selectedCurrency?.code})

@@ -147,8 +147,6 @@
   "send": {
     "retry": "Retry",
     "noCurrencies": "No currencies available. Please contact support.",
-    "sendMoney": "Send Money",
-    "subtitleStep1": "Enter amount and select currencies",
     "youSend": "You Send",
     "receiverGets": "Receiver Gets",
     "fee": "Fee",

@@ -147,8 +147,6 @@
   "send": {
     "retry": "Reintentar",
     "noCurrencies": "No hay monedas disponibles. Contacta soporte.",
-    "sendMoney": "Enviar dinero",
-    "subtitleStep1": "Monto y monedas",
     "youSend": "Tú envías",
     "receiverGets": "El destinatario recibe",
     "fee": "Comisión",

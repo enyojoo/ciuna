@@ -147,8 +147,6 @@
   "send": {
     "retry": "Réessayer",
     "noCurrencies": "Aucune devise disponible. Contactez l’assistance.",
-    "sendMoney": "Envoyer de l’argent",
-    "subtitleStep1": "Montant et devises",
     "youSend": "Vous envoyez",
     "receiverGets": "Le destinataire reçoit",
     "fee": "Frais",

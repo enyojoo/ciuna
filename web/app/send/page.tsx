@@ -720,11 +720,7 @@ export default function UserSendPage() {
               {/* Step 1: Send Money */}
               {currentStep === 1 && (
                 <Card>
-                  <CardHeader>
-                    <CardTitle>{t("send.sendMoney")}</CardTitle>
-                    <p className="text-base text-gray-500 mt-1">{t("send.subtitleStep1")}</p>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
+                  <CardContent className="space-y-6 pt-6">
                     {/* You Send Section */}
                     <div className="space-y-4">
                       <h3 className="text-sm font-medium text-gray-700">{t("send.youSend")}</h3>
