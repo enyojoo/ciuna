@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, memo } from "react"
+import { useState, useEffect, useMemo, memo } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,6 +11,7 @@ import { transactionService, paymentMethodService } from "@/lib/database"
 import { useAuth } from "@/lib/auth-context"
 import { useUserData } from "@/hooks/use-user-data"
 import { TransactionTimeline } from "@/components/transaction-timeline"
+import { TransactionPaymentMethodDetails } from "@/components/transaction-payment-method-details"
 import { TransactionDetailsSkeleton } from "@/components/transaction-details-skeleton"
 import { AppPageHeader } from "@/components/layout/app-page-header"
 import { supabase } from "@/lib/supabase"
@@ -547,6 +548,16 @@ function TransactionStatusPage() {
 
   const isReferralPayout =
     typeof transaction.reference === "string" && transaction.reference.startsWith(REFERRAL_PAYOUT_PREFIX)
+
+  const defaultPaymentMethod = useMemo(() => {
+    if (!transaction || paymentMethods.length === 0) return null
+    const methods = paymentMethods.filter(
+      (pm) => pm.currency === transaction.send_currency && pm.status === "active",
+    )
+    if (methods.length === 0) return null
+    return methods.find((pm) => pm.is_default) ?? methods[0]
+  }, [transaction, paymentMethods])
+
   const statusMessage = getStatusMessage(transaction.status, isReferralPayout)
   const statusSteps = getStatusSteps(transaction.status)
   const { timeRemaining, isOverdue } = getTimeInfo()
@@ -773,6 +784,23 @@ function TransactionStatusPage() {
                       </span>
                     </div>
                   </div>
+
+                  {!isReferralPayout &&
+                    defaultPaymentMethod &&
+                    (transaction.status === "pending" ||
+                      transaction.status === "processing" ||
+                      transaction.status === "completed") && (
+                      <div className="pt-4 border-t">
+                        <h4 className="font-medium mb-2">{t("txDetail.paymentInstructions")}</h4>
+                        <TransactionPaymentMethodDetails
+                          method={defaultPaymentMethod}
+                          currency={transaction.send_currency}
+                          t={t}
+                          copiedStates={copiedStates}
+                          onCopy={handleCopy}
+                        />
+                      </div>
+                    )}
 
                   {transaction.recipient && (
                     <div className="pt-4 border-t">
