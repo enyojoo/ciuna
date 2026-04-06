@@ -410,11 +410,11 @@ const AdminRatesPage = () => {
         {/* Edit Rates Dialog */}
         <Dialog open={isEditingRates} onOpenChange={setIsEditingRates}>
           <DialogContent className="max-w-4xl max-h-[80vh]">
-            <DialogHeader className="flex flex-row items-center gap-6">
+            <DialogHeader className="space-y-3 text-left sm:space-y-2">
               <DialogTitle>
                 Edit Exchange Rates - {selectedCurrency?.name} ({selectedCurrency?.code})
               </DialogTitle>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-end gap-x-4 gap-y-3 border-b pb-4">
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="editCanSend"
@@ -439,63 +439,66 @@ const AdminRatesPage = () => {
                     Can Receive
                   </Label>
                 </div>
+                <div className="flex items-end gap-1.5 sm:ml-2">
+                  <div className="grid w-11 shrink-0 gap-0.5">
+                    <Label htmlFor="rateTimerHours" className="text-[10px] font-medium uppercase text-gray-500">
+                      H
+                    </Label>
+                    <Input
+                      id="rateTimerHours"
+                      type="number"
+                      min={0}
+                      className="h-8 px-1.5 text-center text-sm tabular-nums"
+                      value={receiveCompletionTimer.hours}
+                      onChange={(e) =>
+                        setReceiveCompletionTimer({
+                          ...receiveCompletionTimer,
+                          hours: Math.max(0, Number.parseInt(e.target.value, 10) || 0),
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="grid w-11 shrink-0 gap-0.5">
+                    <Label htmlFor="rateTimerMinutes" className="text-[10px] font-medium uppercase text-gray-500">
+                      M
+                    </Label>
+                    <Input
+                      id="rateTimerMinutes"
+                      type="number"
+                      min={0}
+                      max={59}
+                      className="h-8 px-1.5 text-center text-sm tabular-nums"
+                      value={receiveCompletionTimer.minutes}
+                      onChange={(e) =>
+                        setReceiveCompletionTimer({
+                          ...receiveCompletionTimer,
+                          minutes: Math.max(0, Math.min(59, Number.parseInt(e.target.value, 10) || 0)),
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="grid w-11 shrink-0 gap-0.5">
+                    <Label htmlFor="rateTimerSeconds" className="text-[10px] font-medium uppercase text-gray-500">
+                      S
+                    </Label>
+                    <Input
+                      id="rateTimerSeconds"
+                      type="number"
+                      min={0}
+                      max={59}
+                      className="h-8 px-1.5 text-center text-sm tabular-nums"
+                      value={receiveCompletionTimer.seconds}
+                      onChange={(e) =>
+                        setReceiveCompletionTimer({
+                          ...receiveCompletionTimer,
+                          seconds: Math.max(0, Math.min(59, Number.parseInt(e.target.value, 10) || 0)),
+                        })
+                      }
+                    />
+                  </div>
+                </div>
               </div>
             </DialogHeader>
-            <div className="space-y-4 border-b pb-4">
-              <Label className="text-sm font-semibold">Completion Timer</Label>
-              <div className="grid grid-cols-3 gap-4 max-w-lg">
-                <div className="space-y-2">
-                  <Label htmlFor="rateTimerHours">Hours</Label>
-                  <Input
-                    id="rateTimerHours"
-                    type="number"
-                    min={0}
-                    value={receiveCompletionTimer.hours}
-                    onChange={(e) =>
-                      setReceiveCompletionTimer({
-                        ...receiveCompletionTimer,
-                        hours: Math.max(0, Number.parseInt(e.target.value, 10) || 0),
-                      })
-                    }
-                    placeholder="0"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="rateTimerMinutes">Minutes</Label>
-                  <Input
-                    id="rateTimerMinutes"
-                    type="number"
-                    min={0}
-                    max={59}
-                    value={receiveCompletionTimer.minutes}
-                    onChange={(e) =>
-                      setReceiveCompletionTimer({
-                        ...receiveCompletionTimer,
-                        minutes: Math.max(0, Math.min(59, Number.parseInt(e.target.value, 10) || 0)),
-                      })
-                    }
-                    placeholder="0"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="rateTimerSeconds">Seconds</Label>
-                  <Input
-                    id="rateTimerSeconds"
-                    type="number"
-                    min={0}
-                    max={59}
-                    value={receiveCompletionTimer.seconds}
-                    onChange={(e) =>
-                      setReceiveCompletionTimer({
-                        ...receiveCompletionTimer,
-                        seconds: Math.max(0, Math.min(59, Number.parseInt(e.target.value, 10) || 0)),
-                      })
-                    }
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-            </div>
             <div className="space-y-6">
               <div className="max-h-[400px] overflow-y-auto space-y-4 pr-2">
                 {getCurrencyRates(selectedCurrency?.code || "").map((rate: any) => (
