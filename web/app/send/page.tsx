@@ -719,12 +719,12 @@ export default function UserSendPage() {
             <div className="min-w-0 lg:col-span-2">
               {/* Step 1: Send Money */}
               {currentStep === 1 && (
-                <Card>
-                  <CardContent className="space-y-6 pt-6">
+                <Card className="py-4">
+                  <CardContent className="space-y-6 pt-0">
                     {/* You Send Section */}
                     <div className="space-y-4">
                       <h3 className="text-sm font-medium text-gray-700">{t("send.youSend")}</h3>
-                      <div className="bg-gray-50 rounded-xl p-4">
+                      <div className="bg-gray-50 rounded-xl px-4 py-4">
                         <div className="flex justify-between items-center gap-2">
                           <input
                             type="number"
@@ -791,7 +791,7 @@ export default function UserSendPage() {
                     {/* Receiver Gets Section */}
                     <div className="space-y-4">
                       <h3 className="text-sm font-medium text-gray-700">{t("send.receiverGets")}</h3>
-                      <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                      <div className="bg-gray-50 space-y-3 rounded-xl px-4 py-4">
                         <div className="flex justify-between items-center gap-2">
                           <input
                             type="number"
