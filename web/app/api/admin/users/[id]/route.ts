@@ -42,7 +42,7 @@ export async function GET(
     // Get user data
     const { data: userData, error: userError } = await serverClient
       .from("users")
-      .select("id, email, first_name, last_name, bridge_customer_id, bridge_signed_agreement_id, bridge_kyc_status, bridge_kyc_rejection_reasons")
+      .select("id, email, first_name, last_name, kyc_external_customer_id, kyc_signed_agreement_id, kyc_status, kyc_rejection_reasons")
       .eq("id", userId)
       .single()
 

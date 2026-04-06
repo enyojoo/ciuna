@@ -4,7 +4,7 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, CreditCard, Users, TrendingUp, Settings, LogOut, Menu, X, UserPlus, ShieldCheck, Gift } from "lucide-react"
+import { LayoutDashboard, CreditCard, Users, TrendingUp, Settings, LogOut, Menu, X, ShieldCheck, Gift } from "lucide-react"
 import { BrandLogo } from "@ciuna/shared"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
@@ -20,7 +20,6 @@ const navigation = [
   { name: "Users", href: "/users", icon: Users },
   { name: "Referrals", href: "/referrals", icon: Gift },
   { name: "Compliance", href: "/compliance", icon: ShieldCheck },
-  { name: "Early Access", href: "/early-access", icon: UserPlus },
   { name: "Rates", href: "/rates", icon: TrendingUp },
   { name: "Settings", href: "/settings", icon: Settings },
 ]

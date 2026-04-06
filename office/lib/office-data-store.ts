@@ -7,7 +7,6 @@ interface AdminData {
   referralPayoutRequests: any[]
   currencies: any[]
   exchangeRates: any[]
-  earlyAccessRequests: any[]
   baseCurrency: string
   stats: {
     totalUsers: number
@@ -16,12 +15,6 @@ interface AdminData {
     totalTransactions: number
     totalVolume: number
     pendingTransactions: number
-  }
-  earlyAccessStats: {
-    total: number
-    pending: number
-    approved: number
-    contacted: number
   }
   recentActivity: any[]
   currencyPairs: any[]
@@ -234,10 +227,8 @@ class OfficeDataStore {
         referralPayoutRequests: existingData?.referralPayoutRequests || [],
         currencies: currenciesResult,
         exchangeRates: exchangeRatesResult,
-        earlyAccessRequests: existingData?.earlyAccessRequests || [], // Will load in background
         baseCurrency,
         stats: tempStats,
-        earlyAccessStats: existingData?.earlyAccessStats || { total: 0, pending: 0, approved: 0, contacted: 0 },
         recentActivity,
         currencyPairs,
         lastUpdated: Date.now(),
@@ -246,10 +237,9 @@ class OfficeDataStore {
       // Notify listeners with critical data immediately
       this.notify()
 
-      // Load users and early access requests in background (these take longer)
+      // Load users and referral payouts in background (these take longer)
       const backgroundDataPromise = Promise.allSettled([
         this.loadUsers(transactionsResult), // Pass transactions to avoid re-querying
-        this.loadEarlyAccessRequests(),
         this.loadReferralPayouts(),
       ])
 
@@ -257,32 +247,27 @@ class OfficeDataStore {
 
       // Extract background results - preserve existing data if loading fails
       const usersResult = backgroundResults[0].status === "fulfilled" ? backgroundResults[0].value || [] : (this.data?.users || existingData?.users || [])
-      const earlyAccessResult = backgroundResults[1].status === "fulfilled" ? backgroundResults[1].value || [] : (this.data?.earlyAccessRequests || existingData?.earlyAccessRequests || [])
-      const referralPayoutsResult = backgroundResults[2].status === "fulfilled" ? backgroundResults[2].value || [] : (this.data?.referralPayoutRequests || existingData?.referralPayoutRequests || [])
+      const referralPayoutsResult = backgroundResults[1].status === "fulfilled" ? backgroundResults[1].value || [] : (this.data?.referralPayoutRequests || existingData?.referralPayoutRequests || [])
 
       // Recalculate stats with actual user count using already-loaded exchange rates
       const stats = await this.calculateStats(usersResult, transactionsResult, baseCurrency, exchangeRatesResult)
-      const earlyAccessStats = this.calculateEarlyAccessStats(earlyAccessResult)
 
       // Only update if data actually changed to prevent flickering
       const usersChanged = JSON.stringify(usersResult) !== JSON.stringify(this.data?.users)
       const statsChanged = JSON.stringify(stats) !== JSON.stringify(this.data?.stats)
-      const earlyAccessChanged = JSON.stringify(earlyAccessStats) !== JSON.stringify(this.data?.earlyAccessStats)
       const referralPayoutsChanged =
         JSON.stringify(referralPayoutsResult) !== JSON.stringify(this.data?.referralPayoutRequests)
 
       // Update data with background-loaded data only if something changed
-      if (usersChanged || statsChanged || earlyAccessChanged || referralPayoutsChanged) {
+      if (usersChanged || statsChanged || referralPayoutsChanged) {
         this.data = {
           users: usersResult,
           transactions: transactionsResult,
           referralPayoutRequests: referralPayoutsResult,
           currencies: currenciesResult,
           exchangeRates: exchangeRatesResult,
-          earlyAccessRequests: earlyAccessResult,
           baseCurrency,
           stats,
-          earlyAccessStats,
           recentActivity,
           currencyPairs,
           lastUpdated: Date.now(),
@@ -480,26 +465,6 @@ class OfficeDataStore {
     }
   }
 
-  private async loadEarlyAccessRequests() {
-    try {
-      console.log("OfficeDataStore: Loading early access requests...")
-      const { data, error } = await supabase
-        .from("early_access_requests")
-        .select("*")
-        .order("created_at", { ascending: false })
-
-      if (error) {
-        console.error("OfficeDataStore: Error loading early access requests:", error)
-        throw error
-      }
-      console.log("OfficeDataStore: Early access requests loaded successfully:", data?.length || 0)
-      return data || []
-    } catch (error) {
-      console.error("Error loading early access requests:", error)
-      return [] // Return empty array on error to prevent crashes
-    }
-  }
-
   private async calculateStatsFromTransactions(transactions: any[], baseCurrency: string, exchangeRates: any[] = []) {
     const totalTransactions = transactions.length
     const pendingTransactions = transactions.filter((t) => t.status === "pending" || t.status === "processing").length
@@ -523,7 +488,7 @@ class OfficeDataStore {
     const activeUsers = users.filter((u) => u.status === "active").length
     // Count users with approved KYC or email verified
     const verifiedUsers = users.filter((u) => 
-      u.bridge_kyc_status === "approved" || u.email_confirmed_at
+      u.kyc_status === "approved" || u.email_confirmed_at
     ).length
 
     const totalTransactions = transactions.length
@@ -540,20 +505,6 @@ class OfficeDataStore {
       totalTransactions,
       totalVolume,
       pendingTransactions,
-    }
-  }
-
-  private calculateEarlyAccessStats(requests: any[]) {
-    const total = requests.length
-    const pending = requests.filter((r) => r.status === "pending").length
-    const approved = requests.filter((r) => r.status === "approved").length
-    const contacted = requests.filter((r) => r.status === "contacted").length
-
-    return {
-      total,
-      pending,
-      approved,
-      contacted,
     }
   }
 
@@ -606,7 +557,7 @@ class OfficeDataStore {
           totalVolume += convertCurrency(amount, currency)
         }
       }
-      // Card funding / card spending are not included in admin volume
+      // Send remittance volume only (receive side in fiat send currency)
     }
 
     return totalVolume
@@ -636,21 +587,12 @@ class OfficeDataStore {
   private processRecentActivity(transactions: any[]) {
     return transactions.map((tx) => {
       const txType = tx.type || (tx.send_amount ? "send" : null)
-      const isCardFunding = txType === "card_funding" || (tx.destination_type === "card" || tx.bridge_card_account_id)
-
-      let amount = ""
-      if (txType === "send") {
-        amount = this.formatCurrency(tx.send_amount || 0, tx.send_currency || "")
-      } else if (isCardFunding) {
-        amount = `${tx.crypto_amount || 0} ${tx.crypto_currency || ""}`
-      } else {
-        amount = this.formatCurrency(tx.send_amount || 0, tx.send_currency || "")
-      }
+      const amount = this.formatCurrency(tx.send_amount || 0, tx.send_currency || "")
 
       return {
         id: tx.id || tx.transaction_id,
-        type: this.getActivityType(tx.status, txType, isCardFunding),
-        message: this.getActivityMessage(tx, txType, isCardFunding),
+        type: this.getActivityType(tx.status),
+        message: this.getActivityMessage(tx, txType),
         user: tx.user ? `${tx.user.first_name} ${tx.user.last_name}` : undefined,
         amount,
         time: this.getRelativeTime(tx.created_at),
@@ -683,39 +625,25 @@ class OfficeDataStore {
       .slice(0, 4)
   }
 
-  private getActivityType(status: string, txType?: string, isCardFunding?: boolean) {
-    const baseType = (() => {
-      switch (status) {
-        case "completed":
-          return "transaction_completed"
-        case "failed":
-          return "transaction_failed"
-        case "cancelled":
-          return "transaction_cancelled"
-        case "processing":
-          return "transaction_processing"
-        case "pending":
-          return "transaction_pending"
-        default:
-          return "transaction_pending"
-      }
-    })()
-    
-    // Add transaction type context if needed
-    if (isCardFunding) {
-      return baseType.replace("transaction_", "card_funding_")
+  private getActivityType(status: string) {
+    switch (status) {
+      case "completed":
+        return "transaction_completed"
+      case "failed":
+        return "transaction_failed"
+      case "cancelled":
+        return "transaction_cancelled"
+      case "processing":
+        return "transaction_processing"
+      case "pending":
+        return "transaction_pending"
+      default:
+        return "transaction_pending"
     }
-    return baseType
   }
 
-  private getActivityMessage(transaction: any, txType?: string, isCardFunding?: boolean) {
-    // Determine transaction type label
-    let typeLabel = "Transaction"
-    if (txType === "send") {
-      typeLabel = "Send Money"
-    } else if (isCardFunding) {
-      typeLabel = "Card Funding"
-    }
+  private getActivityMessage(transaction: any, txType?: string) {
+    const typeLabel = txType === "send" ? "Send Money" : "Transaction"
 
     switch (transaction.status) {
       case "completed":
@@ -889,37 +817,12 @@ class OfficeDataStore {
         }
       })
 
-    // Subscribe to early_access_requests table changes
-    const earlyAccessChannel = supabase
-      .channel('admin-early-access')
-      .on(
-        'postgres_changes',
-        {
-          event: '*', // INSERT, UPDATE, DELETE
-          schema: 'public',
-          table: 'early_access_requests',
-        },
-        async (payload) => {
-          console.log('OfficeDataStore: Early access request change received via Realtime:', payload.eventType)
-          // Reload early access requests
-          await this.refreshEarlyAccessRequests()
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('OfficeDataStore: Subscribed to early access requests real-time updates')
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('OfficeDataStore: Early access requests subscription error')
-        }
-      })
-
     // Store channels for cleanup
     this.realtimeChannels = [
       transactionsChannel,
       usersChannel,
       currenciesChannel,
       exchangeRatesChannel,
-      earlyAccessChannel,
     ]
   }
 
@@ -1029,33 +932,6 @@ class OfficeDataStore {
       }
     } catch (error) {
       console.error('OfficeDataStore: Error refreshing exchange rates:', error)
-    }
-  }
-
-  private async refreshEarlyAccessRequests() {
-    if (!this.data) return
-
-    try {
-      const earlyAccessResult = await this.loadEarlyAccessRequests()
-      const earlyAccessStats = this.calculateEarlyAccessStats(earlyAccessResult)
-
-      // Only update if data actually changed
-      const earlyAccessChanged = JSON.stringify(earlyAccessResult) !== JSON.stringify(this.data.earlyAccessRequests)
-      const statsChanged = JSON.stringify(earlyAccessStats) !== JSON.stringify(this.data.earlyAccessStats)
-
-      if (earlyAccessChanged || statsChanged) {
-        // Create a new object reference to ensure React detects the change
-        this.data = {
-          ...this.data,
-          earlyAccessRequests: earlyAccessResult,
-          earlyAccessStats: earlyAccessStats,
-          lastUpdated: Date.now(),
-        }
-        this.saveToCache()
-        this.notify()
-      }
-    } catch (error) {
-      console.error('OfficeDataStore: Error refreshing early access requests:', error)
     }
   }
 
@@ -1187,19 +1063,19 @@ class OfficeDataStore {
     try {
       console.log(`OfficeDataStore: Updating user ${userId} KYC status to ${newStatus}`)
       
-      // Map old verification_status values to bridge_kyc_status
+      // Map UI verification values to kyc_status
       const statusMap: Record<string, string> = {
         "verified": "approved",
         "pending": "not_started",
         "rejected": "rejected",
         "unverified": "not_started",
       }
-      const bridgeKycStatus = statusMap[newStatus] || newStatus
+      const kycStatus = statusMap[newStatus] || newStatus
       
       const { error } = await supabase
         .from("users")
         .update({
-          bridge_kyc_status: bridgeKycStatus,
+          kyc_status: kycStatus,
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId)
@@ -1212,7 +1088,7 @@ class OfficeDataStore {
       // Update local data
       if (this.data) {
         this.data.users = this.data.users.map((user) => 
-          user.id === userId ? { ...user, bridge_kyc_status: bridgeKycStatus, updated_at: new Date().toISOString() } : user
+          user.id === userId ? { ...user, kyc_status: kycStatus, updated_at: new Date().toISOString() } : user
         )
         this.data.stats = await this.calculateStats(this.data.users, this.data.transactions, this.data.baseCurrency)
         this.notify()
@@ -1223,40 +1099,6 @@ class OfficeDataStore {
       throw error
     }
   }
-
-  async updateEarlyAccessRequestStatus(requestId: string, newStatus: string, notes?: string) {
-    try {
-      console.log(`OfficeDataStore: Updating early access request ${requestId} status to ${newStatus}`)
-      
-      const { error } = await supabase
-        .from("early_access_requests")
-        .update({
-          status: newStatus,
-          notes: notes || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", requestId)
-
-      if (error) {
-        console.error("Database error:", error)
-        throw error
-      }
-
-      // Update local data
-      if (this.data) {
-        this.data.earlyAccessRequests = this.data.earlyAccessRequests.map((request) => 
-          request.id === requestId ? { ...request, status: newStatus, notes: notes || null, updated_at: new Date().toISOString() } : request
-        )
-        this.data.earlyAccessStats = this.calculateEarlyAccessStats(this.data.earlyAccessRequests)
-        this.notify()
-        console.log("Early access request data updated successfully")
-      }
-    } catch (error) {
-      console.error("Error updating early access request status:", error)
-      throw error
-    }
-  }
-
 
   async updateCurrencyStatus(currencyId: string, newStatus: string) {
     try {

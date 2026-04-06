@@ -85,7 +85,7 @@ export default function OfficeKYCPage() {
                 email: userData?.email,
                 identitySubmission,
                 addressSubmission,
-                hasTOS: !!userData?.bridge_signed_agreement_id,
+                hasTOS: !!userData?.kyc_signed_agreement_id,
               })
             } catch (error) {
               console.error(`Error fetching user data for ${userId}:`, error)

@@ -14,11 +14,11 @@ export function PublicHeader() {
           </Link>
 
           <div className="flex items-center space-x-3">
-            <Link href="/access">
+            <a href="https://t.me/ciunabot" target="_blank" rel="noopener noreferrer">
               <Button className="bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-200">
-                Get Started
+                Open App
               </Button>
-            </Link>
+            </a>
           </div>
         </div>
       </div>

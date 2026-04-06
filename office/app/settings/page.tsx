@@ -25,6 +25,8 @@ import {
   Upload,
   Gift,
   Info,
+  Coins,
+  Smartphone,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -128,7 +130,11 @@ interface PaymentMethod {
   iban?: string
   swift_bic?: string
   qr_code_data?: string
+  crypto_asset?: string
+  crypto_network?: string
+  wallet_address?: string
   instructions?: string
+  completion_timer_seconds?: number
   is_default: boolean
   status: string
   created_at: string
@@ -159,6 +165,9 @@ export default function AdminSettingsPage() {
     iban: "",
     swift_bic: "",
     qr_code_data: "",
+    crypto_asset: "",
+    crypto_network: "",
+    wallet_address: "",
     instructions: "",
     timerHours: 1,
     timerMinutes: 0,
@@ -513,20 +522,29 @@ export default function AdminSettingsPage() {
         newPaymentMethod.timerSeconds,
       )
 
+      const pt = newPaymentMethod.type
+      const bankish = pt === "bank_account"
+      const mobile = pt === "mobile_money"
+      const stable = pt === "stablecoin"
+      const qr = pt === "qr_code"
+
       const { data, error } = await supabase
         .from("payment_methods")
         .insert({
           currency: newPaymentMethod.currency,
-          type: newPaymentMethod.type,
+          type: pt,
           name: newPaymentMethod.name,
-          account_name: newPaymentMethod.account_name || null,
-          account_number: newPaymentMethod.account_number || null,
-          bank_name: newPaymentMethod.bank_name || null,
-          routing_number: newPaymentMethod.routing_number || null,
-          sort_code: newPaymentMethod.sort_code || null,
-          iban: newPaymentMethod.iban || null,
-          swift_bic: newPaymentMethod.swift_bic || null,
-          qr_code_data: qrCodeData || null,
+          account_name: bankish || mobile ? newPaymentMethod.account_name || null : null,
+          account_number: bankish || mobile ? newPaymentMethod.account_number || null : null,
+          bank_name: bankish ? newPaymentMethod.bank_name || null : null,
+          routing_number: bankish ? newPaymentMethod.routing_number || null : null,
+          sort_code: bankish ? newPaymentMethod.sort_code || null : null,
+          iban: bankish ? newPaymentMethod.iban || null : null,
+          swift_bic: bankish ? newPaymentMethod.swift_bic || null : null,
+          qr_code_data: qr ? qrCodeData || null : null,
+          crypto_asset: stable ? newPaymentMethod.crypto_asset.trim() || null : null,
+          crypto_network: stable ? newPaymentMethod.crypto_network.trim() || null : null,
+          wallet_address: stable ? newPaymentMethod.wallet_address.trim() || null : null,
           instructions: newPaymentMethod.instructions || null,
           completion_timer_seconds: completionTimerSeconds,
           is_default: newPaymentMethod.is_default,
@@ -550,6 +568,9 @@ export default function AdminSettingsPage() {
         iban: "",
         swift_bic: "",
         qr_code_data: "",
+        crypto_asset: "",
+        crypto_network: "",
+        wallet_address: "",
         instructions: "",
         timerHours: 1,
         timerMinutes: 0,
@@ -591,20 +612,29 @@ export default function AdminSettingsPage() {
 
       const completionTimerSeconds = timeToSeconds(editingTimer.hours, editingTimer.minutes, editingTimer.seconds)
 
+      const ept = editingPaymentMethod.type
+      const ebank = ept === "bank_account"
+      const emobile = ept === "mobile_money"
+      const estable = ept === "stablecoin"
+      const eqr = ept === "qr_code"
+
       const { data, error } = await supabase
         .from("payment_methods")
         .update({
           currency: editingPaymentMethod.currency,
-          type: editingPaymentMethod.type,
+          type: ept,
           name: editingPaymentMethod.name,
-          account_name: editingPaymentMethod.account_name || null,
-          account_number: editingPaymentMethod.account_number || null,
-          bank_name: editingPaymentMethod.bank_name || null,
-          routing_number: editingPaymentMethod.routing_number || null,
-          sort_code: editingPaymentMethod.sort_code || null,
-          iban: editingPaymentMethod.iban || null,
-          swift_bic: editingPaymentMethod.swift_bic || null,
-          qr_code_data: qrCodeData || null,
+          account_name: ebank || emobile ? editingPaymentMethod.account_name || null : null,
+          account_number: ebank || emobile ? editingPaymentMethod.account_number || null : null,
+          bank_name: ebank ? editingPaymentMethod.bank_name || null : null,
+          routing_number: ebank ? editingPaymentMethod.routing_number || null : null,
+          sort_code: ebank ? editingPaymentMethod.sort_code || null : null,
+          iban: ebank ? editingPaymentMethod.iban || null : null,
+          swift_bic: ebank ? editingPaymentMethod.swift_bic || null : null,
+          qr_code_data: eqr ? qrCodeData || null : null,
+          crypto_asset: estable ? (editingPaymentMethod.crypto_asset || "").trim() || null : null,
+          crypto_network: estable ? (editingPaymentMethod.crypto_network || "").trim() || null : null,
+          wallet_address: estable ? (editingPaymentMethod.wallet_address || "").trim() || null : null,
           instructions: editingPaymentMethod.instructions || null,
           completion_timer_seconds: completionTimerSeconds,
           is_default: editingPaymentMethod.is_default,
@@ -713,7 +743,10 @@ export default function AdminSettingsPage() {
 
 
   const getPaymentMethodIcon = (type: string) => {
-    return type === "qr_code" ? <QrCode className="h-4 w-4" /> : <Building2 className="h-4 w-4" />
+    if (type === "qr_code") return <QrCode className="h-4 w-4" />
+    if (type === "stablecoin") return <Coins className="h-4 w-4" />
+    if (type === "mobile_money") return <Smartphone className="h-4 w-4" />
+    return <Building2 className="h-4 w-4" />
   }
 
   const getCurrencyFlag = (currencyCode: string) => {
@@ -897,6 +930,18 @@ export default function AdminSettingsPage() {
                                   <div className="flex items-center gap-2">
                                     <QrCode className="h-4 w-4" />
                                     QR Code
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="stablecoin">
+                                  <div className="flex items-center gap-2">
+                                    <Coins className="h-4 w-4" />
+                                    Stablecoin
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="mobile_money">
+                                  <div className="flex items-center gap-2">
+                                    <Smartphone className="h-4 w-4" />
+                                    Mobile money
                                   </div>
                                 </SelectItem>
                               </SelectContent>
@@ -1163,6 +1208,103 @@ export default function AdminSettingsPage() {
                           </>
                         )}
 
+                        {newPaymentMethod.type === "stablecoin" && (
+                          <>
+                            <div className="space-y-2">
+                              <Label htmlFor="cryptoAsset">Asset *</Label>
+                              <Input
+                                id="cryptoAsset"
+                                value={newPaymentMethod.crypto_asset}
+                                onChange={(e) =>
+                                  setNewPaymentMethod({ ...newPaymentMethod, crypto_asset: e.target.value })
+                                }
+                                placeholder="e.g. USDC"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="cryptoNetwork">Network *</Label>
+                              <Input
+                                id="cryptoNetwork"
+                                value={newPaymentMethod.crypto_network}
+                                onChange={(e) =>
+                                  setNewPaymentMethod({ ...newPaymentMethod, crypto_network: e.target.value })
+                                }
+                                placeholder="e.g. Solana, Ethereum"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="walletAddress">Wallet address *</Label>
+                              <Input
+                                id="walletAddress"
+                                value={newPaymentMethod.wallet_address}
+                                onChange={(e) =>
+                                  setNewPaymentMethod({ ...newPaymentMethod, wallet_address: e.target.value })
+                                }
+                                placeholder="Deposit address"
+                                className="font-mono text-sm"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="instructionsStable">Instructions</Label>
+                              <Textarea
+                                id="instructionsStable"
+                                value={newPaymentMethod.instructions}
+                                onChange={(e) =>
+                                  setNewPaymentMethod({ ...newPaymentMethod, instructions: e.target.value })
+                                }
+                                placeholder="Optional notes for users (e.g. confirm network before sending)"
+                                rows={3}
+                              />
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              The app shows a QR code encoding this address so users can scan with a wallet.
+                            </p>
+                          </>
+                        )}
+
+                        {newPaymentMethod.type === "mobile_money" && (
+                          <>
+                            <div className="space-y-2">
+                              <Label htmlFor="mobileMoneyName">Name *</Label>
+                              <Input
+                                id="mobileMoneyName"
+                                value={newPaymentMethod.account_name}
+                                onChange={(e) =>
+                                  setNewPaymentMethod({ ...newPaymentMethod, account_name: e.target.value })
+                                }
+                                placeholder="Account or business name"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="mobileMoneyPhone">Phone number *</Label>
+                              <Input
+                                id="mobileMoneyPhone"
+                                type="tel"
+                                value={newPaymentMethod.account_number}
+                                onChange={(e) =>
+                                  setNewPaymentMethod({
+                                    ...newPaymentMethod,
+                                    account_number: e.target.value.replace(/\s/g, ""),
+                                  })
+                                }
+                                placeholder="e.g. +234…"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="instructionsMobile">Instructions</Label>
+                              <Textarea
+                                id="instructionsMobile"
+                                value={newPaymentMethod.instructions}
+                                onChange={(e) =>
+                                  setNewPaymentMethod({ ...newPaymentMethod, instructions: e.target.value })
+                                }
+                                placeholder="Optional instructions for paying via mobile money"
+                                rows={3}
+                              />
+                            </div>
+                          </>
+                        )}
+
                         <div className="space-y-4 border-t pt-4">
                           <Label className="text-sm font-semibold">Completion Timer</Label>
                           <div className="grid grid-cols-3 gap-4">
@@ -1263,6 +1405,25 @@ export default function AdminSettingsPage() {
                               }
                             }
 
+                            if (newPaymentMethod.type === "stablecoin") {
+                              if (
+                                !newPaymentMethod.crypto_asset?.trim() ||
+                                !newPaymentMethod.crypto_network?.trim() ||
+                                !newPaymentMethod.wallet_address?.trim()
+                              ) {
+                                return true
+                              }
+                            }
+
+                            if (newPaymentMethod.type === "mobile_money") {
+                              if (
+                                !newPaymentMethod.account_name?.trim() ||
+                                !newPaymentMethod.account_number?.trim()
+                              ) {
+                                return true
+                              }
+                            }
+
                             return false
                           })()}
                           className="flex-1 bg-primary hover:bg-primary/90"
@@ -1332,6 +1493,18 @@ export default function AdminSettingsPage() {
                                     <div className="flex items-center gap-2">
                                       <QrCode className="h-4 w-4" />
                                       QR Code
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="stablecoin">
+                                    <div className="flex items-center gap-2">
+                                      <Coins className="h-4 w-4" />
+                                      Stablecoin
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="mobile_money">
+                                    <div className="flex items-center gap-2">
+                                      <Smartphone className="h-4 w-4" />
+                                      Mobile money
                                     </div>
                                   </SelectItem>
                                 </SelectContent>
@@ -1630,6 +1803,121 @@ export default function AdminSettingsPage() {
                             </>
                           )}
 
+                          {editingPaymentMethod.type === "stablecoin" && (
+                            <>
+                              <div className="space-y-2">
+                                <Label htmlFor="editCryptoAsset">Asset *</Label>
+                                <Input
+                                  id="editCryptoAsset"
+                                  value={editingPaymentMethod.crypto_asset || ""}
+                                  onChange={(e) =>
+                                    setEditingPaymentMethod({
+                                      ...editingPaymentMethod,
+                                      crypto_asset: e.target.value,
+                                    })
+                                  }
+                                  placeholder="e.g. USDC"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="editCryptoNetwork">Network *</Label>
+                                <Input
+                                  id="editCryptoNetwork"
+                                  value={editingPaymentMethod.crypto_network || ""}
+                                  onChange={(e) =>
+                                    setEditingPaymentMethod({
+                                      ...editingPaymentMethod,
+                                      crypto_network: e.target.value,
+                                    })
+                                  }
+                                  placeholder="e.g. Solana, Ethereum"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="editWalletAddress">Wallet address *</Label>
+                                <Input
+                                  id="editWalletAddress"
+                                  value={editingPaymentMethod.wallet_address || ""}
+                                  onChange={(e) =>
+                                    setEditingPaymentMethod({
+                                      ...editingPaymentMethod,
+                                      wallet_address: e.target.value,
+                                    })
+                                  }
+                                  placeholder="Deposit address"
+                                  className="font-mono text-sm"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="editInstructionsStable">Instructions</Label>
+                                <Textarea
+                                  id="editInstructionsStable"
+                                  value={editingPaymentMethod.instructions || ""}
+                                  onChange={(e) =>
+                                    setEditingPaymentMethod({
+                                      ...editingPaymentMethod,
+                                      instructions: e.target.value,
+                                    })
+                                  }
+                                  placeholder="Optional notes for users"
+                                  rows={3}
+                                />
+                              </div>
+                              <p className="text-xs text-gray-500">
+                                The app shows a QR code encoding this address so users can scan with a wallet.
+                              </p>
+                            </>
+                          )}
+
+                          {editingPaymentMethod.type === "mobile_money" && (
+                            <>
+                              <div className="space-y-2">
+                                <Label htmlFor="editMobileMoneyName">Name *</Label>
+                                <Input
+                                  id="editMobileMoneyName"
+                                  value={editingPaymentMethod.account_name || ""}
+                                  onChange={(e) =>
+                                    setEditingPaymentMethod({
+                                      ...editingPaymentMethod,
+                                      account_name: e.target.value,
+                                    })
+                                  }
+                                  placeholder="Account or business name"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="editMobileMoneyPhone">Phone number *</Label>
+                                <Input
+                                  id="editMobileMoneyPhone"
+                                  type="tel"
+                                  value={editingPaymentMethod.account_number || ""}
+                                  onChange={(e) =>
+                                    setEditingPaymentMethod({
+                                      ...editingPaymentMethod,
+                                      account_number: e.target.value.replace(/\s/g, ""),
+                                    })
+                                  }
+                                  placeholder="e.g. +234…"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="editInstructionsMobile">Instructions</Label>
+                                <Textarea
+                                  id="editInstructionsMobile"
+                                  value={editingPaymentMethod.instructions || ""}
+                                  onChange={(e) =>
+                                    setEditingPaymentMethod({
+                                      ...editingPaymentMethod,
+                                      instructions: e.target.value,
+                                    })
+                                  }
+                                  placeholder="Optional instructions for mobile money"
+                                  rows={3}
+                                />
+                              </div>
+                            </>
+                          )}
+
                           <div className="space-y-4 border-t pt-4">
                             <Label className="text-sm font-semibold">Completion Timer</Label>
                             <div className="grid grid-cols-3 gap-4">
@@ -1741,6 +2029,25 @@ export default function AdminSettingsPage() {
                                   }
                                 }
 
+                                if (editingPaymentMethod.type === "stablecoin") {
+                                  if (
+                                    !(editingPaymentMethod.crypto_asset || "").trim() ||
+                                    !(editingPaymentMethod.crypto_network || "").trim() ||
+                                    !(editingPaymentMethod.wallet_address || "").trim()
+                                  ) {
+                                    return true
+                                  }
+                                }
+
+                                if (editingPaymentMethod.type === "mobile_money") {
+                                  if (
+                                    !(editingPaymentMethod.account_name || "").trim() ||
+                                    !(editingPaymentMethod.account_number || "").trim()
+                                  ) {
+                                    return true
+                                  }
+                                }
+
                                 return false
                               })()}
                               className="flex-1 bg-primary hover:bg-primary/90"
@@ -1779,7 +2086,7 @@ export default function AdminSettingsPage() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             {getPaymentMethodIcon(method.type)}
-                            <span className="capitalize">{method.type.replace("_", " ")}</span>
+                            <span className="capitalize">{method.type.replace(/_/g, " ")}</span>
                           </div>
                         </TableCell>
                         <TableCell className="font-medium">{method.name}</TableCell>
@@ -1817,13 +2124,29 @@ export default function AdminSettingsPage() {
                                 <div>{method.bank_name}</div>
                               </div>
                             )
-                          })() : (
+                          })() : method.type === "qr_code" ? (
                             <div className="text-sm text-gray-600">
                               <div className="font-mono text-xs">{method.qr_code_data}</div>
                               {method.instructions && (
                                 <div className="mt-1 text-xs">{method.instructions.substring(0, 50)}...</div>
                               )}
                             </div>
+                          ) : method.type === "stablecoin" ? (
+                            <div className="text-sm text-gray-600 space-y-1">
+                              <div>
+                                {method.crypto_asset} · {method.crypto_network}
+                              </div>
+                              {method.wallet_address && (
+                                <div className="font-mono text-xs break-all">{method.wallet_address}</div>
+                              )}
+                            </div>
+                          ) : method.type === "mobile_money" ? (
+                            <div className="text-sm text-gray-600 space-y-1">
+                              <div>{method.account_name}</div>
+                              <div className="font-mono text-xs">{method.account_number}</div>
+                            </div>
+                          ) : (
+                            <div className="text-sm text-gray-500">—</div>
                           )}
                         </TableCell>
                         <TableCell>

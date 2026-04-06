@@ -5,7 +5,7 @@ import { adminService } from "./database"
 export interface CombinedTransaction {
   id: string
   transaction_id: string
-  type: "send" | "card_funding"
+  type: "send"
   user_id: string
   status: string
   created_at: string
@@ -20,15 +20,6 @@ export interface CombinedTransaction {
   receive_amount?: number
   receive_currency?: string
   recipient?: any
-  crypto_amount?: number
-  crypto_currency?: string
-  fiat_amount?: number
-  fiat_currency?: string
-  stellar_transaction_hash?: string
-  blockchain_tx_hash?: string
-  crypto_wallet?: any
-  destination_type?: "bank" | "card"
-  bridge_card_account_id?: string
   /** Set for referral withdrawal rows (`REFERRAL_PAYOUT:…`). */
   reference?: string | null
 }

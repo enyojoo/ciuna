@@ -28,12 +28,12 @@ interface ComplianceUser {
   date_of_birth?: string
   address?: string
   country_code?: string
-  bridge_kyc_metadata?: any
-  bridge_customer_id?: string
-  bridge_signed_agreement_id?: string
-  bridge_kyc_status?: string
-  bridge_kyc_rejection_reasons?: any
-  bridge_endorsements?: any
+  kyc_metadata?: any
+  kyc_external_customer_id?: string
+  kyc_signed_agreement_id?: string
+  kyc_status?: string
+  kyc_rejection_reasons?: any
+  kyc_endorsements?: any
 }
 
 export default function OfficeCompliancePage() {
@@ -96,7 +96,7 @@ export default function OfficeCompliancePage() {
       // Get all users with KYC data from users table
       const { data: usersData, error: usersError } = await supabase
         .from("users")
-        .select("id, email, first_name, middle_name, last_name, phone, date_of_birth, address, country_code, bridge_kyc_metadata, bridge_customer_id, bridge_signed_agreement_id, bridge_kyc_status, bridge_kyc_rejection_reasons, bridge_endorsements")
+        .select("id, email, first_name, middle_name, last_name, phone, date_of_birth, address, country_code, kyc_metadata, kyc_external_customer_id, kyc_signed_agreement_id, kyc_status, kyc_rejection_reasons, kyc_endorsements")
         .order("created_at", { ascending: false })
 
       if (usersError) throw usersError
@@ -113,12 +113,12 @@ export default function OfficeCompliancePage() {
           date_of_birth: user.date_of_birth,
           address: user.address,
           country_code: user.country_code,
-          bridge_kyc_metadata: user.bridge_kyc_metadata,
-          bridge_customer_id: user.bridge_customer_id,
-          bridge_signed_agreement_id: user.bridge_signed_agreement_id,
-          bridge_kyc_status: user.bridge_kyc_status,
-          bridge_kyc_rejection_reasons: user.bridge_kyc_rejection_reasons,
-          bridge_endorsements: user.bridge_endorsements,
+          kyc_metadata: user.kyc_metadata,
+          kyc_external_customer_id: user.kyc_external_customer_id,
+          kyc_signed_agreement_id: user.kyc_signed_agreement_id,
+          kyc_status: user.kyc_status,
+          kyc_rejection_reasons: user.kyc_rejection_reasons,
+          kyc_endorsements: user.kyc_endorsements,
         }
       })
 
@@ -188,16 +188,16 @@ export default function OfficeCompliancePage() {
           const oldData = payload.old as any
           const newData = payload.new as any
           
-          const bridgeStatusChanged = 
-            oldData?.bridge_kyc_status !== newData?.bridge_kyc_status ||
-            oldData?.bridge_customer_id !== newData?.bridge_customer_id ||
-            JSON.stringify(oldData?.bridge_kyc_rejection_reasons) !== JSON.stringify(newData?.bridge_kyc_rejection_reasons) ||
+          const kycRowChanged = 
+            oldData?.kyc_status !== newData?.kyc_status ||
+            oldData?.kyc_external_customer_id !== newData?.kyc_external_customer_id ||
+            JSON.stringify(oldData?.kyc_rejection_reasons) !== JSON.stringify(newData?.kyc_rejection_reasons) ||
             oldData?.full_name !== newData?.full_name ||
             oldData?.date_of_birth !== newData?.date_of_birth ||
             oldData?.address !== newData?.address ||
-            JSON.stringify(oldData?.bridge_kyc_metadata) !== JSON.stringify(newData?.bridge_kyc_metadata)
+            JSON.stringify(oldData?.kyc_metadata) !== JSON.stringify(newData?.kyc_metadata)
           
-          if (bridgeStatusChanged) {
+          if (kycRowChanged) {
             console.log('Admin compliance: User KYC status update received via Realtime')
             try {
               // Reload data to get updated KYC status (silent refresh, no loading state)
@@ -389,9 +389,7 @@ export default function OfficeCompliancePage() {
     }
   }
 
-  // Removed getVerificationStatus - now using bridge_kyc_status directly
-
-  const getBridgeStatusColor = (status: string) => {
+  const getKycStatusColor = (status: string) => {
     switch (status) {
       case "approved":
         return "bg-green-100 text-green-800"
@@ -440,19 +438,18 @@ export default function OfficeCompliancePage() {
     
     if (statusFilter === "all") return matchesSearch
     
-    // Filter by bridge_kyc_status
-    const bridgeKycStatus = user.bridge_kyc_status || "not_started"
+    const kycStatus = user.kyc_status || "not_started"
     if (statusFilter === "verified") {
-      return matchesSearch && bridgeKycStatus === "approved"
+      return matchesSearch && kycStatus === "approved"
     }
     if (statusFilter === "pending") {
-      return matchesSearch && (bridgeKycStatus === "not_started" || bridgeKycStatus === "incomplete")
+      return matchesSearch && (kycStatus === "not_started" || kycStatus === "incomplete")
     }
     if (statusFilter === "in_review") {
-      return matchesSearch && (bridgeKycStatus === "under_review" || bridgeKycStatus === "in_review")
+      return matchesSearch && (kycStatus === "under_review" || kycStatus === "in_review")
     }
     if (statusFilter === "rejected") {
-      return matchesSearch && bridgeKycStatus === "rejected"
+      return matchesSearch && kycStatus === "rejected"
     }
     
     return matchesSearch
@@ -523,7 +520,7 @@ export default function OfficeCompliancePage() {
                         {user.first_name} {user.last_name}
                       </TableCell>
                       <TableCell>
-                        {user.bridge_kyc_status ? getStoredKycStatusBadge(user.bridge_kyc_status) : <Badge className="bg-gray-100 text-gray-700">Not Started</Badge>}
+                        {user.kyc_status ? getStoredKycStatusBadge(user.kyc_status) : <Badge className="bg-gray-100 text-gray-700">Not Started</Badge>}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button

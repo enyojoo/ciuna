@@ -24,6 +24,5 @@ Disallow: /test-*
 Allow: /
 Allow: /terms
 Allow: /privacy
-Allow: /access
 Allow: /auth/
 

@@ -48,7 +48,7 @@ function excludeReferralPayoutMirrorTransactions<T extends { reference?: string 
 interface CombinedTransaction {
   id: string
   transaction_id: string
-  type: "send" | "card_funding" | "referral_payout"
+  type: "send" | "referral_payout"
   payout_request_id?: string
   status: string
   created_at: string
@@ -57,7 +57,6 @@ interface CombinedTransaction {
     last_name: string
     email: string
   }
-  // Send transaction fields
   send_amount?: number
   send_currency?: string
   receive_amount?: number
@@ -79,21 +78,6 @@ interface CombinedTransaction {
     transfer_type?: "ACH" | "Wire"
     checking_or_savings?: "checking" | "savings"
   }
-  // Receive transaction fields
-  crypto_amount?: number
-  crypto_currency?: string
-  fiat_amount?: number
-  fiat_currency?: string
-  stellar_transaction_hash?: string
-  blockchain_tx_hash?: string
-  crypto_wallet?: {
-    wallet_address: string
-    crypto_currency: string
-  }
-  // Card funding fields
-  destination_type?: "bank" | "card"
-  bridge_card_account_id?: string
-  // Receipt fields
   receipt_url?: string
   receipt_filename?: string
   exchange_rate?: number
@@ -189,65 +173,22 @@ export default function AdminTransactionsPage() {
     // Transform transactions to match CombinedTransaction interface
     const rows = excludeReferralPayoutMirrorTransactions(adminData.transactions).map((tx: any) => {
       // If it's already transformed (has type), use it as is
-      if (tx.type) {
-        return {
-          id: tx.id,
-          transaction_id: tx.transaction_id || tx.id,
-          type: tx.type === "receive" ? "send" : tx.type,
-          status: tx.status,
-          created_at: tx.created_at,
-          updated_at: tx.updated_at,
-          user: tx.user,
-          user_id: tx.user_id,
-          // Send fields
-          send_amount: tx.send_amount,
-          send_currency: tx.send_currency,
-          receive_amount: tx.receive_amount,
-          receive_currency: tx.receive_currency,
-          recipient: tx.recipient,
-          // Receive fields
-          crypto_amount: tx.crypto_amount,
-          crypto_currency: tx.crypto_currency,
-          fiat_amount: tx.fiat_amount,
-          fiat_currency: tx.fiat_currency,
-          stellar_transaction_hash: tx.stellar_transaction_hash || tx.blockchain_tx_hash,
-          blockchain_tx_hash: tx.blockchain_tx_hash,
-          crypto_wallet: tx.crypto_wallet,
-          destination_type: tx.destination_type,
-          bridge_card_account_id: tx.bridge_card_account_id,
-          // Receipt fields
-          receipt_url: tx.receipt_url,
-          receipt_filename: tx.receipt_filename,
-          exchange_rate: tx.exchange_rate,
-        }
-      }
-      const isCardFunding = tx.destination_type === "card" || tx.bridge_card_account_id
+      const rowType: CombinedTransaction["type"] =
+        tx.type === "referral_payout" ? "referral_payout" : "send"
       return {
         id: tx.id,
         transaction_id: tx.transaction_id || tx.id,
-        type: isCardFunding ? "card_funding" : "send",
+        type: rowType,
         status: tx.status,
         created_at: tx.created_at,
         updated_at: tx.updated_at,
         user: tx.user,
         user_id: tx.user_id,
-        // Send fields
         send_amount: tx.send_amount,
         send_currency: tx.send_currency,
         receive_amount: tx.receive_amount,
         receive_currency: tx.receive_currency,
         recipient: tx.recipient,
-        // Receive fields
-        crypto_amount: tx.crypto_amount,
-        crypto_currency: tx.crypto_currency,
-        fiat_amount: tx.fiat_amount,
-        fiat_currency: tx.fiat_currency,
-        stellar_transaction_hash: tx.stellar_transaction_hash || tx.blockchain_tx_hash,
-        blockchain_tx_hash: tx.blockchain_tx_hash,
-        crypto_wallet: tx.crypto_wallet,
-        destination_type: tx.destination_type,
-        bridge_card_account_id: tx.bridge_card_account_id,
-        // Receipt fields
         receipt_url: tx.receipt_url,
         receipt_filename: tx.receipt_filename,
         exchange_rate: tx.exchange_rate,
@@ -310,65 +251,22 @@ export default function AdminTransactionsPage() {
         adminData.transactions,
       ).map((tx: any) => {
         // If it's already transformed (has type), use it as is
-        if (tx.type) {
-          return {
-            id: tx.id,
-            transaction_id: tx.transaction_id || tx.id,
-            type: tx.type === "receive" ? "send" : tx.type,
-            status: tx.status,
-            created_at: tx.created_at,
-            updated_at: tx.updated_at,
-            user: tx.user,
-            user_id: tx.user_id,
-            // Send fields
-            send_amount: tx.send_amount,
-            send_currency: tx.send_currency,
-            receive_amount: tx.receive_amount,
-            receive_currency: tx.receive_currency,
-            recipient: tx.recipient,
-            // Receive fields
-            crypto_amount: tx.crypto_amount,
-            crypto_currency: tx.crypto_currency,
-            fiat_amount: tx.fiat_amount,
-            fiat_currency: tx.fiat_currency,
-            stellar_transaction_hash: tx.stellar_transaction_hash || tx.blockchain_tx_hash,
-            blockchain_tx_hash: tx.blockchain_tx_hash,
-            crypto_wallet: tx.crypto_wallet,
-            destination_type: tx.destination_type,
-            bridge_card_account_id: tx.bridge_card_account_id,
-            // Receipt fields
-            receipt_url: tx.receipt_url,
-            receipt_filename: tx.receipt_filename,
-            exchange_rate: tx.exchange_rate,
-          }
-        }
-        const isCardFunding = tx.destination_type === "card" || tx.bridge_card_account_id
+        const rowType: CombinedTransaction["type"] =
+          tx.type === "referral_payout" ? "referral_payout" : "send"
         return {
           id: tx.id,
           transaction_id: tx.transaction_id || tx.id,
-          type: isCardFunding ? "card_funding" : "send",
+          type: rowType,
           status: tx.status,
           created_at: tx.created_at,
           updated_at: tx.updated_at,
           user: tx.user,
           user_id: tx.user_id,
-          // Send fields
           send_amount: tx.send_amount,
           send_currency: tx.send_currency,
           receive_amount: tx.receive_amount,
           receive_currency: tx.receive_currency,
           recipient: tx.recipient,
-          // Receive fields
-          crypto_amount: tx.crypto_amount,
-          crypto_currency: tx.crypto_currency,
-          fiat_amount: tx.fiat_amount,
-          fiat_currency: tx.fiat_currency,
-          stellar_transaction_hash: tx.stellar_transaction_hash || tx.blockchain_tx_hash,
-          blockchain_tx_hash: tx.blockchain_tx_hash,
-          crypto_wallet: tx.crypto_wallet,
-          destination_type: tx.destination_type,
-          bridge_card_account_id: tx.bridge_card_account_id,
-          // Receipt fields
           receipt_url: tx.receipt_url,
           receipt_filename: tx.receipt_filename,
           exchange_rate: tx.exchange_rate,
@@ -420,10 +318,7 @@ export default function AdminTransactionsPage() {
       transaction.transaction_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       transaction.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (transaction.type === "referral_payout" &&
-        transaction.recipient?.full_name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (transaction.type === "card_funding" &&
-        (transaction.stellar_transaction_hash?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          transaction.blockchain_tx_hash?.toLowerCase().includes(searchTerm.toLowerCase())))
+        transaction.recipient?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()))
 
     const matchesStatus = statusFilter === "all" || transaction.status === statusFilter
     const matchesCurrency =
@@ -431,9 +326,7 @@ export default function AdminTransactionsPage() {
       (transaction.type === "send" &&
         (transaction.send_currency === currencyFilter || transaction.receive_currency === currencyFilter)) ||
       (transaction.type === "referral_payout" &&
-        (transaction.send_currency === currencyFilter || transaction.recipient?.currency === currencyFilter)) ||
-      (transaction.type === "card_funding" &&
-        (transaction.crypto_currency === currencyFilter || transaction.fiat_currency === currencyFilter))
+        (transaction.send_currency === currencyFilter || transaction.recipient?.currency === currencyFilter))
 
     return matchesSearch && matchesStatus && matchesCurrency
   })
@@ -875,25 +768,13 @@ export default function AdminTransactionsPage() {
                               </div>
                             )}
                         </div>
-                      ) : transaction.type === "send" ? (
+                      ) : (
                         <div>
                           <div className="font-medium">
                             {formatCurrency(transaction.send_amount || 0, transaction.send_currency || "")}
                           </div>
                           <div className="text-sm text-gray-500">
                             → {formatCurrency(transaction.receive_amount || 0, transaction.receive_currency || "")}
-                          </div>
-                        </div>
-                      ) : (
-                        <div>
-                          <div className="font-medium">
-                            {transaction.crypto_amount} {transaction.crypto_currency}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            → {formatCurrency(transaction.fiat_amount || 0, transaction.fiat_currency || "")}
-                            {transaction.type === "card_funding" && (
-                              <span className="ml-2 text-xs text-blue-600">(Card Funding)</span>
-                            )}
                           </div>
                         </div>
                       )}
@@ -1066,54 +947,7 @@ export default function AdminTransactionsPage() {
                                         </p>
                                       </div>
                                     </>
-                                  ) : (
-                                    <>
-                                      <div>
-                                        <label className="text-sm font-medium text-gray-600">Stablecoin Received</label>
-                                        <p className="font-medium">
-                                          {transaction.crypto_amount} {transaction.crypto_currency}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <label className="text-sm font-medium text-gray-600">Fiat Amount</label>
-                                        <p className="font-medium">
-                                          {formatCurrency(
-                                            transaction.fiat_amount || 0,
-                                            transaction.fiat_currency || "",
-                                          )}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <label className="text-sm font-medium text-gray-600">Exchange Rate</label>
-                                        <p className="font-medium">
-                                          1 {transaction.crypto_currency} = {transaction.exchange_rate}{" "}
-                                          {transaction.fiat_currency}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <label className="text-sm font-medium text-gray-600">Stellar Transaction Hash</label>
-                                        <p className="font-mono text-xs break-all">
-                                          {transaction.stellar_transaction_hash}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <label className="text-sm font-medium text-gray-600">Wallet Address</label>
-                                        <p className="font-mono text-xs">
-                                          {transaction.crypto_wallet?.wallet_address}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <label className="text-sm font-medium text-gray-600">Deposit Account</label>
-                                        <p>{transaction.crypto_wallet?.recipient?.full_name}</p>
-                                        <p className="text-sm text-gray-500">
-                                          {transaction.crypto_wallet?.recipient?.account_number}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                          {transaction.crypto_wallet?.recipient?.bank_name}
-                                        </p>
-                                      </div>
-                                    </>
-                                  )}
+                                  ) : null}
                                 </div>
 
                                 {transaction.type !== "referral_payout" && (

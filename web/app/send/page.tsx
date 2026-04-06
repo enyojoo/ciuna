@@ -20,9 +20,12 @@ import {
   Search,
   QrCode,
   Building2,
+  Coins,
+  Smartphone,
   AlertCircle,
   X,
 } from "lucide-react"
+import { QRCodeSVG } from "qrcode.react"
 import { transactionService, paymentMethodService, recipientService } from "@/lib/database"
 import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -110,9 +113,6 @@ export default function UserSendPage() {
 
   const [feeType, setFeeType] = useState<string>("free")
   const [isCreatingTransaction, setIsCreatingTransaction] = useState(false)
-  const [virtualAccountDetails, setVirtualAccountDetails] = useState<any>(null)
-  const [loadingPaymentDetails, setLoadingPaymentDetails] = useState(false)
-  const [paymentDetailsFetchAttempted, setPaymentDetailsFetchAttempted] = useState(false)
 
   // Add this state near the other state declarations
   const [isAddRecipientDialogOpen, setIsAddRecipientDialogOpen] = useState(false)
@@ -208,59 +208,6 @@ export default function UserSendPage() {
       setTransactionId(newTransactionId)
     }
   }, [currentStep, transactionId])
-
-  // Fetch payment collection details when reaching step 3 (optimized to prevent re-fetching)
-  useEffect(() => {
-    // Only fetch if we're on step 3, have required data, and haven't fetched yet
-    if (currentStep !== 3 || !sendCurrency || !sendAmount || virtualAccountDetails || loadingPaymentDetails || paymentDetailsFetchAttempted) {
-      return
-    }
-
-      const fetchPaymentDetails = async () => {
-        setLoadingPaymentDetails(true)
-        setPaymentDetailsFetchAttempted(true)
-        
-        // Add timeout to prevent hanging
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
-        
-        try {
-          const ref = transactionId || (() => { const { generateTransactionId } = require("@/lib/transaction-id"); return generateTransactionId(); })()
-          
-          const response = await fetch(
-            `/api/transactions/payment-collection?currency=${sendCurrency}&amount=${sendAmount}&reference=${ref}`,
-            {
-              credentials: "include",
-              signal: controller.signal,
-            }
-          )
-          
-          clearTimeout(timeoutId)
-          
-          if (response.ok) {
-            const data = await response.json()
-            setVirtualAccountDetails(data.virtualAccount)
-          } else {
-            // API call failed - silently fall back to static payment methods
-            // Don't log errors for 401/403 as these are expected when API keys aren't configured
-            if (response.status !== 401 && response.status !== 403) {
-              console.warn("Payment collection API unavailable, using static methods:", response.status)
-            }
-            // Fallback to static payment methods - don't set virtualAccountDetails
-          }
-        } catch (error: any) {
-          // Network or other errors - silently fall back to static payment methods
-          if (error.name !== 'AbortError') {
-          console.warn("Payment collection unavailable, using static methods")
-          }
-        } finally {
-          clearTimeout(timeoutId)
-          setLoadingPaymentDetails(false)
-        }
-      }
-
-      fetchPaymentDetails()
-  }, [currentStep, sendCurrency, sendAmount, transactionId])
 
   const filteredSavedRecipients = recipients.filter(
     (recipient) =>
@@ -1475,211 +1422,11 @@ export default function UserSendPage() {
                         </div>
                       </div>
 
-                    {/* Payment Method - Dynamic from Yellow Card/Bridge or fallback to static */}
+                    {/* Payment method (Office-configured) */}
                       {(() => {
-                        // Use dynamic virtual account if available, otherwise fallback to static
-                        const useDynamic = virtualAccountDetails && !loadingPaymentDetails
                         const accountConfig = getAccountTypeConfigFromCurrency(sendCurrency)
                         const accountType = accountConfig.accountType
 
-                        // If we have dynamic details, use them
-                        if (useDynamic && virtualAccountDetails) {
-                          // Render dynamic virtual account details from Yellow Card or Bridge
-                          return (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                              <div className="space-y-3">
-                                <div className="bg-white rounded-lg p-3 border border-gray-100">
-                                  <div className="flex items-center gap-2 mb-3">
-                                    <Building2 className="h-4 w-4 text-gray-600" />
-                                    <span className="font-medium text-sm">
-                                      {t("send.virtualAccount", {
-                                        provider:
-                                          virtualAccountDetails.provider === "yellow_card"
-                                            ? t("send.yellowCard")
-                                            : t("send.bridge"),
-                                      })}
-                                    </span>
-                                  </div>
-                                  <div className="space-y-2">
-                                    {/* Account Name */}
-                                    <div className="space-y-1">
-                                      <span className="text-gray-600 text-xs">
-                                        {accountFieldLabel(t, "account_name", accountConfig.fieldLabels.account_name)}
-                                      </span>
-                                      <div className="flex items-center gap-2">
-                                        <span className="font-medium text-sm">{virtualAccountDetails.accountName}</span>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleCopy(virtualAccountDetails.accountName || "", "accountName")}
-                                          className="h-5 w-5 p-0"
-                                        >
-                                          {copiedStates.accountName ? (
-                                            <Check className="h-3 w-3 text-green-600" />
-                                          ) : (
-                                            <Copy className="h-3 w-3" />
-                                          )}
-                                        </Button>
-                                      </div>
-                                    </div>
-
-                                    {/* US Account Fields */}
-                                    {accountType === "us" && virtualAccountDetails.routingNumber && (
-                                      <div className="space-y-1">
-                                        <span className="text-gray-600 text-xs">
-                                          {accountFieldLabel(t, "routing_number", accountConfig.fieldLabels.routing_number)}
-                                        </span>
-                                        <div className="flex items-center gap-2">
-                                          <span className="font-medium font-mono text-sm">
-                                            {formatFieldValue(accountType, "routing_number", virtualAccountDetails.routingNumber)}
-                                          </span>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleCopy(virtualAccountDetails.routingNumber || "", "routingNumber")}
-                                            className="h-5 w-5 p-0"
-                                          >
-                                            {copiedStates.routingNumber ? (
-                                              <Check className="h-3 w-3 text-green-600" />
-                                            ) : (
-                                              <Copy className="h-3 w-3" />
-                                            )}
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {/* Account Number */}
-                                    {virtualAccountDetails.accountNumber && (
-                                      <div className="space-y-1">
-                                        <span className="text-gray-600 text-xs">
-                                          {accountFieldLabel(t, "account_number", accountConfig.fieldLabels.account_number)}
-                                        </span>
-                                        <div className="flex items-center gap-2">
-                                          <span className="font-medium font-mono text-sm">
-                                            {virtualAccountDetails.accountNumber}
-                                          </span>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleCopy(virtualAccountDetails.accountNumber || "", "accountNumber")}
-                                            className="h-5 w-5 p-0"
-                                          >
-                                            {copiedStates.accountNumber ? (
-                                              <Check className="h-3 w-3 text-green-600" />
-                                            ) : (
-                                              <Copy className="h-3 w-3" />
-                                            )}
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {/* IBAN */}
-                                    {virtualAccountDetails.iban && (
-                                      <div className="space-y-1">
-                                        <span className="text-gray-600 text-xs">
-                                          {accountFieldLabel(t, "iban", accountConfig.fieldLabels.iban)}
-                                        </span>
-                                        <div className="flex items-center gap-2">
-                                          <span className="font-medium font-mono text-xs">
-                                            {formatFieldValue(accountType, "iban", virtualAccountDetails.iban)}
-                                          </span>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleCopy(virtualAccountDetails.iban || "", "iban")}
-                                            className="h-5 w-5 p-0"
-                                          >
-                                            {copiedStates.iban ? (
-                                              <Check className="h-3 w-3 text-green-600" />
-                                            ) : (
-                                              <Copy className="h-3 w-3" />
-                                            )}
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {/* SWIFT/BIC */}
-                                    {virtualAccountDetails.swiftBic && (
-                                      <div className="space-y-1">
-                                        <span className="text-gray-600 text-xs">
-                                          {accountFieldLabel(t, "swift_bic", accountConfig.fieldLabels.swift_bic)}
-                                        </span>
-                                        <div className="flex items-center gap-2">
-                                          <span className="font-medium font-mono text-xs">
-                                            {virtualAccountDetails.swiftBic}
-                                          </span>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleCopy(virtualAccountDetails.swiftBic || "", "swiftBic")}
-                                            className="h-5 w-5 p-0"
-                                          >
-                                            {copiedStates.swiftBic ? (
-                                              <Check className="h-3 w-3 text-green-600" />
-                                            ) : (
-                                              <Copy className="h-3 w-3" />
-                                            )}
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {/* Mobile Money Number (Yellow Card) */}
-                                    {virtualAccountDetails.mobileMoneyNumber && (
-                                      <div className="space-y-1">
-                                        <span className="text-gray-600 text-xs">{t("send.mobileMoneyNumber")}</span>
-                                        <div className="flex items-center gap-2">
-                                          <span className="font-medium font-mono text-sm">
-                                            {virtualAccountDetails.mobileMoneyNumber}
-                                          </span>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleCopy(virtualAccountDetails.mobileMoneyNumber || "", "mobileMoney")}
-                                            className="h-5 w-5 p-0"
-                                          >
-                                            {copiedStates.mobileMoney ? (
-                                              <Check className="h-3 w-3 text-green-600" />
-                                            ) : (
-                                              <Copy className="h-3 w-3" />
-                                            )}
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {/* Bank Name */}
-                                    <div className="space-y-1">
-                                      <span className="text-gray-600 text-xs">
-                                        {accountFieldLabel(t, "bank_name", accountConfig.fieldLabels.bank_name)}
-                                      </span>
-                                      <div className="flex items-center gap-2">
-                                        <span className="font-medium text-sm">{virtualAccountDetails.bankName}</span>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleCopy(virtualAccountDetails.bankName || "", "bankName")}
-                                          className="h-5 w-5 p-0"
-                                        >
-                                          {copiedStates.bankName ? (
-                                            <Check className="h-3 w-3 text-green-600" />
-                                          ) : (
-                                            <Copy className="h-3 w-3" />
-                                          )}
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )
-                        }
-
-                        // Fallback to static payment methods
                         const paymentMethodsForCurrency = getPaymentMethodsForCurrency(sendCurrency)
                         const defaultMethod = getDefaultPaymentMethod(sendCurrency)
 
@@ -1925,6 +1672,154 @@ export default function UserSendPage() {
                                   )}
                                 </div>
                               )}
+
+                              {defaultMethod?.type === "stablecoin" && (
+                                <div className="bg-white rounded-lg p-3 border border-gray-100">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <Coins className="h-4 w-4 text-gray-600" />
+                                    <span className="font-medium text-sm">{defaultMethod.name}</span>
+                                  </div>
+                                  {defaultMethod.crypto_asset && (
+                                    <div className="space-y-1 mb-2">
+                                      <span className="text-gray-600 text-xs">{t("send.cryptoAsset")}</span>
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-sm">{defaultMethod.crypto_asset}</span>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleCopy(String(defaultMethod.crypto_asset || ""), "cryptoAsset")
+                                          }
+                                          className="h-5 w-5 p-0"
+                                        >
+                                          {copiedStates.cryptoAsset ? (
+                                            <Check className="h-3 w-3 text-green-600" />
+                                          ) : (
+                                            <Copy className="h-3 w-3" />
+                                          )}
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {defaultMethod.crypto_network && (
+                                    <div className="space-y-1 mb-2">
+                                      <span className="text-gray-600 text-xs">{t("send.cryptoNetwork")}</span>
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-sm">{defaultMethod.crypto_network}</span>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleCopy(String(defaultMethod.crypto_network || ""), "cryptoNetwork")
+                                          }
+                                          className="h-5 w-5 p-0"
+                                        >
+                                          {copiedStates.cryptoNetwork ? (
+                                            <Check className="h-3 w-3 text-green-600" />
+                                          ) : (
+                                            <Copy className="h-3 w-3" />
+                                          )}
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {defaultMethod.wallet_address?.trim() ? (
+                                    <>
+                                      <div className="space-y-1 mb-3">
+                                        <span className="text-gray-600 text-xs">{t("send.walletAddress")}</span>
+                                        <div className="flex items-start gap-2">
+                                          <span className="font-medium font-mono text-xs break-all flex-1">
+                                            {defaultMethod.wallet_address.trim()}
+                                          </span>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleCopy(defaultMethod.wallet_address.trim(), "walletAddress")
+                                            }
+                                            className="h-5 w-5 p-0 shrink-0"
+                                          >
+                                            {copiedStates.walletAddress ? (
+                                              <Check className="h-3 w-3 text-green-600" />
+                                            ) : (
+                                              <Copy className="h-3 w-3" />
+                                            )}
+                                          </Button>
+                                        </div>
+                                      </div>
+                                      <div className="w-48 h-48 bg-white rounded-lg mx-auto mb-3 flex items-center justify-center border border-gray-100 p-2">
+                                        <QRCodeSVG
+                                          value={defaultMethod.wallet_address.trim()}
+                                          size={176}
+                                          level="M"
+                                          includeMargin
+                                        />
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <p className="text-sm text-amber-700">{t("send.stablecoinMissingAddress")}</p>
+                                  )}
+                                  {defaultMethod.instructions && (
+                                    <p className="text-xs text-gray-500">{defaultMethod.instructions}</p>
+                                  )}
+                                </div>
+                              )}
+
+                              {defaultMethod?.type === "mobile_money" && (
+                                <div className="bg-white rounded-lg p-3 border border-gray-100">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <Smartphone className="h-4 w-4 text-gray-600" />
+                                    <span className="font-medium text-sm">{defaultMethod.name}</span>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <div className="space-y-1">
+                                      <span className="text-gray-600 text-xs">{t("send.mobileMoneyNameLabel")}</span>
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-sm">{defaultMethod.account_name}</span>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleCopy(defaultMethod.account_name || "", "mmDisplayName")
+                                          }
+                                          className="h-5 w-5 p-0"
+                                        >
+                                          {copiedStates.mmDisplayName ? (
+                                            <Check className="h-3 w-3 text-green-600" />
+                                          ) : (
+                                            <Copy className="h-3 w-3" />
+                                          )}
+                                        </Button>
+                                      </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                      <span className="text-gray-600 text-xs">{t("send.mobileMoneyPhoneLabel")}</span>
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium font-mono text-sm">
+                                          {defaultMethod.account_number}
+                                        </span>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleCopy(defaultMethod.account_number || "", "mmPhone")
+                                          }
+                                          className="h-5 w-5 p-0"
+                                        >
+                                          {copiedStates.mmPhone ? (
+                                            <Check className="h-3 w-3 text-green-600" />
+                                          ) : (
+                                            <Copy className="h-3 w-3" />
+                                          )}
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  {defaultMethod.instructions && (
+                                    <p className="text-xs text-gray-500 mt-2">{defaultMethod.instructions}</p>
+                                  )}
+                                </div>
+                              )}
                             </div>
 
                             {/* Important Instructions */}
@@ -1986,6 +1881,18 @@ export default function UserSendPage() {
                                     <li className="flex items-start gap-2">
                                       <span className="text-amber-500 mt-0.5 text-xs">•</span>
                                       <span>{t("send.scanQrBanking")}</span>
+                                    </li>
+                                  )}
+                                  {defaultMethod?.type === "stablecoin" && (
+                                    <li className="flex items-start gap-2">
+                                      <span className="text-amber-500 mt-0.5 text-xs">•</span>
+                                      <span>{t("send.scanWalletQr")}</span>
+                                    </li>
+                                  )}
+                                  {defaultMethod?.type === "mobile_money" && (
+                                    <li className="flex items-start gap-2">
+                                      <span className="text-amber-500 mt-0.5 text-xs">•</span>
+                                      <span>{t("send.payMobileMoney")}</span>
                                     </li>
                                   )}
                                 </ul>

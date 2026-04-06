@@ -50,12 +50,11 @@ interface UserData {
   date_of_birth?: string
   address?: string
   country_code?: string
-  bridge_kyc_metadata?: any
+  kyc_metadata?: any
   status: string
-  // verification_status removed - use provider-backed KYC status
-  bridge_kyc_status?: string
-  bridge_customer_id?: string
-  bridge_kyc_rejection_reasons?: any
+  kyc_status?: string
+  kyc_external_customer_id?: string
+  kyc_rejection_reasons?: any
   email_confirmed_at?: string
   base_currency: string
   created_at: string
@@ -210,17 +209,14 @@ export default function AdminUsersPage() {
     const totalVolume = calculateUserVolume(userTransactions, baseCurrency, userExchangeRates)
     const completedTransactions = userTransactions.filter((t: any) => t.status === "completed")
 
-    // Use the provider-backed KYC status for verification
-    // Map bridge_kyc_status to display values: approved -> verified, others -> pending
-    const bridgeKycStatus = user.bridge_kyc_status || "not_started"
-    const verificationStatus = bridgeKycStatus === "approved" ? "verified" : "pending"
+    const kycStatus = user.kyc_status || "not_started"
+    const verificationStatus = kycStatus === "approved" ? "verified" : "pending"
 
     return {
       ...user,
       totalTransactions: completedTransactions.length,
       totalVolume,
       verificationStatus,
-      bridgeKycStatus, // Include for filtering
     }
   })
 
@@ -231,17 +227,17 @@ export default function AdminUsersPage() {
 
     const matchesStatus = statusFilter === "all" || user.status === statusFilter
     // Filter by provider-backed KYC status
-    const bridgeKycStatus = user.bridgeKycStatus || user.bridge_kyc_status || "not_started"
+    const kycStatus = user.kyc_status || "not_started"
     let matchesVerification = true
     if (verificationFilter !== "all") {
       if (verificationFilter === "verified") {
-        matchesVerification = bridgeKycStatus === "approved"
+        matchesVerification = kycStatus === "approved"
       } else if (verificationFilter === "pending") {
-        matchesVerification = bridgeKycStatus !== "approved" && bridgeKycStatus !== "rejected"
+        matchesVerification = kycStatus !== "approved" && kycStatus !== "rejected"
       } else if (verificationFilter === "rejected") {
-        matchesVerification = bridgeKycStatus === "rejected"
+        matchesVerification = kycStatus === "rejected"
       } else if (verificationFilter === "in_review") {
-        matchesVerification = bridgeKycStatus === "under_review" || bridgeKycStatus === "in_review"
+        matchesVerification = kycStatus === "under_review" || kycStatus === "in_review"
       }
     }
 
@@ -266,10 +262,9 @@ export default function AdminUsersPage() {
   }
 
 
-  const getVerificationBadge = (user: UserData & { bridge_kyc_status?: string }) => {
-    // Use bridge_kyc_status for KYC verification
-    const bridgeKycStatus = user.bridge_kyc_status || "not_started"
-    const status = bridgeKycStatus === "approved" ? "verified" : bridgeKycStatus === "rejected" ? "rejected" : bridgeKycStatus === "under_review" ? "in_review" : "pending"
+  const getVerificationBadge = (user: UserData & { kyc_status?: string }) => {
+    const kycStatus = user.kyc_status || "not_started"
+    const status = kycStatus === "approved" ? "verified" : kycStatus === "rejected" ? "rejected" : kycStatus === "under_review" ? "in_review" : "pending"
     
     const statusConfig = {
       verified: { color: "bg-green-100 text-green-700", text: "Verified" },
@@ -326,8 +321,8 @@ export default function AdminUsersPage() {
             "rejected": "rejected",
             "unverified": "not_started",
           }
-          const bridgeKycStatus = statusMap[newStatus] || newStatus
-          return prev ? { ...prev, bridge_kyc_status: bridgeKycStatus } : null
+          const nextKycStatus = statusMap[newStatus] || newStatus
+          return prev ? { ...prev, kyc_status: nextKycStatus } : null
         })
       }
     } catch (err) {
@@ -821,27 +816,27 @@ export default function AdminUsersPage() {
                                 {/* KYC Status */}
                                 <div className="border-t pt-6">
                                   <h3 className="text-lg font-semibold mb-4">KYC Status</h3>
-                                  {selectedUser.bridge_kyc_status ? (
+                                  {selectedUser.kyc_status ? (
                                     <div className="space-y-3">
                                       <div className="flex items-center gap-2">
                                         <span className="text-sm text-gray-600">Status:</span>
-                                        {getVerificationBadge(selectedUser.bridge_kyc_status)}
+                                        {getVerificationBadge(selectedUser)}
                                       </div>
-                                      {selectedUser.bridge_customer_id && (
+                                      {selectedUser.kyc_external_customer_id && (
                                         <div className="flex items-center gap-2">
                                           <span className="text-sm text-gray-600">Provider Customer ID:</span>
-                                          <span className="text-sm font-mono">{selectedUser.bridge_customer_id}</span>
+                                          <span className="text-sm font-mono">{selectedUser.kyc_external_customer_id}</span>
                                         </div>
                                       )}
-                                      {selectedUser.bridge_kyc_status === "rejected" && selectedUser.bridge_kyc_rejection_reasons && (
+                                      {selectedUser.kyc_status === "rejected" && selectedUser.kyc_rejection_reasons && (
                                         <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                                           <p className="text-sm font-medium text-red-800 mb-1">Rejection Reasons:</p>
                                           <p className="text-sm text-red-700">
-                                            {Array.isArray(selectedUser.bridge_kyc_rejection_reasons) 
-                                              ? selectedUser.bridge_kyc_rejection_reasons.join(", ")
-                                              : typeof selectedUser.bridge_kyc_rejection_reasons === "string"
-                                              ? selectedUser.bridge_kyc_rejection_reasons
-                                              : JSON.stringify(selectedUser.bridge_kyc_rejection_reasons)}
+                                            {Array.isArray(selectedUser.kyc_rejection_reasons) 
+                                              ? selectedUser.kyc_rejection_reasons.join(", ")
+                                              : typeof selectedUser.kyc_rejection_reasons === "string"
+                                              ? selectedUser.kyc_rejection_reasons
+                                              : JSON.stringify(selectedUser.kyc_rejection_reasons)}
                                           </p>
                                         </div>
                                       )}
@@ -854,7 +849,7 @@ export default function AdminUsersPage() {
                                 </div>
 
                                 {/* Identity Verification - Show only if KYC is approved */}
-                                {selectedUser.bridge_kyc_status === "approved" && (
+                                {selectedUser.kyc_status === "approved" && (
                                   <>
                                     {/* Identity Verification */}
                                     {selectedUser.first_name || selectedUser.date_of_birth ? (
@@ -901,24 +896,24 @@ export default function AdminUsersPage() {
                                               </div>
                                             </div>
                                             <div className="space-y-4">
-                                              {selectedUser.bridge_kyc_metadata && (
+                                              {selectedUser.kyc_metadata && (
                                                 <>
-                                                  {selectedUser.bridge_kyc_metadata.ssn && (
+                                                  {selectedUser.kyc_metadata.ssn && (
                                                     <div className="flex justify-between">
                                                       <span className="text-sm text-gray-600">SSN:</span>
-                                                      <span className="text-sm">***-**-{selectedUser.bridge_kyc_metadata.ssn.slice(-4)}</span>
+                                                      <span className="text-sm">***-**-{selectedUser.kyc_metadata.ssn.slice(-4)}</span>
                                                     </div>
                                                   )}
-                                                  {selectedUser.bridge_kyc_metadata.passportNumber && (
+                                                  {selectedUser.kyc_metadata.passportNumber && (
                                                     <div className="flex justify-between">
                                                       <span className="text-sm text-gray-600">Passport:</span>
-                                                      <span className="text-sm">{selectedUser.bridge_kyc_metadata.passportNumber}</span>
+                                                      <span className="text-sm">{selectedUser.kyc_metadata.passportNumber}</span>
                                                     </div>
                                                   )}
-                                                  {selectedUser.bridge_kyc_metadata.nationalIdNumber && (
+                                                  {selectedUser.kyc_metadata.nationalIdNumber && (
                                                     <div className="flex justify-between">
                                                       <span className="text-sm text-gray-600">National ID:</span>
-                                                      <span className="text-sm">{selectedUser.bridge_kyc_metadata.nationalIdNumber}</span>
+                                                      <span className="text-sm">{selectedUser.kyc_metadata.nationalIdNumber}</span>
                                                     </div>
                                                   )}
                                                 </>
@@ -958,20 +953,20 @@ export default function AdminUsersPage() {
                                                 <span className="text-sm text-gray-600">Address:</span>
                                                 <span className="text-sm text-right">{selectedUser.address}</span>
                                               </div>
-                                              {selectedUser.bridge_kyc_metadata?.address && (
+                                              {selectedUser.kyc_metadata?.address && (
                                                 <div className="pt-2 border-t">
                                                   <p className="text-xs text-gray-500 mb-1">Structured Address:</p>
                                                   <div className="text-xs text-gray-700 space-y-0.5">
-                                                    <div>{selectedUser.bridge_kyc_metadata.address.line1}</div>
-                                                    {selectedUser.bridge_kyc_metadata.address.line2 && (
-                                                      <div>{selectedUser.bridge_kyc_metadata.address.line2}</div>
+                                                    <div>{selectedUser.kyc_metadata.address.line1}</div>
+                                                    {selectedUser.kyc_metadata.address.line2 && (
+                                                      <div>{selectedUser.kyc_metadata.address.line2}</div>
                                                     )}
                                                     <div>
-                                                      {selectedUser.bridge_kyc_metadata.address.city}
-                                                      {selectedUser.bridge_kyc_metadata.address.state && `, ${selectedUser.bridge_kyc_metadata.address.state}`}
-                                                      {selectedUser.bridge_kyc_metadata.address.postal_code && ` ${selectedUser.bridge_kyc_metadata.address.postal_code}`}
+                                                      {selectedUser.kyc_metadata.address.city}
+                                                      {selectedUser.kyc_metadata.address.state && `, ${selectedUser.kyc_metadata.address.state}`}
+                                                      {selectedUser.kyc_metadata.address.postal_code && ` ${selectedUser.kyc_metadata.address.postal_code}`}
                                                     </div>
-                                                    <div>{selectedUser.bridge_kyc_metadata.address.country}</div>
+                                                    <div>{selectedUser.kyc_metadata.address.country}</div>
                                                   </div>
                                                 </div>
                                               )}

@@ -17,7 +17,7 @@ import { formatLocaleDateShort } from "@/lib/format-date-locale"
 interface Transaction {
   id: string
   transaction_id: string
-  type?: "send" | "card_funding"
+  type?: "send"
   send_amount?: number
   send_currency?: string
   receive_amount?: number
@@ -29,7 +29,6 @@ interface Transaction {
     full_name: string
     bank_name?: string
   }
-  destination_type?: "bank" | "card"
 }
 
 function isReferralPayoutRow(t: Transaction): boolean {
@@ -152,7 +151,6 @@ export default function UserDashboardPage() {
           if (!t) return false
           if (t.status !== "completed") return false
           if (t.type === "send") return true
-          if (t.type === "card_funding") return false
           if (t.send_amount || t.receive_amount || t.recipient) return true
           return false
         })
@@ -277,13 +275,10 @@ export default function UserDashboardPage() {
 
   const formatDate = (dateString: string) => formatLocaleDateShort(dateString, dateLocale)
 
-  // Sends + referral payouts (referral rows are sends). Card destination excluded except referral payout rows.
+  // Sends + referral payouts (referral rows reference `REFERRAL_PAYOUT:`).
   const recentTransactions = (transactions || [])
     .filter((t) => {
       if (!t) return false
-      const payout = isReferralPayoutRow(t)
-      if (t.type === "card_funding") return false
-      if (t.destination_type === "card" && !payout) return false
       if (t.type === "send") return true
       if (t.send_amount || t.receive_amount || t.recipient) return true
       return false

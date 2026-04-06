@@ -85,7 +85,7 @@ export type AccountType = "us" | "uk" | "euro" | "generic"
 export interface PaymentMethod {
   id: string
   currency: string
-  type: "bank_account" | "qr_code"
+  type: "bank_account" | "qr_code" | "stablecoin" | "mobile_money"
   name: string
   account_name?: string
   account_number?: string
@@ -95,6 +95,9 @@ export interface PaymentMethod {
   iban?: string
   swift_bic?: string
   qr_code_data?: string
+  crypto_asset?: string
+  crypto_network?: string
+  wallet_address?: string
   instructions?: string
   completion_timer_seconds?: number
   is_default: boolean

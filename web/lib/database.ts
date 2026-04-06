@@ -24,11 +24,11 @@ export const userService = {
     // Check if user has approved KYC - if so, prevent name updates
     const { data: user } = await supabase
       .from("users")
-      .select("bridge_kyc_status")
+      .select("kyc_status")
       .eq("id", userId)
       .single()
 
-    if (user?.bridge_kyc_status === "approved") {
+    if (user?.kyc_status === "approved") {
       // Remove firstName, middleName, and lastName from updates if KYC is approved
       const { firstName, middleName, lastName, ...allowedUpdates } = updates
       if (firstName || middleName || lastName) {
@@ -43,7 +43,7 @@ export const userService = {
 
     console.log(`[USER-SERVICE] updateProfile called for user ${userId}:`, {
       updates,
-      kycStatus: user?.bridge_kyc_status,
+      kycStatus: user?.kyc_status,
       firstName: updates.firstName,
       middleName: updates.middleName,
       lastName: updates.lastName,
@@ -52,21 +52,21 @@ export const userService = {
     })
 
     // Only include fields that are being updated and are allowed
-    if (updates.firstName !== undefined && user?.bridge_kyc_status !== "approved") {
+    if (updates.firstName !== undefined && user?.kyc_status !== "approved") {
       updateData.first_name = updates.firstName
       console.log(`[USER-SERVICE] Adding first_name to update:`, updates.firstName)
     }
-    if (updates.middleName !== undefined && user?.bridge_kyc_status !== "approved") {
+    if (updates.middleName !== undefined && user?.kyc_status !== "approved") {
       updateData.middle_name = updates.middleName
       console.log(`[USER-SERVICE] Adding middle_name to update:`, updates.middleName)
     } else {
       console.log(`[USER-SERVICE] NOT adding middle_name:`, {
         middleNameUndefined: updates.middleName === undefined,
-        kycApproved: user?.bridge_kyc_status === "approved",
+        kycApproved: user?.kyc_status === "approved",
         middleNameValue: updates.middleName,
       })
     }
-    if (updates.lastName !== undefined && user?.bridge_kyc_status !== "approved") {
+    if (updates.lastName !== undefined && user?.kyc_status !== "approved") {
       updateData.last_name = updates.lastName
       console.log(`[USER-SERVICE] Adding last_name to update:`, updates.lastName)
     }
@@ -103,7 +103,7 @@ export const userService = {
     const { data: verifiedUsers } = await supabase
       .from("users")
       .select("id", { count: "exact" })
-      .eq("bridge_kyc_status", "approved")
+      .eq("kyc_status", "approved")
 
     return {
       total: totalUsers?.length || 0,
@@ -747,6 +747,9 @@ export const paymentMethodService = {
     iban?: string
     swiftBic?: string
     qrCodeData?: string
+    cryptoAsset?: string
+    cryptoNetwork?: string
+    walletAddress?: string
     instructions?: string
     completionTimerSeconds?: number
     isDefault?: boolean
@@ -775,6 +778,9 @@ export const paymentMethodService = {
         iban: paymentMethodData.iban,
         swift_bic: paymentMethodData.swiftBic,
         qr_code_data: paymentMethodData.qrCodeData,
+        crypto_asset: paymentMethodData.cryptoAsset,
+        crypto_network: paymentMethodData.cryptoNetwork,
+        wallet_address: paymentMethodData.walletAddress,
         instructions: paymentMethodData.instructions,
         completion_timer_seconds: paymentMethodData.completionTimerSeconds ?? 3600,
         is_default: paymentMethodData.isDefault || false,
@@ -805,6 +811,9 @@ export const paymentMethodService = {
       iban?: string
       swiftBic?: string
       qrCodeData?: string
+      cryptoAsset?: string
+      cryptoNetwork?: string
+      walletAddress?: string
       instructions?: string
       completionTimerSeconds?: number
       isDefault?: boolean
@@ -833,6 +842,9 @@ export const paymentMethodService = {
     if (updates.iban !== undefined) updateData.iban = updates.iban
     if (updates.swiftBic !== undefined) updateData.swift_bic = updates.swiftBic
     if (updates.qrCodeData !== undefined) updateData.qr_code_data = updates.qrCodeData
+    if (updates.cryptoAsset !== undefined) updateData.crypto_asset = updates.cryptoAsset
+    if (updates.cryptoNetwork !== undefined) updateData.crypto_network = updates.cryptoNetwork
+    if (updates.walletAddress !== undefined) updateData.wallet_address = updates.walletAddress
     if (updates.instructions !== undefined) updateData.instructions = updates.instructions
     if (updates.completionTimerSeconds !== undefined) updateData.completion_timer_seconds = updates.completionTimerSeconds
     if (updates.isDefault !== undefined) updateData.is_default = updates.isDefault
@@ -973,15 +985,15 @@ export const adminService = {
     }
 
     if (filters.verification && filters.verification !== "all") {
-      // Map old verification_status values to bridge_kyc_status
+      // Map UI verification filter values to kyc_status
       const statusMap: Record<string, string> = {
         "verified": "approved",
         "pending": "not_started",
         "rejected": "rejected",
         "unverified": "not_started",
       }
-      const bridgeKycStatus = statusMap[filters.verification] || filters.verification
-      query = query.eq("bridge_kyc_status", bridgeKycStatus)
+      const kycStatus = statusMap[filters.verification] || filters.verification
+      query = query.eq("kyc_status", kycStatus)
     }
 
     if (filters.search) {
@@ -1101,14 +1113,12 @@ export const settingsService = {
 }
 
 // Crypto Wallet operations
-// Note: The Stellar-specific create() method has been removed
-// Only createBridgeAddress() is used for provider-backed wallet addresses
 export const cryptoWalletService = {
 
   async getByUserAndCurrency(
     userId: string,
     cryptoCurrency: string,
-    destinationType?: "bank" | "card",
+    destinationType: "bank" = "bank",
   ) {
     let query = supabase
       .from("crypto_wallets")
@@ -1117,9 +1127,7 @@ export const cryptoWalletService = {
       .eq("crypto_currency", cryptoCurrency)
       .eq("status", "active")
 
-    if (destinationType) {
-      query = query.eq("destination_type", destinationType)
-    }
+    query = query.eq("destination_type", destinationType)
 
     const { data, error } = await query.single()
 
@@ -1196,76 +1204,6 @@ export const cryptoWalletService = {
   async deactivate(walletId: string) {
     return this.update(walletId, { status: "inactive" })
   },
-
-  /**
-   * Create a provider-backed address (liquidation for bank or top-up deposit for card)
-   */
-  async createBridgeAddress(
-    userId: string,
-    bridgeData: {
-      bridgeCustomerId: string
-      destinationType: "bank" | "card"
-      cryptoCurrency: string
-      fiatCurrency: string
-      chain: string
-      blockchainAddress: string
-      blockchainMemo?: string
-      // Bank-specific
-      recipientId?: string
-      bridgeLiquidationAddressId?: string
-      externalAccountId?: string
-      destinationPaymentRail?: string
-      destinationCurrency?: string
-      destinationWireMessage?: string
-      // Card-specific
-      bridgeCardAccountId?: string
-    },
-  ) {
-    const serverClient = createServerClient()
-
-    const insertData: any = {
-      user_id: userId,
-      bridge_customer_id: bridgeData.bridgeCustomerId,
-      destination_type: bridgeData.destinationType,
-      crypto_currency: bridgeData.cryptoCurrency,
-      fiat_currency: bridgeData.fiatCurrency,
-      blockchain: bridgeData.chain,
-      chain: bridgeData.chain,
-      blockchain_address: bridgeData.blockchainAddress,
-      wallet_address: bridgeData.blockchainAddress, // For backward compatibility
-      blockchain_memo: bridgeData.blockchainMemo,
-      recipient_id: bridgeData.recipientId || null,
-      status: "active",
-    }
-
-    // Add bank-specific fields
-    if (bridgeData.destinationType === "bank") {
-      insertData.bridge_liquidation_address_id = bridgeData.bridgeLiquidationAddressId
-      insertData.external_account_id = bridgeData.externalAccountId
-      insertData.destination_payment_rail = bridgeData.destinationPaymentRail || "wire"
-      insertData.destination_currency = bridgeData.destinationCurrency
-      insertData.destination_wire_message = bridgeData.destinationWireMessage
-    }
-
-    // Add card-specific fields
-    if (bridgeData.destinationType === "card") {
-      insertData.bridge_card_account_id = bridgeData.bridgeCardAccountId
-      insertData.destination_payment_rail = "card"
-      insertData.destination_currency = bridgeData.fiatCurrency
-    }
-
-    const { data, error } = await serverClient
-      .from("crypto_wallets")
-      .insert(insertData)
-      .select(`
-        *,
-        recipient:recipients(*)
-      `)
-      .single()
-
-    if (error) throw error
-    return data
-  },
 }
 
 // Crypto Receive Transaction operations
@@ -1279,15 +1217,6 @@ export const cryptoReceiveTransactionService = {
     fiatCurrency: string,
     exchangeRate: number,
     userId: string,
-    bridgeFields?: {
-      bridge_liquidation_address_id?: string
-      bridge_liquidation_id?: string
-      blockchain_memo?: string
-      external_account_id?: string
-      bridge_card_account_id?: string
-      destination_type?: "bank" | "card"
-      destination_currency?: string
-    },
   ) {
     const serverClient = createServerClient()
     const transactionId = `CRTID${Date.now()}`
@@ -1297,18 +1226,13 @@ export const cryptoReceiveTransactionService = {
       blockchain_tx_hash: blockchainTxHash,
       // Removed stellar_transaction_hash - using blockchain_tx_hash for all chains
       user_id: userId,
-      crypto_wallet_id: walletId || null, // Make nullable for Bridge
+      crypto_wallet_id: walletId || null,
       crypto_amount: cryptoAmount,
       crypto_currency: cryptoCurrency,
       fiat_amount: fiatAmount,
       fiat_currency: fiatCurrency,
       exchange_rate: exchangeRate,
       status: "pending",
-    }
-
-    // Add provider-specific fields if provided
-    if (bridgeFields) {
-      Object.assign(insertData, bridgeFields)
     }
 
     const { data, error } = await serverClient
@@ -1331,16 +1255,13 @@ export const cryptoReceiveTransactionService = {
       converted_at?: string
       deposited_at?: string
       // Provider-specific fields
-      bridge_liquidation_address_id?: string
-      bridge_liquidation_id?: string
+      liquidation_address_id?: string
+      liquidation_reference_id?: string
       blockchain_tx_hash?: string
       blockchain_memo?: string
       external_account_id?: string
-      bridge_card_account_id?: string
-      destination_type?: "bank" | "card"
       destination_currency?: string
       liquidation_status?: string
-      card_top_up_status?: string
     } = {},
   ) {
     const serverClient = createServerClient()
