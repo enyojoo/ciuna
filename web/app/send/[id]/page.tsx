@@ -25,8 +25,14 @@ function TransactionStatusPage() {
   const router = useRouter()
   const params = useParams()
   const { user, userProfile, loading: authLoading } = useAuth()
-  const { currencies } = useUserData()
+  const { currencies, refreshCurrencies } = useUserData()
   const transactionId = params.id as string
+
+  useEffect(() => {
+    if (userProfile?.id) {
+      void refreshCurrencies()
+    }
+  }, [userProfile?.id, refreshCurrencies])
 
   const [transaction, setTransaction] = useState<Transaction | null>(null)
   const [loading, setLoading] = useState(false)

@@ -1,4 +1,5 @@
 import { transactionService, recipientService, currencyService } from "./database"
+import { dataCache, CACHE_KEYS } from "./cache"
 import { fetchWithAuth } from "./fetch-with-auth"
 import { supabase } from "./supabase"
 
@@ -30,6 +31,7 @@ class UserDataStore {
   private lastActivity = Date.now()
   private activityCheckInterval: NodeJS.Timeout | null = null
   private transactionsChannel: any = null
+  private currenciesChannel: any = null
 
   subscribe(callback: () => void) {
     this.listeners.add(callback)
@@ -75,7 +77,7 @@ class UserDataStore {
         this.startBackgroundRefresh(userId)
         this.startActivityMonitoring()
       }
-      if (!this.transactionsChannel) {
+      if (!this.transactionsChannel || !this.currenciesChannel) {
         this.setupRealtimeSubscriptions(userId)
       }
       return this.data
@@ -101,6 +103,7 @@ class UserDataStore {
     try {
       this.isLoading = true
       this.updateActivity()
+      dataCache.invalidate(CACHE_KEYS.CURRENCIES)
 
       // Create timeout promise
       const timeoutPromise = new Promise((_, reject) =>
@@ -268,6 +271,19 @@ class UserDataStore {
     }
   }
 
+  async refreshCurrencies() {
+    try {
+      this.updateActivity()
+      dataCache.invalidate(CACHE_KEYS.CURRENCIES)
+      const currencies = await currencyService.getAll()
+      this.data.currencies = currencies || []
+      this.data.lastUpdated = Date.now()
+      this.notify()
+    } catch (error) {
+      console.error("Error refreshing currencies:", error)
+    }
+  }
+
   async refreshTransactions(userId: string) {
     try {
       this.updateActivity()
@@ -323,12 +339,33 @@ class UserDataStore {
           console.warn('UserDataStore: Transaction subscription error, will use background refresh')
         }
       })
+
+    this.currenciesChannel = supabase
+      .channel("public-currencies")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "currencies" },
+        async () => {
+          await this.refreshCurrencies()
+        },
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          console.log("UserDataStore: Subscribed to currencies real-time updates")
+        } else if (status === "CHANNEL_ERROR") {
+          console.warn("UserDataStore: Currencies subscription error; timers update on navigation or periodic refresh")
+        }
+      })
   }
 
   private cleanupRealtimeSubscriptions() {
     if (this.transactionsChannel) {
       supabase.removeChannel(this.transactionsChannel)
       this.transactionsChannel = null
+    }
+    if (this.currenciesChannel) {
+      supabase.removeChannel(this.currenciesChannel)
+      this.currenciesChannel = null
     }
   }
 

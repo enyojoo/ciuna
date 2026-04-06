@@ -119,7 +119,9 @@ export const currencyService = {
     const refreshFn = async () => {
       const { data, error } = await supabase
         .from("currencies")
-        .select("id, code, name, symbol, flag_svg, status, can_send, can_receive, created_at, updated_at")
+        .select(
+          "id, code, name, symbol, flag_svg, status, can_send, can_receive, receive_completion_timer_seconds, created_at, updated_at",
+        )
         .eq("status", "active")
         .order("code")
 

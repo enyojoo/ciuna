@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Plus, MoreHorizontal, Edit, Pause, Trash2, Loader2 } from "lucide-react"
+import { Plus, MoreHorizontal, Edit, Pause, Trash2, Loader2, X } from "lucide-react"
 import { useOfficeData } from "@/hooks/use-office-data"
 import { officeDataStore } from "@/lib/office-data-store"
 import { OfficeRatesSkeleton } from "@/components/office-rates-skeleton"
@@ -409,95 +409,97 @@ const AdminRatesPage = () => {
 
         {/* Edit Rates Dialog */}
         <Dialog open={isEditingRates} onOpenChange={setIsEditingRates}>
-          <DialogContent className="max-w-4xl max-h-[80vh]">
-            <DialogHeader className="space-y-3 text-left sm:space-y-2">
-              <DialogTitle>
+          <DialogContent hideClose className="max-w-4xl max-h-[80vh]">
+            <DialogHeader className="flex flex-row flex-nowrap items-center gap-3 space-y-0 overflow-x-auto border-b pb-4 text-left [scrollbar-width:thin]">
+              <DialogTitle className="m-0 min-w-0 flex-1 truncate text-base font-semibold leading-tight">
                 Edit Exchange Rates - {selectedCurrency?.name} ({selectedCurrency?.code})
               </DialogTitle>
-              <div className="flex flex-wrap items-end gap-x-4 gap-y-3 border-b pb-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="editCanSend"
-                    checked={currencySettings.can_send}
-                    onCheckedChange={(checked) =>
-                      setCurrencySettings({ ...currencySettings, can_send: checked as boolean })
+              <div className="flex shrink-0 items-center gap-2">
+                <Checkbox
+                  id="editCanSend"
+                  checked={currencySettings.can_send}
+                  onCheckedChange={(checked) =>
+                    setCurrencySettings({ ...currencySettings, can_send: checked as boolean })
+                  }
+                />
+                <Label htmlFor="editCanSend" className="cursor-pointer text-sm font-normal whitespace-nowrap">
+                  Can Send
+                </Label>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <Checkbox
+                  id="editCanReceive"
+                  checked={currencySettings.can_receive}
+                  onCheckedChange={(checked) =>
+                    setCurrencySettings({ ...currencySettings, can_receive: checked as boolean })
+                  }
+                />
+                <Label htmlFor="editCanReceive" className="cursor-pointer text-sm font-normal whitespace-nowrap">
+                  Can Receive
+                </Label>
+              </div>
+              <div className="flex shrink-0 items-end gap-1.5 border-l pl-3">
+                <div className="grid w-11 shrink-0 gap-0.5">
+                  <Label htmlFor="rateTimerHours" className="text-[10px] font-medium uppercase text-gray-500">
+                    H
+                  </Label>
+                  <Input
+                    id="rateTimerHours"
+                    type="number"
+                    min={0}
+                    className="h-8 px-1.5 text-center text-sm tabular-nums"
+                    value={receiveCompletionTimer.hours}
+                    onChange={(e) =>
+                      setReceiveCompletionTimer({
+                        ...receiveCompletionTimer,
+                        hours: Math.max(0, Number.parseInt(e.target.value, 10) || 0),
+                      })
                     }
                   />
-                  <Label htmlFor="editCanSend" className="font-normal cursor-pointer text-sm">
-                    Can Send
-                  </Label>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="editCanReceive"
-                    checked={currencySettings.can_receive}
-                    onCheckedChange={(checked) =>
-                      setCurrencySettings({ ...currencySettings, can_receive: checked as boolean })
+                <div className="grid w-11 shrink-0 gap-0.5">
+                  <Label htmlFor="rateTimerMinutes" className="text-[10px] font-medium uppercase text-gray-500">
+                    M
+                  </Label>
+                  <Input
+                    id="rateTimerMinutes"
+                    type="number"
+                    min={0}
+                    max={59}
+                    className="h-8 px-1.5 text-center text-sm tabular-nums"
+                    value={receiveCompletionTimer.minutes}
+                    onChange={(e) =>
+                      setReceiveCompletionTimer({
+                        ...receiveCompletionTimer,
+                        minutes: Math.max(0, Math.min(59, Number.parseInt(e.target.value, 10) || 0)),
+                      })
                     }
                   />
-                  <Label htmlFor="editCanReceive" className="font-normal cursor-pointer text-sm">
-                    Can Receive
-                  </Label>
                 </div>
-                <div className="flex items-end gap-1.5 sm:ml-2">
-                  <div className="grid w-11 shrink-0 gap-0.5">
-                    <Label htmlFor="rateTimerHours" className="text-[10px] font-medium uppercase text-gray-500">
-                      H
-                    </Label>
-                    <Input
-                      id="rateTimerHours"
-                      type="number"
-                      min={0}
-                      className="h-8 px-1.5 text-center text-sm tabular-nums"
-                      value={receiveCompletionTimer.hours}
-                      onChange={(e) =>
-                        setReceiveCompletionTimer({
-                          ...receiveCompletionTimer,
-                          hours: Math.max(0, Number.parseInt(e.target.value, 10) || 0),
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="grid w-11 shrink-0 gap-0.5">
-                    <Label htmlFor="rateTimerMinutes" className="text-[10px] font-medium uppercase text-gray-500">
-                      M
-                    </Label>
-                    <Input
-                      id="rateTimerMinutes"
-                      type="number"
-                      min={0}
-                      max={59}
-                      className="h-8 px-1.5 text-center text-sm tabular-nums"
-                      value={receiveCompletionTimer.minutes}
-                      onChange={(e) =>
-                        setReceiveCompletionTimer({
-                          ...receiveCompletionTimer,
-                          minutes: Math.max(0, Math.min(59, Number.parseInt(e.target.value, 10) || 0)),
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="grid w-11 shrink-0 gap-0.5">
-                    <Label htmlFor="rateTimerSeconds" className="text-[10px] font-medium uppercase text-gray-500">
-                      S
-                    </Label>
-                    <Input
-                      id="rateTimerSeconds"
-                      type="number"
-                      min={0}
-                      max={59}
-                      className="h-8 px-1.5 text-center text-sm tabular-nums"
-                      value={receiveCompletionTimer.seconds}
-                      onChange={(e) =>
-                        setReceiveCompletionTimer({
-                          ...receiveCompletionTimer,
-                          seconds: Math.max(0, Math.min(59, Number.parseInt(e.target.value, 10) || 0)),
-                        })
-                      }
-                    />
-                  </div>
+                <div className="grid w-11 shrink-0 gap-0.5">
+                  <Label htmlFor="rateTimerSeconds" className="text-[10px] font-medium uppercase text-gray-500">
+                    S
+                  </Label>
+                  <Input
+                    id="rateTimerSeconds"
+                    type="number"
+                    min={0}
+                    max={59}
+                    className="h-8 px-1.5 text-center text-sm tabular-nums"
+                    value={receiveCompletionTimer.seconds}
+                    onChange={(e) =>
+                      setReceiveCompletionTimer({
+                        ...receiveCompletionTimer,
+                        seconds: Math.max(0, Math.min(59, Number.parseInt(e.target.value, 10) || 0)),
+                      })
+                    }
+                  />
                 </div>
               </div>
+              <DialogClose className="shrink-0 rounded-sm p-1.5 text-gray-500 opacity-70 ring-offset-background transition-opacity hover:opacity-100 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+              </DialogClose>
             </DialogHeader>
             <div className="space-y-6">
               <div className="max-h-[400px] overflow-y-auto space-y-4 pr-2">

@@ -32,6 +32,12 @@ export function useUserData() {
     }
   }, [userProfile?.id])
 
+  const refreshCurrencies = useCallback(() => {
+    if (mountedRef.current) {
+      return userDataStore.refreshCurrencies()
+    }
+  }, [])
+
   useEffect(() => {
     mountedRef.current = true
 
@@ -115,6 +121,7 @@ export function useUserData() {
     error,
     refreshRecipients,
     refreshTransactions,
+    refreshCurrencies,
     forceRefresh,
   }
 }

@@ -72,7 +72,8 @@ export default function UserSendPage() {
   const { t } = useTranslation("app")
   const router = useRouter()
   const { user, userProfile } = useAuth()
-  const { currencies, exchangeRates, recipients, refreshRecipients, loading: userDataLoading } = useUserData()
+  const { currencies, exchangeRates, recipients, refreshRecipients, refreshCurrencies, loading: userDataLoading } =
+    useUserData()
   
   // Memoize exchangeRates to prevent infinite re-renders
   const memoizedExchangeRates = useMemo(() => exchangeRates, [exchangeRates])
@@ -154,6 +155,12 @@ export default function UserSendPage() {
 
     loadPaymentMethods()
   }, [])
+
+  useEffect(() => {
+    if (userProfile?.id) {
+      void refreshCurrencies()
+    }
+  }, [userProfile?.id, refreshCurrencies])
 
   // Default currencies before paint when possible — avoids skeleton flash on repeat visits (store cache)
   useLayoutEffect(() => {
