@@ -330,7 +330,7 @@ export class EmailNotificationService {
       // Send admin notification email (exact same pattern as user email)
       const adminNotifyEmail =
         process.env.ADMIN_TRANSACTION_NOTIFICATION_EMAIL?.trim() ||
-        'enyo@easner.com'
+        'enyo@ciuna.com'
       console.log('Sending admin notification email to:', adminNotifyEmail)
       
       const result = await emailService.sendEmail({

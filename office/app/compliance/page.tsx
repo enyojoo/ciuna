@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { OfficeDashboardLayout } from "@/components/layout/office-dashboard-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,44 +8,93 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
-import { Search, Eye, CheckCircle, Clock, XCircle, User, Mail, Phone, Trash2, Check, ExternalLink, RotateCcw } from "lucide-react"
-import { kycService, KYCSubmission } from "@/lib/kyc-service"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Search, Eye, User, Mail, Phone, Download, Check, X } from "lucide-react"
+import { KYCSubmission } from "@/lib/kyc-service"
 import { getIdTypeLabel } from "@/lib/country-id-types"
 import { countryService, getCountryFlag } from "@/lib/country-service"
 import { supabase } from "@/lib/supabase"
 import { officeFetch } from "@/lib/api-client"
 import { OfficeComplianceSkeleton } from "@/components/office-compliance-skeleton"
 
-interface ComplianceUser {
-  id: string
-  email: string
-  first_name: string
-  middle_name?: string
-  last_name: string
+const CACHE_KEY = "ciuna_compliance_kyc_rows"
+const CACHE_TTL = 5 * 60 * 1000
+
+interface ComplianceKycUser {
+  userId: string
+  email?: string
+  first_name?: string
+  last_name?: string
   phone?: string
-  date_of_birth?: string
-  address?: string
-  country_code?: string
-  kyc_metadata?: any
-  kyc_external_customer_id?: string
-  kyc_signed_agreement_id?: string
-  kyc_status?: string
-  kyc_rejection_reasons?: any
-  kyc_endorsements?: any
+  identity: KYCSubmission | null
+  address: KYCSubmission | null
+}
+
+function submissionStatusActive(status?: string) {
+  return status === "pending" || status === "in_review"
+}
+
+function getOverallRowSummary(row: ComplianceKycUser): { label: string; badgeClass: string } {
+  const { identity: i, address: a } = row
+  if (!i && !a) {
+    return { label: "No submissions", badgeClass: "bg-gray-100 text-gray-700" }
+  }
+  if (i?.status === "rejected" || a?.status === "rejected") {
+    return { label: "Rejected", badgeClass: "bg-red-100 text-red-800" }
+  }
+  if (i?.status === "approved" && a?.status === "approved") {
+    return { label: "Verified", badgeClass: "bg-green-100 text-green-800" }
+  }
+  if (submissionStatusActive(i?.status) || submissionStatusActive(a?.status)) {
+    return { label: "In review", badgeClass: "bg-yellow-100 text-yellow-800" }
+  }
+  if (i?.status === "approved" && !a) {
+    return { label: "Address missing", badgeClass: "bg-gray-100 text-gray-800" }
+  }
+  if (!i && a?.status === "approved") {
+    return { label: "Identity missing", badgeClass: "bg-gray-100 text-gray-800" }
+  }
+  return { label: "In progress", badgeClass: "bg-gray-100 text-gray-800" }
+}
+
+function rowMatchesStatusFilter(row: ComplianceKycUser, filter: string): boolean {
+  const { identity: i, address: a } = row
+  if (filter === "all") return true
+  if (filter === "verified") return i?.status === "approved" && a?.status === "approved"
+  if (filter === "rejected") return i?.status === "rejected" || a?.status === "rejected"
+  if (filter === "in_review") {
+    return submissionStatusActive(i?.status) || submissionStatusActive(a?.status)
+  }
+  if (filter === "pending") {
+    return i?.status === "pending" || a?.status === "pending"
+  }
+  return true
 }
 
 export default function OfficeCompliancePage() {
-  // Initialize from cache synchronously to prevent flicker
-  // Use cached data even if expired to prevent skeleton flash
-  const getInitialUsers = (): ComplianceUser[] => {
+  const getInitialRows = (): ComplianceKycUser[] => {
     if (typeof window === "undefined") return []
     try {
-      const cached = localStorage.getItem("ciuna_compliance_users")
+      const cached = localStorage.getItem(CACHE_KEY)
       if (!cached) return []
-      const { value, timestamp } = JSON.parse(cached)
-      // Return cached data even if expired - we'll refresh in background
+      const { value } = JSON.parse(cached)
       return value || []
     } catch {
       return []
@@ -55,7 +104,7 @@ export default function OfficeCompliancePage() {
   const getCacheTimestamp = (): number | null => {
     if (typeof window === "undefined") return null
     try {
-      const cached = localStorage.getItem("ciuna_compliance_users")
+      const cached = localStorage.getItem(CACHE_KEY)
       if (!cached) return null
       const { timestamp } = JSON.parse(cached)
       return timestamp
@@ -64,175 +113,171 @@ export default function OfficeCompliancePage() {
     }
   }
 
-  const initialUsers = getInitialUsers()
+  const initialRows = getInitialRows()
   const cacheTimestamp = getCacheTimestamp()
-  const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
-  const isCacheFresh = cacheTimestamp && (Date.now() - cacheTimestamp < CACHE_TTL)
+  const isCacheFresh = cacheTimestamp && Date.now() - cacheTimestamp < CACHE_TTL
 
-  const [users, setUsers] = useState<ComplianceUser[]>(initialUsers)
-  const [loading, setLoading] = useState(!initialUsers.length) // Only show loading if no cached data
+  const [rows, setRows] = useState<ComplianceKycUser[]>(initialRows)
+  const [loading, setLoading] = useState(!initialRows.length)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [selectedUser, setSelectedUser] = useState<ComplianceUser | null>(null)
+  const [selectedRow, setSelectedRow] = useState<ComplianceKycUser | null>(null)
   const [userDetailsDialogOpen, setUserDetailsDialogOpen] = useState(false)
-  const [countries, setCountries] = useState<any[]>([])
+  const [countries, setCountries] = useState<{ code: string; name: string; flag_emoji?: string }[]>([])
   const [initialized, setInitialized] = useState(false)
-  const channelRef = useRef<any>(null)
-  const [noticeDialog, setNoticeDialog] = useState<{ open: boolean; title: string; message: string; type: 'success' | 'error' }>({ open: false, title: '', message: '', type: 'success' })
-  const [deleting, setDeleting] = useState<string | null>(null)
-  const [approving, setApproving] = useState<string | null>(null)
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  const [noticeDialog, setNoticeDialog] = useState<{
+    open: boolean
+    title: string
+    message: string
+    type: "success" | "error"
+  }>({ open: false, title: "", message: "", type: "success" })
 
-  useEffect(() => {
-    loadCountries()
-  }, [])
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false)
+  const [selectedSubmission, setSelectedSubmission] = useState<KYCSubmission | null>(null)
+  const [reviewStatus, setReviewStatus] = useState<"approved" | "rejected">("approved")
+  const [rejectionReason, setRejectionReason] = useState("")
+  const [updating, setUpdating] = useState(false)
 
-  const loadData = async (showLoading: boolean = true): Promise<ComplianceUser[]> => {
+  const rowsRef = useRef(rows)
+  rowsRef.current = rows
+  const selectedUserIdRef = useRef<string | null>(null)
+  selectedUserIdRef.current = selectedRow?.userId ?? null
+
+  const loadData = useCallback(async (showLoading: boolean = true): Promise<ComplianceKycUser[]> => {
     try {
-      // Only show loading if explicitly requested and we don't have cached data
-      if (showLoading && users.length === 0) {
+      if (showLoading && rowsRef.current.length === 0) {
         setLoading(true)
       }
-      
-      // Get all users with KYC data from users table
-      const { data: usersData, error: usersError } = await supabase
-        .from("users")
-        .select("id, email, first_name, middle_name, last_name, phone, date_of_birth, address, country_code, kyc_metadata, kyc_external_customer_id, kyc_signed_agreement_id, kyc_status, kyc_rejection_reasons, kyc_endorsements")
-        .order("created_at", { ascending: false })
 
-      if (usersError) throw usersError
+      const response = await officeFetch("/api/admin/kyc")
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}))
+        throw new Error(err.error || response.statusText || "Failed to load KYC")
+      }
 
-      // Map users to ComplianceUser format (all data now comes from users table)
-      const usersWithKyc: ComplianceUser[] = (usersData || []).map((user: any) => {
-        return {
-          id: user.id,
-          email: user.email,
-          first_name: user.first_name || "",
-          middle_name: user.middle_name,
-          last_name: user.last_name || "",
-          phone: user.phone,
-          date_of_birth: user.date_of_birth,
-          address: user.address,
-          country_code: user.country_code,
-          kyc_metadata: user.kyc_metadata,
-          kyc_external_customer_id: user.kyc_external_customer_id,
-          kyc_signed_agreement_id: user.kyc_signed_agreement_id,
-          kyc_status: user.kyc_status,
-          kyc_rejection_reasons: user.kyc_rejection_reasons,
-          kyc_endorsements: user.kyc_endorsements,
-        }
-      })
+      const { submissions: allSubmissions } = await response.json()
+      const submissions: KYCSubmission[] = allSubmissions || []
 
-      setUsers(usersWithKyc)
-      
-      // Cache the data
+      const userIds = [...new Set(submissions.map((s) => s.user_id))]
+      const userMap = new Map<string, ComplianceKycUser>()
+
+      await Promise.all(
+        userIds.map(async (userId) => {
+          const subs = submissions.filter((s) => s.user_id === userId)
+          const identity = subs.find((s) => s.type === "identity") ?? null
+          const address = subs.find((s) => s.type === "address") ?? null
+
+          let email: string | undefined
+          let first_name: string | undefined
+          let last_name: string | undefined
+          let phone: string | undefined
+
+          try {
+            const userResponse = await officeFetch(`/api/admin/users/${userId}`)
+            if (userResponse.ok) {
+              const userData = await userResponse.json()
+              email = userData.email
+              first_name = userData.first_name
+              last_name = userData.last_name
+              phone = userData.phone
+            }
+          } catch {
+            /* user row optional */
+          }
+
+          userMap.set(userId, {
+            userId,
+            email,
+            first_name,
+            last_name,
+            phone,
+            identity,
+            address,
+          })
+        })
+      )
+
+      const nextRows = Array.from(userMap.values())
+      setRows(nextRows)
       try {
-        localStorage.setItem("ciuna_compliance_users", JSON.stringify({
-          value: usersWithKyc,
-          timestamp: Date.now()
-        }))
-      } catch {}
-      
-      return usersWithKyc
+        localStorage.setItem(
+          CACHE_KEY,
+          JSON.stringify({ value: nextRows, timestamp: Date.now() })
+        )
+      } catch {
+        /* ignore */
+      }
+      return nextRows
     } catch (error) {
-      console.error("Error loading compliance data:", error)
-      // On error, keep existing data if available
-      return users.length > 0 ? users : []
+      console.error("Error loading compliance KYC:", error)
+      setNoticeDialog({
+        open: true,
+        title: "Could not load KYC",
+        message: error instanceof Error ? error.message : "Unknown error",
+        type: "error",
+      })
+      return rowsRef.current.length > 0 ? rowsRef.current : []
     } finally {
       if (showLoading) {
         setLoading(false)
       }
     }
-  }
+  }, [])
 
   useEffect(() => {
-    if (initialized) return // Don't re-initialize if already done
+    loadCountries()
+  }, [])
 
-    // If we have cached data (even if expired), show it immediately and refresh in background
-    // Only show loading if we truly have no data
-    if (initialUsers.length > 0) {
-      // We have cached data, refresh in background if expired
+  useEffect(() => {
+    if (initialized) return
+
+    if (initialRows.length > 0) {
       if (!isCacheFresh) {
-        // Cache expired, refresh in background without showing loading
-        loadData(false).then(() => {
-          setInitialized(true)
-        })
+        loadData(false).then(() => setInitialized(true))
       } else {
-        // Cache is fresh, we're done
         setInitialized(true)
       }
     } else {
-      // No cached data, fetch and show loading
-      loadData(true).then(() => {
-        setInitialized(true)
-      })
+      loadData(true).then(() => setInitialized(true))
     }
-  }, [initialized, initialUsers.length, isCacheFresh])
+  }, [initialized, initialRows.length, isCacheFresh, loadData])
 
-  // Real-time subscription for KYC submission and user updates
   useEffect(() => {
     if (!initialized) return
 
-    // Set up Supabase Realtime subscription for instant updates
     const channel = supabase
-      .channel('admin-compliance-updates')
-      // Removed kyc_submissions subscription - KYC data is now in users table
+      .channel("admin-compliance-kyc-submissions")
       .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'users',
-        },
-        async (payload) => {
-          // Only process if provider-backed KYC fields changed
-          const oldData = payload.old as any
-          const newData = payload.new as any
-          
-          const kycRowChanged = 
-            oldData?.kyc_status !== newData?.kyc_status ||
-            oldData?.kyc_external_customer_id !== newData?.kyc_external_customer_id ||
-            JSON.stringify(oldData?.kyc_rejection_reasons) !== JSON.stringify(newData?.kyc_rejection_reasons) ||
-            oldData?.full_name !== newData?.full_name ||
-            oldData?.date_of_birth !== newData?.date_of_birth ||
-            oldData?.address !== newData?.address ||
-            JSON.stringify(oldData?.kyc_metadata) !== JSON.stringify(newData?.kyc_metadata)
-          
-          if (kycRowChanged) {
-            console.log('Admin compliance: User KYC status update received via Realtime')
-            try {
-              // Reload data to get updated KYC status (silent refresh, no loading state)
-              const updatedUsers = await loadData(false)
-              
-              // Update selected user if dialog is open and this update affects them
-              if (selectedUser && newData && newData.id === selectedUser.id) {
-                const updatedUser = updatedUsers.find(u => u.id === selectedUser.id)
-                if (updatedUser) {
-                  setSelectedUser(updatedUser)
-                }
-              }
-            } catch (error) {
-              console.error("Error handling real-time KYC status update:", error)
+        "postgres_changes",
+        { event: "*", schema: "public", table: "kyc_submissions" },
+        async () => {
+          try {
+            const updated = await loadData(false)
+            const uid = selectedUserIdRef.current
+            if (uid) {
+              const next = updated.find((r) => r.userId === uid)
+              if (next) setSelectedRow(next)
             }
+          } catch (e) {
+            console.error("Realtime KYC refresh failed:", e)
           }
         }
       )
       .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('Admin compliance: Subscribed to user updates')
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('Admin compliance: Realtime subscription error')
+        if (status === "CHANNEL_ERROR") {
+          console.error("Admin compliance realtime error")
         }
       })
 
     channelRef.current = channel
-
     return () => {
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current)
         channelRef.current = null
       }
     }
-  }, [initialized, selectedUser?.id])
+  }, [initialized, loadData])
 
   const loadCountries = async () => {
     try {
@@ -243,143 +288,35 @@ export default function OfficeCompliancePage() {
     }
   }
 
-  // Removed handleDeleteSubmission - manual KYC approval no longer needed
-  const _handleDeleteSubmission = async (submissionId: string, type: "identity" | "address") => {
-    if (!confirm(`Are you sure you want to delete this ${type} submission? The user will need to submit again.`)) {
-      return
-    }
-
-    try {
-      setDeleting(submissionId)
-      await kycService.deleteSubmission(submissionId)
-      
-      // Reload data and update cache
-      const updatedUsers = await loadData()
-      
-      // Update selected user if it's the same user
-      if (selectedUser) {
-        const updatedUser = updatedUsers.find(u => u.id === selectedUser.id)
-        if (updatedUser) {
-          setSelectedUser(updatedUser)
-        } else {
-          // If user was removed, close dialog
-          setUserDetailsDialogOpen(false)
-          setSelectedUser(null)
-        }
-      }
-    } catch (error: any) {
-      console.error("Error deleting submission:", error)
-      setNoticeDialog({
-        open: true,
-        title: "Failed to Delete Submission",
-        message: error.message || "An unknown error occurred",
-        type: 'error'
-      })
-    } finally {
-      setDeleting(null)
-    }
-  }
-
-  // Removed handleApproveSubmission - manual KYC approval no longer needed
-  const _handleApproveSubmission = async (submissionId: string, type: "identity" | "address") => {
-    if (!selectedUser) return
-
-    try {
-      setApproving(submissionId)
-      await kycService.updateStatus(submissionId, "approved", selectedUser.id)
-      
-      // Reload data and update cache
-      const updatedUsers = await loadData()
-      
-      // Update selected user
-      const updatedUser = updatedUsers.find(u => u.id === selectedUser.id)
-      if (updatedUser) {
-        setSelectedUser(updatedUser)
-      }
-    } catch (error: any) {
-      console.error("Error approving submission:", error)
-      setNoticeDialog({
-        open: true,
-        title: "Failed to Approve Submission",
-        message: error.message || "An unknown error occurred",
-        type: 'error'
-      })
-    } finally {
-      setApproving(null)
-    }
-  }
-
-  // Removed handleSetInReview - manual KYC approval no longer needed
-  const _handleSetInReview = async (submissionId: string, type: "identity" | "address") => {
-    if (!selectedUser) return
-
-    try {
-      setApproving(submissionId)
-      await kycService.updateStatus(submissionId, "in_review", selectedUser.id)
-      
-      // Reload data and update cache
-      const updatedUsers = await loadData()
-      
-      // Update selected user
-      const updatedUser = updatedUsers.find(u => u.id === selectedUser.id)
-      if (updatedUser) {
-        setSelectedUser(updatedUser)
-      }
-    } catch (error: any) {
-      console.error("Error setting submission to in review:", error)
-      setNoticeDialog({
-        open: true,
-        title: "Failed to Update Submission",
-        message: error.message || "An unknown error occurred",
-        type: 'error'
-      })
-    } finally {
-      setApproving(null)
-    }
-  }
-
-  const handleViewFile = async (filePathOrUrl: string) => {
+  const handleViewFile = async (filePathOrUrl: string | null | undefined) => {
     if (!filePathOrUrl) return
-    
-    // Check if it's a file path (starts with "identity/" or "address/") or an old public URL
-    const isPath = filePathOrUrl.startsWith("identity/") || filePathOrUrl.startsWith("address/")
-    
+    const isPath =
+      filePathOrUrl.startsWith("identity/") || filePathOrUrl.startsWith("address/")
     if (isPath) {
-      // New format: file path - get signed URL from API
       try {
-        const response = await officeFetch(`/api/admin/kyc/documents?path=${encodeURIComponent(filePathOrUrl)}`)
-        
+        const response = await officeFetch(
+          `/api/admin/kyc/documents?path=${encodeURIComponent(filePathOrUrl)}`
+        )
         if (response.ok) {
           const data = await response.json()
-          if (data.url) {
-            window.open(data.url, "_blank")
-          } else {
-            console.error("No URL in response:", data)
-            alert("Failed to access document: No URL returned from server.")
-          }
+          if (data.url) window.open(data.url, "_blank")
+          else alert("No document URL returned.")
         } else {
           const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
-          console.error("Failed to fetch signed URL:", {
-            status: response.status,
-            statusText: response.statusText,
-            error: errorData
-          })
-          alert(`Failed to access document: ${errorData.error || response.statusText || "Please try again."}`)
+          alert(`Failed to access document: ${errorData.error || response.statusText}`)
         }
-      } catch (error: any) {
-        console.error("Error fetching signed URL:", error)
-        alert(`Failed to access document: ${error.message || "Please try again."}`)
+      } catch (error: unknown) {
+        alert(error instanceof Error ? error.message : "Failed to access document")
       }
     } else {
-      // Old format: public URL (for backward compatibility with existing records)
       window.open(filePathOrUrl, "_blank")
     }
   }
 
-  const getStatusBadge = (status: string) => {
+  const getSubmissionStatusBadge = (status: string) => {
     switch (status) {
       case "approved":
-        return <Badge className="bg-green-100 text-green-700">Done</Badge>
+        return <Badge className="bg-green-100 text-green-700">Approved</Badge>
       case "in_review":
         return <Badge className="bg-yellow-100 text-yellow-700">In review</Badge>
       case "rejected":
@@ -389,80 +326,81 @@ export default function OfficeCompliancePage() {
     }
   }
 
-  const getKycStatusColor = (status: string) => {
-    switch (status) {
-      case "approved":
-        return "bg-green-100 text-green-800"
-      case "under_review":
-      case "in_review":
-        return "bg-yellow-100 text-yellow-800"
-      case "rejected":
-        return "bg-red-100 text-red-800"
-      case "incomplete":
-      case "not_started":
-        return "bg-gray-100 text-gray-800"
-      default:
-        return "bg-gray-100 text-gray-800"
+  const handleReviewSubmit = async () => {
+    if (!selectedSubmission) return
+    setUpdating(true)
+    try {
+      const response = await officeFetch("/api/admin/kyc", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          submissionId: selectedSubmission.id,
+          status: reviewStatus,
+          rejectionReason: reviewStatus === "rejected" ? rejectionReason : undefined,
+        }),
+      })
+      if (response.ok) {
+        const updated = await loadData(false)
+        if (selectedRow) {
+          const next = updated.find((r) => r.userId === selectedRow.userId)
+          if (next) setSelectedRow(next)
+        }
+        setReviewDialogOpen(false)
+        setSelectedSubmission(null)
+        setRejectionReason("")
+      } else {
+        const err = await response.json().catch(() => ({}))
+        setNoticeDialog({
+          open: true,
+          title: "Update failed",
+          message: err.error || "Could not update submission",
+          type: "error",
+        })
+      }
+    } catch (e) {
+      setNoticeDialog({
+        open: true,
+        title: "Update failed",
+        message: e instanceof Error ? e.message : "Unknown error",
+        type: "error",
+      })
+    } finally {
+      setUpdating(false)
     }
   }
 
-  const getStoredKycStatusBadge = (status?: string) => {
-    if (!status) return null
-    
-    const statusLabels: Record<string, string> = {
-      "not_started": "Not Started",
-      "incomplete": "Incomplete",
-      "under_review": "Under Review",
-      "approved": "Approved",
-      "rejected": "Rejected"
-    }
-    
-    const label = statusLabels[status] || status
-    
-    return (
-      <Badge className={getBridgeStatusColor(status)}>
-        {label}
-      </Badge>
-    )
+  const openReview = (submission: KYCSubmission) => {
+    setSelectedSubmission(submission)
+    setReviewStatus("approved")
+    setRejectionReason("")
+    setReviewDialogOpen(true)
   }
-
-  const handleUserSelect = (user: ComplianceUser) => {
-    setSelectedUser(user)
-    setUserDetailsDialogOpen(true)
-  }
-
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    if (statusFilter === "all") return matchesSearch
-    
-    const kycStatus = user.kyc_status || "not_started"
-    if (statusFilter === "verified") {
-      return matchesSearch && kycStatus === "approved"
-    }
-    if (statusFilter === "pending") {
-      return matchesSearch && (kycStatus === "not_started" || kycStatus === "incomplete")
-    }
-    if (statusFilter === "in_review") {
-      return matchesSearch && (kycStatus === "under_review" || kycStatus === "in_review")
-    }
-    if (statusFilter === "rejected") {
-      return matchesSearch && kycStatus === "rejected"
-    }
-    
-    return matchesSearch
-  })
 
   const getCountryName = (code?: string) => {
     if (!code) return "-"
-    const country = countries.find(c => c.code === code)
-    return country ? `${country.flag_emoji} ${country.name}` : code
+    const country = countries.find((c) => c.code === code)
+    const flag = country ? getCountryFlag(code) : ""
+    return country ? `${flag} ${country.name}` : code
   }
 
-  // Only show skeleton if we're truly loading and have no cached data
-  if (loading && !users.length) {
+  const displayName = (row: ComplianceKycUser) => {
+    const n = [row.first_name, row.last_name].filter(Boolean).join(" ").trim()
+    if (n) return n
+    return row.email || row.userId
+  }
+
+  const filteredRows = rows.filter((row) => {
+    if (!rowMatchesStatusFilter(row, statusFilter)) return false
+    if (!searchTerm.trim()) return true
+    const q = searchTerm.toLowerCase()
+    return (
+      displayName(row).toLowerCase().includes(q) ||
+      (row.email?.toLowerCase().includes(q) ?? false) ||
+      row.userId.toLowerCase().includes(q)
+    )
+  })
+
+  if (loading && !rows.length) {
     return (
       <OfficeDashboardLayout>
         <OfficeComplianceSkeleton />
@@ -476,6 +414,10 @@ export default function OfficeCompliancePage() {
         <Card>
           <CardHeader>
             <CardTitle>Compliance</CardTitle>
+            <p className="text-sm text-gray-600">
+              Internal KYC from <code className="text-xs bg-gray-100 px-1 rounded">kyc_submissions</code>{" "}
+              (same flow as app verification).
+            </p>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4 mb-6">
@@ -483,7 +425,7 @@ export default function OfficeCompliancePage() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
-                    placeholder="Search by name or email..."
+                    placeholder="Search by name, email, or user id..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -491,14 +433,14 @@ export default function OfficeCompliancePage() {
                 </div>
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Filter" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="verified">Approved</SelectItem>
-                  <SelectItem value="in_review">Under Review</SelectItem>
-                  <SelectItem value="pending">Pending/Not Started</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="verified">Verified (both)</SelectItem>
+                  <SelectItem value="in_review">In review / pending</SelectItem>
+                  <SelectItem value="pending">Submission pending</SelectItem>
                   <SelectItem value="rejected">Rejected</SelectItem>
                 </SelectContent>
               </Select>
@@ -509,160 +451,215 @@ export default function OfficeCompliancePage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Verification status</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Overall</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">
-                        {user.first_name} {user.last_name}
-                      </TableCell>
-                      <TableCell>
-                        {user.kyc_status ? getStoredKycStatusBadge(user.kyc_status) : <Badge className="bg-gray-100 text-gray-700">Not Started</Badge>}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleUserSelect(user)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                  {filteredRows.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-gray-500 py-8">
+                        No KYC submissions match this filter.
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    filteredRows.map((row) => {
+                      const o = getOverallRowSummary(row)
+                      return (
+                        <TableRow key={row.userId}>
+                          <TableCell className="font-medium">{displayName(row)}</TableCell>
+                          <TableCell className="text-sm text-gray-600">
+                            {row.email || "—"}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={o.badgeClass}>{o.label}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedRow(row)
+                                setUserDetailsDialogOpen(true)
+                              }}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
+                  )}
                 </TableBody>
               </Table>
             </div>
           </CardContent>
         </Card>
 
-        {/* User Details Dialog */}
         <Dialog open={userDetailsDialogOpen} onOpenChange={setUserDetailsDialogOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" key={selectedUser?.id}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" key={selectedRow?.userId}>
             <DialogHeader>
-              <div className="flex items-center justify-between">
               <DialogTitle>
-                Compliance Details - {selectedUser?.first_name} {selectedUser?.last_name}
+                KYC — {selectedRow ? displayName(selectedRow) : ""}
               </DialogTitle>
-                {/* Removed legacy provider handoff button; users complete KYC directly in the current flow */}
-              </div>
+              <DialogDescription className="text-left">
+                User ID: {selectedRow?.userId}
+                {selectedRow?.email ? ` · ${selectedRow.email}` : ""}
+              </DialogDescription>
             </DialogHeader>
-            {selectedUser && (
+            {selectedRow && (
               <div className="space-y-6">
-                {/* User Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
                       <User className="h-4 w-4" />
                       <span>Name</span>
                     </div>
-                    <p className="text-base font-medium">
-                      {selectedUser.first_name} {selectedUser.last_name}
-                    </p>
+                    <p className="text-base font-medium">{displayName(selectedRow)}</p>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
-                      <Mail className="h-4 w-4" />
-                      <span>Email</span>
+                  {selectedRow.email && (
+                    <div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                        <Mail className="h-4 w-4" />
+                        <span>Email</span>
+                      </div>
+                      <p className="text-base">{selectedRow.email}</p>
                     </div>
-                    <p className="text-base">{selectedUser.email}</p>
-                  </div>
-                  {selectedUser.phone && (
+                  )}
+                  {selectedRow.phone && (
                     <div>
                       <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
                         <Phone className="h-4 w-4" />
                         <span>Phone</span>
                       </div>
-                      <p className="text-base">{selectedUser.phone}</p>
+                      <p className="text-base">{selectedRow.phone}</p>
                     </div>
                   )}
                 </div>
 
-                {/* Identity Verification */}
                 <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold mb-4">Identity Verification</h3>
-                  {selectedUser.first_name || selectedUser.date_of_birth ? (
-                    <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2.5">
-                            <Badge className="bg-green-100 text-green-700">APPROVED</Badge>
-                            <span className="text-sm font-medium text-gray-700">Identity Verified</span>
-                          </div>
-                          <div className="space-y-1.5 text-sm">
-                            {selectedUser.first_name && (
-                              <div className="flex items-start gap-2">
-                                <span className="text-gray-500 min-w-[90px] text-xs">First Name:</span>
-                                <span className="text-gray-900 font-medium text-xs">{selectedUser.first_name}</span>
-                              </div>
-                            )}
-                            {selectedUser.middle_name && (
-                              <div className="flex items-start gap-2">
-                                <span className="text-gray-500 min-w-[90px] text-xs">Middle Name:</span>
-                                <span className="text-gray-900 font-medium text-xs">{selectedUser.middle_name}</span>
-                              </div>
-                            )}
-                            {selectedUser.last_name && (
-                              <div className="flex items-start gap-2">
-                                <span className="text-gray-500 min-w-[90px] text-xs">Last Name:</span>
-                                <span className="text-gray-900 font-medium text-xs">{selectedUser.last_name}</span>
-                              </div>
-                            )}
-                            {selectedUser.date_of_birth && (
-                              <div className="flex items-start gap-2">
-                                <span className="text-gray-500 min-w-[90px] text-xs">DOB:</span>
-                                <span className="text-gray-900 text-xs">{new Date(selectedUser.date_of_birth).toLocaleDateString()}</span>
-                              </div>
-                            )}
-                            {selectedUser.country_code && (
-                            <div className="flex items-start gap-2">
-                              <span className="text-gray-500 min-w-[90px] text-xs">Country:</span>
-                                <span className="text-gray-900 font-medium text-xs">{getCountryName(selectedUser.country_code)}</span>
-                            </div>
-                            )}
-                          </div>
+                  <h3 className="text-lg font-semibold mb-4">Identity</h3>
+                  {selectedRow.identity ? (
+                    <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-4 shadow-sm space-y-3">
+                      <div className="flex flex-wrap items-center gap-2 justify-between">
+                        <div className="flex items-center gap-2">
+                          {getSubmissionStatusBadge(selectedRow.identity.status)}
                         </div>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedRow.identity.id_document_url && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewFile(selectedRow.identity!.id_document_url)}
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              ID document
+                            </Button>
+                          )}
+                          {selectedRow.identity.status !== "approved" &&
+                            selectedRow.identity.status !== "rejected" && (
+                              <Button variant="default" size="sm" onClick={() => openReview(selectedRow.identity!)}>
+                                Review
+                              </Button>
+                            )}
+                        </div>
+                      </div>
+                      <div className="space-y-1.5 text-sm">
+                        {selectedRow.identity.full_name && (
+                          <div>
+                            <span className="text-gray-500 text-xs">Submitted name:</span>{" "}
+                            <span className="font-medium">{selectedRow.identity.full_name}</span>
+                          </div>
+                        )}
+                        {selectedRow.identity.date_of_birth && (
+                          <div>
+                            <span className="text-gray-500 text-xs">DOB:</span>{" "}
+                            {new Date(selectedRow.identity.date_of_birth).toLocaleDateString()}
+                          </div>
+                        )}
+                        {selectedRow.identity.country_code && (
+                          <div>
+                            <span className="text-gray-500 text-xs">Country:</span>{" "}
+                            {getCountryName(selectedRow.identity.country_code)}
+                          </div>
+                        )}
+                        {selectedRow.identity.id_type && (
+                          <div>
+                            <span className="text-gray-500 text-xs">ID type:</span>{" "}
+                            {getIdTypeLabel(selectedRow.identity.id_type)}
+                          </div>
+                        )}
+                        {selectedRow.identity.rejection_reason && (
+                          <div className="text-red-700 text-xs">
+                            Rejection: {selectedRow.identity.rejection_reason}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center">
-                      <p className="text-gray-500 text-xs">No identity verification data available</p>
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center text-sm text-gray-500">
+                      No identity submission yet
                     </div>
                   )}
                 </div>
 
-                {/* Address Verification */}
                 <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold mb-4">Address Verification</h3>
-                  {selectedUser.address ? (
-                    <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2.5">
-                            <Badge className="bg-green-100 text-green-700">APPROVED</Badge>
-                            <span className="text-sm font-medium text-gray-700">Address Verified</span>
-                          </div>
-                          <div className="space-y-1.5 text-sm">
-                            {selectedUser.country_code && (
-                            <div className="flex items-start gap-2">
-                              <span className="text-gray-500 min-w-[90px] text-xs">Country:</span>
-                                <span className="text-gray-900 font-medium text-xs">{getCountryName(selectedUser.country_code)}</span>
-                            </div>
-                            )}
-                            <div className="flex items-start gap-2">
-                              <span className="text-gray-500 min-w-[90px] text-xs pt-0.5">Address:</span>
-                              <span className="text-gray-900 text-xs flex-1">{selectedUser.address}</span>
-                            </div>
-                          </div>
+                  <h3 className="text-lg font-semibold mb-4">Address</h3>
+                  {selectedRow.address ? (
+                    <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-4 shadow-sm space-y-3">
+                      <div className="flex flex-wrap items-center gap-2 justify-between">
+                        <div className="flex items-center gap-2">
+                          {getSubmissionStatusBadge(selectedRow.address.status)}
                         </div>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedRow.address.address_document_url && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewFile(selectedRow.address!.address_document_url)}
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              Address document
+                            </Button>
+                          )}
+                          {selectedRow.address.status !== "approved" &&
+                            selectedRow.address.status !== "rejected" && (
+                              <Button variant="default" size="sm" onClick={() => openReview(selectedRow.address!)}>
+                                Review
+                              </Button>
+                            )}
+                        </div>
+                      </div>
+                      <div className="space-y-1.5 text-sm">
+                        {selectedRow.address.country_code && (
+                          <div>
+                            <span className="text-gray-500 text-xs">Country:</span>{" "}
+                            {getCountryName(selectedRow.address.country_code)}
+                          </div>
+                        )}
+                        {selectedRow.address.address && (
+                          <div>
+                            <span className="text-gray-500 text-xs">Address:</span>{" "}
+                            {selectedRow.address.address}
+                          </div>
+                        )}
+                        {selectedRow.address.document_type && (
+                          <div>
+                            <span className="text-gray-500 text-xs">Proof type:</span>{" "}
+                            {selectedRow.address.document_type.replace(/_/g, " ")}
+                          </div>
+                        )}
+                        {selectedRow.address.rejection_reason && (
+                          <div className="text-red-700 text-xs">
+                            Rejection: {selectedRow.address.rejection_reason}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center">
-                      <p className="text-gray-500 text-xs">No address verification data available</p>
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center text-sm text-gray-500">
+                      No address submission yet
                     </div>
                   )}
                 </div>
@@ -671,19 +668,92 @@ export default function OfficeCompliancePage() {
           </DialogContent>
         </Dialog>
 
-        {/* Notice Dialog */}
-        <AlertDialog open={noticeDialog.open} onOpenChange={(open) => setNoticeDialog({ ...noticeDialog, open })}>
+        <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Review submission</DialogTitle>
+              <DialogDescription>
+                {selectedSubmission?.type === "identity" ? "Identity" : "Address"} verification
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Decision</Label>
+                <div className="flex gap-2">
+                  <Button
+                    variant={reviewStatus === "approved" ? "default" : "outline"}
+                    onClick={() => setReviewStatus("approved")}
+                    className="flex-1"
+                    type="button"
+                  >
+                    <Check className="h-4 w-4 mr-2" />
+                    Approve
+                  </Button>
+                  <Button
+                    variant={reviewStatus === "rejected" ? "default" : "outline"}
+                    onClick={() => setReviewStatus("rejected")}
+                    className="flex-1"
+                    type="button"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Reject
+                  </Button>
+                </div>
+              </div>
+              {reviewStatus === "rejected" && (
+                <div className="space-y-2">
+                  <Label>Rejection reason</Label>
+                  <Textarea
+                    value={rejectionReason}
+                    onChange={(e) => setRejectionReason(e.target.value)}
+                    placeholder="Reason shown to operations / user comms as needed"
+                    rows={3}
+                  />
+                </div>
+              )}
+              <div className="flex gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setReviewDialogOpen(false)
+                    setSelectedSubmission(null)
+                    setRejectionReason("")
+                  }}
+                  className="flex-1"
+                  type="button"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleReviewSubmit}
+                  disabled={updating || (reviewStatus === "rejected" && !rejectionReason.trim())}
+                  className="flex-1"
+                  type="button"
+                >
+                  {updating ? "Saving…" : "Submit"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <AlertDialog
+          open={noticeDialog.open}
+          onOpenChange={(open) => setNoticeDialog({ ...noticeDialog, open })}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle className={noticeDialog.type === 'success' ? 'text-green-600' : 'text-red-600'}>
+              <AlertDialogTitle
+                className={noticeDialog.type === "success" ? "text-green-600" : "text-red-600"}
+              >
                 {noticeDialog.title}
               </AlertDialogTitle>
-              <AlertDialogDescription>
-                {noticeDialog.message}
-              </AlertDialogDescription>
+              <AlertDialogDescription>{noticeDialog.message}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogAction onClick={() => setNoticeDialog({ ...noticeDialog, open: false })}>
+              <AlertDialogAction
+                onClick={() => setNoticeDialog({ ...noticeDialog, open: false })}
+              >
                 OK
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -693,4 +763,3 @@ export default function OfficeCompliancePage() {
     </OfficeDashboardLayout>
   )
 }
-

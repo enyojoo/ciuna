@@ -25,7 +25,6 @@ interface UserKYCData {
   email?: string
   identitySubmission: KYCSubmission | null
   addressSubmission: KYCSubmission | null
-  hasTOS: boolean
 }
 
 export default function OfficeKYCPage() {
@@ -85,7 +84,6 @@ export default function OfficeKYCPage() {
                 email: userData?.email,
                 identitySubmission,
                 addressSubmission,
-                hasTOS: !!userData?.kyc_signed_agreement_id,
               })
             } catch (error) {
               console.error(`Error fetching user data for ${userId}:`, error)
@@ -379,13 +377,6 @@ export default function OfficeKYCPage() {
                   ) : (
                     <div className="text-sm text-gray-500">No address verification submitted</div>
                   )}
-
-                  {/* TOS Status */}
-                  <div className="text-sm">
-                    <span className={userData.hasTOS ? "text-green-600" : "text-yellow-600"}>
-                      {userData.hasTOS ? "✓ TOS Accepted" : "⚠ TOS Not Accepted"}
-                    </span>
-                  </div>
                 </div>
               </CardContent>
             </Card>

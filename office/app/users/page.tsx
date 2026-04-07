@@ -53,7 +53,6 @@ interface UserData {
   kyc_metadata?: any
   status: string
   kyc_status?: string
-  kyc_external_customer_id?: string
   kyc_rejection_reasons?: any
   email_confirmed_at?: string
   base_currency: string
@@ -822,12 +821,6 @@ export default function AdminUsersPage() {
                                         <span className="text-sm text-gray-600">Status:</span>
                                         {getVerificationBadge(selectedUser)}
                                       </div>
-                                      {selectedUser.kyc_external_customer_id && (
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-sm text-gray-600">Provider Customer ID:</span>
-                                          <span className="text-sm font-mono">{selectedUser.kyc_external_customer_id}</span>
-                                        </div>
-                                      )}
                                       {selectedUser.kyc_status === "rejected" && selectedUser.kyc_rejection_reasons && (
                                         <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                                           <p className="text-sm font-medium text-red-800 mb-1">Rejection Reasons:</p>
