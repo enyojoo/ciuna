@@ -19,6 +19,8 @@ import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 import { formatLocaleDateTimeLine } from "@/lib/format-date-locale"
 
 const TX_DETAIL_CACHE_VERSION = 1
+/** Hide “took / delayed” copy under the amount after this long post-completion */
+const COMPLETED_TIMER_DISPLAY_TTL_MS = 24 * 60 * 60 * 1000
 
 function txDetailStorageKey(userId: string, rawTxId: string) {
   return `ciuna_tx_detail_v${TX_DETAIL_CACHE_VERSION}_${userId}_${rawTxId.toUpperCase()}`
@@ -329,9 +331,19 @@ function TransactionStatusPage() {
     }
 
     if (transaction.status === "completed") {
+      const completedAtMs = transaction.completed_at
+        ? new Date(transaction.completed_at).getTime()
+        : new Date(transaction.updated_at).getTime()
+      if (
+        Number.isFinite(completedAtMs) &&
+        currentTime - completedAtMs >= COMPLETED_TIMER_DISPLAY_TTL_MS
+      ) {
+        return null
+      }
+
       const elapsed = getElapsedTime()
       const delay = getDelay()
-      
+
       if (delay > 0) {
         return t("txDetail.timerTookDelayed", { elapsed: formatTime(elapsed), delay: formatTime(delay) })
       } else {
