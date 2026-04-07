@@ -223,6 +223,14 @@ function TransactionStatusPage() {
     }
   }, [transactionId, user?.id]) // Remove transaction from deps to prevent re-subscription
 
+  const defaultPaymentMethod = useMemo(() => {
+    if (!transaction || paymentMethods.length === 0) return null
+    const methods = paymentMethods.filter(
+      (pm) => pm.currency === transaction.send_currency && pm.status === "active",
+    )
+    if (methods.length === 0) return null
+    return methods.find((pm) => pm.is_default) ?? methods[0]
+  }, [transaction, paymentMethods])
 
   const getTimeInfo = () => {
     if (!transaction) return { timeRemaining: 0, isOverdue: false, elapsedTime: 0 }
@@ -546,15 +554,6 @@ function TransactionStatusPage() {
 
   const isReferralPayout =
     typeof transaction.reference === "string" && transaction.reference.startsWith(REFERRAL_PAYOUT_PREFIX)
-
-  const defaultPaymentMethod = useMemo(() => {
-    if (!transaction || paymentMethods.length === 0) return null
-    const methods = paymentMethods.filter(
-      (pm) => pm.currency === transaction.send_currency && pm.status === "active",
-    )
-    if (methods.length === 0) return null
-    return methods.find((pm) => pm.is_default) ?? methods[0]
-  }, [transaction, paymentMethods])
 
   const statusMessage = getStatusMessage(transaction.status, isReferralPayout)
   const statusSteps = getStatusSteps(transaction.status)
