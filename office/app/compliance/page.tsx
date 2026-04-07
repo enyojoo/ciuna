@@ -34,8 +34,9 @@ import { supabase } from "@/lib/supabase"
 import { officeFetch } from "@/lib/api-client"
 import { OfficeComplianceSkeleton } from "@/components/office-compliance-skeleton"
 
-const CACHE_KEY = "ciuna_compliance_kyc_rows"
-const CACHE_TTL = 5 * 60 * 1000
+/** Historical key; `v` must match or cache is discarded (payload shape changes). */
+const CACHE_KEY = "ciuna_compliance_users"
+const CACHE_SCHEMA_VERSION = 2
 
 interface ComplianceKycUser {
   userId: string
@@ -89,33 +90,32 @@ function rowMatchesStatusFilter(row: ComplianceKycUser, filter: string): boolean
 }
 
 export default function OfficeCompliancePage() {
+  // Initialize from cache synchronously to limit flicker; stale entries still revalidate in the background.
   const getInitialRows = (): ComplianceKycUser[] => {
     if (typeof window === "undefined") return []
     try {
       const cached = localStorage.getItem(CACHE_KEY)
       if (!cached) return []
-      const { value } = JSON.parse(cached)
-      return value || []
+      const parsed = JSON.parse(cached) as {
+        value?: ComplianceKycUser[]
+        timestamp?: number
+        v?: number
+      }
+      if (parsed.v !== CACHE_SCHEMA_VERSION) {
+        try {
+          localStorage.removeItem(CACHE_KEY)
+        } catch {
+          /* ignore */
+        }
+        return []
+      }
+      return parsed.value || []
     } catch {
       return []
     }
   }
 
-  const getCacheTimestamp = (): number | null => {
-    if (typeof window === "undefined") return null
-    try {
-      const cached = localStorage.getItem(CACHE_KEY)
-      if (!cached) return null
-      const { timestamp } = JSON.parse(cached)
-      return timestamp
-    } catch {
-      return null
-    }
-  }
-
   const initialRows = getInitialRows()
-  const cacheTimestamp = getCacheTimestamp()
-  const isCacheFresh = cacheTimestamp && Date.now() - cacheTimestamp < CACHE_TTL
 
   const [rows, setRows] = useState<ComplianceKycUser[]>(initialRows)
   const [loading, setLoading] = useState(!initialRows.length)
@@ -199,15 +199,24 @@ export default function OfficeCompliancePage() {
       )
 
       const nextRows = Array.from(userMap.values())
-      setRows(nextRows)
-      try {
-        localStorage.setItem(
-          CACHE_KEY,
-          JSON.stringify({ value: nextRows, timestamp: Date.now() })
-        )
-      } catch {
-        /* ignore */
-      }
+      setRows((prev) => {
+        const prevStr = JSON.stringify(prev)
+        const nextStr = JSON.stringify(nextRows)
+        if (prevStr === nextStr) return prev
+        try {
+          localStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify({
+              value: nextRows,
+              timestamp: Date.now(),
+              v: CACHE_SCHEMA_VERSION,
+            })
+          )
+        } catch {
+          /* ignore */
+        }
+        return nextRows
+      })
       return nextRows
     } catch (error) {
       console.error("Error loading compliance KYC:", error)
@@ -233,15 +242,13 @@ export default function OfficeCompliancePage() {
     if (initialized) return
 
     if (initialRows.length > 0) {
-      if (!isCacheFresh) {
-        loadData(false).then(() => setInitialized(true))
-      } else {
-        setInitialized(true)
-      }
-    } else {
-      loadData(true).then(() => setInitialized(true))
+      setInitialized(true)
+      void loadData(false)
+      return
     }
-  }, [initialized, initialRows.length, isCacheFresh, loadData])
+
+    void loadData(true).then(() => setInitialized(true))
+  }, [initialized, initialRows.length, loadData])
 
   useEffect(() => {
     if (!initialized) return
@@ -414,10 +421,6 @@ export default function OfficeCompliancePage() {
         <Card>
           <CardHeader>
             <CardTitle>Compliance</CardTitle>
-            <p className="text-sm text-gray-600">
-              Internal KYC from <code className="text-xs bg-gray-100 px-1 rounded">kyc_submissions</code>{" "}
-              (same flow as app verification).
-            </p>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4 mb-6">
