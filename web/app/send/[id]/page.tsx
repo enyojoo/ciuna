@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, memo } from "react"
+import { useState, useEffect, useLayoutEffect, useRef, memo } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,6 +18,39 @@ import type { Transaction } from "@/types"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 import { formatLocaleDateTimeLine } from "@/lib/format-date-locale"
 
+const TX_DETAIL_CACHE_VERSION = 1
+
+function txDetailStorageKey(userId: string, rawTxId: string) {
+  return `ciuna_tx_detail_v${TX_DETAIL_CACHE_VERSION}_${userId}_${rawTxId.toUpperCase()}`
+}
+
+function readTxDetailFromCache(userId: string, rawTxId: string): Transaction | null {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = localStorage.getItem(txDetailStorageKey(userId, rawTxId))
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as { transaction?: Transaction }
+    const tx = parsed.transaction
+    if (!tx?.transaction_id || tx.user_id !== userId) return null
+    if (tx.transaction_id.toUpperCase() !== rawTxId.toUpperCase()) return null
+    return tx
+  } catch {
+    return null
+  }
+}
+
+function writeTxDetailToCache(userId: string, tx: Transaction) {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(
+      txDetailStorageKey(userId, tx.transaction_id),
+      JSON.stringify({ transaction: tx }),
+    )
+  } catch {
+    /* ignore quota */
+  }
+}
+
 function TransactionStatusPage() {
   const { t, i18n } = useTranslation("app")
   const dateLocale = i18n.resolvedLanguage || i18n.language || "en"
@@ -34,12 +67,13 @@ function TransactionStatusPage() {
   }, [userProfile?.id, refreshCurrencies])
 
   const [transaction, setTransaction] = useState<Transaction | null>(null)
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentTime, setCurrentTime] = useState(Date.now())
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false)
   const [timerDuration, setTimerDuration] = useState(3600) // receive_currency: currencies.receive_completion_timer_seconds
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({})
+  const transactionRef = useRef<Transaction | null>(null)
+  transactionRef.current = transaction
 
   useEffect(() => {
     if (!transaction || currencies.length === 0) return
@@ -56,18 +90,25 @@ function TransactionStatusPage() {
     return () => clearInterval(timer)
   }, [])
 
-  // Load transaction data from Supabase
+  useLayoutEffect(() => {
+    if (authLoading || !user?.id || !transactionId) return
+    const cached = readTxDetailFromCache(user.id, transactionId)
+    if (cached) {
+      setTransaction(cached)
+      setError(null)
+    }
+  }, [authLoading, user?.id, transactionId])
+
+  // Load transaction data from Supabase (revalidate; cache hydrates layout first)
   useEffect(() => {
     const loadTransaction = async () => {
-      // Wait for auth to finish loading before attempting to load transaction
       if (authLoading) return
-      
-      // If no user is authenticated, redirect to login
+
       if (!user?.id) {
-        router.push('/auth/login')
+        router.push("/auth/login")
         return
       }
-      
+
       if (!transactionId) {
         setHasAttemptedLoad(true)
         return
@@ -75,11 +116,9 @@ function TransactionStatusPage() {
 
       try {
         setError(null)
-        setLoading(true)
 
         const transactionData = await transactionService.getById(transactionId.toUpperCase())
 
-        // Verify this transaction belongs to the current user
         if (transactionData.user_id !== user.id) {
           setError(t("txDetail.errorNotFound"))
           setHasAttemptedLoad(true)
@@ -88,17 +127,24 @@ function TransactionStatusPage() {
 
         setTransaction(transactionData)
         setHasAttemptedLoad(true)
-      } catch (error) {
-        console.error("Error loading transaction:", error)
-        setError(t("txDetail.errorLoadFailed"))
+      } catch (err) {
+        console.error("Error loading transaction:", err)
         setHasAttemptedLoad(true)
-      } finally {
-        setLoading(false)
+        if (transactionRef.current) {
+          setError(null)
+        } else {
+          setError(t("txDetail.errorLoadFailed"))
+        }
       }
     }
 
     loadTransaction()
-  }, [transactionId, user?.id, authLoading])
+  }, [transactionId, user?.id, authLoading, router, t])
+
+  useEffect(() => {
+    if (!user?.id || !transaction) return
+    writeTxDetailToCache(user.id, transaction)
+  }, [user?.id, transaction])
 
   // Real-time subscription for transaction updates
   useEffect(() => {
@@ -494,11 +540,13 @@ function TransactionStatusPage() {
 
   if (hasAttemptedLoad && (error || !transaction)) {
     return (
-      <div className="min-w-0 px-4 py-5 sm:p-6">
+      <div className="min-w-0 space-y-0">
+        <AppPageHeader title={t("txDetail.transfer")} backHref="/transactions" />
+        <div className="min-w-0 px-4 py-5 sm:p-6">
           <div className="mx-auto max-w-6xl">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-              <p className="text-red-700 mb-4">{error || t("txDetail.notFound")}</p>
-              <div className="flex gap-4 justify-center">
+            <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+              <p className="mb-4 text-red-700">{error || t("txDetail.notFound")}</p>
+              <div className="flex flex-wrap justify-center gap-4">
                 <Button
                   onClick={() => router.push("/dashboard")}
                   className="bg-primary hover:bg-primary/90"
@@ -506,10 +554,7 @@ function TransactionStatusPage() {
                   {t("txDetail.backToDashboard")}
                 </Button>
                 {error && error === t("txDetail.errorNotFound") && (
-                  <Button
-                    onClick={() => router.push("/auth/login")}
-                    variant="outline"
-                  >
+                  <Button onClick={() => router.push("/auth/login")} variant="outline">
                     {t("txDetail.login")}
                   </Button>
                 )}
@@ -517,13 +562,18 @@ function TransactionStatusPage() {
             </div>
           </div>
         </div>
+      </div>
     )
   }
 
-  // Show loading only if we haven't attempted to load yet or if auth is still loading
   if (authLoading || (!hasAttemptedLoad && !transaction)) {
     return (
-      <TransactionDetailsSkeleton />
+      <div className="min-w-0 space-y-0">
+        <AppPageHeader title={t("txDetail.transfer")} backHref="/transactions" />
+        <div className="min-w-0 px-4 py-5 sm:p-6">
+          <TransactionDetailsSkeleton />
+        </div>
+      </div>
     )
   }
 

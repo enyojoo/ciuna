@@ -5,8 +5,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export function SendPageSkeleton() {
   return (
-    <div className="p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-w-0 px-4 py-5 sm:p-6">
+      <div className="mx-auto max-w-6xl space-y-6">
         {/* Header Skeleton */}
         <Card>
           <CardHeader>
