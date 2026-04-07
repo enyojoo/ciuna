@@ -74,7 +74,6 @@
     "totalPaid": "Total pagado",
     "recipientGets": "El beneficiario recibe",
     "exchangeRate": "Tipo de cambio",
-    "paymentInstructions": "Cómo pagar",
     "recipient": "Beneficiario",
     "timerTookDelayed": "Duró {{elapsed}} • Retraso {{delay}}",
     "timerTook": "Duró {{elapsed}}",

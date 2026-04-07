@@ -37,6 +37,8 @@ import { OfficeComplianceSkeleton } from "@/components/office-compliance-skeleto
 /** Historical key; `v` must match or cache is discarded (payload shape changes). */
 const CACHE_KEY = "ciuna_compliance_users"
 const CACHE_SCHEMA_VERSION = 2
+/** Match `officeDataStore` freshness window (5m; realtime covers updates while mounted). */
+const CACHE_TTL_MS = 5 * 60 * 1000
 
 interface ComplianceKycUser {
   userId: string
@@ -46,6 +48,30 @@ interface ComplianceKycUser {
   phone?: string
   identity: KYCSubmission | null
   address: KYCSubmission | null
+}
+
+function readComplianceCache(): { rows: ComplianceKycUser[]; timestamp: number | null } {
+  if (typeof window === "undefined") return { rows: [], timestamp: null }
+  try {
+    const cached = localStorage.getItem(CACHE_KEY)
+    if (!cached) return { rows: [], timestamp: null }
+    const parsed = JSON.parse(cached) as {
+      value?: ComplianceKycUser[]
+      timestamp?: number
+      v?: number
+    }
+    if (parsed.v !== CACHE_SCHEMA_VERSION) {
+      try {
+        localStorage.removeItem(CACHE_KEY)
+      } catch {
+        /* ignore */
+      }
+      return { rows: [], timestamp: null }
+    }
+    return { rows: parsed.value || [], timestamp: parsed.timestamp ?? null }
+  } catch {
+    return { rows: [], timestamp: null }
+  }
 }
 
 function submissionStatusActive(status?: string) {
@@ -90,35 +116,8 @@ function rowMatchesStatusFilter(row: ComplianceKycUser, filter: string): boolean
 }
 
 export default function OfficeCompliancePage() {
-  // Initialize from cache synchronously to limit flicker; stale entries still revalidate in the background.
-  const getInitialRows = (): ComplianceKycUser[] => {
-    if (typeof window === "undefined") return []
-    try {
-      const cached = localStorage.getItem(CACHE_KEY)
-      if (!cached) return []
-      const parsed = JSON.parse(cached) as {
-        value?: ComplianceKycUser[]
-        timestamp?: number
-        v?: number
-      }
-      if (parsed.v !== CACHE_SCHEMA_VERSION) {
-        try {
-          localStorage.removeItem(CACHE_KEY)
-        } catch {
-          /* ignore */
-        }
-        return []
-      }
-      return parsed.value || []
-    } catch {
-      return []
-    }
-  }
-
-  const initialRows = getInitialRows()
-
-  const [rows, setRows] = useState<ComplianceKycUser[]>(initialRows)
-  const [loading, setLoading] = useState(!initialRows.length)
+  const [rows, setRows] = useState<ComplianceKycUser[]>(() => readComplianceCache().rows)
+  const [loading, setLoading] = useState(() => readComplianceCache().rows.length === 0)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [selectedRow, setSelectedRow] = useState<ComplianceKycUser | null>(null)
@@ -241,14 +240,20 @@ export default function OfficeCompliancePage() {
   useEffect(() => {
     if (initialized) return
 
-    if (initialRows.length > 0) {
+    const { rows: cachedRows, timestamp } = readComplianceCache()
+    const cacheFresh =
+      timestamp != null && Date.now() - timestamp < CACHE_TTL_MS
+
+    if (cachedRows.length > 0) {
       setInitialized(true)
-      void loadData(false)
+      if (!cacheFresh) {
+        void loadData(false)
+      }
       return
     }
 
     void loadData(true).then(() => setInitialized(true))
-  }, [initialized, initialRows.length, loadData])
+  }, [initialized, loadData])
 
   useEffect(() => {
     if (!initialized) return

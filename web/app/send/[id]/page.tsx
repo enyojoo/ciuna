@@ -788,7 +788,6 @@ function TransactionStatusPage() {
                       transaction.status === "processing" ||
                       transaction.status === "completed") && (
                       <div className="pt-4 border-t">
-                        <h4 className="font-medium mb-2">{t("txDetail.paymentInstructions")}</h4>
                         <TransactionPaymentMethodDetails
                           method={defaultPaymentMethod}
                           currency={transaction.send_currency}

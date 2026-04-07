@@ -74,7 +74,6 @@
     "totalPaid": "Total Paid",
     "recipientGets": "Recipient Gets",
     "exchangeRate": "Exchange Rate",
-    "paymentInstructions": "How to pay",
     "recipient": "Recipient",
     "timerTookDelayed": "Took {{elapsed}} • Delayed {{delay}}",
     "timerTook": "Took {{elapsed}}",

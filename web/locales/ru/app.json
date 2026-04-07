@@ -74,7 +74,6 @@
     "totalPaid": "Итого к оплате",
     "recipientGets": "Получатель получает",
     "exchangeRate": "Курс",
-    "paymentInstructions": "Как оплатить",
     "recipient": "Получатель",
     "timerTookDelayed": "Прошло {{elapsed}} • Задержка {{delay}}",
     "timerTook": "Прошло {{elapsed}}",
