@@ -1,17 +1,16 @@
 "use client"
 
-import { useState, useEffect, useMemo, memo } from "react"
+import { useState, useEffect, memo } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Check, Clock, XCircle, AlertTriangle, Copy } from "lucide-react"
+import { Check, Clock, XCircle, Copy } from "lucide-react"
 import { useRouter, useParams } from "next/navigation"
-import { transactionService, paymentMethodService } from "@/lib/database"
+import { transactionService } from "@/lib/database"
 import { useAuth } from "@/lib/auth-context"
 import { useUserData } from "@/hooks/use-user-data"
 import { TransactionTimeline } from "@/components/transaction-timeline"
-import { TransactionPaymentMethodDetails } from "@/components/transaction-payment-method-details"
 import { TransactionDetailsSkeleton } from "@/components/transaction-details-skeleton"
 import { AppPageHeader } from "@/components/layout/app-page-header"
 import { supabase } from "@/lib/supabase"
@@ -40,22 +39,7 @@ function TransactionStatusPage() {
   const [currentTime, setCurrentTime] = useState(Date.now())
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false)
   const [timerDuration, setTimerDuration] = useState(3600) // receive_currency: currencies.receive_completion_timer_seconds
-  const [paymentMethods, setPaymentMethods] = useState<any[]>([])
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({})
-
-  // Load payment methods
-  useEffect(() => {
-    const loadPaymentMethods = async () => {
-      try {
-        const paymentMethodsData = await paymentMethodService.getAll()
-        setPaymentMethods(paymentMethodsData || [])
-      } catch (error) {
-        console.error("Error loading payment methods:", error)
-      }
-    }
-
-    loadPaymentMethods()
-  }, [])
 
   useEffect(() => {
     if (!transaction || currencies.length === 0) return
@@ -222,15 +206,6 @@ function TransactionStatusPage() {
       clearTimeout(pollTimeout)
     }
   }, [transactionId, user?.id]) // Remove transaction from deps to prevent re-subscription
-
-  const defaultPaymentMethod = useMemo(() => {
-    if (!transaction || paymentMethods.length === 0) return null
-    const methods = paymentMethods.filter(
-      (pm) => pm.currency === transaction.send_currency && pm.status === "active",
-    )
-    if (methods.length === 0) return null
-    return methods.find((pm) => pm.is_default) ?? methods[0]
-  }, [transaction, paymentMethods])
 
   const getTimeInfo = () => {
     if (!transaction) return { timeRemaining: 0, isOverdue: false, elapsedTime: 0 }
@@ -781,22 +756,6 @@ function TransactionStatusPage() {
                       </span>
                     </div>
                   </div>
-
-                  {!isReferralPayout &&
-                    defaultPaymentMethod &&
-                    (transaction.status === "pending" ||
-                      transaction.status === "processing" ||
-                      transaction.status === "completed") && (
-                      <div className="pt-4 border-t">
-                        <TransactionPaymentMethodDetails
-                          method={defaultPaymentMethod}
-                          currency={transaction.send_currency}
-                          t={t}
-                          copiedStates={copiedStates}
-                          onCopy={handleCopy}
-                        />
-                      </div>
-                    )}
 
                   {transaction.recipient && (
                     <div className="pt-4 border-t">
