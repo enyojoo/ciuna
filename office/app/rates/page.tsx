@@ -684,22 +684,6 @@ const AdminRatesPage = () => {
                         />
                       </div>
                     </div>
-
-                    <div className="bg-gray-50 p-3 rounded-lg">
-                      <p className="text-sm text-gray-600">
-                        <strong>Transaction Limits:</strong> Users can send between{" "}
-                        <span className="font-medium">
-                          {selectedCurrency.symbol}
-                          {(rateUpdates[rate.to_currency]?.minAmount || rate.min_amount || 0).toLocaleString()}
-                        </span>{" "}
-                        and{" "}
-                        <span className="font-medium">
-                          {selectedCurrency.symbol}
-                          {(rateUpdates[rate.to_currency]?.maxAmount || rate.max_amount || 1000000).toLocaleString()}
-                        </span>{" "}
-                        when converting from {selectedCurrency.code} to {rate.to_currency}
-                      </p>
-                    </div>
                   </div>
                 ))}
               </div>
