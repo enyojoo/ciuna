@@ -1,4 +1,4 @@
-import { transactionService, recipientService, currencyService } from "./database"
+import { transactionService, recipientService, currencyService, deliveryAddressService } from "./database"
 import { dataCache, CACHE_KEYS } from "./cache"
 import { fetchWithAuth } from "./fetch-with-auth"
 import { supabase } from "./supabase"
@@ -6,6 +6,7 @@ import { supabase } from "./supabase"
 interface UserData {
   transactions: any[]
   recipients: any[]
+  deliveryAddresses: any[]
   currencies: any[]
   exchangeRates: any[]
   lastUpdated: number
@@ -17,6 +18,7 @@ class UserDataStore {
   private data: UserData = {
     transactions: [],
     recipients: [],
+    deliveryAddresses: [],
     currencies: [],
     exchangeRates: [],
     lastUpdated: 0,
@@ -62,6 +64,7 @@ class UserDataStore {
       this.data = {
         transactions: [],
         recipients: [],
+        deliveryAddresses: [],
         currencies: [],
         exchangeRates: [],
         lastUpdated: 0,
@@ -133,6 +136,7 @@ class UserDataStore {
         currencyService.getExchangeRates(),
         transactionsPromise,
         recipientService.getByUserId(userId),
+        deliveryAddressService.getByUserId(userId),
       ])
 
       const results = (await Promise.race([dataPromise, timeoutPromise])) as PromiseSettledResult<any>[]
@@ -142,11 +146,13 @@ class UserDataStore {
       const exchangeRates = results[1].status === "fulfilled" ? results[1].value || [] : this.data.exchangeRates
       const transactions = results[2].status === "fulfilled" ? results[2].value || [] : this.data.transactions
       const recipients = results[3].status === "fulfilled" ? results[3].value || [] : this.data.recipients
+      const deliveryAddresses = results[4].status === "fulfilled" ? results[4].value || [] : this.data.deliveryAddresses
 
       // Only update and notify if data actually changed to prevent unnecessary re-renders
       const dataChanged = 
         JSON.stringify(transactions) !== JSON.stringify(this.data.transactions) ||
         JSON.stringify(recipients) !== JSON.stringify(this.data.recipients) ||
+        JSON.stringify(deliveryAddresses) !== JSON.stringify(this.data.deliveryAddresses) ||
         JSON.stringify(currencies) !== JSON.stringify(this.data.currencies) ||
         JSON.stringify(exchangeRates) !== JSON.stringify(this.data.exchangeRates)
 
@@ -154,6 +160,7 @@ class UserDataStore {
         this.data = {
           transactions,
           recipients,
+          deliveryAddresses,
           currencies,
           exchangeRates,
           lastUpdated: Date.now(),
@@ -268,6 +275,19 @@ class UserDataStore {
       this.notify()
     } catch (error) {
       console.error("Error refreshing recipients:", error)
+    }
+  }
+
+  async refreshDeliveryAddresses(userId: string) {
+    try {
+      this.updateActivity()
+      const rows = await deliveryAddressService.getByUserId(userId)
+      this.data.deliveryAddresses = rows || []
+      this.data.lastUpdated = Date.now()
+      this.data.userId = userId
+      this.notify()
+    } catch (error) {
+      console.error("Error refreshing delivery addresses:", error)
     }
   }
 
@@ -387,6 +407,7 @@ class UserDataStore {
     this.data = {
       transactions: [],
       recipients: [],
+      deliveryAddresses: [],
       currencies: [],
       exchangeRates: [],
       lastUpdated: 0,

@@ -47,6 +47,12 @@ const AdminRatesPage = () => {
   const timeToSeconds = (hours: number, minutes: number, seconds: number) =>
     hours * 3600 + minutes * 60 + seconds
 
+  const optionalReceiveBound = (raw: string | undefined): number | null => {
+    if (raw == null || String(raw).trim() === "") return null
+    const n = Number.parseFloat(raw)
+    return Number.isFinite(n) ? n : null
+  }
+
   // Only show skeleton if we're truly loading and have no cached data
   if (loading && !data) {
     return (
@@ -100,6 +106,8 @@ const AdminRatesPage = () => {
           fee_amount: 0,
           min_amount: 10,
           max_amount: 1000000,
+          logistics_fee_type: "free",
+          logistics_fee_amount: 0,
           status: "active",
         })
       }
@@ -114,6 +122,8 @@ const AdminRatesPage = () => {
           fee_amount: 0,
           min_amount: 10,
           max_amount: 1000000,
+          logistics_fee_type: "free",
+          logistics_fee_amount: 0,
           status: "active",
         })
       }
@@ -143,6 +153,12 @@ const AdminRatesPage = () => {
         feeAmount: rate.fee_amount.toString(),
         minAmount: (rate.min_amount || 0).toString(),
         maxAmount: (rate.max_amount || 1000000).toString(),
+        bankReceiveMin: rate.bank_receive_min != null ? String(rate.bank_receive_min) : "",
+        bankReceiveMax: rate.bank_receive_max != null ? String(rate.bank_receive_max) : "",
+        cashReceiveMin: rate.cash_receive_min != null ? String(rate.cash_receive_min) : "",
+        cashReceiveMax: rate.cash_receive_max != null ? String(rate.cash_receive_max) : "",
+        logisticsFeeType: rate.logistics_fee_type ?? "free",
+        logisticsFeeAmount: (rate.logistics_fee_amount ?? 0).toString(),
       }
     })
 
@@ -170,6 +186,12 @@ const AdminRatesPage = () => {
           fee_amount: Number.parseFloat(rateInfo.feeAmount || "0"),
           min_amount: Number.parseFloat(rateInfo.minAmount || "0"),
           max_amount: Number.parseFloat(rateInfo.maxAmount || "1000000"),
+          bank_receive_min: optionalReceiveBound(rateInfo.bankReceiveMin),
+          bank_receive_max: optionalReceiveBound(rateInfo.bankReceiveMax),
+          cash_receive_min: optionalReceiveBound(rateInfo.cashReceiveMin),
+          cash_receive_max: optionalReceiveBound(rateInfo.cashReceiveMax),
+          logistics_fee_type: rateInfo.logisticsFeeType ?? "free",
+          logistics_fee_amount: Number.parseFloat(rateInfo.logisticsFeeAmount || "0"),
           status: "active",
           updated_at: new Date().toISOString(),
         })
@@ -505,6 +527,11 @@ const AdminRatesPage = () => {
               </DialogClose>
             </DialogHeader>
             <div className="space-y-6">
+              <p className="text-xs text-gray-500 -mt-2">
+                Receive min/max (bank / cash): optional windows in <strong>receiver currency</strong>. Leave both fields of
+                a pair blank to disable that window. When both pairs are blank, send flow stays bank-only (current
+                behavior). Logistics fee applies only to cash-at-location fulfillment.
+              </p>
               <div className="max-h-[400px] overflow-y-auto space-y-4 pr-2">
                 {getCurrencyRates(selectedCurrency?.code || "").map((rate: any) => (
                   <div key={rate.to_currency} className="border rounded-lg p-4 space-y-4">
@@ -579,6 +606,86 @@ const AdminRatesPage = () => {
                           value={rateUpdates[rate.to_currency]?.maxAmount || rate.max_amount || 1000000}
                           onChange={(e) => updateRateField(rate.to_currency, "maxAmount", e.target.value)}
                           placeholder="1000000"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="space-y-2">
+                        <Label>Bank receive min ({rate.to_currency})</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={rateUpdates[rate.to_currency]?.bankReceiveMin ?? ""}
+                          onChange={(e) => updateRateField(rate.to_currency, "bankReceiveMin", e.target.value)}
+                          placeholder="optional"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Bank receive max ({rate.to_currency})</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={rateUpdates[rate.to_currency]?.bankReceiveMax ?? ""}
+                          onChange={(e) => updateRateField(rate.to_currency, "bankReceiveMax", e.target.value)}
+                          placeholder="optional"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Cash receive min ({rate.to_currency})</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={rateUpdates[rate.to_currency]?.cashReceiveMin ?? ""}
+                          onChange={(e) => updateRateField(rate.to_currency, "cashReceiveMin", e.target.value)}
+                          placeholder="optional"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Cash receive max ({rate.to_currency})</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={rateUpdates[rate.to_currency]?.cashReceiveMax ?? ""}
+                          onChange={(e) => updateRateField(rate.to_currency, "cashReceiveMax", e.target.value)}
+                          placeholder="optional"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Logistics fee type</Label>
+                        <select
+                          value={rateUpdates[rate.to_currency]?.logisticsFeeType || "free"}
+                          onChange={(e) => updateRateField(rate.to_currency, "logisticsFeeType", e.target.value)}
+                          className="w-full p-2 border border-gray-300 rounded-md"
+                        >
+                          <option value="free">Free</option>
+                          <option value="fixed">Fixed ({selectedCurrency.code})</option>
+                          <option value="percentage">Percentage (%)</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>
+                          Logistics fee amount{" "}
+                          {(rateUpdates[rate.to_currency]?.logisticsFeeType || "free") === "percentage"
+                            ? "(%)"
+                            : `(${selectedCurrency.code})`}
+                        </Label>
+                        <Input
+                          type="number"
+                          step={
+                            (rateUpdates[rate.to_currency]?.logisticsFeeType || "free") === "percentage"
+                              ? "0.1"
+                              : "0.01"
+                          }
+                          value={
+                            rateUpdates[rate.to_currency]?.logisticsFeeAmount ??
+                            (rate.logistics_fee_amount ?? 0).toString()
+                          }
+                          onChange={(e) => updateRateField(rate.to_currency, "logisticsFeeAmount", e.target.value)}
+                          disabled={(rateUpdates[rate.to_currency]?.logisticsFeeType || "free") === "free"}
                         />
                       </div>
                     </div>

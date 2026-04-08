@@ -22,11 +22,26 @@ export interface ExchangeRate {
   fee_amount: number
   min_amount?: number
   max_amount?: number
+  bank_receive_min?: number | null
+  bank_receive_max?: number | null
+  cash_receive_min?: number | null
+  cash_receive_max?: number | null
+  logistics_fee_type?: "free" | "fixed" | "percentage"
+  logistics_fee_amount?: number
   status: string
   created_at: string
   updated_at: string
   from_currency_info?: Currency
   to_currency_info?: Currency
+}
+
+export interface DeliveryAddress {
+  id: string
+  user_id: string
+  address_line: string
+  phone: string
+  created_at: string
+  updated_at: string
 }
 
 export interface Recipient {
@@ -65,6 +80,12 @@ export interface Transaction {
   fee_amount: number
   fee_type: string
   total_amount: number
+  fulfillment_type?: "bank_transfer" | "cash_hand"
+  logistics_fee_amount?: number
+  logistics_fee_type_snapshot?: string | null
+  delivery_address_line?: string | null
+  delivery_phone?: string | null
+  delivery_address_id?: string | null
   status: "pending" | "processing" | "completed" | "failed" | "cancelled"
   reference?: string
   receipt_url?: string

@@ -922,6 +922,34 @@ export default function AdminTransactionsPage() {
                                           {transaction.receive_currency}
                                         </p>
                                       </div>
+                                      <div>
+                                        <label className="text-sm font-medium text-gray-600">Fulfillment</label>
+                                        <p className="font-medium">
+                                          {(transaction as any).fulfillment_type === "cash_hand"
+                                            ? "Cash at location"
+                                            : "Bank transfer"}
+                                        </p>
+                                      </div>
+                                      {(transaction as any).fulfillment_type === "cash_hand" && (
+                                        <div className="col-span-2 rounded-lg border border-amber-100 bg-amber-50/80 p-3 text-sm space-y-1">
+                                          <p className="font-medium text-gray-800">Cash delivery</p>
+                                          {(transaction as any).delivery_address_line && (
+                                            <p className="text-gray-700">{(transaction as any).delivery_address_line}</p>
+                                          )}
+                                          {(transaction as any).delivery_phone && (
+                                            <p className="text-gray-600">{(transaction as any).delivery_phone}</p>
+                                          )}
+                                          <p>
+                                            <span className="text-gray-600">Logistics fee: </span>
+                                            <span className="font-medium">
+                                              {formatCurrency(
+                                                (transaction as any).logistics_fee_amount ?? 0,
+                                                transaction.send_currency || "",
+                                              )}
+                                            </span>
+                                          </p>
+                                        </div>
+                                      )}
                                     </>
                                   ) : null}
                                 </div>

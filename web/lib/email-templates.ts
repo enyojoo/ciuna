@@ -108,7 +108,7 @@ Transaction Details:
 - Amount: ${data.sendAmount} ${data.sendCurrency}
 - Receiving: ${data.receiveAmount} ${data.receiveCurrency}
 - Rate Used: 1 ${data.sendCurrency} = ${data.exchangeRate} ${data.receiveCurrency}
-- Fee: ${data.fee} ${data.sendCurrency}
+- Fee: ${data.fee} ${data.sendCurrency}${(data.logisticsFee ?? 0) > 0 ? `\n- Logistics fee: ${data.logisticsFee} ${data.sendCurrency}` : ""}${data.totalAmount != null ? `\n- Total paid: ${data.totalAmount} ${data.sendCurrency}` : ""}
 - Status: ${data.status}
 
 What's Next:
@@ -159,7 +159,7 @@ Transaction Details:
 - Amount: ${data.sendAmount} ${data.sendCurrency}
 - Receiving: ${data.receiveAmount} ${data.receiveCurrency}
 - Rate Used: 1 ${data.sendCurrency} = ${data.exchangeRate} ${data.receiveCurrency}
-- Fee: ${data.fee} ${data.sendCurrency}
+- Fee: ${data.fee} ${data.sendCurrency}${(data.logisticsFee ?? 0) > 0 ? `\n- Logistics fee: ${data.logisticsFee} ${data.sendCurrency}` : ""}${data.totalAmount != null ? `\n- Total paid: ${data.totalAmount} ${data.sendCurrency}` : ""}
 - Status: ${data.status}
 
 What's Happening:
@@ -210,7 +210,7 @@ Transaction Details:
 - Amount: ${data.sendAmount} ${data.sendCurrency}
 - Receiving: ${data.receiveAmount} ${data.receiveCurrency}
 - Rate Used: 1 ${data.sendCurrency} = ${data.exchangeRate} ${data.receiveCurrency}
-- Fee: ${data.fee} ${data.sendCurrency}
+- Fee: ${data.fee} ${data.sendCurrency}${(data.logisticsFee ?? 0) > 0 ? `\n- Logistics fee: ${data.logisticsFee} ${data.sendCurrency}` : ""}${data.totalAmount != null ? `\n- Total paid: ${data.totalAmount} ${data.sendCurrency}` : ""}
 - Status: ${data.status}
 
 What's Next:
@@ -262,7 +262,7 @@ Transaction Details:
 - Amount: ${data.sendAmount} ${data.sendCurrency}
 - Receiving: ${data.receiveAmount} ${data.receiveCurrency}
 - Rate Used: 1 ${data.sendCurrency} = ${data.exchangeRate} ${data.receiveCurrency}
-- Fee: ${data.fee} ${data.sendCurrency}
+- Fee: ${data.fee} ${data.sendCurrency}${(data.logisticsFee ?? 0) > 0 ? `\n- Logistics fee: ${data.logisticsFee} ${data.sendCurrency}` : ""}${data.totalAmount != null ? `\n- Total paid: ${data.totalAmount} ${data.sendCurrency}` : ""}
 - Status: ${data.status}
 
 What Happens Next:
@@ -314,7 +314,7 @@ Transaction Details:
 - Amount: ${data.sendAmount} ${data.sendCurrency}
 - Receiving: ${data.receiveAmount} ${data.receiveCurrency}
 - Rate Used: 1 ${data.sendCurrency} = ${data.exchangeRate} ${data.receiveCurrency}
-- Fee: ${data.fee} ${data.sendCurrency}
+- Fee: ${data.fee} ${data.sendCurrency}${(data.logisticsFee ?? 0) > 0 ? `\n- Logistics fee: ${data.logisticsFee} ${data.sendCurrency}` : ""}${data.totalAmount != null ? `\n- Total paid: ${data.totalAmount} ${data.sendCurrency}` : ""}
 - Status: ${data.status}
 
 Refund Information:

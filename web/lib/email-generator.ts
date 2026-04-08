@@ -440,6 +440,24 @@ export function generateTransactionDetails(data: any): string {
         <span class="detail-label">Fee: </span>
         <span class="detail-value">${data.fee} ${data.sendCurrency}</span>
       </div>
+      ${
+        (data.logisticsFee ?? 0) > 0
+          ? `
+      <div class="detail-row">
+        <span class="detail-label">Logistics fee: </span>
+        <span class="detail-value">${data.logisticsFee} ${data.sendCurrency}</span>
+      </div>`
+          : ""
+      }
+      ${
+        data.totalAmount != null
+          ? `
+      <div class="detail-row">
+        <span class="detail-label">Total paid: </span>
+        <span class="detail-value">${data.totalAmount} ${data.sendCurrency}</span>
+      </div>`
+          : ""
+      }
       <div class="detail-row">
         <span class="detail-label">Status: </span>
         <span class="detail-value">

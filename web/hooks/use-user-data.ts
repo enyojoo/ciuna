@@ -20,6 +20,12 @@ export function useUserData() {
     }
   }, [userProfile?.id])
 
+  const refreshDeliveryAddresses = useCallback(() => {
+    if (userProfile?.id && mountedRef.current) {
+      return userDataStore.refreshDeliveryAddresses(userProfile.id)
+    }
+  }, [userProfile?.id])
+
   const refreshTransactions = useCallback(() => {
     if (userProfile?.id && mountedRef.current) {
       return userDataStore.refreshTransactions(userProfile.id)
@@ -115,11 +121,13 @@ export function useUserData() {
   return {
     transactions: data.transactions,
     recipients: data.recipients,
+    deliveryAddresses: data.deliveryAddresses ?? [],
     currencies: data.currencies,
     exchangeRates: data.exchangeRates,
     loading,
     error,
     refreshRecipients,
+    refreshDeliveryAddresses,
     refreshTransactions,
     refreshCurrencies,
     forceRefresh,

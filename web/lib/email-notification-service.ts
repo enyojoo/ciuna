@@ -2,21 +2,9 @@
 
 import { createServerClient } from './supabase'
 import { emailService } from './email-service'
+import type { TransactionEmailData } from './email-types'
 
-export interface TransactionEmailData {
-  transactionId: string
-  recipientName: string
-  sendAmount: number
-  sendCurrency: string
-  receiveAmount: number
-  receiveCurrency: string
-  exchangeRate: number
-  fee: number
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled'
-  failureReason?: string
-  createdAt: string
-  updatedAt: string
-}
+export type { TransactionEmailData }
 
 export class EmailNotificationService {
   /**
@@ -95,6 +83,9 @@ export class EmailNotificationService {
         receiveCurrency: transaction.receive_currency,
         exchangeRate: transaction.exchange_rate,
         fee: transaction.fee_amount,
+        logisticsFee: transaction.logistics_fee_amount ?? 0,
+        totalAmount: transaction.total_amount,
+        fulfillmentType: transaction.fulfillment_type,
         status: normalizedStatus as TransactionEmailData['status'],
         failureReason: transaction.failure_reason,
         createdAt: transaction.created_at,
@@ -318,6 +309,9 @@ export class EmailNotificationService {
         receiveCurrency: transaction.receive_currency,
         exchangeRate: transaction.exchange_rate,
         fee: transaction.fee_amount,
+        logisticsFee: transaction.logistics_fee_amount ?? 0,
+        totalAmount: transaction.total_amount,
+        fulfillmentType: transaction.fulfillment_type,
         recipientName: recipient?.full_name || 'Unknown',
         userId: transaction.user_id,
         userEmail: user.email,

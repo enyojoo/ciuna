@@ -21,6 +21,10 @@ export interface TransactionEmailData {
   receiveCurrency: string
   exchangeRate: number
   fee: number
+  /** Corridor / transfer fee is separate from logistics (cash fulfillment). */
+  logisticsFee?: number
+  totalAmount?: number
+  fulfillmentType?: string
   status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled'
   failureReason?: string
   createdAt: string

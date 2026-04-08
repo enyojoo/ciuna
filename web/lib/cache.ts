@@ -124,6 +124,7 @@ export const CACHE_KEYS = {
   CURRENCIES: "currencies",
   EXCHANGE_RATES: "exchange_rates",
   USER_RECIPIENTS: (userId: string) => `user_recipients_${userId}`,
+  USER_DELIVERY_ADDRESSES: (userId: string) => `user_delivery_addresses_${userId}`,
   PAYMENT_METHODS: "payment_methods",
   USER_TRANSACTIONS: (userId: string) => `user_transactions_${userId}`,
   TRANSACTION: (transactionId: string) => `transaction_${transactionId}`,

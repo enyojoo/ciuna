@@ -376,21 +376,74 @@ export const recipientService = {
   },
 }
 
+export const deliveryAddressService = {
+  async create(userId: string, data: { addressLine: string; phone: string }) {
+    const { data: row, error } = await supabase
+      .from("delivery_addresses")
+      .insert({
+        user_id: userId,
+        address_line: data.addressLine.trim(),
+        phone: data.phone.trim(),
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    dataCache.invalidate(CACHE_KEYS.USER_DELIVERY_ADDRESSES(userId))
+    return row
+  },
+
+  async getByUserId(userId: string) {
+    const refreshFn = async () => {
+      const { data, error } = await supabase
+        .from("delivery_addresses")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+
+      if (error) throw error
+      return data || []
+    }
+
+    const cached = dataCache.getWithRefresh(CACHE_KEYS.USER_DELIVERY_ADDRESSES(userId), refreshFn)
+    if (cached) return cached
+
+    const rows = await refreshFn()
+    dataCache.set(CACHE_KEYS.USER_DELIVERY_ADDRESSES(userId), rows, 2 * 60 * 1000)
+    return rows
+  },
+
+  async delete(id: string, userId: string) {
+    const { error } = await supabase.from("delivery_addresses").delete().eq("id", id).eq("user_id", userId)
+    if (error) throw error
+    dataCache.invalidate(CACHE_KEYS.USER_DELIVERY_ADDRESSES(userId))
+  },
+}
+
 // Transaction operations with enhanced access control
 export const transactionService = {
-  async create(transactionData: {
-    userId: string
-    recipientId: string
-    sendAmount: number
-    sendCurrency: string
-    receiveAmount: number
-    receiveCurrency: string
-    exchangeRate: number
-    feeAmount: number
-    feeType: string
-    totalAmount: number
-    reference?: string
-  }, requestingUserId?: string) {
+  async create(
+    transactionData: {
+      userId: string
+      recipientId: string
+      sendAmount: number
+      sendCurrency: string
+      receiveAmount: number
+      receiveCurrency: string
+      exchangeRate: number
+      feeAmount: number
+      feeType: string
+      totalAmount: number
+      reference?: string
+      fulfillmentType?: "bank_transfer" | "cash_hand"
+      logisticsFeeAmount?: number
+      logisticsFeeTypeSnapshot?: string | null
+      deliveryAddressLine?: string | null
+      deliveryPhone?: string | null
+      deliveryAddressId?: string | null
+    },
+    requestingUserId?: string,
+  ) {
     // Validate user access if requestingUserId is provided
     if (requestingUserId && requestingUserId !== transactionData.userId) {
       throw new Error("Access denied: You can only create transactions for yourself")
@@ -419,6 +472,12 @@ export const transactionService = {
           fee_type: transactionData.feeType,
           total_amount: transactionData.totalAmount,
           reference: transactionData.reference,
+          fulfillment_type: transactionData.fulfillmentType ?? "bank_transfer",
+          logistics_fee_amount: transactionData.logisticsFeeAmount ?? 0,
+          logistics_fee_type_snapshot: transactionData.logisticsFeeTypeSnapshot ?? null,
+          delivery_address_line: transactionData.deliveryAddressLine ?? null,
+          delivery_phone: transactionData.deliveryPhone ?? null,
+          delivery_address_id: transactionData.deliveryAddressId ?? null,
         })
         .select()
         .single()

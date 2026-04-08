@@ -26,7 +26,8 @@ import {
   X,
 } from "lucide-react"
 import { QRCodeSVG } from "qrcode.react"
-import { transactionService, paymentMethodService, recipientService } from "@/lib/database"
+import { transactionService, paymentMethodService, recipientService, deliveryAddressService } from "@/lib/database"
+import { computeLogisticsFee, resolveFulfillment } from "@/lib/send-fulfillment"
 import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth } from "@/lib/auth-context"
@@ -72,8 +73,16 @@ export default function UserSendPage() {
   const { t } = useTranslation("app")
   const router = useRouter()
   const { user, userProfile } = useAuth()
-  const { currencies, exchangeRates, recipients, refreshRecipients, refreshCurrencies, loading: userDataLoading } =
-    useUserData()
+  const {
+    currencies,
+    exchangeRates,
+    recipients,
+    deliveryAddresses,
+    refreshRecipients,
+    refreshDeliveryAddresses,
+    refreshCurrencies,
+    loading: userDataLoading,
+  } = useUserData()
   
   // Memoize exchangeRates to prevent infinite re-renders
   const memoizedExchangeRates = useMemo(() => exchangeRates, [exchangeRates])
@@ -134,6 +143,9 @@ export default function UserSendPage() {
 
   // Add this state near the other state declarations
   const [isAddRecipientDialogOpen, setIsAddRecipientDialogOpen] = useState(false)
+  const [isAddDeliveryDialogOpen, setIsAddDeliveryDialogOpen] = useState(false)
+  const [selectedDeliveryAddressId, setSelectedDeliveryAddressId] = useState("")
+  const [newDeliveryData, setNewDeliveryData] = useState({ addressLine: "", phone: "" })
 
   // Currency picker (bottom sheet) open state
   const [sendDropdownOpen, setSendDropdownOpen] = useState<boolean>(false)
@@ -301,6 +313,27 @@ export default function UserSendPage() {
     } catch (error) {
       console.error("Error adding recipient:", error)
       setError(t("send.failedAddRecipient"))
+    }
+  }
+
+  const handleAddNewDelivery = async () => {
+    if (!userProfile?.id) return
+    const line = newDeliveryData.addressLine.trim()
+    const phone = newDeliveryData.phone.trim()
+    if (!line || !phone) return
+
+    try {
+      const row = await deliveryAddressService.create(userProfile.id, {
+        addressLine: line,
+        phone,
+      })
+      await refreshDeliveryAddresses()
+      setSelectedDeliveryAddressId(row.id)
+      setNewDeliveryData({ addressLine: "", phone: "" })
+      setIsAddDeliveryDialogOpen(false)
+    } catch (e) {
+      console.error("Error adding delivery address:", e)
+      setError(t("send.failedAddDelivery"))
     }
   }
 
@@ -523,6 +556,39 @@ export default function UserSendPage() {
     }
   }, [sendCurrency, receiveCurrency, exchangeRates])
 
+  const exchangeRateData = useMemo(
+    () => memoizedExchangeRates.find((r) => r.from_currency === sendCurrency && r.to_currency === receiveCurrency),
+    [memoizedExchangeRates, sendCurrency, receiveCurrency],
+  )
+
+  const fulfillmentResolution = useMemo(
+    () => resolveFulfillment(Number.parseFloat(receiveAmount) || 0, exchangeRateData ?? null),
+    [receiveAmount, exchangeRateData],
+  )
+
+  const logisticsFee = useMemo(() => {
+    if (!fulfillmentResolution.ok) return 0
+    return computeLogisticsFee(
+      Number.parseFloat(sendAmount) || 0,
+      fulfillmentResolution.fulfillment,
+      exchangeRateData ?? null,
+    )
+  }, [sendAmount, fulfillmentResolution, exchangeRateData])
+
+  const totalToPay = useMemo(
+    () => (Number.parseFloat(sendAmount) || 0) + fee + logisticsFee,
+    [sendAmount, fee, logisticsFee],
+  )
+
+  useEffect(() => {
+    if (!fulfillmentResolution.ok) {
+      setSelectedDeliveryAddressId("")
+      return
+    }
+    if (fulfillmentResolution.fulfillment !== "cash_hand") {
+      setSelectedDeliveryAddressId("")
+    }
+  }, [fulfillmentResolution])
 
   const handleResendVerificationEmail = async () => {
     if (!user?.email) return
@@ -557,6 +623,12 @@ export default function UserSendPage() {
         setShowEmailVerificationModal(true)
         return
       }
+      if (currentStep === 1 && !fulfillmentResolution.ok) {
+        return
+      }
+      if (currentStep === 2 && fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand") {
+        if (!selectedDeliveryAddressId) return
+      }
       setCurrentStep(currentStep + 1)
     } else if (currentStep === 3) {
       // Create transaction in database
@@ -570,6 +642,13 @@ export default function UserSendPage() {
           throw new Error("Exchange rate not available")
         }
 
+        const fulfillment =
+          fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand" ? "cash_hand" : "bank_transfer"
+        const selectedDelivery =
+          fulfillment === "cash_hand"
+            ? deliveryAddresses.find((d) => d.id === selectedDeliveryAddressId)
+            : null
+
         const transaction = await transactionService.create({
           userId: userProfile.id,
           recipientId: selectedRecipientId,
@@ -580,7 +659,14 @@ export default function UserSendPage() {
           exchangeRate: exchangeRateData.rate,
           feeAmount: fee,
           feeType: feeType,
-          totalAmount: Number.parseFloat(sendAmount) + fee,
+          totalAmount: totalToPay,
+          fulfillmentType: fulfillment,
+          logisticsFeeAmount: fulfillment === "cash_hand" ? logisticsFee : 0,
+          logisticsFeeTypeSnapshot:
+            fulfillment === "cash_hand" ? (exchangeRateData?.logistics_fee_type ?? null) : null,
+          deliveryAddressLine: selectedDelivery?.address_line ?? null,
+          deliveryPhone: selectedDelivery?.phone ?? null,
+          deliveryAddressId: fulfillment === "cash_hand" ? selectedDeliveryAddressId || null : null,
         })
 
         // Redirect to transaction status page immediately (don't wait for receipt upload)
@@ -614,7 +700,6 @@ export default function UserSendPage() {
     }
   }
 
-  const exchangeRateData = getExchangeRate(sendCurrency, receiveCurrency)
   const exchangeRate = exchangeRateData?.rate || 0
   const sendCurrencyData = currencies.find((c) => c.code === sendCurrency)
   const receiveCurrencyData = currencies.find((c) => c.code === receiveCurrency)
@@ -639,12 +724,6 @@ export default function UserSendPage() {
               {fee === 0 ? t("send.free") : formatCurrency(fee, sendCurrency)}
             </span>
           </div>
-          <div className="flex min-w-0 items-start justify-between gap-2 border-t pt-2">
-            <span className="min-w-0 text-gray-600">{t("send.totalToPay")}</span>
-            <span className="shrink-0 text-right text-[clamp(1rem,2.8vmin,1.125rem)] font-semibold tabular-nums">
-              {formatCurrency((Number.parseFloat(sendAmount) || 0) + fee, sendCurrency)}
-            </span>
-          </div>
           <div className="flex min-w-0 items-start justify-between gap-2">
             <span className="min-w-0 text-gray-600">{t("send.recipientGetsLabel")}</span>
             <span className="shrink-0 text-right font-semibold tabular-nums">
@@ -654,7 +733,32 @@ export default function UserSendPage() {
           <div className="flex min-w-0 items-start justify-between gap-2">
             <span className="min-w-0 text-gray-600">{t("send.exchangeRateLabel")}</span>
             <span className="shrink-0 text-right text-sm">
-              1 {sendCurrency} = {exchangeRateData?.rate.toFixed(2)} {receiveCurrency}
+              1 {sendCurrency} = {exchangeRateData?.rate != null ? exchangeRateData.rate.toFixed(2) : "—"}{" "}
+              {receiveCurrency}
+            </span>
+          </div>
+          <div className="flex min-w-0 items-start justify-between gap-2">
+            <span className="min-w-0 text-gray-600">{t("send.logisticsFeeLabel")}</span>
+            <span
+              className={`shrink-0 text-right font-semibold tabular-nums ${
+                fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand"
+                  ? logisticsFee === 0
+                    ? "text-green-600"
+                    : "text-gray-900"
+                  : "text-gray-400"
+              }`}
+            >
+              {fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand"
+                ? logisticsFee === 0
+                  ? t("send.free")
+                  : formatCurrency(logisticsFee, sendCurrency)
+                : "—"}
+            </span>
+          </div>
+          <div className="flex min-w-0 items-start justify-between gap-2 border-t pt-2">
+            <span className="min-w-0 text-gray-600">{t("send.totalToPay")}</span>
+            <span className="shrink-0 text-right text-[clamp(1rem,2.8vmin,1.125rem)] font-semibold tabular-nums">
+              {formatCurrency(totalToPay, sendCurrency)}
             </span>
           </div>
         </div>
@@ -667,6 +771,21 @@ export default function UserSendPage() {
               <p className="text-gray-600">{recipientData.accountNumber}</p>
               <p className="text-gray-600">{recipientData.bankName}</p>
             </div>
+            {fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand" && selectedDeliveryAddressId ? (
+              <div className="mt-3 space-y-1 border-t border-dashed pt-3 text-sm">
+                <p className="font-medium">{t("send.cashDeliverySummary")}</p>
+                {(() => {
+                  const da = deliveryAddresses.find((d: { id: string }) => d.id === selectedDeliveryAddressId)
+                  if (!da) return null
+                  return (
+                    <>
+                      <p className="text-gray-700">{da.address_line}</p>
+                      <p className="text-gray-600">{da.phone}</p>
+                    </>
+                  )
+                })()}
+              </div>
+            ) : null}
           </div>
         )}
         {currentStep >= 3 && transactionId && (
@@ -892,11 +1011,26 @@ export default function UserSendPage() {
                       </div>
                     </div>
 
+                    {!fulfillmentResolution.ok && sendCurrency && receiveCurrency && (
+                      <div className="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
+                        <AlertCircle className="h-5 w-5 shrink-0 text-amber-600" />
+                        <p>
+                          {fulfillmentResolution.reason === "outside_bank_only"
+                            ? t("send.fulfillmentErrorOutsideBank")
+                            : fulfillmentResolution.reason === "overlap"
+                              ? t("send.fulfillmentErrorOverlap")
+                              : t("send.fulfillmentErrorGap")}
+                        </p>
+                      </div>
+                    )}
+
                     <div className="sticky bottom-0 z-10 -mx-6 mt-2 border-t border-border bg-background/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm supports-[backdrop-filter]:bg-background/80 lg:static lg:z-auto lg:mx-0 lg:mt-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
                       <Button
                         onClick={handleContinue}
                         className="min-h-12 w-full rounded-xl bg-primary text-base font-semibold hover:bg-primary/90"
-                        disabled={!sendCurrency || !receiveCurrency || !sendAmount}
+                        disabled={
+                          !sendCurrency || !receiveCurrency || !sendAmount || !fulfillmentResolution.ok
+                        }
                       >
                         {t("send.continue")}
                       </Button>
@@ -912,6 +1046,30 @@ export default function UserSendPage() {
                     <CardTitle>{t("send.addRecipient")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
+                    {fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand" && (
+                      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
+                        {t("send.cashHandBanner")}
+                      </div>
+                    )}
+
+                    {fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand" && (
+                      <div className="space-y-1 rounded-xl border border-gray-100 bg-gray-50 p-4">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm text-gray-700">{t("send.logisticsFeeLabel")}</span>
+                          <span className="font-semibold tabular-nums text-gray-900">
+                            {logisticsFee === 0 ? t("send.free") : formatCurrency(logisticsFee, sendCurrency)}
+                          </span>
+                        </div>
+                        {exchangeRateData?.logistics_fee_type === "percentage" ? (
+                          <p className="text-xs text-gray-500">
+                            {t("send.logisticsFeeHintPercent", {
+                              pct: exchangeRateData.logistics_fee_amount ?? 0,
+                            })}
+                          </p>
+                        ) : null}
+                      </div>
+                    )}
+
                     {/* Search Bar */}
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -1399,6 +1557,91 @@ export default function UserSendPage() {
                       ))}
                     </div>
 
+                    {fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand" && (
+                      <div className="space-y-3 border-t border-gray-100 pt-6">
+                        <h4 className="text-sm font-medium text-gray-800">{t("send.deliveryAddressSection")}</h4>
+                        <Dialog open={isAddDeliveryDialogOpen} onOpenChange={setIsAddDeliveryDialogOpen}>
+                          <DialogTrigger asChild>
+                            <div className="flex cursor-pointer items-center justify-between rounded-xl border border-gray-100 bg-white p-4 transition-colors hover:border-primary/20">
+                              <div className="flex items-center space-x-3">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500">
+                                  <Plus className="h-6 w-6 text-white" />
+                                </div>
+                                <span className="font-medium text-gray-900">{t("send.addDeliveryAddress")}</span>
+                              </div>
+                              <ChevronRight className="h-5 w-5 text-gray-400" />
+                            </div>
+                          </DialogTrigger>
+                          <DialogContent className="mx-auto max-h-[90vh] w-[95vw] max-w-md flex flex-col">
+                            <DialogHeader>
+                              <DialogTitle>{t("send.addDeliveryAddressTitle")}</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4 pr-2">
+                              <div className="space-y-2">
+                                <Label htmlFor="deliveryLine">{t("send.deliveryAddressLine")}</Label>
+                                <Input
+                                  id="deliveryLine"
+                                  value={newDeliveryData.addressLine}
+                                  onChange={(e) =>
+                                    setNewDeliveryData({ ...newDeliveryData, addressLine: e.target.value })
+                                  }
+                                  placeholder={t("send.deliveryAddressLinePlaceholder")}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="deliveryPhone">{t("send.deliveryPhone")}</Label>
+                                <Input
+                                  id="deliveryPhone"
+                                  value={newDeliveryData.phone}
+                                  onChange={(e) => setNewDeliveryData({ ...newDeliveryData, phone: e.target.value })}
+                                  placeholder={t("send.deliveryPhonePlaceholder")}
+                                />
+                              </div>
+                              <Button
+                                className="w-full bg-primary hover:bg-primary/90"
+                                onClick={handleAddNewDelivery}
+                                disabled={!newDeliveryData.addressLine.trim() || !newDeliveryData.phone.trim()}
+                              >
+                                {t("send.saveDeliveryAddress")}
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+
+                        <div className="space-y-2">
+                          {deliveryAddresses.map((addr: { id: string; address_line: string; phone: string }) => (
+                            <div
+                              key={addr.id}
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => setSelectedDeliveryAddressId(addr.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault()
+                                  setSelectedDeliveryAddressId(addr.id)
+                                }
+                              }}
+                              className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-colors ${
+                                selectedDeliveryAddressId === addr.id
+                                  ? "border-primary bg-primary/5"
+                                  : "border-gray-100 bg-white hover:border-primary/20"
+                              }`}
+                            >
+                              <div className="min-w-0 text-left">
+                                <p className="font-medium text-gray-900">{addr.address_line}</p>
+                                <p className="text-sm text-gray-600">{addr.phone}</p>
+                              </div>
+                              {selectedDeliveryAddressId === addr.id && (
+                                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary">
+                                  <Check className="h-4 w-4 text-white" />
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {filteredSavedRecipients.length === 0 && searchTerm && (
                       <div className="text-center py-8 text-gray-500">
                         <p>{t("send.noRecipientsSearch", { term: searchTerm })}</p>
@@ -1419,7 +1662,12 @@ export default function UserSendPage() {
                       </Button>
                       <Button
                         onClick={handleContinue}
-                        disabled={!selectedRecipientId}
+                        disabled={
+                          !selectedRecipientId ||
+                          (fulfillmentResolution.ok &&
+                            fulfillmentResolution.fulfillment === "cash_hand" &&
+                            !selectedDeliveryAddressId)
+                        }
                         className="min-h-12 flex-1 rounded-xl bg-primary text-base font-semibold hover:bg-primary/90"
                       >
                         {t("send.continue")}
@@ -1443,15 +1691,21 @@ export default function UserSendPage() {
                         </div>
                         <div>
                           <h3 className="font-semibold text-primary">
-                            {t("send.transferLine", { amount: formatCurrency((Number.parseFloat(sendAmount) || 0) + fee, sendCurrency) })}
+                            {t("send.transferLine", { amount: formatCurrency(totalToPay, sendCurrency) })}
                           </h3>
                           <p className="text-xs text-gray-600">
-                            {fee > 0
-                              ? t("send.sendAmountPlusFee", {
+                            {fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand"
+                              ? t("send.transferSubtitleCash", {
                                   send: formatCurrency(Number.parseFloat(sendAmount) || 0, sendCurrency),
                                   fee: formatCurrency(fee, sendCurrency),
+                                  logistics: formatCurrency(logisticsFee, sendCurrency),
                                 })
-                              : t("send.sendMoneyCompleteHint")}
+                              : fee > 0
+                                ? t("send.sendAmountPlusFee", {
+                                    send: formatCurrency(Number.parseFloat(sendAmount) || 0, sendCurrency),
+                                    fee: formatCurrency(fee, sendCurrency),
+                                  })
+                                : t("send.sendMoneyCompleteHint")}
                           </p>
                         </div>
                       </div>
@@ -1867,10 +2121,21 @@ export default function UserSendPage() {
                                     <span className="text-amber-500 mt-0.5 text-xs">•</span>
                                     <span>
                                       {t("send.transferExactly")}{" "}
-                                      <strong>
-                                        {formatCurrency((Number.parseFloat(sendAmount) || 0) + fee, sendCurrency)}
-                                      </strong>
-                                      {fee > 0 && (
+                                      <strong>{formatCurrency(totalToPay, sendCurrency)}</strong>
+                                      {fulfillmentResolution.ok &&
+                                        fulfillmentResolution.fulfillment === "cash_hand" &&
+                                        (fee > 0 || logisticsFee > 0) && (
+                                        <span className="text-xs block text-amber-600">
+                                          {t("send.transferExactlyBreakdownCash", {
+                                            send: formatCurrency(Number.parseFloat(sendAmount) || 0, sendCurrency),
+                                            fee: formatCurrency(fee, sendCurrency),
+                                            logistics: formatCurrency(logisticsFee, sendCurrency),
+                                          })}
+                                        </span>
+                                      )}
+                                      {(!fulfillmentResolution.ok ||
+                                        fulfillmentResolution.fulfillment !== "cash_hand") &&
+                                        fee > 0 && (
                                         <span className="text-xs block text-amber-600">
                                           {t("send.amountFeeBreakdown", {
                                             send: formatCurrency(Number.parseFloat(sendAmount) || 0, sendCurrency),

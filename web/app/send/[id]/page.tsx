@@ -178,7 +178,9 @@ function TransactionStatusPage() {
                 if (prev && (
                   prev.status !== updatedTransaction.status ||
                   prev.updated_at !== updatedTransaction.updated_at ||
-                  prev.receipt_url !== updatedTransaction.receipt_url
+                  prev.receipt_url !== updatedTransaction.receipt_url ||
+                  prev.fulfillment_type !== updatedTransaction.fulfillment_type ||
+                  prev.logistics_fee_amount !== updatedTransaction.logistics_fee_amount
                 )) {
                   return updatedTransaction
                 }
@@ -611,9 +613,16 @@ function TransactionStatusPage() {
                 <CardHeader>
                   <CardTitle className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-0 leading-none">
                     <div className="flex min-w-0 max-w-full flex-col items-center gap-1 sm:items-start">
-                      <span className="text-xs font-medium uppercase leading-tight tracking-wide text-gray-500">
-                        {isReferralPayout ? t("txDetail.payoutStatus") : t("txDetail.transactionStatus")}
-                      </span>
+                      <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                        <span className="text-xs font-medium uppercase leading-tight tracking-wide text-gray-500">
+                          {isReferralPayout ? t("txDetail.payoutStatus") : t("txDetail.transactionStatus")}
+                        </span>
+                        {!isReferralPayout && transaction.fulfillment_type === "cash_hand" && (
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
+                            {t("txDetail.cashDelivery")}
+                          </span>
+                        )}
+                      </div>
                       <span className="text-app-tx-amount max-w-full break-words text-center font-bold leading-tight text-gray-900 sm:text-left">
                         {transaction && formatCurrency(transaction.send_amount, transaction.send_currency)}
                       </span>
@@ -798,12 +807,6 @@ function TransactionStatusPage() {
                           : formatCurrency(transaction.fee_amount, transaction.send_currency)}
                       </span>
                     </div>
-                    <div className="flex min-w-0 items-start justify-between gap-2 border-t pt-2">
-                      <span className="min-w-0 text-gray-600">{t("txDetail.totalPaid")}</span>
-                      <span className="shrink-0 text-right font-semibold tabular-nums">
-                        {formatCurrency(transaction.total_amount, transaction.send_currency)}
-                      </span>
-                    </div>
                     <div className="flex min-w-0 items-start justify-between gap-2">
                       <span className="min-w-0 text-gray-600">{t("txDetail.recipientGets")}</span>
                       <span className="shrink-0 text-right font-semibold tabular-nums">
@@ -817,6 +820,30 @@ function TransactionStatusPage() {
                         {transaction.receive_currency}
                       </span>
                     </div>
+                    <div className="flex min-w-0 items-start justify-between gap-2">
+                      <span className="min-w-0 text-gray-600">{t("txDetail.logisticsFee")}</span>
+                      <span
+                        className={`shrink-0 text-right font-medium tabular-nums ${
+                          transaction.fulfillment_type === "cash_hand"
+                            ? (transaction.logistics_fee_amount ?? 0) === 0
+                              ? "text-green-600"
+                              : "text-gray-900"
+                            : "text-gray-400"
+                        }`}
+                      >
+                        {transaction.fulfillment_type === "cash_hand"
+                          ? (transaction.logistics_fee_amount ?? 0) === 0
+                            ? t("txDetail.free")
+                            : formatCurrency(transaction.logistics_fee_amount ?? 0, transaction.send_currency)
+                          : "—"}
+                      </span>
+                    </div>
+                    <div className="flex min-w-0 items-start justify-between gap-2 border-t pt-2">
+                      <span className="min-w-0 text-gray-600">{t("txDetail.totalPaid")}</span>
+                      <span className="shrink-0 text-right font-semibold tabular-nums">
+                        {formatCurrency(transaction.total_amount, transaction.send_currency)}
+                      </span>
+                    </div>
                   </div>
 
                   {transaction.recipient && (
@@ -827,6 +854,18 @@ function TransactionStatusPage() {
                         <p className="text-gray-600">{transaction.recipient.account_number}</p>
                         <p className="text-gray-600">{transaction.recipient.bank_name}</p>
                       </div>
+                      {transaction.fulfillment_type === "cash_hand" &&
+                        (transaction.delivery_address_line || transaction.delivery_phone) && (
+                          <div className="mt-3 space-y-1 border-t border-dashed pt-3 text-sm">
+                            <p className="font-medium">{t("txDetail.cashDelivery")}</p>
+                            {transaction.delivery_address_line ? (
+                              <p className="text-gray-700">{transaction.delivery_address_line}</p>
+                            ) : null}
+                            {transaction.delivery_phone ? (
+                              <p className="text-gray-600">{transaction.delivery_phone}</p>
+                            ) : null}
+                          </div>
+                        )}
                     </div>
                   )}
                 </CardContent>
