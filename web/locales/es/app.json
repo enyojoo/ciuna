@@ -234,7 +234,7 @@
     "fulfillmentErrorGap": "Este monto no es elegible para este corredor. Ajuste el monto.",
     "cashHandBanner": "Para este monto, los fondos se entregarán en efectivo en la dirección que elija.",
     "logisticsFeeLabel": "Tarifa logística",
-    "logisticsFeeHintPercent": "{{pct}}% del monto que envía",
+    "logisticsFeeHintPercent": "{{pct}}% de lo que recibe el destinatario (se suma a su total a enviar)",
     "cashStep2Title": "Entrega en efectivo",
     "searchDeliveryAddresses": "Buscar por dirección o teléfono",
     "noDeliverySearch": "Ninguna dirección guardada coincide con \"{{term}}\"",

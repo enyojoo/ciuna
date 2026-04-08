@@ -234,7 +234,7 @@
     "fulfillmentErrorGap": "Сумма не подходит для этого коридора. Измените сумму.",
     "cashHandBanner": "Для этой суммы средства будут доставлены наличными по выбранному адресу.",
     "logisticsFeeLabel": "Логистический сбор",
-    "logisticsFeeHintPercent": "{{pct}}% от отправляемой суммы",
+    "logisticsFeeHintPercent": "{{pct}}% от суммы, которую получит получатель (добавляется к вашей сумме отправки)",
     "cashStep2Title": "Доставка наличными",
     "searchDeliveryAddresses": "Поиск по адресу или телефону",
     "noDeliverySearch": "Нет сохранённых адресов по запросу «{{term}}»",

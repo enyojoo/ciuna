@@ -657,7 +657,7 @@ const AdminRatesPage = () => {
                           className="w-full p-2 border border-gray-300 rounded-md"
                         >
                           <option value="free">Free</option>
-                          <option value="fixed">Fixed ({selectedCurrency.code})</option>
+                          <option value="fixed">Fixed ({rate.to_currency})</option>
                           <option value="percentage">Percentage (%)</option>
                         </select>
                       </div>
@@ -666,7 +666,7 @@ const AdminRatesPage = () => {
                           Logistics fee amount{" "}
                           {(rateUpdates[rate.to_currency]?.logisticsFeeType || "free") === "percentage"
                             ? "(%)"
-                            : `(${selectedCurrency.code})`}
+                            : `(${rate.to_currency})`}
                         </Label>
                         <Input
                           type="number"

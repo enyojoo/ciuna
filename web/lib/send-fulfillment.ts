@@ -50,17 +50,35 @@ export function resolveFulfillment(receiveAmount: number, rate: ExchangeRate | n
   return { ok: true, fulfillment: "bank_transfer" }
 }
 
-/** Logistics fee from rate row; only non-zero for cash_hand (caller passes fulfillment). */
+/**
+ * Logistics fee for cash_hand, returned in **send currency** (from_currency).
+ * Basis is the **receive** side: percentage applies to `receiveAmount` (to_currency);
+ * fixed amount is stored in **receive currency** (to_currency). Convert using corridor
+ * `rate` where receive = send × rate.
+ */
 export function computeLogisticsFee(
-  youSend: number,
+  receiveAmount: number,
   fulfillment: FulfillmentType,
-  rate: Pick<ExchangeRate, "logistics_fee_type" | "logistics_fee_amount"> | null | undefined,
+  rate:
+    | Pick<ExchangeRate, "logistics_fee_type" | "logistics_fee_amount" | "rate">
+    | null
+    | undefined,
 ): number {
-  if (fulfillment !== "cash_hand" || !rate || !Number.isFinite(youSend)) return 0
+  if (fulfillment !== "cash_hand" || !rate || !Number.isFinite(receiveAmount)) return 0
+
+  const fx = rate.rate
+  if (!Number.isFinite(fx) || fx <= 0) return 0
 
   const t = rate.logistics_fee_type || "free"
   if (t === "free") return 0
-  if (t === "fixed") return Number(rate.logistics_fee_amount) || 0
-  if (t === "percentage") return (youSend * (Number(rate.logistics_fee_amount) || 0)) / 100
+
+  if (t === "fixed") {
+    const inReceive = Number(rate.logistics_fee_amount) || 0
+    return inReceive / fx
+  }
+  if (t === "percentage") {
+    const inReceive = (receiveAmount * (Number(rate.logistics_fee_amount) || 0)) / 100
+    return inReceive / fx
+  }
   return 0
 }

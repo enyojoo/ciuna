@@ -579,11 +579,11 @@ export default function UserSendPage() {
   const logisticsFee = useMemo(() => {
     if (!fulfillmentResolution.ok) return 0
     return computeLogisticsFee(
-      Number.parseFloat(sendAmount) || 0,
+      Number.parseFloat(receiveAmount) || 0,
       fulfillmentResolution.fulfillment,
       exchangeRateData ?? null,
     )
-  }, [sendAmount, fulfillmentResolution, exchangeRateData])
+  }, [receiveAmount, fulfillmentResolution, exchangeRateData])
 
   const totalToPay = useMemo(
     () => (Number.parseFloat(sendAmount) || 0) + fee + logisticsFee,

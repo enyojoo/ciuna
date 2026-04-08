@@ -234,7 +234,7 @@
     "fulfillmentErrorGap": "This receive amount is not eligible for this corridor. Adjust the amount.",
     "cashHandBanner": "For this amount, funds will be delivered as cash to the address you select (not by bank transfer).",
     "logisticsFeeLabel": "Logistics fee",
-    "logisticsFeeHintPercent": "{{pct}}% of the amount you send",
+    "logisticsFeeHintPercent": "{{pct}}% of what the recipient receives (added to your send total)",
     "cashStep2Title": "Cash delivery",
     "searchDeliveryAddresses": "Search by address or phone",
     "noDeliverySearch": "No saved addresses match \"{{term}}\"",
