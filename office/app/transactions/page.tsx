@@ -23,7 +23,6 @@ import {
   X,
   ChevronDown,
 } from "lucide-react"
-import type { Transaction } from "@/types"
 import { formatCurrency } from "@/utils/currency"
 import {
   getAccountTypeConfigFromCurrency,
@@ -56,6 +55,7 @@ interface CombinedTransaction {
     last_name: string
     email: string
   }
+  user_id?: string
   send_amount?: number
   send_currency?: string
   receive_amount?: number
@@ -80,6 +80,47 @@ interface CombinedTransaction {
   receipt_url?: string
   receipt_filename?: string
   exchange_rate?: number
+  updated_at?: string
+  completed_at?: string
+  fulfillment_type?: string | null
+  delivery_address_line?: string | null
+  delivery_phone?: string | null
+  logistics_fee_amount?: number | null
+  delivery_address_id?: string | null
+}
+
+/** Maps a raw send transaction from admin data into CombinedTransaction, preserving cash-delivery fields. */
+function mapSendTransaction(tx: any): CombinedTransaction {
+  const rowType: CombinedTransaction["type"] =
+    tx.type === "referral_payout" ? "referral_payout" : "send"
+  const embedded = tx.delivery_address as { address_line?: string; phone?: string } | null | undefined
+  const delivery_address_line = tx.delivery_address_line ?? embedded?.address_line ?? null
+  const delivery_phone = tx.delivery_phone ?? embedded?.phone ?? null
+
+  return {
+    id: tx.id,
+    transaction_id: tx.transaction_id || tx.id,
+    type: rowType,
+    status: tx.status,
+    created_at: tx.created_at,
+    updated_at: tx.updated_at,
+    completed_at: tx.completed_at,
+    user: tx.user,
+    user_id: tx.user_id,
+    send_amount: tx.send_amount,
+    send_currency: tx.send_currency,
+    receive_amount: tx.receive_amount,
+    receive_currency: tx.receive_currency,
+    recipient: tx.recipient,
+    receipt_url: tx.receipt_url,
+    receipt_filename: tx.receipt_filename,
+    exchange_rate: tx.exchange_rate,
+    fulfillment_type: tx.fulfillment_type ?? null,
+    delivery_address_line,
+    delivery_phone,
+    logistics_fee_amount: tx.logistics_fee_amount ?? null,
+    delivery_address_id: tx.delivery_address_id ?? null,
+  }
 }
 
 function buildTransactionsById(transactions: any[] | undefined): Map<string, any> {
@@ -170,29 +211,9 @@ export default function AdminTransactionsPage() {
   const getInitialTransactions = (): CombinedTransaction[] => {
     if (!adminData?.transactions?.length && !adminData?.referralPayoutRequests?.length) return []
     // Transform transactions to match CombinedTransaction interface
-    const rows = excludeReferralPayoutMirrorTransactions(adminData.transactions).map((tx: any) => {
-      // If it's already transformed (has type), use it as is
-      const rowType: CombinedTransaction["type"] =
-        tx.type === "referral_payout" ? "referral_payout" : "send"
-      return {
-        id: tx.id,
-        transaction_id: tx.transaction_id || tx.id,
-        type: rowType,
-        status: tx.status,
-        created_at: tx.created_at,
-        updated_at: tx.updated_at,
-        user: tx.user,
-        user_id: tx.user_id,
-        send_amount: tx.send_amount,
-        send_currency: tx.send_currency,
-        receive_amount: tx.receive_amount,
-        receive_currency: tx.receive_currency,
-        recipient: tx.recipient,
-        receipt_url: tx.receipt_url,
-        receipt_filename: tx.receipt_filename,
-        exchange_rate: tx.exchange_rate,
-      }
-    })
+    const rows = excludeReferralPayoutMirrorTransactions(adminData.transactions).map((tx: any) =>
+      mapSendTransaction(tx),
+    )
     const payoutOpts = {
       transactionsByTransactionId: buildTransactionsById(adminData.transactions),
       exchangeRates: adminData.exchangeRates || [],
@@ -225,29 +246,7 @@ export default function AdminTransactionsPage() {
       // Transform transactions to match CombinedTransaction interface
       const transformedTransactions: CombinedTransaction[] = excludeReferralPayoutMirrorTransactions(
         adminData.transactions,
-      ).map((tx: any) => {
-        // If it's already transformed (has type), use it as is
-        const rowType: CombinedTransaction["type"] =
-          tx.type === "referral_payout" ? "referral_payout" : "send"
-        return {
-          id: tx.id,
-          transaction_id: tx.transaction_id || tx.id,
-          type: rowType,
-          status: tx.status,
-          created_at: tx.created_at,
-          updated_at: tx.updated_at,
-          user: tx.user,
-          user_id: tx.user_id,
-          send_amount: tx.send_amount,
-          send_currency: tx.send_currency,
-          receive_amount: tx.receive_amount,
-          receive_currency: tx.receive_currency,
-          recipient: tx.recipient,
-          receipt_url: tx.receipt_url,
-          receipt_filename: tx.receipt_filename,
-          exchange_rate: tx.exchange_rate,
-        }
-      })
+      ).map((tx: any) => mapSendTransaction(tx))
       const payoutOpts = {
         transactionsByTransactionId: buildTransactionsById(adminData.transactions),
         exchangeRates: adminData.exchangeRates || [],
@@ -289,12 +288,16 @@ export default function AdminTransactionsPage() {
   }
 
   const filteredTransactions = transactions.filter((transaction) => {
+    const q = searchTerm.toLowerCase()
     const matchesSearch =
       searchTerm === "" ||
-      transaction.transaction_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.transaction_id?.toLowerCase().includes(q) ||
+      transaction.user?.email?.toLowerCase().includes(q) ||
       (transaction.type === "referral_payout" &&
-        transaction.recipient?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()))
+        transaction.recipient?.full_name?.toLowerCase().includes(q)) ||
+      (transaction.type === "send" &&
+        (transaction.delivery_address_line?.toLowerCase()?.includes(q) ||
+          transaction.delivery_phone?.toLowerCase()?.includes(q)))
 
     const matchesStatus = statusFilter === "all" || transaction.status === statusFilter
     const matchesCurrency =
@@ -925,25 +928,31 @@ export default function AdminTransactionsPage() {
                                       <div>
                                         <label className="text-sm font-medium text-gray-600">Fulfillment</label>
                                         <p className="font-medium">
-                                          {(transaction as any).fulfillment_type === "cash_hand"
+                                          {transaction.fulfillment_type === "cash_hand"
                                             ? "Cash at location"
                                             : "Bank transfer"}
                                         </p>
                                       </div>
-                                      {(transaction as any).fulfillment_type === "cash_hand" && (
+                                      {transaction.fulfillment_type === "cash_hand" && (
                                         <div className="col-span-2 rounded-lg border border-amber-100 bg-amber-50/80 p-3 text-sm space-y-1">
                                           <p className="font-medium text-gray-800">Cash delivery</p>
-                                          {(transaction as any).delivery_address_line && (
-                                            <p className="text-gray-700">{(transaction as any).delivery_address_line}</p>
+                                          {transaction.delivery_address_line && (
+                                            <p className="text-gray-700">
+                                              <span className="text-gray-500">Address: </span>
+                                              {transaction.delivery_address_line}
+                                            </p>
                                           )}
-                                          {(transaction as any).delivery_phone && (
-                                            <p className="text-gray-600">{(transaction as any).delivery_phone}</p>
+                                          {transaction.delivery_phone && (
+                                            <p className="text-gray-700">
+                                              <span className="text-gray-500">Phone: </span>
+                                              {transaction.delivery_phone}
+                                            </p>
                                           )}
                                           <p>
                                             <span className="text-gray-600">Logistics fee: </span>
                                             <span className="font-medium">
                                               {formatCurrency(
-                                                (transaction as any).logistics_fee_amount ?? 0,
+                                                transaction.logistics_fee_amount ?? 0,
                                                 transaction.send_currency || "",
                                               )}
                                             </span>

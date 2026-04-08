@@ -406,7 +406,8 @@ class OfficeDataStore {
         .select(`
           *,
           user:users(first_name, last_name, email),
-          recipient:recipients(full_name, bank_name, account_number, routing_number, sort_code, iban, swift_bic, currency, address_line1, address_line2, city, state, postal_code, transfer_type, checking_or_savings)
+          recipient:recipients(full_name, bank_name, account_number, routing_number, sort_code, iban, swift_bic, currency, address_line1, address_line2, city, state, postal_code, transfer_type, checking_or_savings),
+          delivery_address:delivery_addresses!delivery_address_id(address_line, phone)
         `)
         .order("created_at", { ascending: false })
         .limit(200)
