@@ -527,11 +527,6 @@ const AdminRatesPage = () => {
               </DialogClose>
             </DialogHeader>
             <div className="space-y-6">
-              <p className="text-xs text-gray-500 -mt-2">
-                Receive min/max (bank / cash): optional windows in <strong>receiver currency</strong>. Leave both fields of
-                a pair blank to disable that window. When both pairs are blank, send flow stays bank-only (current
-                behavior). Logistics fee applies only to cash-at-location fulfillment.
-              </p>
               <div className="max-h-[400px] overflow-y-auto space-y-4 pr-2">
                 {getCurrencyRates(selectedCurrency?.code || "").map((rate: any) => (
                   <div key={rate.to_currency} className="border rounded-lg p-4 space-y-4">
