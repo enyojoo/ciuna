@@ -250,7 +250,7 @@
     "deliveryPhonePlaceholder": "Téléphone pour la livraison",
     "saveDeliveryAddress": "Enregistrer l'adresse",
     "failedAddDelivery": "Impossible d'enregistrer l'adresse. Réessayez.",
-    "cashDeliverySummary": "Livraison en espèces",
+    "cashDeliverySummary": "Livraison en espèces"
   },
   "recipients": {
     "title": "Bénéficiaires",

@@ -250,7 +250,7 @@
     "deliveryPhonePlaceholder": "Phone number for delivery contact",
     "saveDeliveryAddress": "Save address",
     "failedAddDelivery": "Could not save delivery address. Try again.",
-    "cashDeliverySummary": "Cash delivery",
+    "cashDeliverySummary": "Cash delivery"
   },
   "recipients": {
     "title": "Recipients",

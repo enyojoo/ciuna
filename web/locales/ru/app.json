@@ -250,7 +250,7 @@
     "deliveryPhonePlaceholder": "Телефон для связи при доставке",
     "saveDeliveryAddress": "Сохранить адрес",
     "failedAddDelivery": "Не удалось сохранить адрес. Попробуйте снова.",
-    "cashDeliverySummary": "Доставка наличными",
+    "cashDeliverySummary": "Доставка наличными"
   },
   "recipients": {
     "title": "Получатели",

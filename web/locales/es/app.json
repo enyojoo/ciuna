@@ -250,7 +250,7 @@
     "deliveryPhonePlaceholder": "Teléfono de contacto para la entrega",
     "saveDeliveryAddress": "Guardar dirección",
     "failedAddDelivery": "No se pudo guardar la dirección. Intente de nuevo.",
-    "cashDeliverySummary": "Entrega en efectivo",
+    "cashDeliverySummary": "Entrega en efectivo"
   },
   "recipients": {
     "title": "Beneficiarios",
