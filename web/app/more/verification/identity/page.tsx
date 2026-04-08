@@ -522,7 +522,7 @@ export default function IdentityVerificationPage() {
                           className={cn(
                             "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all duration-200",
                             isDragOver
-                              ? "border-primary bg-primary/[0.06]"
+                              ? "border-primary bg-primary/[0.06] shadow-sm ring-2 ring-primary/35"
                               : identityFile
                                 ? "border-green-300 bg-green-50"
                                 : uploadError
@@ -716,7 +716,7 @@ export default function IdentityVerificationPage() {
                   className={cn(
                     "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all duration-200",
                     isDragOver
-                      ? "border-primary bg-primary/[0.06]"
+                      ? "border-primary bg-primary/[0.06] shadow-sm ring-2 ring-primary/35"
                       : identityFile
                         ? "border-green-300 bg-green-50"
                         : uploadError

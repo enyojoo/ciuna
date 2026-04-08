@@ -1745,7 +1745,7 @@ export default function UserSendPage() {
                   <CardContent className="space-y-6">
                     {/* Transfer amount and description */}
                     <div className="flex items-center gap-2">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-primary shadow-sm ring-2 ring-primary/25">
                           {sendCurrencyData && <CurrencyFlagIcon currency={sendCurrencyData} />}
                         </div>
                         <div>
@@ -2294,12 +2294,12 @@ export default function UserSendPage() {
                         className={cn(
                           "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all duration-200",
                           isDragOver
-                            ? "border-gray-300 bg-primary/[0.06]"
+                            ? "border-primary bg-primary/[0.06] shadow-sm ring-2 ring-primary/35"
                             : uploadedFile
                               ? "border-green-300 bg-green-50"
                               : uploadError
                                 ? "border-red-300 bg-red-50"
-                                : "border-gray-200 hover:bg-muted/40",
+                                : "border-gray-200 hover:border-primary/35",
                         )}
                       >
                         <div className="flex items-center justify-center gap-3">
