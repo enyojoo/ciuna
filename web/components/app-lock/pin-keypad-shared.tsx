@@ -42,7 +42,7 @@ export function PinDotsRow({
             key={i}
             className={cn(
               "flex h-12 w-11 items-center justify-center rounded-md border-2 transition-colors sm:h-14 sm:w-12",
-              isActive ? "border-primary ring-2 ring-primary/20" : "border-border",
+              isActive ? "border-transparent bg-primary/10" : "border-border",
               filled && "border-primary/80",
             )}
           >

@@ -182,8 +182,7 @@ function CurrencyPickerPanel({
                     onClick={() => onPick(currency.code)}
                     className={cn(
                       "touch-manipulation flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left transition-all duration-200 hover:bg-accent active:bg-accent/80",
-                      isSelected &&
-                        "bg-primary/[0.09] shadow-sm ring-2 ring-inset ring-primary/45 hover:bg-primary/[0.12]",
+                      isSelected && "bg-primary/[0.1] hover:bg-primary/[0.12]",
                     )}
                   >
                     <CurrencyFlagIcon currency={currency} />

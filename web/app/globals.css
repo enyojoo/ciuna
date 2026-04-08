@@ -205,7 +205,7 @@ html[data-pwa-standalone="true"] body {
     @apply border-gray-100 hover:border-primary/45 hover:shadow-sm;
   }
   .selectable-row--selected {
-    @apply border-primary bg-primary/[0.08] shadow-md shadow-primary/20 ring-2 ring-primary/30 ring-offset-2 ring-offset-background;
+    @apply border-transparent bg-primary/[0.1];
   }
 
   /** Compact chips (ACH/Wire, checking/savings, etc.) */
@@ -216,7 +216,7 @@ html[data-pwa-standalone="true"] body {
     @apply border-gray-200 bg-white text-gray-700 hover:border-gray-300;
   }
   .selectable-toggle--selected {
-    @apply border-primary bg-primary/[0.08] font-medium text-primary shadow-sm ring-2 ring-primary/30 ring-offset-1 ring-offset-background;
+    @apply border-transparent bg-primary/[0.1] font-medium text-primary;
   }
 }
 
