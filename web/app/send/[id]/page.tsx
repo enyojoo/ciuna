@@ -617,11 +617,6 @@ function TransactionStatusPage() {
                         <span className="text-xs font-medium uppercase leading-tight tracking-wide text-gray-500">
                           {isReferralPayout ? t("txDetail.payoutStatus") : t("txDetail.transactionStatus")}
                         </span>
-                        {!isReferralPayout && transaction.fulfillment_type === "cash_hand" && (
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
-                            {t("txDetail.cashDelivery")}
-                          </span>
-                        )}
                       </div>
                       <span className="text-app-tx-amount max-w-full break-words text-center font-bold leading-tight text-gray-900 sm:text-left">
                         {transaction && formatCurrency(transaction.send_amount, transaction.send_currency)}
