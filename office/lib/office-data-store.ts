@@ -1262,22 +1262,6 @@ class OfficeDataStore {
     }
   }
 
-  // Email Templates methods
-  async loadEmailTemplates() {
-    try {
-      const { data, error } = await supabase
-        .from("email_templates")
-        .select("*")
-        .order("template_type", { ascending: true })
-
-      if (error) throw error
-      return data || []
-    } catch (error) {
-      console.error("Error loading email templates:", error)
-      throw error
-    }
-  }
-
   // Payment Methods methods
   async loadPaymentMethods() {
     try {
@@ -1379,94 +1363,6 @@ class OfficeDataStore {
       return data
     } catch (error) {
       console.error("Error setting default payment method:", error)
-      throw error
-    }
-  }
-
-  async createEmailTemplate(template: any) {
-    try {
-      const { data, error } = await supabase
-        .from("email_templates")
-        .insert([template])
-        .select()
-        .single()
-
-      if (error) throw error
-      return data
-    } catch (error) {
-      console.error("Error creating email template:", error)
-      throw error
-    }
-  }
-
-  async updateEmailTemplate(id: string, template: any) {
-    try {
-      const { data, error } = await supabase
-        .from("email_templates")
-        .update(template)
-        .eq("id", id)
-        .select()
-        .single()
-
-      if (error) throw error
-      return data
-    } catch (error) {
-      console.error("Error updating email template:", error)
-      throw error
-    }
-  }
-
-  async deleteEmailTemplate(id: string) {
-    try {
-      const { error } = await supabase
-        .from("email_templates")
-        .delete()
-        .eq("id", id)
-
-      if (error) throw error
-    } catch (error) {
-      console.error("Error deleting email template:", error)
-      throw error
-    }
-  }
-
-  async updateEmailTemplateStatus(id: string, status: string) {
-    try {
-      const { data, error } = await supabase
-        .from("email_templates")
-        .update({ status })
-        .eq("id", id)
-        .select()
-        .single()
-
-      if (error) throw error
-      return data
-    } catch (error) {
-      console.error("Error updating email template status:", error)
-      throw error
-    }
-  }
-
-  async setDefaultEmailTemplate(id: string, templateType: string) {
-    try {
-      // First, unset all defaults for this template type
-      await supabase
-        .from("email_templates")
-        .update({ is_default: false })
-        .eq("template_type", templateType)
-
-      // Then set the selected template as default
-      const { data, error } = await supabase
-        .from("email_templates")
-        .update({ is_default: true })
-        .eq("id", id)
-        .select()
-        .single()
-
-      if (error) throw error
-      return data
-    } catch (error) {
-      console.error("Error setting default email template:", error)
       throw error
     }
   }
