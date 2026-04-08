@@ -849,75 +849,99 @@ export default function AdminTransactionsPage() {
                                           )}
                                         </p>
                                       </div>
-                                      <div>
-                                        <label className="text-sm font-medium text-gray-600">Recipient</label>
-                                        <p>{transaction.recipient?.full_name}</p>
-                                    {(() => {
-                                      const recipient = transaction.recipient as any
-                                      if (!recipient) return null
-
-                                      const recipientCurrency = recipient.currency || transaction.receive_currency
-                                      const accountConfig = recipientCurrency
-                                        ? getAccountTypeConfigFromCurrency(recipientCurrency)
-                                        : null
-                                      const accountType = accountConfig?.accountType
-
-                                      return (
-                                        <div className="text-sm text-gray-500 space-y-1">
-                                          {accountType === "us" && recipient.routing_number && (
-                                            <p className="font-mono text-xs">
-                                              Routing: {formatFieldValue(accountType, "routing_number", recipient.routing_number)}
+                                      {transaction.fulfillment_type === "cash_hand" ? (
+                                        <div>
+                                          <label className="text-sm font-medium text-gray-600">Cash at location</label>
+                                          <div className="text-sm text-gray-700 space-y-1 mt-1">
+                                            <p>
+                                              <span className="text-gray-500">Address: </span>
+                                              {transaction.delivery_address_line?.trim() || "—"}
                                             </p>
-                                          )}
-                                          {accountType === "uk" && recipient.sort_code && (
-                                            <p className="font-mono text-xs">
-                                              Sort Code: {formatFieldValue(accountType, "sort_code", recipient.sort_code)}
+                                            <p>
+                                              <span className="text-gray-500">Phone: </span>
+                                              {transaction.delivery_phone?.trim() || "—"}
                                             </p>
-                                          )}
-                                          {recipient.account_number && (
-                                            <p className="font-mono text-xs">
-                                              {accountConfig?.fieldLabels.account_number || "Account Number"}: {recipient.account_number}
+                                            <p>
+                                              <span className="text-gray-500">Logistics fee: </span>
+                                              <span className="font-medium text-gray-900">
+                                                {formatCurrency(
+                                                  transaction.logistics_fee_amount ?? 0,
+                                                  transaction.send_currency || "",
+                                                )}
+                                              </span>
                                             </p>
-                                          )}
-                                          {recipient.iban && (
-                                            <p className="font-mono text-xs">
-                                              IBAN: {formatFieldValue(accountType || "generic", "iban", recipient.iban)}
-                                            </p>
-                                          )}
-                                          {recipient.swift_bic && (
-                                            <p className="font-mono text-xs">SWIFT/BIC: {recipient.swift_bic}</p>
-                                          )}
-                                          <p>{recipient.bank_name}</p>
-                                          {/* US Account Additional Fields */}
-                                          {accountType === "us" && (
-                                            <>
-                                              {recipient.transfer_type && (
-                                                <p className="text-xs">
-                                                  Transfer Type: <span className="font-medium">{recipient.transfer_type}</span>
-                                                </p>
-                                              )}
-                                              {recipient.checking_or_savings && (
-                                                <p className="text-xs">
-                                                  Account Type: <span className="font-medium capitalize">{recipient.checking_or_savings}</span>
-                                                </p>
-                                              )}
-                                              {recipient.address_line1 && (
-                                                <p className="text-xs">
-                                                  Address: {recipient.address_line1}
-                                                  {recipient.address_line2 && `, ${recipient.address_line2}`}
-                                                </p>
-                                              )}
-                                              {(recipient.city || recipient.state || recipient.postal_code) && (
-                                                <p className="text-xs">
-                                                  {[recipient.city, recipient.state, recipient.postal_code].filter(Boolean).join(", ")}
-                                                </p>
-                                              )}
-                                            </>
-                                          )}
+                                          </div>
                                         </div>
-                                      )
-                                    })()}
-                                      </div>
+                                      ) : (
+                                        <div>
+                                          <label className="text-sm font-medium text-gray-600">Recipient</label>
+                                          <p>{transaction.recipient?.full_name}</p>
+                                          {(() => {
+                                            const recipient = transaction.recipient as any
+                                            if (!recipient) return null
+
+                                            const recipientCurrency = recipient.currency || transaction.receive_currency
+                                            const accountConfig = recipientCurrency
+                                              ? getAccountTypeConfigFromCurrency(recipientCurrency)
+                                              : null
+                                            const accountType = accountConfig?.accountType
+
+                                            return (
+                                              <div className="text-sm text-gray-500 space-y-1">
+                                                {accountType === "us" && recipient.routing_number && (
+                                                  <p className="font-mono text-xs">
+                                                    Routing: {formatFieldValue(accountType, "routing_number", recipient.routing_number)}
+                                                  </p>
+                                                )}
+                                                {accountType === "uk" && recipient.sort_code && (
+                                                  <p className="font-mono text-xs">
+                                                    Sort Code: {formatFieldValue(accountType, "sort_code", recipient.sort_code)}
+                                                  </p>
+                                                )}
+                                                {recipient.account_number && (
+                                                  <p className="font-mono text-xs">
+                                                    {accountConfig?.fieldLabels.account_number || "Account Number"}: {recipient.account_number}
+                                                  </p>
+                                                )}
+                                                {recipient.iban && (
+                                                  <p className="font-mono text-xs">
+                                                    IBAN: {formatFieldValue(accountType || "generic", "iban", recipient.iban)}
+                                                  </p>
+                                                )}
+                                                {recipient.swift_bic && (
+                                                  <p className="font-mono text-xs">SWIFT/BIC: {recipient.swift_bic}</p>
+                                                )}
+                                                <p>{recipient.bank_name}</p>
+                                                {accountType === "us" && (
+                                                  <>
+                                                    {recipient.transfer_type && (
+                                                      <p className="text-xs">
+                                                        Transfer Type: <span className="font-medium">{recipient.transfer_type}</span>
+                                                      </p>
+                                                    )}
+                                                    {recipient.checking_or_savings && (
+                                                      <p className="text-xs">
+                                                        Account Type: <span className="font-medium capitalize">{recipient.checking_or_savings}</span>
+                                                      </p>
+                                                    )}
+                                                    {recipient.address_line1 && (
+                                                      <p className="text-xs">
+                                                        Address: {recipient.address_line1}
+                                                        {recipient.address_line2 && `, ${recipient.address_line2}`}
+                                                      </p>
+                                                    )}
+                                                    {(recipient.city || recipient.state || recipient.postal_code) && (
+                                                      <p className="text-xs">
+                                                        {[recipient.city, recipient.state, recipient.postal_code].filter(Boolean).join(", ")}
+                                                      </p>
+                                                    )}
+                                                  </>
+                                                )}
+                                              </div>
+                                            )
+                                          })()}
+                                        </div>
+                                      )}
                                       <div>
                                         <label className="text-sm font-medium text-gray-600">Exchange Rate</label>
                                         <p className="font-medium">
@@ -925,40 +949,6 @@ export default function AdminTransactionsPage() {
                                           {transaction.receive_currency}
                                         </p>
                                       </div>
-                                      <div>
-                                        <label className="text-sm font-medium text-gray-600">Fulfillment</label>
-                                        <p className="font-medium">
-                                          {transaction.fulfillment_type === "cash_hand"
-                                            ? "Cash at location"
-                                            : "Bank transfer"}
-                                        </p>
-                                      </div>
-                                      {transaction.fulfillment_type === "cash_hand" && (
-                                        <div className="col-span-2 rounded-lg border border-amber-100 bg-amber-50/80 p-3 text-sm space-y-1">
-                                          <p className="font-medium text-gray-800">Cash delivery</p>
-                                          {transaction.delivery_address_line && (
-                                            <p className="text-gray-700">
-                                              <span className="text-gray-500">Address: </span>
-                                              {transaction.delivery_address_line}
-                                            </p>
-                                          )}
-                                          {transaction.delivery_phone && (
-                                            <p className="text-gray-700">
-                                              <span className="text-gray-500">Phone: </span>
-                                              {transaction.delivery_phone}
-                                            </p>
-                                          )}
-                                          <p>
-                                            <span className="text-gray-600">Logistics fee: </span>
-                                            <span className="font-medium">
-                                              {formatCurrency(
-                                                transaction.logistics_fee_amount ?? 0,
-                                                transaction.send_currency || "",
-                                              )}
-                                            </span>
-                                          </p>
-                                        </div>
-                                      )}
                                     </>
                                   ) : null}
                                 </div>
