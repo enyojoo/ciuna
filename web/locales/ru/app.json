@@ -208,7 +208,7 @@
     "youSendLabel": "Вы отправляете",
     "totalToPay": "Итого к оплате",
     "recipientGetsLabel": "Получатель получает",
-    "arrivesIn": "Поступит в течение",
+    "arrivesIn": "Срок поступления",
     "arrivalDurationHours_one": "{{count}} час",
     "arrivalDurationHours_other": "{{count}} ч",
     "arrivalDurationMinutes_one": "{{count}} минуту",
