@@ -437,7 +437,7 @@ export function generateTransactionDetails(data: any): string {
         <span class="detail-value">1 ${data.sendCurrency} = ${data.exchangeRate} ${data.receiveCurrency}</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">Fee: </span>
+        <span class="detail-label">Exchange fee: </span>
         <span class="detail-value">${data.fee} ${data.sendCurrency}</span>
       </div>
       ${
