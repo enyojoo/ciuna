@@ -173,6 +173,7 @@
     "back": "Retour",
     "makePayment": "Payer",
     "transferLine": "Transfert {{amount}}",
+    "transferLineWithLogistics": "Transfert {{amount}} (+ frais logistiques)",
     "sendAmountPlusFee": "Envoi : {{send}} + frais : {{fee}}",
     "sendMoneyCompleteHint": "Effectuez le paiement pour finaliser le transfert",
     "noPaymentMethods": "Aucun moyen de paiement pour {{currency}}",
@@ -250,8 +251,6 @@
     "saveDeliveryAddress": "Enregistrer l'adresse",
     "failedAddDelivery": "Impossible d'enregistrer l'adresse. Réessayez.",
     "cashDeliverySummary": "Livraison en espèces",
-    "transferSubtitleCash": "Envoi {{send}} + Frais {{fee}} + Logistique {{logistics}}",
-    "transferExactlyBreakdownCash": "Montant {{send}} + Frais {{fee}} + Logistique {{logistics}}"
   },
   "recipients": {
     "title": "Bénéficiaires",

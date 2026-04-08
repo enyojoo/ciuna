@@ -173,6 +173,7 @@
     "back": "Назад",
     "makePayment": "Оплатить",
     "transferLine": "Перевод {{amount}}",
+    "transferLineWithLogistics": "Перевод {{amount}} (+ логистический сбор)",
     "sendAmountPlusFee": "К отправке: {{send}} + комиссия: {{fee}}",
     "sendMoneyCompleteHint": "Отправьте деньги, чтобы завершить перевод",
     "noPaymentMethods": "Нет способов оплаты для {{currency}}",
@@ -250,8 +251,6 @@
     "saveDeliveryAddress": "Сохранить адрес",
     "failedAddDelivery": "Не удалось сохранить адрес. Попробуйте снова.",
     "cashDeliverySummary": "Доставка наличными",
-    "transferSubtitleCash": "Отправка {{send}} + Комиссия {{fee}} + Логистика {{logistics}}",
-    "transferExactlyBreakdownCash": "Сумма {{send}} + Комиссия {{fee}} + Логистика {{logistics}}"
   },
   "recipients": {
     "title": "Получатели",

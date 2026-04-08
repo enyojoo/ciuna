@@ -1750,22 +1750,28 @@ export default function UserSendPage() {
                         </div>
                         <div>
                           <h3 className="font-semibold text-primary">
-                            {t("send.transferLine", { amount: formatCurrency(totalToPay, sendCurrency) })}
-                          </h3>
-                          <p className="text-xs text-gray-600">
-                            {fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand"
-                              ? t("send.transferSubtitleCash", {
-                                  send: formatCurrency(Number.parseFloat(sendAmount) || 0, sendCurrency),
-                                  fee: formatCurrency(fee, sendCurrency),
-                                  logistics: formatCurrency(logisticsFee, sendCurrency),
+                            {fulfillmentResolution.ok &&
+                            fulfillmentResolution.fulfillment === "cash_hand" &&
+                            logisticsFee > 0
+                              ? t("send.transferLineWithLogistics", {
+                                  amount: formatCurrency(totalToPay, sendCurrency),
                                 })
-                              : fee > 0
+                              : t("send.transferLine", { amount: formatCurrency(totalToPay, sendCurrency) })}
+                          </h3>
+                          {!(
+                            fulfillmentResolution.ok &&
+                            fulfillmentResolution.fulfillment === "cash_hand" &&
+                            logisticsFee > 0
+                          ) && (
+                            <p className="text-xs text-gray-600">
+                              {fee > 0
                                 ? t("send.sendAmountPlusFee", {
                                     send: formatCurrency(Number.parseFloat(sendAmount) || 0, sendCurrency),
                                     fee: formatCurrency(fee, sendCurrency),
                                   })
                                 : t("send.sendMoneyCompleteHint")}
-                          </p>
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -2181,17 +2187,6 @@ export default function UserSendPage() {
                                     <span>
                                       {t("send.transferExactly")}{" "}
                                       <strong>{formatCurrency(totalToPay, sendCurrency)}</strong>
-                                      {fulfillmentResolution.ok &&
-                                        fulfillmentResolution.fulfillment === "cash_hand" &&
-                                        (fee > 0 || logisticsFee > 0) && (
-                                        <span className="text-xs block text-amber-600">
-                                          {t("send.transferExactlyBreakdownCash", {
-                                            send: formatCurrency(Number.parseFloat(sendAmount) || 0, sendCurrency),
-                                            fee: formatCurrency(fee, sendCurrency),
-                                            logistics: formatCurrency(logisticsFee, sendCurrency),
-                                          })}
-                                        </span>
-                                      )}
                                       {(!fulfillmentResolution.ok ||
                                         fulfillmentResolution.fulfillment !== "cash_hand") &&
                                         fee > 0 && (

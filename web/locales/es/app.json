@@ -173,6 +173,7 @@
     "back": "Atrás",
     "makePayment": "Pagar",
     "transferLine": "Transferir {{amount}}",
+    "transferLineWithLogistics": "Transferir {{amount}} (+ tarifa logística)",
     "sendAmountPlusFee": "Envío: {{send}} + comisión: {{fee}}",
     "sendMoneyCompleteHint": "Envía el dinero para completar la transferencia",
     "noPaymentMethods": "No hay métodos de pago para {{currency}}",
@@ -250,8 +251,6 @@
     "saveDeliveryAddress": "Guardar dirección",
     "failedAddDelivery": "No se pudo guardar la dirección. Intente de nuevo.",
     "cashDeliverySummary": "Entrega en efectivo",
-    "transferSubtitleCash": "Envío {{send}} + Comisión {{fee}} + Logística {{logistics}}",
-    "transferExactlyBreakdownCash": "Monto {{send}} + Comisión {{fee}} + Logística {{logistics}}"
   },
   "recipients": {
     "title": "Beneficiarios",
