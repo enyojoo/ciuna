@@ -193,7 +193,11 @@ export class TransactionStatusService {
 
     const emailData = {
       transactionId: transaction.transaction_id,
-      recipientName: transaction.recipient?.full_name || 'Unknown',
+      recipientName:
+        transaction.recipient?.full_name ||
+        (transaction.fulfillment_type === 'cash_hand'
+          ? transaction.delivery_address_line?.trim() || 'Cash delivery'
+          : 'Unknown'),
       sendAmount: transaction.send_amount,
       sendCurrency: transaction.send_currency,
       receiveAmount: transaction.receive_amount,

@@ -20,6 +20,9 @@ export interface CombinedTransaction {
   receive_amount?: number
   receive_currency?: string
   recipient?: any
+  fulfillment_type?: "bank_transfer" | "cash_hand"
+  delivery_address_line?: string | null
+  delivery_phone?: string | null
   /** Set for referral withdrawal rows (`REFERRAL_PAYOUT:…`). */
   reference?: string | null
 }
@@ -70,6 +73,9 @@ export const combinedTransactionService = {
       receive_amount: tx.receive_amount,
       receive_currency: tx.receive_currency,
       recipient: tx.recipient,
+      fulfillment_type: tx.fulfillment_type,
+      delivery_address_line: tx.delivery_address_line ?? null,
+      delivery_phone: tx.delivery_phone ?? null,
       reference: tx.reference ?? null,
     }))
 
@@ -126,6 +132,9 @@ export const combinedTransactionService = {
         receive_amount: tx.receive_amount,
         receive_currency: tx.receive_currency,
         recipient: tx.recipient,
+        fulfillment_type: tx.fulfillment_type,
+        delivery_address_line: tx.delivery_address_line ?? null,
+        delivery_phone: tx.delivery_phone ?? null,
         user: tx.user,
       }))
 

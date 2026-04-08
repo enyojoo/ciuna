@@ -425,7 +425,7 @@ export const transactionService = {
   async create(
     transactionData: {
       userId: string
-      recipientId: string
+      recipientId: string | null
       sendAmount: number
       sendCurrency: string
       receiveAmount: number
@@ -462,7 +462,7 @@ export const transactionService = {
         .insert({
           transaction_id: transactionId,
           user_id: transactionData.userId,
-          recipient_id: transactionData.recipientId,
+          recipient_id: transactionData.recipientId ?? null,
           send_amount: transactionData.sendAmount,
           send_currency: transactionData.sendCurrency,
           receive_amount: transactionData.receiveAmount,

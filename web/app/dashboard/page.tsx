@@ -25,10 +25,21 @@ interface Transaction {
   status: string
   created_at: string
   reference?: string | null
+  fulfillment_type?: "bank_transfer" | "cash_hand"
+  delivery_address_line?: string | null
+  delivery_phone?: string | null
   recipient?: {
     full_name: string
     bank_name?: string
   }
+}
+
+function sendRowRecipientLabel(tx: Transaction, fallback: string) {
+  if (tx.recipient?.full_name?.trim()) return tx.recipient.full_name
+  if (tx.fulfillment_type === "cash_hand" && tx.delivery_address_line?.trim()) {
+    return tx.delivery_address_line.trim()
+  }
+  return fallback
 }
 
 function isReferralPayoutRow(t: Transaction): boolean {
@@ -476,11 +487,16 @@ export default function UserDashboardPage() {
                               {t("dashboard.withdrawalTo")}
                             </p>
                             <p className="text-base font-semibold text-gray-900">
-                              {transaction.recipient?.full_name || t("dashboard.recipientFallback")}
+                              {sendRowRecipientLabel(transaction, t("dashboard.recipientFallback"))}
                             </p>
                             {transaction.recipient?.bank_name && (
                               <p className="text-sm text-gray-600 mt-0.5">{transaction.recipient.bank_name}</p>
                             )}
+                            {transaction.fulfillment_type === "cash_hand" &&
+                              transaction.delivery_phone?.trim() &&
+                              !transaction.recipient?.full_name && (
+                                <p className="mt-0.5 text-sm text-gray-600">{transaction.delivery_phone}</p>
+                              )}
                             <div className="mt-3 flex items-center justify-between gap-2 border-t border-indigo-100/80 pt-3 text-[clamp(0.875rem,2.5vmin,1.125rem)] sm:text-lg">
                               <span className="text-gray-600">{t("dashboard.recipientReceives")}</span>
                               <span className="font-semibold tabular-nums text-indigo-800">
@@ -527,8 +543,13 @@ export default function UserDashboardPage() {
                             {t("dashboard.to")}
                           </div>
                           <div className="text-base sm:text-lg font-semibold text-gray-900">
-                            {transaction.recipient?.full_name || t("dashboard.unknownRecipient")}
+                            {sendRowRecipientLabel(transaction, t("dashboard.unknownRecipient"))}
                           </div>
+                          {transaction.fulfillment_type === "cash_hand" &&
+                            transaction.delivery_phone?.trim() &&
+                            !transaction.recipient?.full_name && (
+                              <div className="mt-1 text-sm text-gray-600">{transaction.delivery_phone}</div>
+                            )}
                         </div>
 
                         {/* Amount Section */}

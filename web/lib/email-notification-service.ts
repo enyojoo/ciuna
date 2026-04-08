@@ -63,20 +63,26 @@ export class EmailNotificationService {
 
       console.log('User email found:', user.email)
 
-      // Get recipient name
-      console.log('Fetching recipient data...')
-      const { data: recipient, error: recipientError } = await supabase
-        .from('recipients')
-        .select('full_name')
-        .eq('id', transaction.recipient_id)
-        .single()
-
-      console.log('Recipient found:', recipient?.full_name || 'Unknown')
+      let recipientName = 'Unknown'
+      if (transaction.recipient_id) {
+        console.log('Fetching recipient data...')
+        const { data: recipient } = await supabase
+          .from('recipients')
+          .select('full_name')
+          .eq('id', transaction.recipient_id)
+          .single()
+        recipientName = recipient?.full_name || 'Unknown'
+        console.log('Recipient found:', recipientName)
+      } else if (transaction.fulfillment_type === 'cash_hand') {
+        recipientName =
+          (transaction.delivery_address_line as string | null)?.trim() || 'Cash delivery'
+        console.log('Cash delivery — using address line as display name')
+      }
 
       // Create email data
       const emailData: TransactionEmailData = {
         transactionId: transaction.transaction_id,
-        recipientName: recipient?.full_name || 'Unknown',
+        recipientName,
         sendAmount: transaction.send_amount,
         sendCurrency: transaction.send_currency,
         receiveAmount: transaction.receive_amount,
@@ -289,15 +295,20 @@ export class EmailNotificationService {
 
       console.log('User data found:', user.email)
 
-      // Get recipient name (exact same as user email method)
-      console.log('Fetching recipient data...')
-      const { data: recipient, error: recipientError } = await supabase
-        .from('recipients')
-        .select('full_name')
-        .eq('id', transaction.recipient_id)
-        .single()
-
-      console.log('Recipient found:', recipient?.full_name || 'Unknown')
+      let recipientName = 'Unknown'
+      if (transaction.recipient_id) {
+        console.log('Fetching recipient data...')
+        const { data: recipient } = await supabase
+          .from('recipients')
+          .select('full_name')
+          .eq('id', transaction.recipient_id)
+          .single()
+        recipientName = recipient?.full_name || 'Unknown'
+        console.log('Recipient found:', recipientName)
+      } else if (transaction.fulfillment_type === 'cash_hand') {
+        recipientName =
+          (transaction.delivery_address_line as string | null)?.trim() || 'Cash delivery'
+      }
 
       // Create admin email data
       const adminEmailData = {
@@ -312,7 +323,7 @@ export class EmailNotificationService {
         logisticsFee: transaction.logistics_fee_amount ?? 0,
         totalAmount: transaction.total_amount,
         fulfillmentType: transaction.fulfillment_type,
-        recipientName: recipient?.full_name || 'Unknown',
+        recipientName,
         userId: transaction.user_id,
         userEmail: user.email,
         userName: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Unknown',

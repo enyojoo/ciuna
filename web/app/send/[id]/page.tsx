@@ -842,6 +842,20 @@ function TransactionStatusPage() {
                     </div>
                   </div>
 
+                  {transaction.fulfillment_type === "cash_hand" &&
+                    (transaction.delivery_address_line || transaction.delivery_phone) && (
+                      <div className="pt-4 border-t">
+                        <h4 className="font-medium mb-2">{t("txDetail.cashDelivery")}</h4>
+                        <div className="space-y-1 text-sm">
+                          {transaction.delivery_address_line ? (
+                            <p className="text-gray-700">{transaction.delivery_address_line}</p>
+                          ) : null}
+                          {transaction.delivery_phone ? (
+                            <p className="text-gray-600">{transaction.delivery_phone}</p>
+                          ) : null}
+                        </div>
+                      </div>
+                    )}
                   {transaction.recipient && (
                     <div className="pt-4 border-t">
                       <h4 className="font-medium mb-2">{t("txDetail.recipient")}</h4>
@@ -850,18 +864,6 @@ function TransactionStatusPage() {
                         <p className="text-gray-600">{transaction.recipient.account_number}</p>
                         <p className="text-gray-600">{transaction.recipient.bank_name}</p>
                       </div>
-                      {transaction.fulfillment_type === "cash_hand" &&
-                        (transaction.delivery_address_line || transaction.delivery_phone) && (
-                          <div className="mt-3 space-y-1 border-t border-dashed pt-3 text-sm">
-                            <p className="font-medium">{t("txDetail.cashDelivery")}</p>
-                            {transaction.delivery_address_line ? (
-                              <p className="text-gray-700">{transaction.delivery_address_line}</p>
-                            ) : null}
-                            {transaction.delivery_phone ? (
-                              <p className="text-gray-600">{transaction.delivery_phone}</p>
-                            ) : null}
-                          </div>
-                        )}
                     </div>
                   )}
                 </CardContent>

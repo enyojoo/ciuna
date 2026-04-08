@@ -28,11 +28,22 @@ interface CombinedTransaction {
   send_currency?: string
   receive_amount?: number
   receive_currency?: string
+  fulfillment_type?: "bank_transfer" | "cash_hand"
+  delivery_address_line?: string | null
+  delivery_phone?: string | null
   recipient?: {
     full_name: string
     account_number: string
     bank_name: string
   }
+}
+
+function sendRowRecipientLabel(tx: CombinedTransaction, fallback: string) {
+  if (tx.recipient?.full_name?.trim()) return tx.recipient.full_name
+  if (tx.fulfillment_type === "cash_hand" && tx.delivery_address_line?.trim()) {
+    return tx.delivery_address_line.trim()
+  }
+  return fallback
 }
 
 const CACHE_TTL_MS = 5 * 60 * 1000
@@ -242,6 +253,8 @@ export default function UserTransactionsPage() {
     const matchesSearch =
       transaction.transaction_id?.toLowerCase().includes(searchLower) ||
       transaction.recipient?.full_name?.toLowerCase().includes(searchLower) ||
+      transaction.delivery_address_line?.toLowerCase().includes(searchLower) ||
+      transaction.delivery_phone?.replace(/\s/g, "").toLowerCase().includes(searchLower.replace(/\s/g, "")) ||
       (isReferralPayoutRow(transaction) &&
         searchLower.length >= 4 &&
         /referral|payout|withdraw/i.test(searchLower))
@@ -355,11 +368,16 @@ export default function UserTransactionsPage() {
                             {t("transactions.withdrawalTo")}
                           </p>
                           <p className="text-base font-semibold text-gray-900">
-                            {transaction.recipient?.full_name || t("transactions.recipientFallback")}
+                            {sendRowRecipientLabel(transaction, t("transactions.recipientFallback"))}
                           </p>
                           {transaction.recipient?.bank_name && (
                             <p className="text-sm text-gray-600 mt-0.5">{transaction.recipient.bank_name}</p>
                           )}
+                          {transaction.fulfillment_type === "cash_hand" &&
+                            transaction.delivery_phone?.trim() &&
+                            !transaction.recipient?.full_name && (
+                              <p className="mt-0.5 text-sm text-gray-600">{transaction.delivery_phone}</p>
+                            )}
                           <div className="mt-3 flex items-center justify-between gap-2 border-t border-indigo-100/80 pt-3 text-[clamp(0.875rem,2.5vmin,1.125rem)] sm:text-lg">
                             <span className="min-w-0 text-gray-600">{t("transactions.recipientReceives")}</span>
                             <span className="shrink-0 font-semibold tabular-nums text-indigo-800">
@@ -406,8 +424,13 @@ export default function UserTransactionsPage() {
                               {t("transactions.to")}
                             </div>
                             <div className="text-base sm:text-lg font-semibold text-gray-900">
-                              {transaction.recipient?.full_name || t("transactions.unknownRecipient")}
+                              {sendRowRecipientLabel(transaction, t("transactions.unknownRecipient"))}
                             </div>
+                            {transaction.fulfillment_type === "cash_hand" &&
+                              transaction.delivery_phone?.trim() &&
+                              !transaction.recipient?.full_name && (
+                                <div className="mt-1 text-sm text-gray-600">{transaction.delivery_phone}</div>
+                              )}
                           </div>
 
                           {/* Amount Section */}

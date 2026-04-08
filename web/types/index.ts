@@ -71,7 +71,7 @@ export interface Transaction {
   id: string
   transaction_id: string
   user_id: string
-  recipient_id: string
+  recipient_id: string | null
   send_amount: number
   send_currency: string
   receive_amount: number

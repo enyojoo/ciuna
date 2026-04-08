@@ -252,6 +252,16 @@ export default function UserSendPage() {
       recipient.currency === receiveCurrency,
   )
 
+  const filteredDeliveryAddresses = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase()
+    if (!q) return deliveryAddresses
+    return deliveryAddresses.filter(
+      (a) =>
+        a.address_line.toLowerCase().includes(q) ||
+        a.phone.replace(/\s/g, "").toLowerCase().includes(q.replace(/\s/g, "").toLowerCase()),
+    )
+  }, [deliveryAddresses, searchTerm])
+
   const handleSelectRecipient = (recipient: any) => {
     setSelectedRecipientId(recipient.id)
     setRecipientData({
@@ -590,6 +600,18 @@ export default function UserSendPage() {
     }
   }, [fulfillmentResolution])
 
+  useEffect(() => {
+    if (!fulfillmentResolution.ok) return
+    if (fulfillmentResolution.fulfillment !== "cash_hand") return
+    setSelectedRecipientId("")
+    setRecipientData({
+      fullName: "",
+      accountNumber: "",
+      bankName: "",
+      phoneNumber: "",
+    })
+  }, [fulfillmentResolution])
+
   const handleResendVerificationEmail = async () => {
     if (!user?.email) return
     
@@ -632,7 +654,7 @@ export default function UserSendPage() {
       setCurrentStep(currentStep + 1)
     } else if (currentStep === 3) {
       // Create transaction in database
-      if (!userProfile?.id || !selectedRecipientId) return
+      if (!userProfile?.id) return
 
       try {
         setIsCreatingTransaction(true)
@@ -644,6 +666,9 @@ export default function UserSendPage() {
 
         const fulfillment =
           fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand" ? "cash_hand" : "bank_transfer"
+        if (fulfillment === "bank_transfer" && !selectedRecipientId) return
+        if (fulfillment === "cash_hand" && !selectedDeliveryAddressId) return
+
         const selectedDelivery =
           fulfillment === "cash_hand"
             ? deliveryAddresses.find((d) => d.id === selectedDeliveryAddressId)
@@ -651,7 +676,7 @@ export default function UserSendPage() {
 
         const transaction = await transactionService.create({
           userId: userProfile.id,
-          recipientId: selectedRecipientId,
+          recipientId: fulfillment === "cash_hand" ? null : selectedRecipientId,
           sendAmount: Number.parseFloat(sendAmount),
           sendCurrency,
           receiveAmount: Number.parseFloat(receiveAmount),
@@ -757,31 +782,36 @@ export default function UserSendPage() {
           </div>
         </div>
 
-        {currentStep >= 2 && recipientData.fullName && (
-          <div className="pt-4 border-t">
-            <h4 className="font-medium mb-2">{t("send.recipientLabel")}</h4>
-            <div className="space-y-1 text-sm">
-              <p className="font-medium">{recipientData.fullName}</p>
-              <p className="text-gray-600">{recipientData.accountNumber}</p>
-              <p className="text-gray-600">{recipientData.bankName}</p>
+        {currentStep >= 2 &&
+          fulfillmentResolution.ok &&
+          fulfillmentResolution.fulfillment === "cash_hand" &&
+          selectedDeliveryAddressId && (
+            <div className="pt-4 border-t">
+              <h4 className="font-medium mb-2">{t("send.cashDeliverySummary")}</h4>
+              {(() => {
+                const da = deliveryAddresses.find((d: { id: string }) => d.id === selectedDeliveryAddressId)
+                if (!da) return null
+                return (
+                  <div className="space-y-1 text-sm">
+                    <p className="text-gray-700">{da.address_line}</p>
+                    <p className="text-gray-600">{da.phone}</p>
+                  </div>
+                )
+              })()}
             </div>
-            {fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand" && selectedDeliveryAddressId ? (
-              <div className="mt-3 space-y-1 border-t border-dashed pt-3 text-sm">
-                <p className="font-medium">{t("send.cashDeliverySummary")}</p>
-                {(() => {
-                  const da = deliveryAddresses.find((d: { id: string }) => d.id === selectedDeliveryAddressId)
-                  if (!da) return null
-                  return (
-                    <>
-                      <p className="text-gray-700">{da.address_line}</p>
-                      <p className="text-gray-600">{da.phone}</p>
-                    </>
-                  )
-                })()}
+          )}
+        {currentStep >= 2 &&
+          (!fulfillmentResolution.ok || fulfillmentResolution.fulfillment !== "cash_hand") &&
+          recipientData.fullName && (
+            <div className="pt-4 border-t">
+              <h4 className="font-medium mb-2">{t("send.recipientLabel")}</h4>
+              <div className="space-y-1 text-sm">
+                <p className="font-medium">{recipientData.fullName}</p>
+                <p className="text-gray-600">{recipientData.accountNumber}</p>
+                <p className="text-gray-600">{recipientData.bankName}</p>
               </div>
-            ) : null}
-          </div>
-        )}
+            </div>
+          )}
         {currentStep >= 3 && transactionId && (
           <div className="pt-4 border-t">
             <p className="text-sm text-gray-600">{t("send.transactionId")}</p>
@@ -1037,7 +1067,11 @@ export default function UserSendPage() {
               {currentStep === 2 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>{t("send.addRecipient")}</CardTitle>
+                    <CardTitle>
+                      {fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand"
+                        ? t("send.cashStep2Title")
+                        : t("send.addRecipient")}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     {fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand" && (
@@ -1064,19 +1098,127 @@ export default function UserSendPage() {
                       </div>
                     )}
 
-                    {/* Search Bar */}
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                      <Input
-                        placeholder={t("send.searchRecipients")}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 h-12 bg-gray-50 border-0 rounded-xl"
-                      />
-                    </div>
+                    {fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand" && (
+                      <div className="space-y-4">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
+                          <Input
+                            placeholder={t("send.searchDeliveryAddresses")}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="h-12 rounded-xl border-0 bg-gray-50 pl-10"
+                          />
+                        </div>
+                        <Dialog open={isAddDeliveryDialogOpen} onOpenChange={setIsAddDeliveryDialogOpen}>
+                          <DialogTrigger asChild>
+                            <div className="flex cursor-pointer items-center justify-between rounded-xl border border-gray-100 bg-white p-4 transition-colors hover:border-primary/20">
+                              <div className="flex items-center space-x-3">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500">
+                                  <Plus className="h-6 w-6 text-white" />
+                                </div>
+                                <span className="font-medium text-gray-900">{t("send.addDeliveryAddress")}</span>
+                              </div>
+                              <ChevronRight className="h-5 w-5 text-gray-400" />
+                            </div>
+                          </DialogTrigger>
+                          <DialogContent className="mx-auto max-h-[90vh] w-[95vw] max-w-md flex flex-col">
+                            <DialogHeader>
+                              <DialogTitle>{t("send.addDeliveryAddressTitle")}</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4 pr-2">
+                              <div className="space-y-2">
+                                <Label htmlFor="deliveryLine">{t("send.deliveryAddressLine")}</Label>
+                                <Input
+                                  id="deliveryLine"
+                                  value={newDeliveryData.addressLine}
+                                  onChange={(e) =>
+                                    setNewDeliveryData({ ...newDeliveryData, addressLine: e.target.value })
+                                  }
+                                  placeholder={t("send.deliveryAddressLinePlaceholder")}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="deliveryPhone">{t("send.deliveryPhone")}</Label>
+                                <Input
+                                  id="deliveryPhone"
+                                  value={newDeliveryData.phone}
+                                  onChange={(e) => setNewDeliveryData({ ...newDeliveryData, phone: e.target.value })}
+                                  placeholder={t("send.deliveryPhonePlaceholder")}
+                                />
+                              </div>
+                              <Button
+                                className="w-full bg-primary hover:bg-primary/90"
+                                onClick={handleAddNewDelivery}
+                                disabled={!newDeliveryData.addressLine.trim() || !newDeliveryData.phone.trim()}
+                              >
+                                {t("send.saveDeliveryAddress")}
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
 
-                    {/* Add New Recipient Option */}
-                    <Dialog open={isAddRecipientDialogOpen} onOpenChange={setIsAddRecipientDialogOpen}>
+                        <div className="space-y-2">
+                          {filteredDeliveryAddresses.map((addr: { id: string; address_line: string; phone: string }) => (
+                            <div
+                              key={addr.id}
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => setSelectedDeliveryAddressId(addr.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault()
+                                  setSelectedDeliveryAddressId(addr.id)
+                                }
+                              }}
+                              className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-colors ${
+                                selectedDeliveryAddressId === addr.id
+                                  ? "border-primary bg-primary/5"
+                                  : "border-gray-100 bg-white hover:border-primary/20"
+                              }`}
+                            >
+                              <div className="min-w-0 text-left">
+                                <p className="font-medium text-gray-900">{addr.address_line}</p>
+                                <p className="text-sm text-gray-600">{addr.phone}</p>
+                              </div>
+                              {selectedDeliveryAddressId === addr.id && (
+                                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary">
+                                  <Check className="h-4 w-4 text-white" />
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        {filteredDeliveryAddresses.length === 0 && searchTerm.trim() && (
+                          <div className="py-8 text-center text-gray-500">
+                            <p>{t("send.noDeliverySearch", { term: searchTerm })}</p>
+                          </div>
+                        )}
+
+                        {deliveryAddresses.length === 0 && !searchTerm.trim() && (
+                          <div className="py-8 text-center text-gray-500">
+                            <p>{t("send.noDeliveryAddressesYet")}</p>
+                            <p className="text-sm">{t("send.addDeliveryHint")}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {!(fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand") && (
+                      <>
+                        {/* Search Bar */}
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
+                          <Input
+                            placeholder={t("send.searchRecipients")}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="h-12 rounded-xl border-0 bg-gray-50 pl-10"
+                          />
+                        </div>
+
+                        {/* Add New Recipient Option */}
+                        <Dialog open={isAddRecipientDialogOpen} onOpenChange={setIsAddRecipientDialogOpen}>
                       <DialogTrigger asChild>
                         <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:border-primary/20 cursor-pointer transition-colors">
                           <div className="flex items-center space-x-3">
@@ -1551,91 +1693,6 @@ export default function UserSendPage() {
                       ))}
                     </div>
 
-                    {fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand" && (
-                      <div className="space-y-3 border-t border-gray-100 pt-6">
-                        <h4 className="text-sm font-medium text-gray-800">{t("send.deliveryAddressSection")}</h4>
-                        <Dialog open={isAddDeliveryDialogOpen} onOpenChange={setIsAddDeliveryDialogOpen}>
-                          <DialogTrigger asChild>
-                            <div className="flex cursor-pointer items-center justify-between rounded-xl border border-gray-100 bg-white p-4 transition-colors hover:border-primary/20">
-                              <div className="flex items-center space-x-3">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500">
-                                  <Plus className="h-6 w-6 text-white" />
-                                </div>
-                                <span className="font-medium text-gray-900">{t("send.addDeliveryAddress")}</span>
-                              </div>
-                              <ChevronRight className="h-5 w-5 text-gray-400" />
-                            </div>
-                          </DialogTrigger>
-                          <DialogContent className="mx-auto max-h-[90vh] w-[95vw] max-w-md flex flex-col">
-                            <DialogHeader>
-                              <DialogTitle>{t("send.addDeliveryAddressTitle")}</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4 pr-2">
-                              <div className="space-y-2">
-                                <Label htmlFor="deliveryLine">{t("send.deliveryAddressLine")}</Label>
-                                <Input
-                                  id="deliveryLine"
-                                  value={newDeliveryData.addressLine}
-                                  onChange={(e) =>
-                                    setNewDeliveryData({ ...newDeliveryData, addressLine: e.target.value })
-                                  }
-                                  placeholder={t("send.deliveryAddressLinePlaceholder")}
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="deliveryPhone">{t("send.deliveryPhone")}</Label>
-                                <Input
-                                  id="deliveryPhone"
-                                  value={newDeliveryData.phone}
-                                  onChange={(e) => setNewDeliveryData({ ...newDeliveryData, phone: e.target.value })}
-                                  placeholder={t("send.deliveryPhonePlaceholder")}
-                                />
-                              </div>
-                              <Button
-                                className="w-full bg-primary hover:bg-primary/90"
-                                onClick={handleAddNewDelivery}
-                                disabled={!newDeliveryData.addressLine.trim() || !newDeliveryData.phone.trim()}
-                              >
-                                {t("send.saveDeliveryAddress")}
-                              </Button>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-
-                        <div className="space-y-2">
-                          {deliveryAddresses.map((addr: { id: string; address_line: string; phone: string }) => (
-                            <div
-                              key={addr.id}
-                              role="button"
-                              tabIndex={0}
-                              onClick={() => setSelectedDeliveryAddressId(addr.id)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                  e.preventDefault()
-                                  setSelectedDeliveryAddressId(addr.id)
-                                }
-                              }}
-                              className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-colors ${
-                                selectedDeliveryAddressId === addr.id
-                                  ? "border-primary bg-primary/5"
-                                  : "border-gray-100 bg-white hover:border-primary/20"
-                              }`}
-                            >
-                              <div className="min-w-0 text-left">
-                                <p className="font-medium text-gray-900">{addr.address_line}</p>
-                                <p className="text-sm text-gray-600">{addr.phone}</p>
-                              </div>
-                              {selectedDeliveryAddressId === addr.id && (
-                                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary">
-                                  <Check className="h-4 w-4 text-white" />
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
                     {filteredSavedRecipients.length === 0 && searchTerm && (
                       <div className="text-center py-8 text-gray-500">
                         <p>{t("send.noRecipientsSearch", { term: searchTerm })}</p>
@@ -1648,6 +1705,8 @@ export default function UserSendPage() {
                         <p className="text-sm">{t("send.addRecipientHint")}</p>
                       </div>
                     )}
+                      </>
+                    )}
 
                     <div className="flex gap-3 sm:gap-4">
                       <Button variant="outline" onClick={handleBack} className="min-h-12 flex-1 bg-transparent">
@@ -1657,10 +1716,9 @@ export default function UserSendPage() {
                       <Button
                         onClick={handleContinue}
                         disabled={
-                          !selectedRecipientId ||
-                          (fulfillmentResolution.ok &&
-                            fulfillmentResolution.fulfillment === "cash_hand" &&
-                            !selectedDeliveryAddressId)
+                          fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand"
+                            ? !selectedDeliveryAddressId
+                            : !selectedRecipientId
                         }
                         className="min-h-12 flex-1 rounded-xl bg-primary text-base font-semibold hover:bg-primary/90"
                       >
