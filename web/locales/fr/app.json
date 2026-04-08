@@ -208,7 +208,7 @@
     "youSendLabel": "Vous envoyez",
     "totalToPay": "Total à payer",
     "recipientGetsLabel": "Le bénéficiaire reçoit",
-    "arrivesIn": "Réception sous",
+    "arrivesIn": "Arrive sous",
     "arrivalDurationHours_one": "{{count}} heure",
     "arrivalDurationHours_other": "{{count}} heures",
     "arrivalDurationMinutes_one": "{{count}} minute",
