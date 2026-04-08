@@ -208,7 +208,7 @@
     "youSendLabel": "You Send",
     "totalToPay": "Total to Pay",
     "recipientGetsLabel": "Recipient Gets",
-    "arrivesIn": "Arrives in",
+    "arrivesIn": "Arrives within",
     "arrivalDurationHours_one": "{{count}} hour",
     "arrivalDurationHours_other": "{{count}} hours",
     "arrivalDurationMinutes_one": "{{count}} minute",
