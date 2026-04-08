@@ -529,7 +529,7 @@ const AdminRatesPage = () => {
             <div className="space-y-6">
               <div className="max-h-[400px] overflow-y-auto space-y-4 pr-2">
                 {getCurrencyRates(selectedCurrency?.code || "").map((rate: any) => (
-                  <div key={rate.to_currency} className="border rounded-lg p-4 space-y-4">
+                  <div key={rate.to_currency} className="office-panel-card">
                     <div className="flex items-center gap-2 text-lg font-medium">
                       <span>{selectedCurrency.code}</span>
                       <span>→</span>

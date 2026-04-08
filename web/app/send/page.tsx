@@ -51,6 +51,7 @@ import {
   formatIBAN,
   formatAccountNumber,
 } from "@/lib/formatters"
+import { cn } from "@/lib/utils"
 
 function formatReceiveArrivalDuration(
   totalSeconds: number,
@@ -1111,7 +1112,7 @@ export default function UserSendPage() {
                         </div>
                         <Dialog open={isAddDeliveryDialogOpen} onOpenChange={setIsAddDeliveryDialogOpen}>
                           <DialogTrigger asChild>
-                            <div className="flex cursor-pointer items-center justify-between rounded-xl border border-gray-100 bg-white p-4 transition-colors hover:border-primary/20">
+                            <div className={cn("selectable-row", "selectable-row--idle")}>
                               <div className="flex items-center space-x-3">
                                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500">
                                   <Plus className="h-6 w-6 text-white" />
@@ -1170,11 +1171,12 @@ export default function UserSendPage() {
                                   setSelectedDeliveryAddressId(addr.id)
                                 }
                               }}
-                              className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-colors ${
+                              className={cn(
+                                "selectable-row",
                                 selectedDeliveryAddressId === addr.id
-                                  ? "border-primary bg-primary/5"
-                                  : "border-gray-100 bg-white hover:border-primary/20"
-                              }`}
+                                  ? "selectable-row--selected"
+                                  : "selectable-row--idle",
+                              )}
                             >
                               <div className="min-w-0 text-left">
                                 <p className="font-medium text-gray-900">{addr.address_line}</p>
@@ -1220,7 +1222,7 @@ export default function UserSendPage() {
                         {/* Add New Recipient Option */}
                         <Dialog open={isAddRecipientDialogOpen} onOpenChange={setIsAddRecipientDialogOpen}>
                       <DialogTrigger asChild>
-                        <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:border-primary/20 cursor-pointer transition-colors">
+                        <div className={cn("selectable-row", "selectable-row--idle")}>
                           <div className="flex items-center space-x-3">
                             <div className="w-12 h-12 bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                               <Plus className="h-6 w-6 text-white" />
@@ -1297,22 +1299,24 @@ export default function UserSendPage() {
                                         <button
                                           type="button"
                                           onClick={() => setNewRecipientData({ ...newRecipientData, transferType: "ACH" })}
-                                          className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                                          className={cn(
+                                            "selectable-toggle",
                                             newRecipientData.transferType === "ACH"
-                                              ? "border-primary bg-primary/5 text-primary font-medium"
-                                              : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
-                                          }`}
+                                              ? "selectable-toggle--selected"
+                                              : "selectable-toggle--idle",
+                                          )}
                                         >
                                           ACH
                                         </button>
                                         <button
                                           type="button"
                                           onClick={() => setNewRecipientData({ ...newRecipientData, transferType: "Wire" })}
-                                          className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                                          className={cn(
+                                            "selectable-toggle",
                                             newRecipientData.transferType === "Wire"
-                                              ? "border-primary bg-primary/5 text-primary font-medium"
-                                              : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
-                                          }`}
+                                              ? "selectable-toggle--selected"
+                                              : "selectable-toggle--idle",
+                                          )}
                                         >
                                           Wire
                                         </button>
@@ -1327,22 +1331,24 @@ export default function UserSendPage() {
                                         <button
                                           type="button"
                                           onClick={() => setNewRecipientData({ ...newRecipientData, checkingOrSavings: "checking" })}
-                                          className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                                          className={cn(
+                                            "selectable-toggle",
                                             newRecipientData.checkingOrSavings === "checking"
-                                              ? "border-primary bg-primary/5 text-primary font-medium"
-                                              : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
-                                          }`}
+                                              ? "selectable-toggle--selected"
+                                              : "selectable-toggle--idle",
+                                          )}
                                         >
                                           {t("recipients.checking")}
                                         </button>
                                         <button
                                           type="button"
                                           onClick={() => setNewRecipientData({ ...newRecipientData, checkingOrSavings: "savings" })}
-                                          className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                                          className={cn(
+                                            "selectable-toggle",
                                             newRecipientData.checkingOrSavings === "savings"
-                                              ? "border-primary bg-primary/5 text-primary font-medium"
-                                              : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
-                                          }`}
+                                              ? "selectable-toggle--selected"
+                                              : "selectable-toggle--idle",
+                                          )}
                                         >
                                           {t("recipients.savings")}
                                         </button>
@@ -1634,11 +1640,12 @@ export default function UserSendPage() {
                         <div
                           key={recipient.id}
                           onClick={() => handleSelectRecipient(recipient)}
-                          className={`flex items-center justify-between p-4 bg-white rounded-xl border cursor-pointer transition-colors ${
+                          className={cn(
+                            "selectable-row",
                             selectedRecipientId === recipient.id
-                              ? "border-primary bg-primary/5"
-                              : "border-gray-100 hover:border-primary/20"
-                          }`}
+                              ? "selectable-row--selected"
+                              : "selectable-row--idle",
+                          )}
                         >
                           <div className="flex items-center space-x-3">
                             <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center relative">
@@ -1738,7 +1745,7 @@ export default function UserSendPage() {
                   <CardContent className="space-y-6">
                     {/* Transfer amount and description */}
                     <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 border border-primary rounded-lg flex items-center justify-center">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-primary shadow-sm ring-2 ring-primary/25">
                           {sendCurrencyData && <CurrencyFlagIcon currency={sendCurrencyData} />}
                         </div>
                         <div>
@@ -2289,15 +2296,16 @@ export default function UserSendPage() {
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
-                        className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+                        className={cn(
+                          "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all duration-200",
                           isDragOver
-                            ? "border-primary bg-primary/5"
+                            ? "border-primary bg-primary/[0.06] shadow-sm ring-2 ring-primary/35"
                             : uploadedFile
                               ? "border-green-300 bg-green-50"
                               : uploadError
                                 ? "border-red-300 bg-red-50"
-                                : "border-gray-200 hover:border-primary/30"
-                        }`}
+                                : "border-gray-200 hover:border-primary/35",
+                        )}
                       >
                         <div className="flex items-center justify-center gap-3">
                           <div

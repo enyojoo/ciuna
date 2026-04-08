@@ -20,6 +20,7 @@ import { kycService, KYCSubmission } from "@/lib/kyc-service"
 import { countryService, Country, getCountryFlag } from "@/lib/country-service"
 import { useTranslation } from "react-i18next"
 import { formatLocaleDateShort } from "@/lib/format-date-locale"
+import { cn } from "@/lib/utils"
 
 export default function IdentityVerificationPage() {
   const { t, i18n } = useTranslation("app")
@@ -518,15 +519,16 @@ export default function IdentityVerificationPage() {
                           onDragOver={handleDragOver}
                           onDragLeave={handleDragLeave}
                           onDrop={handleDrop}
-                          className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+                          className={cn(
+                            "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all duration-200",
                             isDragOver
-                              ? "border-primary bg-primary/5"
+                              ? "border-primary bg-primary/[0.06] shadow-sm ring-2 ring-primary/35"
                               : identityFile
                                 ? "border-green-300 bg-green-50"
                                 : uploadError
                                   ? "border-red-300 bg-red-50"
-                                  : "border-gray-200 hover:border-primary/30"
-                          }`}
+                                  : "border-gray-200 hover:border-primary/35",
+                          )}
                         >
                           <div className="flex items-center justify-center gap-3">
                             <div
@@ -711,15 +713,16 @@ export default function IdentityVerificationPage() {
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+                  className={cn(
+                    "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all duration-200",
                     isDragOver
-                      ? "border-primary bg-primary/5"
+                      ? "border-primary bg-primary/[0.06] shadow-sm ring-2 ring-primary/35"
                       : identityFile
                         ? "border-green-300 bg-green-50"
                         : uploadError
                           ? "border-red-300 bg-red-50"
-                          : "border-gray-200 hover:border-primary/30"
-                  }`}
+                          : "border-gray-200 hover:border-primary/35",
+                  )}
                 >
                   <div className="flex items-center justify-center gap-3">
                     <div

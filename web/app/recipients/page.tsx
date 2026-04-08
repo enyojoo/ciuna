@@ -27,6 +27,7 @@ import {
 } from "@/lib/formatters"
 import { AppPageHeader } from "@/components/layout/app-page-header"
 import { accountFieldLabel, accountFieldPlaceholder } from "@/lib/account-field-i18n"
+import { cn } from "@/lib/utils"
 
 const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitting, currencies, onSubmit }) => {
   const { t } = useTranslation("app")
@@ -162,11 +163,12 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, transferType: "ACH" })}
-                    className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                    className={cn(
+                      "selectable-toggle",
                       formData.transferType === "ACH"
-                        ? "border-primary bg-primary/5 text-primary font-medium"
-                        : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
-                    }`}
+                        ? "selectable-toggle--selected"
+                        : "selectable-toggle--idle",
+                    )}
                     disabled={isSubmitting}
                   >
                     ACH
@@ -174,11 +176,12 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, transferType: "Wire" })}
-                    className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                    className={cn(
+                      "selectable-toggle",
                       formData.transferType === "Wire"
-                        ? "border-primary bg-primary/5 text-primary font-medium"
-                        : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
-                    }`}
+                        ? "selectable-toggle--selected"
+                        : "selectable-toggle--idle",
+                    )}
                     disabled={isSubmitting}
                   >
                     Wire
@@ -194,11 +197,12 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, checkingOrSavings: "checking" })}
-                    className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                    className={cn(
+                      "selectable-toggle",
                       formData.checkingOrSavings === "checking"
-                        ? "border-primary bg-primary/5 text-primary font-medium"
-                        : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
-                    }`}
+                        ? "selectable-toggle--selected"
+                        : "selectable-toggle--idle",
+                    )}
                     disabled={isSubmitting}
                   >
                     {t("recipients.checking")}
@@ -206,11 +210,12 @@ const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitt
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, checkingOrSavings: "savings" })}
-                    className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                    className={cn(
+                      "selectable-toggle",
                       formData.checkingOrSavings === "savings"
-                        ? "border-primary bg-primary/5 text-primary font-medium"
-                        : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
-                    }`}
+                        ? "selectable-toggle--selected"
+                        : "selectable-toggle--idle",
+                    )}
                     disabled={isSubmitting}
                   >
                     {t("recipients.savings")}
