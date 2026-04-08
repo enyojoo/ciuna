@@ -820,24 +820,20 @@ function TransactionStatusPage() {
                         {transaction.receive_currency}
                       </span>
                     </div>
-                    <div className="flex min-w-0 items-start justify-between gap-2">
-                      <span className="min-w-0 text-gray-600">{t("txDetail.logisticsFee")}</span>
-                      <span
-                        className={`shrink-0 text-right font-medium tabular-nums ${
-                          transaction.fulfillment_type === "cash_hand"
-                            ? (transaction.logistics_fee_amount ?? 0) === 0
-                              ? "text-green-600"
-                              : "text-gray-900"
-                            : "text-gray-400"
-                        }`}
-                      >
-                        {transaction.fulfillment_type === "cash_hand"
-                          ? (transaction.logistics_fee_amount ?? 0) === 0
+                    {transaction.fulfillment_type === "cash_hand" ? (
+                      <div className="flex min-w-0 items-start justify-between gap-2">
+                        <span className="min-w-0 text-gray-600">{t("txDetail.logisticsFee")}</span>
+                        <span
+                          className={`shrink-0 text-right font-medium tabular-nums ${
+                            (transaction.logistics_fee_amount ?? 0) === 0 ? "text-green-600" : "text-gray-900"
+                          }`}
+                        >
+                          {(transaction.logistics_fee_amount ?? 0) === 0
                             ? t("txDetail.free")
-                            : formatCurrency(transaction.logistics_fee_amount ?? 0, transaction.send_currency)
-                          : "—"}
-                      </span>
-                    </div>
+                            : formatCurrency(transaction.logistics_fee_amount ?? 0, transaction.send_currency)}
+                        </span>
+                      </div>
+                    ) : null}
                     <div className="flex min-w-0 items-start justify-between gap-2 border-t pt-2">
                       <span className="min-w-0 text-gray-600">{t("txDetail.totalPaid")}</span>
                       <span className="shrink-0 text-right font-semibold tabular-nums">

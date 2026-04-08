@@ -737,24 +737,18 @@ export default function UserSendPage() {
               {receiveCurrency}
             </span>
           </div>
-          <div className="flex min-w-0 items-start justify-between gap-2">
-            <span className="min-w-0 text-gray-600">{t("send.logisticsFeeLabel")}</span>
-            <span
-              className={`shrink-0 text-right font-semibold tabular-nums ${
-                fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand"
-                  ? logisticsFee === 0
-                    ? "text-green-600"
-                    : "text-gray-900"
-                  : "text-gray-400"
-              }`}
-            >
-              {fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand"
-                ? logisticsFee === 0
-                  ? t("send.free")
-                  : formatCurrency(logisticsFee, sendCurrency)
-                : "—"}
-            </span>
-          </div>
+          {fulfillmentResolution.ok && fulfillmentResolution.fulfillment === "cash_hand" ? (
+            <div className="flex min-w-0 items-start justify-between gap-2">
+              <span className="min-w-0 text-gray-600">{t("send.logisticsFeeLabel")}</span>
+              <span
+                className={`shrink-0 text-right font-semibold tabular-nums ${
+                  logisticsFee === 0 ? "text-green-600" : "text-gray-900"
+                }`}
+              >
+                {logisticsFee === 0 ? t("send.free") : formatCurrency(logisticsFee, sendCurrency)}
+              </span>
+            </div>
+          ) : null}
           <div className="flex min-w-0 items-start justify-between gap-2 border-t pt-2">
             <span className="min-w-0 text-gray-600">{t("send.totalToPay")}</span>
             <span className="shrink-0 text-right text-[clamp(1rem,2.8vmin,1.125rem)] font-semibold tabular-nums">
