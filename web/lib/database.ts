@@ -1,6 +1,7 @@
 import { supabase, createServerClient } from "./supabase"
 import { dataCache, CACHE_KEYS } from "./cache"
 import { generateTransactionId } from "./transaction-id"
+import { roundMoney } from "@/utils/currency"
 
 // User operations
 export const userService = {
@@ -463,17 +464,17 @@ export const transactionService = {
           transaction_id: transactionId,
           user_id: transactionData.userId,
           recipient_id: transactionData.recipientId ?? null,
-          send_amount: transactionData.sendAmount,
+          send_amount: roundMoney(transactionData.sendAmount),
           send_currency: transactionData.sendCurrency,
-          receive_amount: transactionData.receiveAmount,
+          receive_amount: roundMoney(transactionData.receiveAmount),
           receive_currency: transactionData.receiveCurrency,
           exchange_rate: transactionData.exchangeRate,
-          fee_amount: transactionData.feeAmount,
+          fee_amount: roundMoney(transactionData.feeAmount),
           fee_type: transactionData.feeType,
-          total_amount: transactionData.totalAmount,
+          total_amount: roundMoney(transactionData.totalAmount),
           reference: transactionData.reference,
           fulfillment_type: transactionData.fulfillmentType ?? "bank_transfer",
-          logistics_fee_amount: transactionData.logisticsFeeAmount ?? 0,
+          logistics_fee_amount: roundMoney(transactionData.logisticsFeeAmount ?? 0),
           logistics_fee_type_snapshot: transactionData.logisticsFeeTypeSnapshot ?? null,
           delivery_address_line: transactionData.deliveryAddressLine ?? null,
           delivery_phone: transactionData.deliveryPhone ?? null,

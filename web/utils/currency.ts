@@ -89,9 +89,38 @@ export const formatNumber = (num: number): string => {
   return num.toFixed(0)
 }
 
+/** Round fiat-style amounts to avoid float noise (e.g. 50.0000000001 → 50). */
+export function roundMoney(amount: number, fractionDigits = 2): number {
+  if (!Number.isFinite(amount)) return 0
+  const f = 10 ** fractionDigits
+  return Math.round(amount * f) / f
+}
+
+/**
+ * Plain numeric amount for copy next to an ISO currency code (emails, SMS).
+ * Does not include a symbol.
+ */
+export function formatAmountPlain(amount: number, fractionDigits = 2): string {
+  return roundMoney(amount, fractionDigits).toLocaleString("en-US", {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  })
+}
+
+/** FX rate for emails/UI without long float tails. */
+export function formatExchangeRateForEmail(rate: number): string {
+  if (!Number.isFinite(rate)) return "0"
+  const cleaned = Number.parseFloat(Number(rate).toPrecision(12))
+  return cleaned.toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 8,
+  })
+}
+
 export const formatCurrency = (amount: number, currency: string): string => {
   const curr = currencies.find((c) => c.code === currency)
-  return `${curr?.symbol || ""}${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const rounded = roundMoney(amount)
+  return `${curr?.symbol || ""}${rounded.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export const formatCurrencyWithRounding = (amount: number, currency: string): string => {

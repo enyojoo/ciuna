@@ -1,4 +1,5 @@
 import type { ExchangeRate } from "@/types"
+import { roundMoney } from "@/utils/currency"
 
 export type FulfillmentType = "bank_transfer" | "cash_hand"
 
@@ -74,11 +75,11 @@ export function computeLogisticsFee(
 
   if (t === "fixed") {
     const inReceive = Number(rate.logistics_fee_amount) || 0
-    return inReceive / fx
+    return roundMoney(inReceive / fx)
   }
   if (t === "percentage") {
     const inReceive = (receiveAmount * (Number(rate.logistics_fee_amount) || 0)) / 100
-    return inReceive / fx
+    return roundMoney(inReceive / fx)
   }
   return 0
 }

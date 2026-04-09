@@ -7,6 +7,7 @@ import {
   resolveTierPercent,
 } from "@/lib/referral-program"
 import { buildRateMap, convertWithRateMap } from "@/lib/referral-currency"
+import { roundMoney } from "@/utils/currency"
 
 export const REFERRAL_PAYOUT_PREFIX = "REFERRAL_PAYOUT:"
 
@@ -17,8 +18,8 @@ function policyToDisplayAmount(
   rateMap: Map<string, number>,
 ): { amount: number; currency: string } {
   const converted = convertWithRateMap(amountPolicy, policyCurrency, displayCurrency, rateMap)
-  if (converted > 0) return { amount: converted, currency: displayCurrency }
-  return { amount: amountPolicy, currency: policyCurrency }
+  if (converted > 0) return { amount: roundMoney(converted), currency: displayCurrency }
+  return { amount: roundMoney(amountPolicy), currency: policyCurrency }
 }
 
 function transactionCompletedAtIso(tx: Transaction): string {
@@ -252,7 +253,7 @@ export async function processReferralRewardsOnCompletedSend(transaction: Transac
       }
 
       if (effectiveFraction <= 0) return
-      const rewardPolicy = sendInPolicy * effectiveFraction
+      const rewardPolicy = roundMoney(sendInPolicy * effectiveFraction)
       if (rewardPolicy <= 0) return
 
       const display = policyToDisplayAmount(rewardPolicy, policy, referrerBase, rateMap)
@@ -307,7 +308,7 @@ export async function processReferralRewardsOnCompletedSend(transaction: Transac
 
     if (existingThreshold) return
 
-    const rewardPolicy = program.reward_amount
+    const rewardPolicy = roundMoney(program.reward_amount)
     const display = policyToDisplayAmount(rewardPolicy, policy, referrerBase, rateMap)
 
     const { error: insErr } = await supabase.from("referral_rewards").insert({

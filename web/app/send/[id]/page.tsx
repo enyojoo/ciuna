@@ -17,6 +17,7 @@ import { supabase } from "@/lib/supabase"
 import type { Transaction } from "@/types"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 import { formatLocaleDateTimeLine } from "@/lib/format-date-locale"
+import { roundMoney } from "@/utils/currency"
 
 const TX_DETAIL_CACHE_VERSION = 1
 /** Hide “took / delayed” copy under the amount after this long post-completion */
@@ -453,7 +454,8 @@ function TransactionStatusPage() {
     const numAmount = typeof amount === "string" ? Number.parseFloat(amount) : amount
     const currencyData = currencies.find((c) => c.code === currency)
     const symbol = currencyData?.symbol || currency
-    return `${symbol}${numAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    const a = roundMoney(Number.isFinite(numAmount) ? numAmount : 0)
+    return `${symbol}${a.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   }
 
   const handleCopy = async (text: string, key: string) => {

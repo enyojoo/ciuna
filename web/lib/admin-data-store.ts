@@ -1,4 +1,5 @@
 import { supabase } from "./supabase"
+import { roundMoney } from "@/utils/currency"
 
 interface AdminData {
   users: any[]
@@ -662,7 +663,8 @@ class AdminDataStore {
       EUR: "€",
       GBP: "£",
     }
-    return `${symbols[currency] || ""}${amount.toLocaleString("en-US", {
+    const a = roundMoney(amount)
+    return `${symbols[currency] || ""}${a.toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`

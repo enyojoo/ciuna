@@ -2,6 +2,23 @@
 
 import { generateBaseEmailTemplate, generateTransactionDetails } from './email-generator'
 import type { EmailTemplate, ReferralPayoutEmailData, TransactionEmailData, WelcomeEmailData } from './email-types'
+import { formatAmountPlain, formatExchangeRateForEmail } from '@/utils/currency'
+
+/** Plain-text transaction detail lines (amounts, fee, logistics, rate, total). */
+function formatTxEmailPlainMoneyLines(data: TransactionEmailData): string {
+  const logisticsLine =
+    (data.logisticsFee ?? 0) > 0
+      ? `\n- Logistics fee: ${formatAmountPlain(data.logisticsFee ?? 0)} ${data.sendCurrency}`
+      : ""
+  const totalLine =
+    data.totalAmount != null
+      ? `\n- Total paid: ${formatAmountPlain(data.totalAmount)} ${data.sendCurrency}`
+      : ""
+  return `- Amount: ${formatAmountPlain(data.sendAmount)} ${data.sendCurrency}
+- Receiving: ${formatAmountPlain(data.receiveAmount)} ${data.receiveCurrency}
+- Rate Used: 1 ${data.sendCurrency} = ${formatExchangeRateForEmail(data.exchangeRate)} ${data.receiveCurrency}
+- Exchange fee: ${formatAmountPlain(data.fee)} ${data.sendCurrency}${logisticsLine}${totalLine}`
+}
 
 export const emailTemplates: Record<string, EmailTemplate> = {
   // Welcome Email
@@ -105,10 +122,7 @@ Your transfer to ${data.recipientName} has been created and is now being process
 Transaction Details:
 - Transaction ID: ${data.transactionId}
 - Recipient: ${data.recipientName}
-- Amount: ${data.sendAmount} ${data.sendCurrency}
-- Receiving: ${data.receiveAmount} ${data.receiveCurrency}
-- Rate Used: 1 ${data.sendCurrency} = ${data.exchangeRate} ${data.receiveCurrency}
-- Exchange fee: ${data.fee} ${data.sendCurrency}${(data.logisticsFee ?? 0) > 0 ? `\n- Logistics fee: ${data.logisticsFee} ${data.sendCurrency}` : ""}${data.totalAmount != null ? `\n- Total paid: ${data.totalAmount} ${data.sendCurrency}` : ""}
+${formatTxEmailPlainMoneyLines(data)}
 - Status: ${data.status}
 
 What's Next:
@@ -156,10 +170,7 @@ Great news! We've received your payment and your transfer to ${data.recipientNam
 Transaction Details:
 - Transaction ID: ${data.transactionId}
 - Recipient: ${data.recipientName}
-- Amount: ${data.sendAmount} ${data.sendCurrency}
-- Receiving: ${data.receiveAmount} ${data.receiveCurrency}
-- Rate Used: 1 ${data.sendCurrency} = ${data.exchangeRate} ${data.receiveCurrency}
-- Exchange fee: ${data.fee} ${data.sendCurrency}${(data.logisticsFee ?? 0) > 0 ? `\n- Logistics fee: ${data.logisticsFee} ${data.sendCurrency}` : ""}${data.totalAmount != null ? `\n- Total paid: ${data.totalAmount} ${data.sendCurrency}` : ""}
+${formatTxEmailPlainMoneyLines(data)}
 - Status: ${data.status}
 
 What's Happening:
@@ -207,10 +218,7 @@ Your transfer to ${data.recipientName} has been completed successfully! The mone
 Transaction Details:
 - Transaction ID: ${data.transactionId}
 - Recipient: ${data.recipientName}
-- Amount: ${data.sendAmount} ${data.sendCurrency}
-- Receiving: ${data.receiveAmount} ${data.receiveCurrency}
-- Rate Used: 1 ${data.sendCurrency} = ${data.exchangeRate} ${data.receiveCurrency}
-- Exchange fee: ${data.fee} ${data.sendCurrency}${(data.logisticsFee ?? 0) > 0 ? `\n- Logistics fee: ${data.logisticsFee} ${data.sendCurrency}` : ""}${data.totalAmount != null ? `\n- Total paid: ${data.totalAmount} ${data.sendCurrency}` : ""}
+${formatTxEmailPlainMoneyLines(data)}
 - Status: ${data.status}
 
 What's Next:
@@ -259,10 +267,7 @@ ${data.failureReason ? `Reason: ${data.failureReason}` : 'Please contact support
 Transaction Details:
 - Transaction ID: ${data.transactionId}
 - Recipient: ${data.recipientName}
-- Amount: ${data.sendAmount} ${data.sendCurrency}
-- Receiving: ${data.receiveAmount} ${data.receiveCurrency}
-- Rate Used: 1 ${data.sendCurrency} = ${data.exchangeRate} ${data.receiveCurrency}
-- Exchange fee: ${data.fee} ${data.sendCurrency}${(data.logisticsFee ?? 0) > 0 ? `\n- Logistics fee: ${data.logisticsFee} ${data.sendCurrency}` : ""}${data.totalAmount != null ? `\n- Total paid: ${data.totalAmount} ${data.sendCurrency}` : ""}
+${formatTxEmailPlainMoneyLines(data)}
 - Status: ${data.status}
 
 What Happens Next:
@@ -311,10 +316,7 @@ ${data.failureReason ? `Reason: ${data.failureReason}` : 'This may have been can
 Transaction Details:
 - Transaction ID: ${data.transactionId}
 - Recipient: ${data.recipientName}
-- Amount: ${data.sendAmount} ${data.sendCurrency}
-- Receiving: ${data.receiveAmount} ${data.receiveCurrency}
-- Rate Used: 1 ${data.sendCurrency} = ${data.exchangeRate} ${data.receiveCurrency}
-- Exchange fee: ${data.fee} ${data.sendCurrency}${(data.logisticsFee ?? 0) > 0 ? `\n- Logistics fee: ${data.logisticsFee} ${data.sendCurrency}` : ""}${data.totalAmount != null ? `\n- Total paid: ${data.totalAmount} ${data.sendCurrency}` : ""}
+${formatTxEmailPlainMoneyLines(data)}
 - Status: ${data.status}
 
 Refund Information:
@@ -332,7 +334,7 @@ Need help? Contact us at support@ciuna.com
         ? `Referral payout request — #${data.payoutTransactionId}`
         : `Referral payout request received${data.payoutRequestId ? ` — ${data.payoutRequestId.slice(0, 8)}…` : ""}`,
     html: (data: ReferralPayoutEmailData) => {
-      const amt = `${data.currency} ${data.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      const amt = `${data.currency} ${formatAmountPlain(data.amount)}`
       const ref = data.payoutTransactionId
         ? `<p class="confirmation-text" style="font-size:14px;color:#64748b;">Transaction ID: ${data.payoutTransactionId}</p>`
         : data.payoutRequestId
@@ -355,7 +357,7 @@ Need help? Contact us at support@ciuna.com
       })
     },
     text: (data: ReferralPayoutEmailData) => {
-      const amt = `${data.currency} ${data.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      const amt = `${data.currency} ${formatAmountPlain(data.amount)}`
       return `Referral payout request received
 
 Hi ${data.firstName},
@@ -370,9 +372,9 @@ View referrals: ${data.dashboardUrl}
 
   referralPayoutCompleted: {
     subject: (data: ReferralPayoutEmailData) =>
-      `Referral payout sent — ${data.currency} ${data.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      `Referral payout sent — ${data.currency} ${formatAmountPlain(data.amount)}`,
     html: (data: ReferralPayoutEmailData) => {
-      const amt = `${data.currency} ${data.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      const amt = `${data.currency} ${formatAmountPlain(data.amount)}`
       const content = `
         <p class="confirmation-text">
           Hi ${data.firstName}, your referral reward withdrawal of ${amt} to ${data.recipientName} has been completed.
@@ -386,7 +388,7 @@ View referrals: ${data.dashboardUrl}
       })
     },
     text: (data: ReferralPayoutEmailData) => {
-      const amt = `${data.currency} ${data.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      const amt = `${data.currency} ${formatAmountPlain(data.amount)}`
       return `Referral payout completed
 
 Hi ${data.firstName},
@@ -402,7 +404,7 @@ View activity: ${data.dashboardUrl}
   referralPayoutCancelled: {
     subject: (_data: ReferralPayoutEmailData) => `Referral payout request cancelled`,
     html: (data: ReferralPayoutEmailData) => {
-      const amt = `${data.currency} ${data.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      const amt = `${data.currency} ${formatAmountPlain(data.amount)}`
       const content = `
         <p class="confirmation-text">
           Hi ${data.firstName}, your referral payout request for ${amt} to ${data.recipientName} has been cancelled.
@@ -415,7 +417,7 @@ View activity: ${data.dashboardUrl}
       })
     },
     text: (data: ReferralPayoutEmailData) => {
-      const amt = `${data.currency} ${data.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      const amt = `${data.currency} ${formatAmountPlain(data.amount)}`
       return `Referral payout cancelled
 
 Hi ${data.firstName},

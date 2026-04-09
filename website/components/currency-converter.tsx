@@ -9,6 +9,11 @@ import { ChevronDown, Search } from "lucide-react"
 import { currencyService } from "@/lib/currency-service"
 import type { Currency, ExchangeRate } from "@ciuna/shared"
 
+function roundMoney(amount: number): number {
+  if (!Number.isFinite(amount)) return 0
+  return Math.round(amount * 100) / 100
+}
+
 interface CurrencyConverterProps {
   onSendMoney: (data: {
     sendAmount: string
@@ -129,7 +134,8 @@ export function CurrencyConverter({ onSendMoney }: CurrencyConverterProps) {
 
   const formatCurrency = (amount: number, currency: string): string => {
     const curr = currencies.find((c) => c.code === currency)
-    return `${curr?.symbol || ""}${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    const a = roundMoney(amount)
+    return `${curr?.symbol || ""}${a.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   }
 
   const FlagIcon = ({ currency }: { currency: Currency }) => {

@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation"
 import { DashboardSkeleton } from "@/components/dashboard-skeleton"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 import { formatLocaleDateShort } from "@/lib/format-date-locale"
+import { roundMoney } from "@/utils/currency"
 
 interface Transaction {
   id: string
@@ -209,10 +210,11 @@ export default function UserDashboardPage() {
   const formatCurrencyValue = (amount: number, currencyCode: string) => {
     try {
       const currency = currencies?.find((c) => c && c.code === currencyCode)
-      return `${currency?.symbol || ""}${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      const a = roundMoney(amount)
+      return `${currency?.symbol || ""}${a.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     } catch (error) {
       console.error("Error formatting currency:", error)
-      return `${currencyCode} ${amount.toFixed(2)}`
+      return `${currencyCode} ${roundMoney(amount).toFixed(2)}`
     }
   }
 

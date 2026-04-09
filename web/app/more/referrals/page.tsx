@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useRouter } from "next/navigation"
 import { Trans, useTranslation } from "react-i18next"
 import { formatLocaleDateTimeMedium } from "@/lib/format-date-locale"
+import { roundMoney } from "@/utils/currency"
 
 interface ReferralRow {
   id: string
@@ -47,15 +48,16 @@ interface TierCommissionPayload {
 }
 
 function formatPolicyMoney(amount: number, currency: string, locale: string) {
+  const a = roundMoney(amount)
   try {
     return new Intl.NumberFormat(locale, {
       style: "currency",
       currency,
       currencyDisplay: "narrowSymbol",
       maximumFractionDigits: 2,
-    }).format(amount)
+    }).format(a)
   } catch {
-    return `${amount.toFixed(2)} ${currency}`
+    return `${a.toFixed(2)} ${currency}`
   }
 }
 

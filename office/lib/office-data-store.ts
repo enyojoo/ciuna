@@ -1,5 +1,6 @@
 import { supabase } from "./supabase"
 import { officeFetch } from "./api-client"
+import { roundMoney } from "@/utils/currency"
 
 interface AdminData {
   users: any[]
@@ -698,7 +699,8 @@ class OfficeDataStore {
       EUR: "€",
       GBP: "£",
     }
-    return `${symbols[currency] || ""}${amount.toLocaleString("en-US", {
+    const a = roundMoney(amount)
+    return `${symbols[currency] || ""}${a.toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`

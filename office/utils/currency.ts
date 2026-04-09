@@ -89,9 +89,32 @@ export const formatNumber = (num: number): string => {
   return num.toFixed(0)
 }
 
+export function roundMoney(amount: number, fractionDigits = 2): number {
+  if (!Number.isFinite(amount)) return 0
+  const f = 10 ** fractionDigits
+  return Math.round(amount * f) / f
+}
+
+export function formatAmountPlain(amount: number, fractionDigits = 2): string {
+  return roundMoney(amount, fractionDigits).toLocaleString("en-US", {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  })
+}
+
+export function formatExchangeRateForEmail(rate: number): string {
+  if (!Number.isFinite(rate)) return "0"
+  const cleaned = Number.parseFloat(Number(rate).toPrecision(12))
+  return cleaned.toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 8,
+  })
+}
+
 export const formatCurrency = (amount: number, currency: string): string => {
   const curr = currencies.find((c) => c.code === currency)
-  return `${curr?.symbol || ""}${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const rounded = roundMoney(amount)
+  return `${curr?.symbol || ""}${rounded.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export const formatCurrencyWithRounding = (amount: number, currency: string): string => {

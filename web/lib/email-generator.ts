@@ -1,5 +1,6 @@
 // Email template generator using the provided design system
 
+import { formatAmountPlain, formatExchangeRateForEmail } from "@/utils/currency"
 import { SEO_EMAIL_LOGO_DARK_URL, SEO_EMAIL_LOGO_LIGHT_URL } from "./seo"
 
 export function generateBaseEmailTemplate(
@@ -413,6 +414,14 @@ export function generateBaseEmailTemplate(
 }
 
 export function generateTransactionDetails(data: any): string {
+  const sendAmt = formatAmountPlain(Number(data.sendAmount) || 0)
+  const recvAmt = formatAmountPlain(Number(data.receiveAmount) || 0)
+  const rateStr = formatExchangeRateForEmail(Number(data.exchangeRate) || 0)
+  const feeStr = formatAmountPlain(Number(data.fee) || 0)
+  const logStr = formatAmountPlain(Number(data.logisticsFee) || 0)
+  const totalStr =
+    data.totalAmount != null ? formatAmountPlain(Number(data.totalAmount) || 0) : null
+
   return `
     <div class="transaction-details">
       <h3>Transaction Details</h3>
@@ -426,35 +435,35 @@ export function generateTransactionDetails(data: any): string {
       </div>
       <div class="detail-row">
         <span class="detail-label">Amount: </span>
-        <span class="detail-value">${data.sendAmount} ${data.sendCurrency}</span>
+        <span class="detail-value">${sendAmt} ${data.sendCurrency}</span>
       </div>
       <div class="detail-row">
         <span class="detail-label">Receiving: </span>
-        <span class="detail-value">${data.receiveAmount} ${data.receiveCurrency}</span>
+        <span class="detail-value">${recvAmt} ${data.receiveCurrency}</span>
       </div>
       <div class="detail-row">
         <span class="detail-label">Rate Used: </span>
-        <span class="detail-value">1 ${data.sendCurrency} = ${data.exchangeRate} ${data.receiveCurrency}</span>
+        <span class="detail-value">1 ${data.sendCurrency} = ${rateStr} ${data.receiveCurrency}</span>
       </div>
       <div class="detail-row">
         <span class="detail-label">Exchange fee: </span>
-        <span class="detail-value">${data.fee} ${data.sendCurrency}</span>
+        <span class="detail-value">${feeStr} ${data.sendCurrency}</span>
       </div>
       ${
         (data.logisticsFee ?? 0) > 0
           ? `
       <div class="detail-row">
         <span class="detail-label">Logistics fee: </span>
-        <span class="detail-value">${data.logisticsFee} ${data.sendCurrency}</span>
+        <span class="detail-value">${logStr} ${data.sendCurrency}</span>
       </div>`
           : ""
       }
       ${
-        data.totalAmount != null
+        totalStr != null
           ? `
       <div class="detail-row">
         <span class="detail-label">Total paid: </span>
-        <span class="detail-value">${data.totalAmount} ${data.sendCurrency}</span>
+        <span class="detail-value">${totalStr} ${data.sendCurrency}</span>
       </div>`
           : ""
       }

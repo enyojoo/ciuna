@@ -6,6 +6,7 @@ import { Users, CreditCard, TrendingUp, AlertCircle, Activity, Clock, CheckCircl
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useOfficeData } from "@/hooks/use-office-data"
+import { roundMoney } from "@/utils/currency"
 
 function OfficeDashboardSkeleton() {
   return (
@@ -117,7 +118,8 @@ export default function AdminDashboardPage() {
       EUR: "€",
       GBP: "£",
     }
-    return `${symbols[baseCurrency] || ""}${amount.toLocaleString("en-US", {
+    const a = roundMoney(amount)
+    return `${symbols[baseCurrency] || ""}${a.toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`

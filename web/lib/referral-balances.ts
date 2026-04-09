@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { getReferralProgramSettingsServer } from "@/lib/referral-program"
 import { buildRateMap, convertWithRateMap } from "@/lib/referral-currency"
+import { roundMoney } from "@/utils/currency"
 
 export interface ReferralBalances {
   policyCurrency: string
@@ -50,9 +51,9 @@ export async function computeReferralBalances(
 
   return {
     policyCurrency: policy,
-    totalEarnedPolicy,
-    totalPaidOutPolicy,
-    totalReservedPolicy,
-    availablePolicy,
+    totalEarnedPolicy: roundMoney(totalEarnedPolicy),
+    totalPaidOutPolicy: roundMoney(totalPaidOutPolicy),
+    totalReservedPolicy: roundMoney(totalReservedPolicy),
+    availablePolicy: roundMoney(availablePolicy),
   }
 }

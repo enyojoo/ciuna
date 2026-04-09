@@ -12,17 +12,19 @@ import {
 import { buildRateMap, convertWithRateMap } from "@/lib/referral-currency"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 import { APP_URLS } from "@ciuna/shared"
+import { roundMoney } from "@/utils/currency"
 
 function formatMoney(amount: number, currency: string) {
+  const a = roundMoney(amount)
   try {
     return new Intl.NumberFormat(undefined, {
       style: "currency",
       currency,
       currencyDisplay: "narrowSymbol",
       maximumFractionDigits: 2,
-    }).format(amount)
+    }).format(a)
   } catch {
-    return `${amount.toFixed(2)} ${currency}`
+    return `${a.toFixed(2)} ${currency}`
   }
 }
 
@@ -157,7 +159,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
       availablePolicy: balances.availablePolicy,
       totalEarnedPolicy: balances.totalEarnedPolicy,
       /** Numeric available in user base currency (for client payout validation) */
-      availableAmountBase: availableDisplay > 0 ? availableDisplay : balances.availablePolicy,
+      availableAmountBase: roundMoney(availableDisplay > 0 ? availableDisplay : balances.availablePolicy),
       availableDisplay: formatMoney(availableDisplay > 0 ? availableDisplay : balances.availablePolicy, base),
       lifetimeDisplay: formatMoney(lifetimeDisplay > 0 ? lifetimeDisplay : balances.totalEarnedPolicy, base),
       displayCurrency: base,
