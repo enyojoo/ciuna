@@ -410,9 +410,13 @@ export default function UserTransactionsPage() {
                         <div className="flex items-center gap-2 flex-wrap">
                           {isHub ? (
                             <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
-                              Hub
+                              {t("dashboard.hub")}
                             </span>
-                          ) : null}
+                          ) : (
+                            <span className="inline-flex rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-900">
+                              {t("transactions.sendBadge")}
+                            </span>
+                          )}
                           <span className="text-xs sm:text-sm text-gray-500 font-mono">
                             {transaction.transaction_id}
                           </span>
@@ -431,7 +435,7 @@ export default function UserTransactionsPage() {
                           {/* Recipient Info */}
                           <div className="mb-4 sm:mb-5">
                             <div className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide mb-1">
-                              {isHub ? "Product" : t("transactions.to")}
+                              {isHub ? t("transactions.orderLabel") : t("transactions.to")}
                             </div>
                             <div className="text-base sm:text-lg font-semibold text-gray-900">
                               {sendRowRecipientLabel(transaction, t("transactions.unknownRecipient"))}
@@ -447,7 +451,7 @@ export default function UserTransactionsPage() {
                           <div className="mb-4 space-y-2 sm:mb-5 sm:space-y-3">
                             <div className="flex min-w-0 items-center justify-between gap-2">
                               <span className="min-w-0 text-xs uppercase tracking-wide text-gray-600 sm:text-sm">
-                                {t("transactions.sendAmount")}
+                                {isHub ? t("transactions.amountPaid") : t("transactions.sendAmount")}
                               </span>
                               <span className="shrink-0 text-right text-app-tx-amount font-semibold tabular-nums text-gray-900">
                                 {formatAmount(transaction.send_amount || 0, transaction.send_currency || "")}
@@ -455,7 +459,7 @@ export default function UserTransactionsPage() {
                             </div>
                             <div className="flex min-w-0 items-center justify-between gap-2">
                               <span className="min-w-0 text-xs uppercase tracking-wide text-gray-600 sm:text-sm">
-                                {t("transactions.receiveAmount")}
+                                {isHub ? t("transactions.orderAmount") : t("transactions.receiveAmount")}
                               </span>
                               <span className="shrink-0 text-right text-app-tx-amount font-semibold tabular-nums text-green-600">
                                 {formatAmount(transaction.receive_amount || 0, transaction.receive_currency || "")}

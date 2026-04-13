@@ -4,7 +4,7 @@ import type React from "react"
 import { useMemo, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, LayoutDashboard, Send, History, LogOut, X, UserPlus, Store } from "lucide-react"
+import { Home, LayoutDashboard, Send, History, LogOut, X, Store } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { BrandLogo } from "@/components/brand/brand-logo"
 import { Button } from "@/components/ui/button"
@@ -27,7 +27,6 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
       { name: t("nav.home"), href: "/dashboard", icon: Home },
       { name: t("nav.sendMoney"), href: "/send", icon: Send },
       { name: t("nav.hub"), href: "/hub", icon: Store },
-      { name: t("nav.recipients"), href: "/recipients", icon: UserPlus },
       { name: t("nav.transactions"), href: "/transactions", icon: History },
       { name: t("nav.more"), href: "/more", icon: LayoutDashboard },
     ],

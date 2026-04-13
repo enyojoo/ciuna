@@ -30,6 +30,8 @@ export function TransactionTimeline({ transaction }: TransactionTimelineProps) {
     const isReferralPayout =
       typeof transaction.reference === "string" && transaction.reference.startsWith(REFERRAL_PAYOUT_PREFIX)
 
+    const isHub = transaction.transaction_source === "hub"
+
     if (isReferralPayout) {
       return [
         {
@@ -78,8 +80,8 @@ export function TransactionTimeline({ transaction }: TransactionTimelineProps) {
       },
       {
         id: "processing",
-        title: t("txTimeline.processingSend"),
-        description: t("txTimeline.processingSendDesc"),
+        title: isHub ? t("txTimeline.hubProcessingSend") : t("txTimeline.processingSend"),
+        description: isHub ? t("txTimeline.hubProcessingSendDesc") : t("txTimeline.processingSendDesc"),
         icon: <ArrowRight className="h-5 w-5" />,
         completed: status === "processing" || status === "completed",
         timestamp:

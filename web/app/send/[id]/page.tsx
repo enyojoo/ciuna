@@ -19,6 +19,12 @@ import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 import { formatLocaleDateTimeLine } from "@/lib/format-date-locale"
 import { roundMoney } from "@/utils/currency"
 
+const HUB_ORDER_TIMER_SECONDS = 3600
+
+function isHubOrderTx(tx: Transaction | null | undefined): boolean {
+  return tx?.transaction_source === "hub"
+}
+
 const TX_DETAIL_CACHE_VERSION = 1
 /** Hide “took / delayed” copy under the amount after this long post-completion */
 const COMPLETED_TIMER_DISPLAY_TTL_MS = 24 * 60 * 60 * 1000
@@ -80,6 +86,7 @@ function TransactionStatusPage() {
 
   useEffect(() => {
     if (!transaction || currencies.length === 0) return
+    if (isHubOrderTx(transaction)) return
     const row = currencies.find((c) => c.code === transaction.receive_currency)
     setTimerDuration(row?.receive_completion_timer_seconds ?? 3600)
   }, [transaction, currencies])
@@ -260,11 +267,18 @@ function TransactionStatusPage() {
     }
   }, [transactionId, user?.id]) // Remove transaction from deps to prevent re-subscription
 
+  const getEffectiveTimerSeconds = (): number => {
+    if (!transaction) return 3600
+    return isHubOrderTx(transaction) ? HUB_ORDER_TIMER_SECONDS : timerDuration
+  }
+
   const getTimeInfo = () => {
     if (!transaction) return { timeRemaining: 0, isOverdue: false, elapsedTime: 0 }
 
     const createdAt = new Date(transaction.created_at).getTime()
-    const estimatedCompletionTime = 30 * 60 * 1000 // 30 minutes in milliseconds
+    const estimatedCompletionTime = isHubOrderTx(transaction)
+      ? HUB_ORDER_TIMER_SECONDS * 1000
+      : 30 * 60 * 1000 // 30 minutes in milliseconds (send transfers)
     const targetCompletionTime = createdAt + estimatedCompletionTime
     const elapsedTime = currentTime - createdAt
     const timeRemaining = Math.max(0, targetCompletionTime - currentTime)
@@ -298,7 +312,7 @@ function TransactionStatusPage() {
   // Calculate remaining time for pending/processing
   const getRemainingTime = (): number => {
     const elapsed = getElapsedTime()
-    const remaining = timerDuration - elapsed
+    const remaining = getEffectiveTimerSeconds() - elapsed
     return Math.max(0, remaining)
   }
 
@@ -306,7 +320,7 @@ function TransactionStatusPage() {
   const getDelay = (): number => {
     if (!transaction) return 0
     const elapsed = getElapsedTime()
-    const delay = elapsed - timerDuration
+    const delay = elapsed - getEffectiveTimerSeconds()
     return Math.max(0, delay)
   }
 
@@ -597,7 +611,7 @@ function TransactionStatusPage() {
 
   const isReferralPayout =
     typeof transaction.reference === "string" && transaction.reference.startsWith(REFERRAL_PAYOUT_PREFIX)
-  const isHub = (transaction as { transaction_source?: string }).transaction_source === "hub"
+  const isHub = isHubOrderTx(transaction)
 
   const statusMessage = getStatusMessage(transaction.status, isReferralPayout)
   const statusSteps = getStatusSteps(transaction.status)
@@ -607,7 +621,7 @@ function TransactionStatusPage() {
     <div className="min-w-0 space-y-0">
       <AppPageHeader
         title={
-          isReferralPayout ? t("txDetail.referralPayout") : isHub ? "Hub order" : t("txDetail.transfer")
+          isReferralPayout ? t("txDetail.referralPayout") : isHub ? t("txDetail.hubOrderTitle") : t("txDetail.transfer")
         }
         backHref={isReferralPayout ? "/more/referrals" : "/transactions"}
       />
@@ -733,7 +747,7 @@ function TransactionStatusPage() {
 
                   {isHub && (transaction as { hub_snapshot?: Record<string, unknown> }).hub_snapshot ? (
                     <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-4 space-y-2 text-sm">
-                      <p className="font-semibold text-amber-900">Hub order</p>
+                      <p className="font-semibold text-amber-900">{t("txDetail.hubOrderTitle")}</p>
                       {typeof (transaction as { hub_snapshot: { productTitle?: string } }).hub_snapshot.productTitle === "string" ? (
                         <p className="text-gray-900 font-medium">
                           {(transaction as { hub_snapshot: { productTitle: string } }).hub_snapshot.productTitle}
@@ -785,7 +799,7 @@ function TransactionStatusPage() {
                     )}
                     {isHub && (
                       <Button variant="outline" onClick={() => router.push("/hub")} className="flex-1">
-                        Back to Hub
+                        {t("hub.backToHub")}
                       </Button>
                     )}
                     {isReferralPayout && (
@@ -828,7 +842,13 @@ function TransactionStatusPage() {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex min-w-0 items-start justify-between gap-2">
-                      <span className="min-w-0 text-gray-600">{isReferralPayout ? t("txDetail.withdrawalAmount") : t("txDetail.youSent")}</span>
+                      <span className="min-w-0 text-gray-600">
+                        {isReferralPayout
+                          ? t("txDetail.withdrawalAmount")
+                          : isHub
+                            ? t("txDetail.hubAmountPaid")
+                            : t("txDetail.youSent")}
+                      </span>
                       <span className="shrink-0 text-right font-semibold tabular-nums">
                         {formatCurrency(transaction.send_amount, transaction.send_currency)}
                       </span>
@@ -844,7 +864,9 @@ function TransactionStatusPage() {
                       </span>
                     </div>
                     <div className="flex min-w-0 items-start justify-between gap-2">
-                      <span className="min-w-0 text-gray-600">{t("txDetail.recipientGets")}</span>
+                      <span className="min-w-0 text-gray-600">
+                        {isHub ? t("txDetail.hubOrderAmount") : t("txDetail.recipientGets")}
+                      </span>
                       <span className="shrink-0 text-right font-semibold tabular-nums">
                         {formatCurrency(transaction.receive_amount, transaction.receive_currency)}
                       </span>

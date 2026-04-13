@@ -1,17 +1,22 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useTranslation } from "react-i18next"
 import { useAuth } from "@/lib/auth-context"
 import { fetchWithAuth } from "@/lib/fetch-with-auth"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import type { HubProductRow } from "@/lib/hub-types"
+import {
+  isHubCatalogCacheFresh,
+  readStaleHubCatalogCache,
+  writeHubCatalogCache,
+} from "@/lib/hub-client-cache"
 import { ChevronRight } from "lucide-react"
 
 const HERO_TITLE = "Ciuna Hub"
-const HERO_SUBTITLE = "A marketplace to order foreign services and products you need."
 
 function formatPrice(amount: number | null, currency: string | null): string {
   if (amount == null) return "—"
@@ -19,12 +24,32 @@ function formatPrice(amount: number | null, currency: string | null): string {
 }
 
 export default function HubCatalogPage() {
-  const { user, loading: authLoading } = useAuth()
+  const { t } = useTranslation("app")
+  const { user, userProfile, loading: authLoading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [products, setProducts] = useState<HubProductRow[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const selectedCategory = (searchParams.get("category") || "").trim()
+  const cacheUserId = userProfile?.id ?? user?.id ?? ""
+
+  useLayoutEffect(() => {
+    if (authLoading || !cacheUserId) return
+    setProducts((prev) => {
+      if (prev.length > 0) return prev
+      const stale = readStaleHubCatalogCache(cacheUserId)
+      if (stale && stale.length > 0) return stale
+      return prev
+    })
+    const stale = readStaleHubCatalogCache(cacheUserId)
+    const hasRows = (stale?.length ?? 0) > 0
+    const cacheFresh = isHubCatalogCacheFresh(cacheUserId)
+    if (!cacheFresh && !hasRows) {
+      setLoading(true)
+    } else {
+      setLoading(false)
+    }
+  }, [authLoading, cacheUserId])
 
   useEffect(() => {
     if (authLoading) return
@@ -32,13 +57,22 @@ export default function HubCatalogPage() {
       router.push("/auth/login")
       return
     }
+    if (!cacheUserId) return
+    if (isHubCatalogCacheFresh(cacheUserId)) {
+      return
+    }
+
     let cancelled = false
     ;(async () => {
       try {
         const res = await fetchWithAuth("/api/hub/products")
         if (!res.ok) throw new Error("load")
         const data = await res.json()
-        if (!cancelled) setProducts(data.products || [])
+        const list = (data.products || []) as HubProductRow[]
+        if (!cancelled) {
+          setProducts(list)
+          writeHubCatalogCache(cacheUserId, list)
+        }
       } catch {
         if (!cancelled) setProducts([])
       } finally {
@@ -48,7 +82,7 @@ export default function HubCatalogPage() {
     return () => {
       cancelled = true
     }
-  }, [user, authLoading, router])
+  }, [user, authLoading, router, cacheUserId])
 
   const grouped = useMemo(() => {
     const map = new Map<string, HubProductRow[]>()
@@ -66,7 +100,7 @@ export default function HubCatalogPage() {
     ? grouped.filter((g) => g.category.toLowerCase() === selectedCategory.toLowerCase())
     : grouped
 
-  if (authLoading || (!user && !loading)) {
+  if (authLoading || (!user && !authLoading)) {
     return (
       <div className="min-w-0">
         <div className="px-4 py-5 sm:px-6 mx-auto w-full max-w-5xl space-y-5 animate-pulse">
@@ -89,21 +123,21 @@ export default function HubCatalogPage() {
       <div className="px-4 py-5 sm:px-6 space-y-5 mx-auto w-full max-w-5xl">
         <section className="rounded-2xl bg-gradient-to-br from-orange-600 via-orange-500 to-amber-400 px-5 py-6 text-white shadow-sm">
           <h2 className="text-2xl font-bold leading-tight">{HERO_TITLE}</h2>
-          <p className="mt-2 text-sm/6 text-orange-50 max-w-xl">{HERO_SUBTITLE}</p>
+          <p className="mt-2 text-sm/6 text-orange-50 max-w-xl">{t("hub.catalogSubtitle")}</p>
         </section>
 
         {selectedCategory ? (
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-700">
-              Showing category: <span className="font-semibold">{selectedCategory}</span>
+              {t("hub.showingCategory")} <span className="font-semibold">{selectedCategory}</span>
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/hub">All categories</Link>
+              <Link href="/hub">{t("hub.allCategories")}</Link>
             </Button>
           </div>
         ) : null}
 
-        {loading ? (
+        {loading && products.length === 0 ? (
           <div className="space-y-6 animate-pulse">
             {[1, 2].map((row) => (
               <section key={row} className="space-y-3">
@@ -118,7 +152,7 @@ export default function HubCatalogPage() {
           </div>
         ) : products.length === 0 || visibleSections.length === 0 ? (
           <Card>
-            <CardContent className="py-10 text-center text-gray-600">No products available yet.</CardContent>
+            <CardContent className="py-10 text-center text-gray-600">{t("hub.noProducts")}</CardContent>
           </Card>
         ) : (
           <div className="space-y-6">
@@ -128,7 +162,7 @@ export default function HubCatalogPage() {
                   <h3 className="text-2xl font-semibold text-gray-900">{category}</h3>
                   <Button asChild variant="ghost" size="sm" className="text-primary">
                     <Link href={`/hub?category=${encodeURIComponent(category)}`}>
-                      All
+                      {t("hub.all")}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Link>
                   </Button>
@@ -152,7 +186,7 @@ export default function HubCatalogPage() {
                                 />
                               ) : (
                                 <div className="h-full w-full flex items-center justify-center text-xs text-gray-500">
-                                  No image
+                                  {t("hub.noImage")}
                                 </div>
                               )}
                             </div>
@@ -170,10 +204,10 @@ export default function HubCatalogPage() {
                                   {formatPrice(p.fixed_amount, p.fixed_currency)}
                                 </p>
                               ) : (
-                                <p className="text-sm text-gray-600">Set amount</p>
+                                <p className="text-sm text-gray-600">{t("hub.setAmount")}</p>
                               )}
                               <Button asChild size="sm" className="w-full h-8 text-xs">
-                                <Link href={`/hub/${p.id}`}>{p.pricing_type === "fixed" ? "Buy" : "Order"}</Link>
+                                <Link href={`/hub/${p.id}`}>{p.pricing_type === "fixed" ? t("hub.buy") : t("hub.order")}</Link>
                               </Button>
                             </div>
                           </div>

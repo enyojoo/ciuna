@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 import { useAuth } from "@/lib/auth-context"
 import { useUserData } from "@/hooks/use-user-data"
 import { fetchWithAuth } from "@/lib/fetch-with-auth"
@@ -13,6 +14,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { HubProductRow, HubFormFieldSchema } from "@/lib/hub-types"
+import {
+  isHubProductCacheFresh,
+  readStaleHubProductCache,
+  writeHubProductCache,
+} from "@/lib/hub-client-cache"
 import type { ExchangeRate } from "@/types"
 import { computeHubFeeFromReceive } from "@/lib/hub-fee"
 import { roundMoney } from "@/utils/currency"
@@ -24,15 +30,17 @@ function normalizeFormSchema(raw: unknown): HubFormFieldSchema[] {
 }
 
 export default function HubCheckoutPage() {
+  const { t } = useTranslation("app")
   const params = useParams()
   const productId = params.productId as string
   const router = useRouter()
   const { user, userProfile, loading: authLoading } = useAuth()
   const { currencies, exchangeRates, deliveryAddresses } = useUserData()
   const idempotencyKeyRef = useRef(typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()))
+  const cacheUserId = userProfile?.id ?? user?.id ?? ""
 
   const [product, setProduct] = useState<HubProductRow | null>(null)
-  const [loadingProduct, setLoadingProduct] = useState(true)
+  const [loadingProduct, setLoadingProduct] = useState(false)
   const [step, setStep] = useState(1)
   const [sendCurrency, setSendCurrency] = useState("")
   const [fundedInput, setFundedInput] = useState("")
@@ -52,19 +60,44 @@ export default function HubCheckoutPage() {
     return String(product.default_input_currency || "USD")
   }, [product])
 
+  useLayoutEffect(() => {
+    if (authLoading || !cacheUserId || !productId) return
+    setProduct((prev) => {
+      if (prev) return prev
+      return readStaleHubProductCache(cacheUserId, productId)
+    })
+    const stale = readStaleHubProductCache(cacheUserId, productId)
+    const hasProduct = Boolean(stale)
+    const cacheFresh = isHubProductCacheFresh(cacheUserId, productId)
+    if (!cacheFresh && !hasProduct) {
+      setLoadingProduct(true)
+    } else {
+      setLoadingProduct(false)
+    }
+  }, [authLoading, cacheUserId, productId])
+
   useEffect(() => {
     if (authLoading) return
     if (!user) {
       router.push("/auth/login")
       return
     }
+    if (!cacheUserId || !productId) return
+    if (isHubProductCacheFresh(cacheUserId, productId)) {
+      return
+    }
+
     let cancelled = false
     ;(async () => {
       try {
         const res = await fetchWithAuth(`/api/hub/products/${productId}`)
         if (!res.ok) throw new Error("404")
         const data = await res.json()
-        if (!cancelled) setProduct(data.product)
+        const row = data.product as HubProductRow
+        if (!cancelled) {
+          setProduct(row)
+          if (row) writeHubProductCache(cacheUserId, row)
+        }
       } catch {
         if (!cancelled) setProduct(null)
       } finally {
@@ -74,7 +107,7 @@ export default function HubCheckoutPage() {
     return () => {
       cancelled = true
     }
-  }, [user, authLoading, productId, router])
+  }, [user, authLoading, productId, router, cacheUserId])
 
   useEffect(() => {
     if (!currencies.length || sendCurrency) return
@@ -162,11 +195,11 @@ export default function HubCheckoutPage() {
     setError(null)
     if (step === 1) {
       if (!user?.email_confirmed_at) {
-        setError("Please verify your email before continuing.")
+        setError(t("hub.checkout.errors.verifyEmail"))
         return
       }
       if (!canContinueStep1()) {
-        setError("Check amount and currencies.")
+        setError(t("hub.checkout.errors.checkAmount"))
         return
       }
       setStep(2)
@@ -174,13 +207,13 @@ export default function HubCheckoutPage() {
     }
     if (step === 2) {
       if (!contactName.trim() || !contactPhone.trim()) {
-        setError("Name and phone are required.")
+        setError(t("hub.checkout.errors.namePhoneRequired"))
         return
       }
       const fields = normalizeFormSchema(product?.form_schema)
       for (const f of fields) {
         if (f.required && !String(formAnswers[f.key] || "").trim()) {
-          setError(`Please fill: ${f.label || f.key}`)
+          setError(t("hub.checkout.errors.fillField", { field: f.label || f.key }))
           return
         }
       }
@@ -191,7 +224,7 @@ export default function HubCheckoutPage() {
   const handlePay = async () => {
     if (!product || !userProfile?.id || !pricingPreview) return
     if (!selectedPaymentMethodId) {
-      setError(`No payment method is configured for ${sendCurrency}.`)
+      setError(t("hub.checkout.errors.noPaymentMethodForCurrency", { currency: sendCurrency }))
       return
     }
     setSubmitting(true)
@@ -217,25 +250,28 @@ export default function HubCheckoutPage() {
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        throw new Error(data.error || "Payment setup failed")
+        throw new Error(data.error || t("hub.checkout.errors.paymentSetupFailed"))
       }
       const tid = data.transaction?.transaction_id
       if (tid) {
         router.push(`/send/${String(tid).toLowerCase()}`)
       } else {
-        throw new Error("Missing transaction")
+        throw new Error(t("hub.checkout.errors.missingTransaction"))
       }
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed")
+      setError(e instanceof Error ? e.message : t("hub.checkout.errors.failed"))
     } finally {
       setSubmitting(false)
     }
   }
 
-  if (authLoading || loadingProduct) {
+  const showCheckoutSkeleton =
+    authLoading || (!user && !authLoading) || (loadingProduct && !product)
+
+  if (showCheckoutSkeleton) {
     return (
       <div className="min-w-0 space-y-0">
-        <AppPageHeader title="Checkout" backHref={`/hub/${productId}`} />
+        <AppPageHeader title={t("hub.checkout.title")} backHref={`/hub/${productId}`} />
         <div className="px-4 py-5 sm:px-6 max-w-lg mx-auto space-y-4 animate-pulse">
           <div className="h-4 w-48 rounded bg-gray-100" />
           <div className="rounded-xl border p-4 space-y-3">
@@ -252,11 +288,11 @@ export default function HubCheckoutPage() {
   if (!product) {
     return (
       <div className="min-w-0 space-y-0">
-        <AppPageHeader title="Checkout" backHref="/hub" />
+        <AppPageHeader title={t("hub.checkout.title")} backHref="/hub" />
         <div className="px-4 py-8">
-          <p className="text-red-600">Product not found.</p>
+          <p className="text-red-600">{t("hub.productNotFound")}</p>
           <Button asChild variant="outline" className="mt-4">
-            <Link href="/hub">Hub</Link>
+            <Link href="/hub">{t("hub.hub")}</Link>
           </Button>
         </div>
       </div>
@@ -267,14 +303,14 @@ export default function HubCheckoutPage() {
 
   return (
     <div className="min-w-0 space-y-0">
-      <AppPageHeader title={`Order — ${product.title}`} backHref={`/hub/${productId}`} />
+      <AppPageHeader title={`${t("hub.checkout.order")} — ${product.title}`} backHref={`/hub/${productId}`} />
       <div className="px-4 py-5 sm:px-6 max-w-lg mx-auto space-y-4">
         <div className="flex gap-2 text-sm text-gray-600">
-          <span className={step >= 1 ? "font-semibold text-gray-900" : ""}>1. Amount</span>
+          <span className={step >= 1 ? "font-semibold text-gray-900" : ""}>1. {t("hub.checkout.steps.amount")}</span>
           <span>→</span>
-          <span className={step >= 2 ? "font-semibold text-gray-900" : ""}>2. Details</span>
+          <span className={step >= 2 ? "font-semibold text-gray-900" : ""}>2. {t("hub.checkout.steps.details")}</span>
           <span>→</span>
-          <span className={step >= 3 ? "font-semibold text-gray-900" : ""}>3. Pay</span>
+          <span className={step >= 3 ? "font-semibold text-gray-900" : ""}>3. {t("hub.checkout.steps.pay")}</span>
         </div>
 
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
@@ -282,12 +318,12 @@ export default function HubCheckoutPage() {
         {step === 1 ? (
           <Card>
             <CardHeader>
-              <CardTitle>Amount & currency</CardTitle>
+              <CardTitle>{t("hub.checkout.amountCurrency")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {product.pricing_type === "user_input" ? (
                 <div>
-                  <Label>Amount to cover ({receiveCurrency})</Label>
+                  <Label>{t("hub.checkout.amountToCover", { currency: receiveCurrency })}</Label>
                   <Input
                     type="number"
                     inputMode="decimal"
@@ -302,10 +338,10 @@ export default function HubCheckoutPage() {
                 </p>
               )}
               <div>
-                <Label>Pay with</Label>
+                <Label>{t("hub.checkout.payWith")}</Label>
                 <Select value={sendCurrency} onValueChange={setSendCurrency}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Currency" />
+                    <SelectValue placeholder={t("hub.checkout.currency")} />
                   </SelectTrigger>
                   <SelectContent>
                     {currencies
@@ -320,7 +356,7 @@ export default function HubCheckoutPage() {
               </div>
               <div className="rounded-lg border p-3 space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">You pay (read-only)</span>
+                  <span className="text-gray-600">{t("hub.checkout.youPayReadonly")}</span>
                   <span className="font-semibold tabular-nums">
                     {pricingPreview ? `${pricingPreview.total.toFixed(2)} ${sendCurrency}` : "—"}
                   </span>
@@ -328,20 +364,20 @@ export default function HubCheckoutPage() {
                 {pricingPreview ? (
                   <>
                     <div className="flex justify-between text-gray-600">
-                      <span>Subtotal</span>
+                      <span>{t("hub.checkout.subtotal")}</span>
                       <span className="tabular-nums">
                         {pricingPreview.sendAmt.toFixed(2)} {sendCurrency}
                       </span>
                     </div>
                     <div className="flex justify-between text-gray-600">
-                      <span>Transfer fee</span>
+                      <span>{t("hub.checkout.transferFee")}</span>
                       <span className="tabular-nums">
                         {pricingPreview.fee.toFixed(2)} {sendCurrency}
                       </span>
                     </div>
                     {pricingPreview.hubFee > 0 ? (
                       <div className="flex justify-between text-gray-600">
-                        <span>Hub fee</span>
+                        <span>{t("hub.checkout.hubFee")}</span>
                         <span className="tabular-nums">
                           {pricingPreview.hubFee.toFixed(2)} {sendCurrency}
                         </span>
@@ -349,11 +385,11 @@ export default function HubCheckoutPage() {
                     ) : null}
                   </>
                 ) : (
-                  <p className="text-gray-500 text-xs">Select currencies and amount to see totals.</p>
+                  <p className="text-gray-500 text-xs">{t("hub.checkout.selectCurrencyAmountHint")}</p>
                 )}
               </div>
               <Button type="button" onClick={handleContinue} disabled={!canContinueStep1()}>
-                Continue
+                {t("hub.checkout.continue")}
               </Button>
             </CardContent>
           </Card>
@@ -362,26 +398,26 @@ export default function HubCheckoutPage() {
         {step === 2 ? (
           <Card>
             <CardHeader>
-              <CardTitle>Contact & details</CardTitle>
+              <CardTitle>{t("hub.checkout.contactDetails")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label>Full name</Label>
+                <Label>{t("hub.checkout.fullName")}</Label>
                 <Input value={contactName} onChange={(e) => setContactName(e.target.value)} />
               </div>
               <div>
-                <Label>Phone</Label>
+                <Label>{t("hub.checkout.phone")}</Label>
                 <Input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} />
               </div>
               {deliveryAddresses.length > 0 ? (
                 <div>
-                  <Label>Saved address (optional)</Label>
+                  <Label>{t("hub.checkout.savedAddressOptional")}</Label>
                   <Select value={selectedDeliveryAddressId || "none"} onValueChange={(v) => setSelectedDeliveryAddressId(v === "none" ? "" : v)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select" />
+                      <SelectValue placeholder={t("hub.checkout.select")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="none">{t("hub.checkout.none")}</SelectItem>
                       {deliveryAddresses.map((d) => (
                         <SelectItem key={d.id} value={d.id}>
                           {d.address_line}
@@ -392,8 +428,8 @@ export default function HubCheckoutPage() {
                 </div>
               ) : null}
               <div>
-                <Label>Delivery / notes address (optional)</Label>
-                <Input value={deliveryAddressLine} onChange={(e) => setDeliveryAddressLine(e.target.value)} placeholder="Address line" />
+                <Label>{t("hub.checkout.deliveryNotesAddressOptional")}</Label>
+                <Input value={deliveryAddressLine} onChange={(e) => setDeliveryAddressLine(e.target.value)} placeholder={t("hub.checkout.addressLine")} />
               </div>
               {formFields.map((f) => (
                 <div key={f.key}>
@@ -410,10 +446,10 @@ export default function HubCheckoutPage() {
               ))}
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={() => setStep(1)}>
-                  Back
+                  {t("hub.checkout.back")}
                 </Button>
                 <Button type="button" onClick={handleContinue}>
-                  Continue to payment
+                  {t("hub.checkout.continueToPayment")}
                 </Button>
               </div>
             </CardContent>
@@ -423,22 +459,22 @@ export default function HubCheckoutPage() {
         {step === 3 ? (
           <Card>
             <CardHeader>
-              <CardTitle>Make payment</CardTitle>
+              <CardTitle>{t("hub.checkout.makePayment")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-gray-700">
-                You will pay{" "}
+                {t("hub.checkout.youWillPay")}{" "}
                 <strong>
                   {pricingPreview?.total.toFixed(2)} {sendCurrency}
                 </strong>{" "}
-                for <strong>{product.title}</strong>. Totals are recalculated on the server when you confirm.
+                {t("hub.checkout.for")} <strong>{product.title}</strong>. {t("hub.checkout.serverRecalculated")}
               </p>
               <div>
-                <Label>Payment method ({sendCurrency})</Label>
+                <Label>{t("hub.checkout.paymentMethodFor", { currency: sendCurrency })}</Label>
                 {paymentMethods.length > 0 ? (
                   <Select value={selectedPaymentMethodId} onValueChange={setSelectedPaymentMethodId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select payment method" />
+                      <SelectValue placeholder={t("hub.checkout.selectPaymentMethod")} />
                     </SelectTrigger>
                     <SelectContent>
                       {paymentMethods.map((pm: any) => (
@@ -450,20 +486,20 @@ export default function HubCheckoutPage() {
                   </Select>
                 ) : (
                   <p className="text-sm text-amber-700 mt-2">
-                    No active payment method found for {sendCurrency}. Add one in Office rates/settings before checkout.
+                    {t("hub.checkout.noActivePaymentMethod", { currency: sendCurrency })}
                   </p>
                 )}
               </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={() => setStep(2)} disabled={submitting}>
-                  Back
+                  {t("hub.checkout.back")}
                 </Button>
                 <Button
                   type="button"
                   onClick={handlePay}
                   disabled={submitting || !pricingPreview || !selectedPaymentMethodId}
                 >
-                  {submitting ? "Creating…" : "Make payment"}
+                  {submitting ? t("hub.checkout.creating") : t("hub.checkout.makePayment")}
                 </Button>
               </div>
             </CardContent>
