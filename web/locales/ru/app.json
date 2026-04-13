@@ -141,7 +141,7 @@
     "youSent": "Вы отправили",
     "hubAmountPaid": "Оплачено",
     "hubOrderAmount": "Сумма заказа",
-    "hubOrderTitle": "Заказ Hub",
+    "hubOrderTitle": "Заказ в Хабе",
     "fee": "Комиссия за обмен",
     "free": "БЕСПЛАТНО",
     "totalPaid": "Итого к оплате",
@@ -199,7 +199,7 @@
     "processingSend": "Обработка",
     "processingSendDesc": "Средства в пути.",
     "hubProcessingSend": "Обрабатываем заказ",
-    "hubProcessingSendDesc": "Мы выполняем ваш заказ в Ciuna Hub. Статус будет обновляться здесь.",
+    "hubProcessingSendDesc": "Мы выполняем ваш заказ в Ciuna Хабе.",
     "completed": "Завершено",
     "completedDescBank": "{{bank}} получил(а) ваш перевод.",
     "completedDesc": "Операция успешно завершена."

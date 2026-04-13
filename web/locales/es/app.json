@@ -141,7 +141,7 @@
     "youSent": "Enviaste",
     "hubAmountPaid": "Monto pagado",
     "hubOrderAmount": "Monto del pedido",
-    "hubOrderTitle": "Pedido Hub",
+    "hubOrderTitle": "Pedido del Centro",
     "fee": "Comisión de cambio",
     "free": "GRATIS",
     "totalPaid": "Total pagado",
@@ -199,7 +199,7 @@
     "processingSend": "Procesando",
     "processingSendDesc": "Tu dinero va en camino.",
     "hubProcessingSend": "Procesando tu pedido",
-    "hubProcessingSendDesc": "Estamos gestionando tu pedido de Ciuna Hub. Aquí verás las actualizaciones de estado.",
+    "hubProcessingSendDesc": "Estamos gestionando tu pedido en el Centro Ciuna.",
     "completed": "Completada",
     "completedDescBank": "{{bank}} recibió tu transacción.",
     "completedDesc": "Transacción completada correctamente."

@@ -199,7 +199,7 @@
     "processingSend": "Processing",
     "processingSendDesc": "Your money is on its way.",
     "hubProcessingSend": "Processing your order",
-    "hubProcessingSendDesc": "We're fulfilling your Ciuna Hub order. Status updates will appear here.",
+    "hubProcessingSendDesc": "We're fulfilling your Ciuna Hub order.",
     "completed": "Completed",
     "completedDescBank": "{{bank}} received your transaction.",
     "completedDesc": "Transaction completed successfully."

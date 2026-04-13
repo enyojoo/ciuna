@@ -16,7 +16,8 @@ import {
 } from "@/lib/hub-client-cache"
 import { ChevronRight } from "lucide-react"
 
-const HERO_TITLE = "Ciuna Hub"
+/** Product line name — not localized. */
+const HUB_PRODUCT_LINE = "Ciuna Hub"
 
 function formatPrice(amount: number | null, currency: string | null): string {
   if (amount == null) return "—"
@@ -34,7 +35,7 @@ export default function HubCatalogPage() {
   const cacheUserId = userProfile?.id ?? user?.id ?? ""
 
   useLayoutEffect(() => {
-    if (authLoading || !cacheUserId) return
+    if (!cacheUserId) return
     setProducts((prev) => {
       if (prev.length > 0) return prev
       const stale = readStaleHubCatalogCache(cacheUserId)
@@ -49,12 +50,11 @@ export default function HubCatalogPage() {
     } else {
       setLoading(false)
     }
-  }, [authLoading, cacheUserId])
+  }, [cacheUserId])
 
   useEffect(() => {
-    if (authLoading) return
     if (!user) {
-      router.push("/auth/login")
+      if (!authLoading) router.push("/auth/login")
       return
     }
     if (!cacheUserId) return
@@ -100,7 +100,7 @@ export default function HubCatalogPage() {
     ? grouped.filter((g) => g.category.toLowerCase() === selectedCategory.toLowerCase())
     : grouped
 
-  if (authLoading || (!user && !authLoading)) {
+  if (!user) {
     return (
       <div className="min-w-0">
         <div className="px-4 py-5 sm:px-6 mx-auto w-full max-w-5xl space-y-5 animate-pulse">
@@ -122,7 +122,7 @@ export default function HubCatalogPage() {
     <div className="min-w-0">
       <div className="px-4 py-5 sm:px-6 space-y-5 mx-auto w-full max-w-5xl">
         <section className="rounded-2xl bg-gradient-to-br from-orange-600 via-orange-500 to-amber-400 px-5 py-6 text-white shadow-sm">
-          <h2 className="text-2xl font-bold leading-tight">{HERO_TITLE}</h2>
+          <h2 className="text-2xl font-bold leading-tight">{HUB_PRODUCT_LINE}</h2>
           <p className="mt-2 text-sm/6 text-orange-50 max-w-xl">{t("hub.catalogSubtitle")}</p>
         </section>
 

@@ -61,7 +61,7 @@ export default function HubCheckoutPage() {
   }, [product])
 
   useLayoutEffect(() => {
-    if (authLoading || !cacheUserId || !productId) return
+    if (!cacheUserId || !productId) return
     setProduct((prev) => {
       if (prev) return prev
       return readStaleHubProductCache(cacheUserId, productId)
@@ -74,12 +74,11 @@ export default function HubCheckoutPage() {
     } else {
       setLoadingProduct(false)
     }
-  }, [authLoading, cacheUserId, productId])
+  }, [cacheUserId, productId])
 
   useEffect(() => {
-    if (authLoading) return
     if (!user) {
-      router.push("/auth/login")
+      if (!authLoading) router.push("/auth/login")
       return
     }
     if (!cacheUserId || !productId) return
@@ -265,8 +264,7 @@ export default function HubCheckoutPage() {
     }
   }
 
-  const showCheckoutSkeleton =
-    authLoading || (!user && !authLoading) || (loadingProduct && !product)
+  const showCheckoutSkeleton = !user || (loadingProduct && !product)
 
   if (showCheckoutSkeleton) {
     return (

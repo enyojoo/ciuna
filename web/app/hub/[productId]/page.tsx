@@ -27,7 +27,7 @@ export default function HubProductDetailPage() {
   const cacheUserId = userProfile?.id ?? user?.id ?? ""
 
   useLayoutEffect(() => {
-    if (authLoading || !cacheUserId || !productId) return
+    if (!cacheUserId || !productId) return
     setProduct((prev) => {
       if (prev) return prev
       return readStaleHubProductCache(cacheUserId, productId)
@@ -40,12 +40,11 @@ export default function HubProductDetailPage() {
     } else {
       setLoading(false)
     }
-  }, [authLoading, cacheUserId, productId])
+  }, [cacheUserId, productId])
 
   useEffect(() => {
-    if (authLoading) return
     if (!user) {
-      router.push("/auth/login")
+      if (!authLoading) router.push("/auth/login")
       return
     }
     if (!cacheUserId || !productId) return
@@ -75,8 +74,7 @@ export default function HubProductDetailPage() {
     }
   }, [user, authLoading, productId, router, cacheUserId])
 
-  const showSkeleton =
-    authLoading || (!user && !authLoading) || (loading && !product)
+  const showSkeleton = !user || (loading && !product)
 
   if (showSkeleton) {
     return (
