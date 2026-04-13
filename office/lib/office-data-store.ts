@@ -418,8 +418,10 @@ class OfficeDataStore {
         throw sendError
       }
 
-      // Only return send transactions (crypto_receive_transactions table removed)
-      const allTransactions = (sendTransactions || []).map((tx: any) => ({ ...tx, type: "send" }))
+      const allTransactions = (sendTransactions || []).map((tx: any) => ({
+        ...tx,
+        type: tx.transaction_source === "hub" ? "hub" : "send",
+      }))
 
       console.log("OfficeDataStore: Transactions loaded successfully:", {
         send: sendTransactions?.length || 0,

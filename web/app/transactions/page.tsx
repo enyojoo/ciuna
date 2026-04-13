@@ -20,10 +20,12 @@ import { formatLocaleDateShort } from "@/lib/format-date-locale"
 interface CombinedTransaction {
   id: string
   transaction_id: string
-  type: "send"
+  type: "send" | "hub"
   status: string
   created_at: string
   reference?: string | null
+  transaction_source?: string | null
+  hub_snapshot?: Record<string, unknown> | null
   send_amount?: number
   send_currency?: string
   receive_amount?: number
@@ -39,6 +41,9 @@ interface CombinedTransaction {
 }
 
 function sendRowRecipientLabel(tx: CombinedTransaction, fallback: string) {
+  if (tx.type === "hub" && tx.hub_snapshot && typeof tx.hub_snapshot.productTitle === "string") {
+    return String(tx.hub_snapshot.productTitle)
+  }
   if (tx.recipient?.full_name?.trim()) return tx.recipient.full_name
   if (tx.fulfillment_type === "cash_hand" && tx.delivery_address_line?.trim()) {
     return tx.delivery_address_line.trim()
@@ -137,7 +142,7 @@ export default function UserTransactionsPage() {
 
     const fetchCombinedTransactions = async () => {
       try {
-        const txResponse = await fetchWithAuth(`/api/transactions?type=send&limit=100`)
+        const txResponse = await fetchWithAuth(`/api/transactions?type=all&limit=100`)
         if (txResponse.ok) {
           const txData = await txResponse.json()
           const transactionsList = txData.transactions || []
@@ -185,7 +190,7 @@ export default function UserTransactionsPage() {
 
     const fetchCombinedTransactions = async () => {
       try {
-        const txResponse = await fetchWithAuth(`/api/transactions?type=send&limit=100`)
+        const txResponse = await fetchWithAuth(`/api/transactions?type=all&limit=100`)
         if (txResponse.ok) {
           const txData = await txResponse.json()
           const transactionsList = txData.transactions || []
@@ -240,21 +245,20 @@ export default function UserTransactionsPage() {
 
   const filteredTransactions = transactions.filter((transaction) => {
     if (!transaction) return false
-    
-    // Only show send transactions
-    if (transaction.type && transaction.type !== "send") {
-      return false
-    }
-    
-    // If no search term, show all send transactions
+
     if (!searchTerm.trim()) return true
-    
+
     const searchLower = searchTerm.toLowerCase()
+    const hubTitle =
+      transaction.type === "hub" && transaction.hub_snapshot && typeof transaction.hub_snapshot.productTitle === "string"
+        ? String(transaction.hub_snapshot.productTitle).toLowerCase()
+        : ""
     const matchesSearch =
       transaction.transaction_id?.toLowerCase().includes(searchLower) ||
       transaction.recipient?.full_name?.toLowerCase().includes(searchLower) ||
       transaction.delivery_address_line?.toLowerCase().includes(searchLower) ||
       transaction.delivery_phone?.replace(/\s/g, "").toLowerCase().includes(searchLower.replace(/\s/g, "")) ||
+      hubTitle.includes(searchLower) ||
       (isReferralPayoutRow(transaction) &&
         searchLower.length >= 4 &&
         /referral|payout|withdraw/i.test(searchLower))
@@ -329,6 +333,7 @@ export default function UserTransactionsPage() {
               const statusColor = getStatusColor(transaction.status)
               const detailUrl = `/send/${transaction.transaction_id.toLowerCase()}`
               const payout = isReferralPayoutRow(transaction)
+              const isHub = transaction.type === "hub" || transaction.transaction_source === "hub"
 
               if (payout) {
                 return (
@@ -402,7 +407,12 @@ export default function UserTransactionsPage() {
                     <CardContent className="p-4 sm:p-5">
                       {/* Transaction Header */}
                       <div className="flex items-center justify-between mb-3 sm:mb-4">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {isHub ? (
+                            <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
+                              Hub
+                            </span>
+                          ) : null}
                           <span className="text-xs sm:text-sm text-gray-500 font-mono">
                             {transaction.transaction_id}
                           </span>
@@ -421,7 +431,7 @@ export default function UserTransactionsPage() {
                           {/* Recipient Info */}
                           <div className="mb-4 sm:mb-5">
                             <div className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide mb-1">
-                              {t("transactions.to")}
+                              {isHub ? "Product" : t("transactions.to")}
                             </div>
                             <div className="text-base sm:text-lg font-semibold text-gray-900">
                               {sendRowRecipientLabel(transaction, t("transactions.unknownRecipient"))}

@@ -4,7 +4,7 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, CreditCard, Users, TrendingUp, Settings, LogOut, Menu, X, ShieldCheck, Gift } from "lucide-react"
+import { LayoutDashboard, CreditCard, Users, TrendingUp, Settings, LogOut, Menu, X, ShieldCheck, Gift, Store } from "lucide-react"
 import { BrandLogo } from "@ciuna/shared"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
@@ -16,6 +16,7 @@ interface OfficeDashboardLayoutProps {
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Hub", href: "/hub", icon: Store },
   { name: "Transactions", href: "/transactions", icon: CreditCard },
   { name: "Users", href: "/users", icon: Users },
   { name: "Referrals", href: "/referrals", icon: Gift },

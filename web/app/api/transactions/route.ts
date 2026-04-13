@@ -6,7 +6,7 @@ import { requireUser, createErrorResponse, withErrorHandling } from "@/lib/auth-
 export const GET = withErrorHandling(async (request: NextRequest) => {
   const user = await requireUser(request)
   const { searchParams } = new URL(request.url)
-  const type = (searchParams.get("type") || "all") as "all" | "send"
+  const type = (searchParams.get("type") || "all") as "all" | "send" | "hub"
   const status = searchParams.get("status") || undefined
   const limit = parseInt(searchParams.get("limit") || "100")
 

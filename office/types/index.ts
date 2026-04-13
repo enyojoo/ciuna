@@ -91,6 +91,10 @@ export interface Transaction {
     last_name: string
     email: string
   }
+  transaction_source?: "send" | "hub"
+  hub_product_id?: string | null
+  hub_snapshot?: Record<string, unknown> | null
+  hub_fee_amount?: number
 }
 
 export type AccountType = "us" | "uk" | "euro" | "generic"

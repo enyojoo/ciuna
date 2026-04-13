@@ -181,7 +181,9 @@ function TransactionStatusPage() {
                   prev.updated_at !== updatedTransaction.updated_at ||
                   prev.receipt_url !== updatedTransaction.receipt_url ||
                   prev.fulfillment_type !== updatedTransaction.fulfillment_type ||
-                  prev.logistics_fee_amount !== updatedTransaction.logistics_fee_amount
+                  prev.logistics_fee_amount !== updatedTransaction.logistics_fee_amount ||
+                  JSON.stringify((prev as { hub_snapshot?: unknown }).hub_snapshot) !==
+                    JSON.stringify((updatedTransaction as { hub_snapshot?: unknown }).hub_snapshot)
                 )) {
                   return updatedTransaction
                 }
@@ -595,6 +597,7 @@ function TransactionStatusPage() {
 
   const isReferralPayout =
     typeof transaction.reference === "string" && transaction.reference.startsWith(REFERRAL_PAYOUT_PREFIX)
+  const isHub = (transaction as { transaction_source?: string }).transaction_source === "hub"
 
   const statusMessage = getStatusMessage(transaction.status, isReferralPayout)
   const statusSteps = getStatusSteps(transaction.status)
@@ -603,7 +606,9 @@ function TransactionStatusPage() {
   return (
     <div className="min-w-0 space-y-0">
       <AppPageHeader
-        title={isReferralPayout ? t("txDetail.referralPayout") : t("txDetail.transfer")}
+        title={
+          isReferralPayout ? t("txDetail.referralPayout") : isHub ? "Hub order" : t("txDetail.transfer")
+        }
         backHref={isReferralPayout ? "/more/referrals" : "/transactions"}
       />
     <div className="min-w-0 px-4 py-5 sm:p-6">
@@ -726,6 +731,35 @@ function TransactionStatusPage() {
                     </>
                   )}
 
+                  {isHub && (transaction as { hub_snapshot?: Record<string, unknown> }).hub_snapshot ? (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-4 space-y-2 text-sm">
+                      <p className="font-semibold text-amber-900">Hub order</p>
+                      {typeof (transaction as { hub_snapshot: { productTitle?: string } }).hub_snapshot.productTitle === "string" ? (
+                        <p className="text-gray-900 font-medium">
+                          {(transaction as { hub_snapshot: { productTitle: string } }).hub_snapshot.productTitle}
+                        </p>
+                      ) : null}
+                      <p className="text-gray-700">
+                        <span className="text-gray-500">Funded: </span>
+                        {formatCurrency(transaction.receive_amount, transaction.receive_currency)}
+                      </p>
+                      {Number((transaction as { hub_fee_amount?: number }).hub_fee_amount) > 0 ? (
+                        <p className="text-gray-700">
+                          <span className="text-gray-500">Hub fee: </span>
+                          {formatCurrency(
+                            Number((transaction as { hub_fee_amount?: number }).hub_fee_amount) || 0,
+                            transaction.send_currency,
+                          )}
+                        </p>
+                      ) : null}
+                      <p className="text-gray-700">
+                        <span className="text-gray-500">Contact: </span>
+                        {String((transaction as { hub_snapshot: { contactName?: string } }).hub_snapshot.contactName || "—")}{" "}
+                        /{" "}
+                        {String((transaction as { hub_snapshot: { contactPhone?: string } }).hub_snapshot.contactPhone || "—")}
+                      </p>
+                    </div>
+                  ) : null}
 
                   {/* Receipt Section */}
                   {transaction.receipt_url && (
@@ -744,9 +778,14 @@ function TransactionStatusPage() {
 
                   {/* Action Buttons */}
                   <div className="flex gap-4">
-                    {!isReferralPayout && (
+                    {!isReferralPayout && !isHub && (
                       <Button variant="outline" onClick={() => router.push("/send")} className="flex-1">
                         {t("txDetail.sendAgain")}
+                      </Button>
+                    )}
+                    {isHub && (
+                      <Button variant="outline" onClick={() => router.push("/hub")} className="flex-1">
+                        Back to Hub
                       </Button>
                     )}
                     {isReferralPayout && (

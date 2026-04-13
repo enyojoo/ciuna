@@ -1,11 +1,11 @@
-// Combined Transaction Service — send transactions from the primary `transactions` table only.
+// Combined Transaction Service — `transactions` rows (Send + Hub) for user and admin lists.
 import { createServerClient } from "@/lib/supabase"
 import { adminService } from "./database"
 
 export interface CombinedTransaction {
   id: string
   transaction_id: string
-  type: "send"
+  type: "send" | "hub"
   user_id: string
   status: string
   created_at: string
@@ -25,6 +25,10 @@ export interface CombinedTransaction {
   delivery_phone?: string | null
   /** Set for referral withdrawal rows (`REFERRAL_PAYOUT:…`). */
   reference?: string | null
+  transaction_source?: string | null
+  hub_product_id?: string | null
+  hub_snapshot?: Record<string, unknown> | null
+  hub_fee_amount?: number | null
 }
 
 export const combinedTransactionService = {
@@ -37,7 +41,7 @@ export const combinedTransactionService = {
   async getUserAllTransactions(
     userId: string,
     filters: {
-      type?: "all" | "send"
+      type?: "all" | "send" | "hub"
       status?: string
       limit?: number
     } = {},
@@ -60,29 +64,38 @@ export const combinedTransactionService = {
       return []
     }
 
-    const sendTxns: CombinedTransaction[] = (sendTransactions || []).map((tx) => ({
-      id: tx.id,
-      transaction_id: tx.transaction_id,
-      type: "send" as const,
-      user_id: tx.user_id,
-      status: tx.status,
-      created_at: tx.created_at,
-      updated_at: tx.updated_at,
-      send_amount: tx.send_amount,
-      send_currency: tx.send_currency,
-      receive_amount: tx.receive_amount,
-      receive_currency: tx.receive_currency,
-      recipient: tx.recipient,
-      fulfillment_type: tx.fulfillment_type,
-      delivery_address_line: tx.delivery_address_line ?? null,
-      delivery_phone: tx.delivery_phone ?? null,
-      reference: tx.reference ?? null,
-    }))
+    const sendTxns: CombinedTransaction[] = (sendTransactions || []).map((tx) => {
+      const isHub = (tx as { transaction_source?: string }).transaction_source === "hub"
+      return {
+        id: tx.id,
+        transaction_id: tx.transaction_id,
+        type: isHub ? ("hub" as const) : ("send" as const),
+        user_id: tx.user_id,
+        status: tx.status,
+        created_at: tx.created_at,
+        updated_at: tx.updated_at,
+        send_amount: tx.send_amount,
+        send_currency: tx.send_currency,
+        receive_amount: tx.receive_amount,
+        receive_currency: tx.receive_currency,
+        recipient: tx.recipient,
+        fulfillment_type: tx.fulfillment_type,
+        delivery_address_line: tx.delivery_address_line ?? null,
+        delivery_phone: tx.delivery_phone ?? null,
+        reference: tx.reference ?? null,
+        transaction_source: (tx as { transaction_source?: string }).transaction_source ?? "send",
+        hub_product_id: (tx as { hub_product_id?: string }).hub_product_id ?? null,
+        hub_snapshot: (tx as { hub_snapshot?: Record<string, unknown> | null }).hub_snapshot ?? null,
+        hub_fee_amount: (tx as { hub_fee_amount?: number }).hub_fee_amount ?? null,
+      }
+    })
 
     let combined: CombinedTransaction[] = [...sendTxns]
 
     if (filters.type === "send") {
-      combined = sendTxns
+      combined = sendTxns.filter((t) => t.type === "send")
+    } else if (filters.type === "hub") {
+      combined = sendTxns.filter((t) => t.type === "hub")
     }
 
     if (filters.status) {
@@ -98,7 +111,7 @@ export const combinedTransactionService = {
 
   async getAdminAllTransactions(
     filters: {
-      type?: "all" | "send"
+      type?: "all" | "send" | "hub"
       status?: string
       search?: string
       limit?: number
@@ -119,29 +132,38 @@ export const combinedTransactionService = {
 
     const sendTxns: CombinedTransaction[] = (sendTransactions || [])
       .filter((tx) => tx && tx.id)
-      .map((tx) => ({
-        id: tx.id,
-        transaction_id: tx.transaction_id || tx.id,
-        type: "send" as const,
-        user_id: tx.user_id,
-        status: tx.status || "pending",
-        created_at: tx.created_at || new Date().toISOString(),
-        updated_at: tx.updated_at || tx.created_at || new Date().toISOString(),
-        send_amount: tx.send_amount,
-        send_currency: tx.send_currency,
-        receive_amount: tx.receive_amount,
-        receive_currency: tx.receive_currency,
-        recipient: tx.recipient,
-        fulfillment_type: tx.fulfillment_type,
-        delivery_address_line: tx.delivery_address_line ?? null,
-        delivery_phone: tx.delivery_phone ?? null,
-        user: tx.user,
-      }))
+      .map((tx) => {
+        const isHub = (tx as { transaction_source?: string }).transaction_source === "hub"
+        return {
+          id: tx.id,
+          transaction_id: tx.transaction_id || tx.id,
+          type: isHub ? ("hub" as const) : ("send" as const),
+          user_id: tx.user_id,
+          status: tx.status || "pending",
+          created_at: tx.created_at || new Date().toISOString(),
+          updated_at: tx.updated_at || tx.created_at || new Date().toISOString(),
+          send_amount: tx.send_amount,
+          send_currency: tx.send_currency,
+          receive_amount: tx.receive_amount,
+          receive_currency: tx.receive_currency,
+          recipient: tx.recipient,
+          fulfillment_type: tx.fulfillment_type,
+          delivery_address_line: tx.delivery_address_line ?? null,
+          delivery_phone: tx.delivery_phone ?? null,
+          user: tx.user,
+          transaction_source: (tx as { transaction_source?: string }).transaction_source ?? "send",
+          hub_product_id: (tx as { hub_product_id?: string }).hub_product_id ?? null,
+          hub_snapshot: (tx as { hub_snapshot?: Record<string, unknown> | null }).hub_snapshot ?? null,
+          hub_fee_amount: (tx as { hub_fee_amount?: number }).hub_fee_amount ?? null,
+        }
+      })
 
     let combined: CombinedTransaction[] = [...sendTxns]
 
     if (filters.type === "send") {
-      combined = sendTxns
+      combined = sendTxns.filter((t) => t.type === "send")
+    } else if (filters.type === "hub") {
+      combined = sendTxns.filter((t) => t.type === "hub")
     }
 
     if (filters.status) {

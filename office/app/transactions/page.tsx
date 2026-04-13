@@ -46,7 +46,7 @@ function excludeReferralPayoutMirrorTransactions<T extends { reference?: string 
 interface CombinedTransaction {
   id: string
   transaction_id: string
-  type: "send" | "referral_payout"
+  type: "send" | "hub" | "referral_payout"
   payout_request_id?: string
   status: string
   created_at: string
@@ -87,12 +87,19 @@ interface CombinedTransaction {
   delivery_phone?: string | null
   logistics_fee_amount?: number | null
   delivery_address_id?: string | null
+  hub_snapshot?: Record<string, unknown> | null
+  hub_fee_amount?: number | null
+  hub_product_id?: string | null
 }
 
 /** Maps a raw send transaction from admin data into CombinedTransaction, preserving cash-delivery fields. */
 function mapSendTransaction(tx: any): CombinedTransaction {
   const rowType: CombinedTransaction["type"] =
-    tx.type === "referral_payout" ? "referral_payout" : "send"
+    tx.type === "referral_payout"
+      ? "referral_payout"
+      : tx.transaction_source === "hub" || tx.type === "hub"
+        ? "hub"
+        : "send"
   const embedded = tx.delivery_address as { address_line?: string; phone?: string } | null | undefined
   const delivery_address_line = tx.delivery_address_line ?? embedded?.address_line ?? null
   const delivery_phone = tx.delivery_phone ?? embedded?.phone ?? null
@@ -120,6 +127,9 @@ function mapSendTransaction(tx: any): CombinedTransaction {
     delivery_phone,
     logistics_fee_amount: tx.logistics_fee_amount ?? null,
     delivery_address_id: tx.delivery_address_id ?? null,
+    hub_snapshot: tx.hub_snapshot ?? null,
+    hub_fee_amount: tx.hub_fee_amount ?? null,
+    hub_product_id: tx.hub_product_id ?? null,
   }
 }
 
@@ -228,6 +238,7 @@ export default function AdminTransactionsPage() {
   const [loading, setLoading] = useState(!adminData?.transactions) // Only show loading if no cached data
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [typeFilter, setTypeFilter] = useState<"all" | "send" | "hub" | "referral_payout">("all")
   const [currencyFilter, setCurrencyFilter] = useState("all")
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>([])
   const [selectedTransaction, setSelectedTransaction] = useState<CombinedTransaction | null>(null)
@@ -289,25 +300,36 @@ export default function AdminTransactionsPage() {
 
   const filteredTransactions = transactions.filter((transaction) => {
     const q = searchTerm.toLowerCase()
+    const hubTitle =
+      transaction.type === "hub" && transaction.hub_snapshot && typeof transaction.hub_snapshot.productTitle === "string"
+        ? String(transaction.hub_snapshot.productTitle).toLowerCase()
+        : ""
     const matchesSearch =
       searchTerm === "" ||
       transaction.transaction_id?.toLowerCase().includes(q) ||
       transaction.user?.email?.toLowerCase().includes(q) ||
+      hubTitle.includes(q) ||
       (transaction.type === "referral_payout" &&
         transaction.recipient?.full_name?.toLowerCase().includes(q)) ||
-      (transaction.type === "send" &&
+      ((transaction.type === "send" || transaction.type === "hub") &&
         (transaction.delivery_address_line?.toLowerCase()?.includes(q) ||
           transaction.delivery_phone?.toLowerCase()?.includes(q)))
 
     const matchesStatus = statusFilter === "all" || transaction.status === statusFilter
+    const matchesType =
+      typeFilter === "all" ||
+      (typeFilter === "referral_payout" && transaction.type === "referral_payout") ||
+      (typeFilter === "send" && transaction.type === "send") ||
+      (typeFilter === "hub" && transaction.type === "hub")
+
     const matchesCurrency =
       currencyFilter === "all" ||
-      (transaction.type === "send" &&
+      ((transaction.type === "send" || transaction.type === "hub") &&
         (transaction.send_currency === currencyFilter || transaction.receive_currency === currencyFilter)) ||
       (transaction.type === "referral_payout" &&
         (transaction.send_currency === currencyFilter || transaction.recipient?.currency === currencyFilter))
 
-    return matchesSearch && matchesStatus && matchesCurrency
+    return matchesSearch && matchesStatus && matchesType && matchesCurrency
   })
 
   const formatTimestamp = (dateString: string) => {
@@ -468,7 +490,7 @@ export default function AdminTransactionsPage() {
   const getTimerDisplay = (tx?: CombinedTransaction | null): string | null => {
     const t = tx ?? selectedTransaction
     if (!t) return null
-    if (t.type === "referral_payout") return null
+    if (t.type === "referral_payout" || t.type === "hub") return null
 
     if (t.status === "failed" || t.status === "cancelled") {
       return null
@@ -560,6 +582,19 @@ export default function AdminTransactionsPage() {
               )}
             </div>
 
+            {/* Type filter */}
+            <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as typeof typeFilter)}>
+              <SelectTrigger className="w-[160px] bg-white">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All types</SelectItem>
+                <SelectItem value="send">Send money</SelectItem>
+                <SelectItem value="hub">Hub</SelectItem>
+                <SelectItem value="referral_payout">Referral</SelectItem>
+              </SelectContent>
+            </Select>
+
             {/* Status Filter */}
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[180px] bg-white">
@@ -598,7 +633,7 @@ export default function AdminTransactionsPage() {
             </Select>
 
             {/* Clear Filters Button */}
-            {(searchTerm || statusFilter !== "all" || currencyFilter !== "all") && (
+            {(searchTerm || statusFilter !== "all" || currencyFilter !== "all" || typeFilter !== "all") && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -606,6 +641,7 @@ export default function AdminTransactionsPage() {
                   setSearchTerm("")
                   setStatusFilter("all")
                   setCurrencyFilter("all")
+                  setTypeFilter("all")
                 }}
                 className="text-gray-600 hover:text-gray-900"
               >
@@ -616,9 +652,20 @@ export default function AdminTransactionsPage() {
           </div>
 
           {/* Active Filters Badges */}
-          {(searchTerm || statusFilter !== "all" || currencyFilter !== "all") && (
+          {(searchTerm || statusFilter !== "all" || currencyFilter !== "all" || typeFilter !== "all") && (
             <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-200">
               <span className="text-sm text-gray-500">Active filters:</span>
+              {typeFilter !== "all" && (
+                <Badge variant="secondary" className="bg-amber-50 text-amber-800 border-amber-200">
+                  Type: {typeFilter === "referral_payout" ? "Referral" : typeFilter.charAt(0).toUpperCase() + typeFilter.slice(1)}
+                  <button
+                    onClick={() => setTypeFilter("all")}
+                    className="ml-2 hover:bg-amber-100 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
               {statusFilter !== "all" && (
                 <Badge variant="secondary" className="bg-purple-50 text-purple-700 border-purple-200">
                   Status: {statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
@@ -747,6 +794,18 @@ export default function AdminTransactionsPage() {
                               </div>
                             )}
                         </div>
+                      ) : transaction.type === "hub" ? (
+                        <div>
+                          <Badge className="mb-0.5 bg-amber-100 text-amber-900 hover:bg-amber-100 text-[10px] font-medium px-1.5 py-0 h-5 leading-none">
+                            Hub
+                          </Badge>
+                          <div className="font-medium">
+                            {formatCurrency(transaction.send_amount || 0, transaction.send_currency || "")}
+                          </div>
+                          <div className="text-sm text-gray-500 truncate max-w-[200px]" title={String(transaction.hub_snapshot?.productTitle || "")}>
+                            {String(transaction.hub_snapshot?.productTitle || "Hub order")}
+                          </div>
+                        </div>
                       ) : (
                         <div>
                           <div className="font-medium">
@@ -773,7 +832,9 @@ export default function AdminTransactionsPage() {
                                 <DialogTitle>
                                   {transaction.type === "referral_payout"
                                     ? "Referral payout"
-                                    : "Transaction Details"}
+                                    : transaction.type === "hub"
+                                      ? "Hub order"
+                                      : "Transaction Details"}
                                 </DialogTitle>
                                 {getTimerDisplay(transaction) && (
                                   <div className="flex items-center text-orange-600">
@@ -828,6 +889,51 @@ export default function AdminTransactionsPage() {
                                           <span className="font-medium">Recipient: </span>
                                           {transaction.recipient?.full_name} ({transaction.recipient?.bank_name})
                                         </p>
+                                      </div>
+                                  ) : transaction.type === "hub" ? (
+                                      <div className="col-span-2 rounded-lg border border-amber-200 bg-amber-50/60 p-4 space-y-2">
+                                        <Badge className="bg-amber-100 text-amber-800">Hub</Badge>
+                                        {transaction.hub_snapshot &&
+                                          typeof (transaction.hub_snapshot as { productTitle?: string }).productTitle === "string" && (
+                                            <p className="text-sm font-medium text-gray-900">
+                                              {(transaction.hub_snapshot as { productTitle: string }).productTitle}
+                                            </p>
+                                          )}
+                                        <p className="text-sm">
+                                          <span className="font-medium">Funded: </span>
+                                          {formatCurrency(
+                                            Number((transaction.hub_snapshot as { fundedAmount?: number })?.fundedAmount) ||
+                                              transaction.receive_amount ||
+                                              0,
+                                            String(
+                                              (transaction.hub_snapshot as { fundedCurrency?: string })?.fundedCurrency ||
+                                                transaction.receive_currency ||
+                                                "",
+                                            ),
+                                          )}
+                                        </p>
+                                        <p className="text-sm">
+                                          <span className="font-medium">Hub fee: </span>
+                                          {formatCurrency(
+                                            Number(transaction.hub_fee_amount) || 0,
+                                            transaction.send_currency || "",
+                                          )}
+                                        </p>
+                                        <p className="text-sm">
+                                          <span className="font-medium">Contact: </span>
+                                          {String((transaction.hub_snapshot as { contactName?: string })?.contactName || "—")} /{" "}
+                                          {String((transaction.hub_snapshot as { contactPhone?: string })?.contactPhone || "—")}
+                                        </p>
+                                        {(transaction.hub_snapshot as { deliveryAddressLine?: string })?.deliveryAddressLine ? (
+                                          <p className="text-sm text-gray-700">
+                                            {(transaction.hub_snapshot as { deliveryAddressLine: string }).deliveryAddressLine}
+                                          </p>
+                                        ) : null}
+                                        {(transaction.hub_snapshot as { formAnswers?: unknown })?.formAnswers != null ? (
+                                          <pre className="text-xs bg-white/80 p-2 rounded border overflow-auto max-h-48">
+                                            {JSON.stringify((transaction.hub_snapshot as { formAnswers: unknown }).formAnswers, null, 2)}
+                                          </pre>
+                                        ) : null}
                                       </div>
                                   ) : transaction.type === "send" ? (
                                     <>
@@ -953,7 +1059,7 @@ export default function AdminTransactionsPage() {
                                   ) : null}
                                 </div>
 
-                                {transaction.type !== "referral_payout" && (
+                                {transaction.type === "send" && (
                                 <div>
                                   <label className="text-sm font-medium text-gray-600">Receipt</label>
                                   {transaction.receipt_url ? (

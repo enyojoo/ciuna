@@ -80,6 +80,11 @@ export interface Transaction {
   fee_amount: number
   fee_type: string
   total_amount: number
+  /** send (default) | hub — set for Hub marketplace checkouts */
+  transaction_source?: "send" | "hub"
+  hub_product_id?: string | null
+  hub_snapshot?: Record<string, unknown> | null
+  hub_fee_amount?: number
   fulfillment_type?: "bank_transfer" | "cash_hand"
   logistics_fee_amount?: number
   logistics_fee_type_snapshot?: string | null

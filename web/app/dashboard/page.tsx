@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { Send, MessageCircle, UserPlus, Wallet, BadgeDollarSign } from "lucide-react"
+import { Send, MessageCircle, UserPlus, Wallet, BadgeDollarSign, Store } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { useEffect, useState } from "react"
@@ -18,7 +18,9 @@ import { roundMoney } from "@/utils/currency"
 interface Transaction {
   id: string
   transaction_id: string
-  type?: "send"
+  type?: "send" | "hub"
+  transaction_source?: string
+  hub_snapshot?: Record<string, unknown> | null
   send_amount?: number
   send_currency?: string
   receive_amount?: number
@@ -36,6 +38,9 @@ interface Transaction {
 }
 
 function sendRowRecipientLabel(tx: Transaction, fallback: string) {
+  if (tx.type === "hub" && tx.hub_snapshot && typeof tx.hub_snapshot.productTitle === "string") {
+    return String(tx.hub_snapshot.productTitle)
+  }
   if (tx.recipient?.full_name?.trim()) return tx.recipient.full_name
   if (tx.fulfillment_type === "cash_hand" && tx.delivery_address_line?.trim()) {
     return tx.delivery_address_line.trim()
@@ -397,7 +402,7 @@ export default function UserDashboardPage() {
         </div>
 
         {/* Quick Actions - Minimal Modern Banking Style (All Screen Sizes) */}
-        <div className="grid grid-cols-2 gap-3 px-4 sm:gap-4 sm:px-6 lg:gap-6">
+        <div className="grid grid-cols-3 gap-2 px-4 sm:gap-4 sm:px-6 lg:gap-6">
           {/* Send Button */}
           <Link href="/send" className="flex-1 group">
             <div className="w-full flex flex-col items-center justify-center gap-2 sm:gap-2.5 py-4 sm:py-5 cursor-pointer transition-all duration-200">
@@ -405,6 +410,15 @@ export default function UserDashboardPage() {
                 <Send className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
               <span className="text-primary text-xs sm:text-sm font-semibold tracking-wide">{t("dashboard.send")}</span>
+            </div>
+          </Link>
+
+          <Link href="/hub" className="flex-1 group">
+            <div className="w-full flex flex-col items-center justify-center gap-2 sm:gap-2.5 py-4 sm:py-5 cursor-pointer transition-all duration-200">
+              <div className="p-3 sm:p-3.5 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                <Store className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              </div>
+              <span className="text-primary text-xs sm:text-sm font-semibold tracking-wide text-center">Hub</span>
             </div>
           </Link>
           
@@ -450,6 +464,7 @@ export default function UserDashboardPage() {
                 const statusColor = getStatusColor(transaction.status)
                 const detailUrl = `/send/${transaction.transaction_id.toLowerCase()}`
                 const payout = isReferralPayoutRow(transaction)
+                const isHub = transaction.type === "hub" || transaction.transaction_source === "hub"
 
                 if (payout) {
                   return (
@@ -523,7 +538,12 @@ export default function UserDashboardPage() {
                       <CardContent className="p-4 sm:p-5">
                         {/* Transaction Header */}
                         <div className="flex items-center justify-between mb-3 sm:mb-4">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {isHub ? (
+                              <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
+                                Hub
+                              </span>
+                            ) : null}
                             <span className="text-xs sm:text-sm text-gray-500 font-mono">
                               {transaction.transaction_id}
                             </span>
