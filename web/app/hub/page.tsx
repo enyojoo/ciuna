@@ -5,14 +5,13 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { fetchWithAuth } from "@/lib/fetch-with-auth"
-import { AppPageHeader } from "@/components/layout/app-page-header"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import type { HubProductRow } from "@/lib/hub-types"
 import { ChevronRight } from "lucide-react"
 
 const HERO_TITLE = "Ciuna Hub"
-const HERO_SUBTITLE = "A marketplace to order services and foreign products you need."
+const HERO_SUBTITLE = "A marketplace to order foreign services and products you need."
 
 function formatPrice(amount: number | null, currency: string | null): string {
   if (amount == null) return "—"
@@ -69,16 +68,24 @@ export default function HubCatalogPage() {
 
   if (authLoading || (!user && !loading)) {
     return (
-      <div className="min-w-0 space-y-0">
-        <AppPageHeader title="Hub" />
-        <div className="px-4 py-8 text-gray-500">Loading…</div>
+      <div className="min-w-0">
+        <div className="px-4 py-5 sm:px-6 mx-auto w-full max-w-5xl space-y-5 animate-pulse">
+          <div className="rounded-2xl bg-gray-100 h-28" />
+          <div className="space-y-3">
+            <div className="h-8 w-40 rounded bg-gray-100" />
+            <div className="flex gap-3 overflow-hidden">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="w-[150px] h-[210px] rounded-xl bg-gray-100 shrink-0" />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-w-0 space-y-0">
-      <AppPageHeader title="Hub" />
+    <div className="min-w-0">
       <div className="px-4 py-5 sm:px-6 space-y-5 mx-auto w-full max-w-5xl">
         <section className="rounded-2xl bg-gradient-to-br from-orange-600 via-orange-500 to-amber-400 px-5 py-6 text-white shadow-sm">
           <h2 className="text-2xl font-bold leading-tight">{HERO_TITLE}</h2>
@@ -97,7 +104,18 @@ export default function HubCatalogPage() {
         ) : null}
 
         {loading ? (
-          <p className="text-gray-500">Loading products…</p>
+          <div className="space-y-6 animate-pulse">
+            {[1, 2].map((row) => (
+              <section key={row} className="space-y-3">
+                <div className="h-8 w-36 rounded bg-gray-100" />
+                <div className="flex gap-3 overflow-hidden">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={`${row}-${i}`} className="w-[150px] h-[210px] rounded-xl bg-gray-100 shrink-0" />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
         ) : products.length === 0 || visibleSections.length === 0 ? (
           <Card>
             <CardContent className="py-10 text-center text-gray-600">No products available yet.</CardContent>

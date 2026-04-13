@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { Send, MessageCircle, UserPlus, Wallet, BadgeDollarSign, Store } from "lucide-react"
+import { Send, MessageCircle, Wallet, BadgeDollarSign, Store } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { useEffect, useState } from "react"
@@ -402,7 +402,7 @@ export default function UserDashboardPage() {
         </div>
 
         {/* Quick Actions - Minimal Modern Banking Style (All Screen Sizes) */}
-        <div className="grid grid-cols-3 gap-2 px-4 sm:gap-4 sm:px-6 lg:gap-6">
+        <div className="grid grid-cols-2 gap-3 px-4 sm:gap-4 sm:px-6 lg:gap-6">
           {/* Send Button */}
           <Link href="/send" className="flex-1 group">
             <div className="w-full flex flex-col items-center justify-center gap-2 sm:gap-2.5 py-4 sm:py-5 cursor-pointer transition-all duration-200">
@@ -419,16 +419,6 @@ export default function UserDashboardPage() {
                 <Store className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
               <span className="text-primary text-xs sm:text-sm font-semibold tracking-wide text-center">Hub</span>
-            </div>
-          </Link>
-          
-          {/* Recipient Button */}
-          <Link href="/recipients" className="flex-1 group">
-            <div className="w-full flex flex-col items-center justify-center gap-2 sm:gap-2.5 py-4 sm:py-5 cursor-pointer transition-all duration-200">
-              <div className="p-3 sm:p-3.5 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                <UserPlus className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-              </div>
-              <span className="text-primary text-xs sm:text-sm font-semibold tracking-wide">{t("dashboard.recipient")}</span>
             </div>
           </Link>
         </div>

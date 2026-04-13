@@ -236,7 +236,15 @@ export default function HubCheckoutPage() {
     return (
       <div className="min-w-0 space-y-0">
         <AppPageHeader title="Checkout" backHref={`/hub/${productId}`} />
-        <div className="px-4 py-8 text-gray-500">Loading…</div>
+        <div className="px-4 py-5 sm:px-6 max-w-lg mx-auto space-y-4 animate-pulse">
+          <div className="h-4 w-48 rounded bg-gray-100" />
+          <div className="rounded-xl border p-4 space-y-3">
+            <div className="h-5 w-40 rounded bg-gray-100" />
+            <div className="h-10 w-full rounded bg-gray-100" />
+            <div className="h-10 w-full rounded bg-gray-100" />
+            <div className="h-10 w-32 rounded bg-gray-100" />
+          </div>
+        </div>
       </div>
     )
   }

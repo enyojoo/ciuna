@@ -46,7 +46,13 @@ export default function HubProductDetailPage() {
     return (
       <div className="min-w-0 space-y-0">
         <AppPageHeader title="Hub" backHref="/hub" />
-        <div className="px-4 py-8 text-gray-500">Loading…</div>
+        <div className="px-4 py-5 sm:px-6 max-w-2xl mx-auto space-y-4 animate-pulse">
+          <div className="rounded-2xl bg-gray-100 h-60" />
+          <div className="h-6 w-2/3 rounded bg-gray-100" />
+          <div className="h-4 w-full rounded bg-gray-100" />
+          <div className="h-4 w-5/6 rounded bg-gray-100" />
+          <div className="h-10 w-full rounded bg-gray-100" />
+        </div>
       </div>
     )
   }
