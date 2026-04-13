@@ -41,6 +41,7 @@ export interface HubProductRow {
   billing_context: "one_time" | "recurring" | null
   sla_text: string | null
   internal_notes: string | null
+  image_url: string | null
   form_schema: HubFormFieldSchema[] | unknown
   sort_order: number
   created_at: string

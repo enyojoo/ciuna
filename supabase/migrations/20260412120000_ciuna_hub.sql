@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS public.hub_products (
   billing_context text CHECK (billing_context IS NULL OR billing_context IN ('one_time', 'recurring')),
   sla_text text,
   internal_notes text,
+  image_url text,
   form_schema jsonb NOT NULL DEFAULT '[]'::jsonb,
   sort_order integer NOT NULL DEFAULT 0,
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -30,6 +31,9 @@ CREATE TABLE IF NOT EXISTS public.hub_products (
 CREATE INDEX IF NOT EXISTS idx_hub_products_status ON public.hub_products (status);
 CREATE INDEX IF NOT EXISTS idx_hub_products_category ON public.hub_products (category);
 CREATE INDEX IF NOT EXISTS idx_hub_products_sort ON public.hub_products (sort_order, created_at DESC);
+
+ALTER TABLE public.hub_products
+  ADD COLUMN IF NOT EXISTS image_url text;
 
 -- ---------------------------------------------------------------------------
 -- transactions: hub columns

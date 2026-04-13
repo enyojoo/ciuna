@@ -43,6 +43,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       "billing_context",
       "sla_text",
       "internal_notes",
+      "image_url",
       "sort_order",
     ] as const
     for (const k of keys) {

@@ -4,7 +4,7 @@ import type React from "react"
 import { useMemo, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, LayoutDashboard, Send, History, LogOut, X, UserPlus } from "lucide-react"
+import { Home, LayoutDashboard, Send, History, LogOut, X, UserPlus, Store } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { BrandLogo } from "@/components/brand/brand-logo"
 import { Button } from "@/components/ui/button"
@@ -26,6 +26,7 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
     () => [
       { name: t("nav.home"), href: "/dashboard", icon: Home },
       { name: t("nav.sendMoney"), href: "/send", icon: Send },
+      { name: t("nav.hub"), href: "/hub", icon: Store },
       { name: t("nav.recipients"), href: "/recipients", icon: UserPlus },
       { name: t("nav.transactions"), href: "/transactions", icon: History },
       { name: t("nav.more"), href: "/more", icon: LayoutDashboard },
@@ -37,6 +38,7 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
     () => [
       { name: t("nav.home"), href: "/dashboard", icon: Home },
       { name: t("nav.send"), href: "/send", icon: Send },
+      { name: t("nav.hub"), href: "/hub", icon: Store },
       { name: t("nav.more"), href: "/more", icon: LayoutDashboard },
     ],
     [t],
@@ -76,7 +78,9 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
               const isActive =
                 item.href === "/send"
                   ? pathname === "/send" || Boolean(pathname?.startsWith("/send/"))
-                  : pathname === item.href
+                  : item.href === "/hub"
+                    ? pathname === "/hub" || Boolean(pathname?.startsWith("/hub/"))
+                    : pathname === item.href
               return (
                 <Link
                   key={item.href}
@@ -127,6 +131,8 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
               const isActive =
                 item.href === "/send"
                   ? pathname === "/send" || Boolean(pathname?.startsWith("/send/"))
+                  : item.href === "/hub"
+                    ? pathname === "/hub" || Boolean(pathname?.startsWith("/hub/"))
                   : item.href === "/more"
                     ? pathname === "/more" || Boolean(pathname?.startsWith("/more/"))
                     : pathname === item.href

@@ -13,6 +13,7 @@ import { officeFetch } from "@/lib/api-client"
 type HubProduct = {
   id: string
   title: string
+  image_url?: string | null
   category: string
   status: string
   pricing_type: string
@@ -77,6 +78,7 @@ export default function OfficeHubProductsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Image</TableHead>
                     <TableHead>Title</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Type</TableHead>
@@ -88,6 +90,13 @@ export default function OfficeHubProductsPage() {
                 <TableBody>
                   {products.map((p) => (
                     <TableRow key={p.id}>
+                      <TableCell>
+                        <div className="h-10 w-10 rounded overflow-hidden bg-gray-100">
+                          {p.image_url ? (
+                            <img src={p.image_url} alt={p.title} className="h-full w-full object-cover" />
+                          ) : null}
+                        </div>
+                      </TableCell>
                       <TableCell className="font-medium">{p.title}</TableCell>
                       <TableCell>{p.category}</TableCell>
                       <TableCell>

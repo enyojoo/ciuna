@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
       billing_context: body.billing_context === "recurring" || body.billing_context === "one_time" ? body.billing_context : null,
       sla_text: body.sla_text ?? null,
       internal_notes: body.internal_notes ?? null,
+      image_url: body.image_url != null ? String(body.image_url) : null,
       form_schema: Array.isArray(body.form_schema) ? body.form_schema : [],
       sort_order: body.sort_order != null ? Number(body.sort_order) : 0,
       updated_at: new Date().toISOString(),

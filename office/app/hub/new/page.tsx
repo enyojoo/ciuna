@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { OfficeDashboardLayout } from "@/components/layout/office-dashboard-layout"
@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { officeFetch } from "@/lib/api-client"
+import { useOfficeData } from "@/hooks/use-office-data"
+import { supabase } from "@/lib/supabase"
 
 const CATEGORIES = [
   "Logistics",
@@ -25,7 +27,16 @@ const CATEGORIES = [
 
 export default function OfficeHubNewProductPage() {
   const router = useRouter()
+  const { data: officeData } = useOfficeData()
   const [saving, setSaving] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const currencyOptions = useMemo(
+    () =>
+      (officeData?.currencies || [])
+        .filter((c: { code?: string; status?: string }) => c?.code && c.status !== "inactive")
+        .map((c: { code: string }) => c.code),
+    [officeData?.currencies],
+  )
   const [form, setForm] = useState({
     title: "",
     short_description: "",
@@ -44,7 +55,30 @@ export default function OfficeHubNewProductPage() {
     internal_notes: "",
     form_schema_json: "[]",
     sort_order: "0",
+    image_url: "",
   })
+
+  const uploadProductImage = async (file: File): Promise<string> => {
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"]
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error("Only JPG, PNG, or WEBP files are allowed.")
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error("Image must be 5MB or less.")
+    }
+
+    const ext = file.name.split(".").pop() || "png"
+    const path = `hub-products/hub_${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from("payment-qr-codes").upload(path, file, {
+      cacheControl: "3600",
+      upsert: false,
+    })
+    if (error) throw error
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("payment-qr-codes").getPublicUrl(path)
+    return publicUrl
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -78,6 +112,7 @@ export default function OfficeHubNewProductPage() {
         internal_notes: form.internal_notes || null,
         form_schema,
         sort_order: Number(form.sort_order) || 0,
+        image_url: form.image_url || null,
       }
 
       const res = await officeFetch("/api/admin/hub/products", {
@@ -129,6 +164,33 @@ export default function OfficeHubNewProductPage() {
               <div>
                 <Label htmlFor="long">Long description</Label>
                 <Textarea id="long" rows={4} value={form.long_description} onChange={(e) => setForm({ ...form, long_description: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="image">Product image</Label>
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    try {
+                      setUploadingImage(true)
+                      const url = await uploadProductImage(file)
+                      setForm((prev) => ({ ...prev, image_url: url }))
+                    } catch (err) {
+                      alert(err instanceof Error ? err.message : "Image upload failed")
+                    } finally {
+                      setUploadingImage(false)
+                    }
+                  }}
+                />
+                {uploadingImage ? <p className="text-sm text-gray-500">Uploading image…</p> : null}
+                {form.image_url ? (
+                  <div className="rounded-md border p-2 inline-block">
+                    <img src={form.image_url} alt="Product preview" className="h-28 w-28 rounded object-cover" />
+                  </div>
+                ) : null}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -191,7 +253,21 @@ export default function OfficeHubNewProductPage() {
                   </div>
                   <div>
                     <Label>Default input currency</Label>
-                    <Input value={form.default_input_currency} onChange={(e) => setForm({ ...form, default_input_currency: e.target.value })} />
+                    <Select
+                      value={form.default_input_currency}
+                      onValueChange={(v) => setForm({ ...form, default_input_currency: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(currencyOptions.length > 0 ? currencyOptions : ["USD"]).map((code) => (
+                          <SelectItem key={code} value={code}>
+                            {code}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label>Funded min (optional)</Label>

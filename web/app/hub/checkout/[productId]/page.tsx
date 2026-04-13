@@ -16,6 +16,7 @@ import type { HubProductRow, HubFormFieldSchema } from "@/lib/hub-types"
 import type { ExchangeRate } from "@/types"
 import { computeHubFeeFromReceive } from "@/lib/hub-fee"
 import { roundMoney } from "@/utils/currency"
+import { paymentMethodService } from "@/lib/database"
 
 function normalizeFormSchema(raw: unknown): HubFormFieldSchema[] {
   if (!Array.isArray(raw)) return []
@@ -42,6 +43,8 @@ export default function HubCheckoutPage() {
   const [formAnswers, setFormAnswers] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [paymentMethods, setPaymentMethods] = useState<any[]>([])
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState("")
 
   const receiveCurrency = useMemo(() => {
     if (!product) return ""
@@ -99,6 +102,32 @@ export default function HubCheckoutPage() {
       null
     )
   }, [exchangeRates, sendCurrency, receiveCurrency])
+
+  useEffect(() => {
+    let cancelled = false
+    if (!sendCurrency) {
+      setPaymentMethods([])
+      setSelectedPaymentMethodId("")
+      return
+    }
+    ;(async () => {
+      try {
+        const methods = await paymentMethodService.getByCurrency(sendCurrency)
+        if (cancelled) return
+        setPaymentMethods(methods || [])
+        const preferred = (methods || []).find((m: any) => m.is_default) || (methods || [])[0]
+        setSelectedPaymentMethodId(preferred?.id || "")
+      } catch {
+        if (!cancelled) {
+          setPaymentMethods([])
+          setSelectedPaymentMethodId("")
+        }
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [sendCurrency])
 
   const pricingPreview = useMemo(() => {
     if (!rateRow || !product) return null
@@ -161,6 +190,10 @@ export default function HubCheckoutPage() {
 
   const handlePay = async () => {
     if (!product || !userProfile?.id || !pricingPreview) return
+    if (!selectedPaymentMethodId) {
+      setError(`No payment method is configured for ${sendCurrency}.`)
+      return
+    }
     setSubmitting(true)
     setError(null)
     try {
@@ -178,6 +211,7 @@ export default function HubCheckoutPage() {
           deliveryAddressLine: line,
           deliveryAddressId: selectedDeliveryAddressId || null,
           formAnswers,
+          paymentMethodId: selectedPaymentMethodId,
           idempotencyKey: idempotencyKeyRef.current,
         }),
       })
@@ -381,7 +415,7 @@ export default function HubCheckoutPage() {
         {step === 3 ? (
           <Card>
             <CardHeader>
-              <CardTitle>Confirm</CardTitle>
+              <CardTitle>Make payment</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-gray-700">
@@ -391,12 +425,37 @@ export default function HubCheckoutPage() {
                 </strong>{" "}
                 for <strong>{product.title}</strong>. Totals are recalculated on the server when you confirm.
               </p>
+              <div>
+                <Label>Payment method ({sendCurrency})</Label>
+                {paymentMethods.length > 0 ? (
+                  <Select value={selectedPaymentMethodId} onValueChange={setSelectedPaymentMethodId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select payment method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {paymentMethods.map((pm: any) => (
+                        <SelectItem key={pm.id} value={pm.id}>
+                          {pm.name} ({pm.type})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-amber-700 mt-2">
+                    No active payment method found for {sendCurrency}. Add one in Office rates/settings before checkout.
+                  </p>
+                )}
+              </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={() => setStep(2)} disabled={submitting}>
                   Back
                 </Button>
-                <Button type="button" onClick={handlePay} disabled={submitting || !pricingPreview}>
-                  {submitting ? "Creating…" : "Create order & continue"}
+                <Button
+                  type="button"
+                  onClick={handlePay}
+                  disabled={submitting || !pricingPreview || !selectedPaymentMethodId}
+                >
+                  {submitting ? "Creating…" : "Make payment"}
                 </Button>
               </div>
             </CardContent>

@@ -68,6 +68,7 @@ const PAGE_TITLE_SUFFIX = " - Ciuna"
 export const SEO_PAGE_TITLES = {
   dashboard: `Dashboard${PAGE_TITLE_SUFFIX}`,
   send: `Send money${PAGE_TITLE_SUFFIX}`,
+  hub: `Hub${PAGE_TITLE_SUFFIX}`,
   transactions: `Transactions${PAGE_TITLE_SUFFIX}`,
   recipients: `Recipients${PAGE_TITLE_SUFFIX}`,
   support: `Support${PAGE_TITLE_SUFFIX}`,
@@ -85,6 +86,7 @@ export const SEO_PAGE_DESCRIPTIONS = {
   dashboard:
     "Your Ciuna home: balances, recent transfers, and quick actions—securely in one place.",
   send: "Send money internationally with Ciuna—real-time rates, tracked transfers, and support for your recipients.",
+  hub: "Browse and order Hub services in Ciuna, with transparent pricing and tracked payment status.",
   transactions: "Review transfer history, statuses, and details for every payment you’ve sent with Ciuna.",
   recipients: "Save and manage recipients for faster, repeatable international transfers.",
   support: "Get help with transfers, verification, and your Ciuna account.",

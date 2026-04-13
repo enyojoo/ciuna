@@ -71,6 +71,15 @@ export default function HubProductDetailPage() {
       <div className="px-4 py-5 sm:px-6 max-w-2xl mx-auto space-y-4">
         <Card>
           <CardContent className="p-4 sm:p-6 space-y-3">
+            <div className="aspect-[16/9] w-full overflow-hidden rounded-lg bg-gray-100">
+              {product.image_url ? (
+                <img src={product.image_url} alt={product.title} className="h-full w-full object-cover" />
+              ) : (
+                <div className="h-full w-full flex items-center justify-center text-sm text-gray-500">
+                  No product image
+                </div>
+              )}
+            </div>
             <p className="text-xs font-medium uppercase text-gray-500">{product.category}</p>
             {product.long_description || product.short_description ? (
               <p className="text-sm text-gray-700 whitespace-pre-wrap">{product.long_description || product.short_description}</p>
@@ -86,7 +95,7 @@ export default function HubProductDetailPage() {
           </CardContent>
         </Card>
         <Button asChild className="w-full">
-          <Link href={`/hub/checkout/${productId}`}>Continue to order</Link>
+          <Link href={`/hub/checkout/${productId}`}>{product.pricing_type === "fixed" ? "Buy now" : "Order now"}</Link>
         </Button>
       </div>
     </div>

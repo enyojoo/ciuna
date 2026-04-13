@@ -13,7 +13,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   const { data, error } = await server
     .from("hub_products")
     .select(
-      "id, title, short_description, long_description, category, status, pricing_type, fixed_amount, fixed_currency, default_input_currency, fee_percent, funded_min, funded_max, billing_context, sla_text, form_schema, sort_order, created_at, updated_at",
+      "id, title, short_description, long_description, category, status, pricing_type, fixed_amount, fixed_currency, default_input_currency, fee_percent, funded_min, funded_max, billing_context, sla_text, image_url, form_schema, sort_order, created_at, updated_at",
     )
     .eq("status", "live")
     .order("sort_order", { ascending: true })

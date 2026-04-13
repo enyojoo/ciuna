@@ -1,20 +1,31 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { fetchWithAuth } from "@/lib/fetch-with-auth"
 import { AppPageHeader } from "@/components/layout/app-page-header"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import type { HubProductRow } from "@/lib/hub-types"
+import { ChevronRight } from "lucide-react"
+
+const HERO_TITLE = "Ciuna Hub"
+const HERO_SUBTITLE = "A marketplace to order services and foreign products you need."
+
+function formatPrice(amount: number | null, currency: string | null): string {
+  if (amount == null) return "—"
+  return `${Number(amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency || ""}`.trim()
+}
 
 export default function HubCatalogPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [products, setProducts] = useState<HubProductRow[]>([])
   const [loading, setLoading] = useState(true)
+  const selectedCategory = (searchParams.get("category") || "").trim()
 
   useEffect(() => {
     if (authLoading) return
@@ -40,10 +51,26 @@ export default function HubCatalogPage() {
     }
   }, [user, authLoading, router])
 
+  const grouped = useMemo(() => {
+    const map = new Map<string, HubProductRow[]>()
+    for (const p of products) {
+      const key = (p.category || "Other").trim() || "Other"
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(p)
+    }
+    const entries = Array.from(map.entries()).map(([category, rows]) => ({ category, rows }))
+    entries.sort((a, b) => a.category.localeCompare(b.category))
+    return entries
+  }, [products])
+
+  const visibleSections = selectedCategory
+    ? grouped.filter((g) => g.category.toLowerCase() === selectedCategory.toLowerCase())
+    : grouped
+
   if (authLoading || (!user && !loading)) {
     return (
       <div className="min-w-0 space-y-0">
-        <AppPageHeader title="Hub" backHref="/dashboard" />
+        <AppPageHeader title="Hub" />
         <div className="px-4 py-8 text-gray-500">Loading…</div>
       </div>
     )
@@ -51,48 +78,96 @@ export default function HubCatalogPage() {
 
   return (
     <div className="min-w-0 space-y-0">
-      <AppPageHeader title="Hub" backHref="/dashboard" />
-      <div className="px-4 py-5 sm:px-6 space-y-4 max-w-3xl mx-auto">
-        <p className="text-sm text-gray-600">Services you can order and pay for through Ciuna.</p>
+      <AppPageHeader title="Hub" />
+      <div className="px-4 py-5 sm:px-6 space-y-5 mx-auto w-full max-w-5xl">
+        <section className="rounded-2xl bg-gradient-to-br from-orange-600 via-orange-500 to-amber-400 px-5 py-6 text-white shadow-sm">
+          <h2 className="text-2xl font-bold leading-tight">{HERO_TITLE}</h2>
+          <p className="mt-2 text-sm/6 text-orange-50 max-w-xl">{HERO_SUBTITLE}</p>
+        </section>
+
+        {selectedCategory ? (
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-700">
+              Showing category: <span className="font-semibold">{selectedCategory}</span>
+            </p>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/hub">All categories</Link>
+            </Button>
+          </div>
+        ) : null}
+
         {loading ? (
           <p className="text-gray-500">Loading products…</p>
-        ) : products.length === 0 ? (
+        ) : products.length === 0 || visibleSections.length === 0 ? (
           <Card>
             <CardContent className="py-10 text-center text-gray-600">No products available yet.</CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
-            {products.map((p) => (
-              <Link key={p.id} href={`/hub/${p.id}`} className="block">
-                <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                  <CardContent className="p-4 sm:p-5">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-xs font-medium uppercase text-gray-500">{p.category}</p>
-                        <h2 className="text-lg font-semibold text-gray-900 truncate">{p.title}</h2>
-                        {p.short_description ? (
-                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">{p.short_description}</p>
-                        ) : null}
-                      </div>
-                      <div className="shrink-0 text-right">
-                        {p.pricing_type === "fixed" ? (
-                          <span className="text-sm font-semibold text-gray-900">
-                            {p.fixed_amount} {p.fixed_currency}
-                          </span>
-                        ) : (
-                          <span className="text-sm text-gray-600">You set amount + fee</span>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+          <div className="space-y-6">
+            {visibleSections.map(({ category, rows }) => (
+              <section key={category} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-semibold text-gray-900">{category}</h3>
+                  <Button asChild variant="ghost" size="sm" className="text-primary">
+                    <Link href={`/hub?category=${encodeURIComponent(category)}`}>
+                      All
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Link>
+                  </Button>
+                </div>
+
+                <div className="-mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
+                  <div className="flex gap-3 min-w-max sm:min-w-0 sm:grid sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                    {(selectedCategory ? rows : rows.slice(0, 12)).map((p) => (
+                      <Card
+                        key={p.id}
+                        className="group w-[31vw] max-w-[180px] min-w-[150px] sm:w-auto sm:max-w-none sm:min-w-0 overflow-hidden hover:shadow-md transition-shadow"
+                      >
+                        <CardContent className="p-0">
+                          <Link href={`/hub/${p.id}`} className="block">
+                            <div className="aspect-[4/3] w-full bg-gray-100">
+                              {p.image_url ? (
+                                <img
+                                  src={p.image_url}
+                                  alt={p.title}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="h-full w-full flex items-center justify-center text-xs text-gray-500">
+                                  No image
+                                </div>
+                              )}
+                            </div>
+                          </Link>
+                          <div className="p-2.5 space-y-2">
+                            <Link href={`/hub/${p.id}`} className="block">
+                              <p className="line-clamp-2 text-sm font-medium leading-snug text-gray-900">{p.title}</p>
+                              {p.short_description ? (
+                                <p className="line-clamp-1 text-xs text-gray-500 mt-1">{p.short_description}</p>
+                              ) : null}
+                            </Link>
+                            <div className="space-y-2">
+                              {p.pricing_type === "fixed" ? (
+                                <p className="text-base font-semibold text-gray-900">
+                                  {formatPrice(p.fixed_amount, p.fixed_currency)}
+                                </p>
+                              ) : (
+                                <p className="text-sm text-gray-600">Set amount</p>
+                              )}
+                              <Button asChild size="sm" className="w-full h-8 text-xs">
+                                <Link href={`/hub/${p.id}`}>{p.pricing_type === "fixed" ? "Buy" : "Order"}</Link>
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              </section>
             ))}
           </div>
         )}
-        <Button variant="outline" asChild className="w-full sm:w-auto">
-          <Link href="/dashboard">Back to dashboard</Link>
-        </Button>
       </div>
     </div>
   )

@@ -25,7 +25,7 @@ function AdminAccessDeniedScreen() {
   )
 }
 
-const PROTECTED_PATHS = ["/dashboard", "/send", "/transactions", "/recipients", "/more", "/support"]
+const PROTECTED_PATHS = ["/dashboard", "/send", "/hub", "/transactions", "/recipients", "/more", "/support"]
 
 function isProtectedPath(pathname: string | null): boolean {
   if (!pathname) return false
