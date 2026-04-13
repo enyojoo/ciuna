@@ -9,6 +9,7 @@ import { getSecuritySettings } from "./security-settings"
 import { hasPin, removePin, setAppLocked } from "./login-pin"
 import { emitAppLocked } from "./app-lock-bus"
 import { claimReferralWithRetry, getStoredReferralSlug } from "./referral-client"
+import { clearHubClientMemory } from "./hub-client-cache"
 
 interface UserProfile {
   id: string
@@ -389,6 +390,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsAdmin(false)
       setLoading(false)
       userDataStore.cleanup()
+      clearHubClientMemory()
 
       // Sign out from Supabase
       const { error } = await supabase.auth.signOut()
@@ -407,6 +409,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsAdmin(false)
       setLoading(false)
       userDataStore.cleanup()
+      clearHubClientMemory()
     }
   }, [user?.id])
 

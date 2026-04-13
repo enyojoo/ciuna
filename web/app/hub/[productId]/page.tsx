@@ -24,7 +24,7 @@ export default function HubProductDetailPage() {
   const router = useRouter()
   const [product, setProduct] = useState<HubProductRow | null>(null)
   const [loading, setLoading] = useState(false)
-  const cacheUserId = userProfile?.id ?? user?.id ?? ""
+  const cacheUserId = user?.id ?? userProfile?.id ?? ""
 
   useLayoutEffect(() => {
     if (!cacheUserId || !productId) return

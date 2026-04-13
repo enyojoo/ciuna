@@ -37,7 +37,7 @@ export default function HubCheckoutPage() {
   const { user, userProfile, loading: authLoading } = useAuth()
   const { currencies, exchangeRates, deliveryAddresses } = useUserData()
   const idempotencyKeyRef = useRef(typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()))
-  const cacheUserId = userProfile?.id ?? user?.id ?? ""
+  const cacheUserId = user?.id ?? userProfile?.id ?? ""
 
   const [product, setProduct] = useState<HubProductRow | null>(null)
   const [loadingProduct, setLoadingProduct] = useState(false)

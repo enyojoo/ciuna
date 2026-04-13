@@ -32,7 +32,8 @@ export default function HubCatalogPage() {
   const [products, setProducts] = useState<HubProductRow[]>([])
   const [loading, setLoading] = useState(false)
   const selectedCategory = (searchParams.get("category") || "").trim()
-  const cacheUserId = userProfile?.id ?? user?.id ?? ""
+  /** Prefer session `user.id` so cache keys stay stable before `userProfile` loads (matches hub LS writes). */
+  const cacheUserId = user?.id ?? userProfile?.id ?? ""
 
   useLayoutEffect(() => {
     if (!cacheUserId) return
