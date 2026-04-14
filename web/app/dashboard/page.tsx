@@ -3,17 +3,17 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { Send, MessageCircle, Wallet, BadgeDollarSign, Store } from "lucide-react"
+import { Send, Wallet, BadgeDollarSign, Store } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useUserData } from "@/hooks/use-user-data"
-import { useRouter } from "next/navigation"
 import { DashboardSkeleton } from "@/components/dashboard-skeleton"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 import { formatLocaleDateShort } from "@/lib/format-date-locale"
 import { roundMoney } from "@/utils/currency"
+import { BrandLogo } from "@/components/brand/brand-logo"
 
 interface Transaction {
   id: string
@@ -104,7 +104,6 @@ function VolumeAmountWithFullDetail({
 export default function UserDashboardPage() {
   const { t, i18n } = useTranslation("app")
   const dateLocale = i18n.resolvedLanguage || i18n.language || "en"
-  const router = useRouter()
   const { userProfile } = useAuth()
   const { transactions, currencies, exchangeRates, loading } = useUserData()
   const [totalSent, setTotalSent] = useState(0)
@@ -200,14 +199,6 @@ export default function UserDashboardPage() {
     }
   }, [transactions, exchangeRates, userProfile])
 
-  const profileInitials = (() => {
-    const first = (userProfile?.first_name || "").trim()
-    const last = (userProfile?.last_name || "").trim()
-    if (first && last) return `${first[0]}${last[0]}`.toUpperCase()
-    if (first.length >= 2) return first.slice(0, 2).toUpperCase()
-    if (first.length === 1) return `${first[0]}`.toUpperCase()
-    return "U"
-  })()
   const baseCurrency = userProfile?.base_currency || "NGN"
   const completedTransactions = transactions?.filter((t) => t && t.status === "completed").length || 0
   const totalSentValue = totalSent > 0 ? totalSent : 0
@@ -324,13 +315,11 @@ export default function UserDashboardPage() {
         <div className="mb-5 bg-card px-4 py-4 sm:mb-6 sm:p-6">
           <div className="flex min-w-0 items-center justify-between gap-2 sm:gap-3">
             <Link
-              href="/more/profile"
-              className="-ml-0.5 inline-flex shrink-0 rounded-full p-0.5 hover:bg-gray-50/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
-              aria-label={t("dashboard.profileAria")}
+              href="/dashboard"
+              className="inline-flex shrink-0 items-center"
+              aria-label="Ciuna"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-bold tracking-tight text-primary ring-2 ring-primary/20 tabular-nums sm:h-10 sm:w-10">
-                {profileInitials}
-              </span>
+              <BrandLogo size="sm" className="h-7 sm:h-8" />
             </Link>
             <div className="flex min-w-0 flex-1 items-center justify-end gap-1.5 sm:gap-2">
               <Link
@@ -340,14 +329,13 @@ export default function UserDashboardPage() {
                 <BadgeDollarSign className="h-3.5 w-3.5 shrink-0 text-teal-800" strokeWidth={2.25} aria-hidden />
                 <span className="truncate">{t("dashboard.referEarn")}</span>
               </Link>
-              <button
-                type="button"
-                onClick={() => router.push("/support")}
-                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+              <Link
+                href="/support"
+                className="inline-flex min-w-0 items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2 py-1.5 text-[11px] font-semibold leading-tight text-gray-800 shadow-sm hover:bg-gray-100 sm:gap-1.5 sm:px-3 sm:text-xs"
                 aria-label={t("dashboard.supportAria")}
               >
-                <MessageCircle className="h-6 w-6 text-gray-600" />
-              </button>
+                <span className="truncate">{t("dashboard.supportAria")}</span>
+              </Link>
             </div>
           </div>
         </div>

@@ -297,8 +297,8 @@ export default function HubCatalogPage() {
                               {t("hub.noImage")}
                             </div>
                           )}
-                          <div className="absolute right-2 top-1.5">
-                            <span className="inline-flex items-center rounded-full bg-white/90 backdrop-blur px-1 py-0.5 sm:px-1.5 text-[8px] sm:text-[9px] font-medium text-gray-700">
+                          <div className="absolute right-2 top-1">
+                            <span className="inline-flex items-center rounded-full bg-white/90 backdrop-blur px-1 py-0.5 sm:px-1.5 text-[7px] sm:text-[8px] font-medium text-gray-700">
                               {p.category || "Other"}
                             </span>
                           </div>
