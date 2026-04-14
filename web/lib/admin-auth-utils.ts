@@ -18,7 +18,9 @@ export interface AdminUser {
 export async function getAdminUser(request: NextRequest): Promise<AdminUser | null> {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    const supabaseAnonKey =
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     
     // Get access token from cookies
     const token = getAccessTokenFromRequest(request)

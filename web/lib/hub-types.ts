@@ -28,8 +28,9 @@ export interface HubProductRow {
   id: string
   title: string
   short_description: string | null
-  long_description: string | null
   category: string
+  /** When omitted (e.g. older localStorage cache), treat as false. */
+  is_featured?: boolean
   status: "draft" | "live" | "archived"
   pricing_type: "fixed" | "user_input"
   fixed_amount: number | null
@@ -38,12 +39,8 @@ export interface HubProductRow {
   fee_percent: number | null
   funded_min: number | null
   funded_max: number | null
-  billing_context: "one_time" | "recurring" | null
   sla_text: string | null
-  internal_notes: string | null
   image_url: string | null
-  form_schema: HubFormFieldSchema[] | unknown
-  sort_order: number
   created_at: string
   updated_at: string
 }

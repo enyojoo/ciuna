@@ -123,6 +123,68 @@ export const formatCurrency = (amount: number, currency: string): string => {
   return `${curr?.symbol || ""}${rounded.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
+/**
+ * Format a fiat amount with the correct symbol for an ISO 4217 code (via Intl).
+ * Falls back to numeric + code if the runtime does not support the currency.
+ */
+export function formatIsoCurrency(
+  amount: number,
+  currencyCode: string | null | undefined,
+  locale?: Intl.LocalesArgument,
+): string {
+  if (!Number.isFinite(amount)) return "—"
+  const rounded = roundMoney(amount)
+  const code = String(currencyCode || "USD").trim().toUpperCase() || "USD"
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: code,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(rounded)
+  } catch {
+    return `${rounded.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${code}`
+  }
+}
+
+/** Narrow symbol for UI hints (e.g. `$`, `€`). Falls back to ISO code. */
+export function getCurrencyNarrowSymbol(
+  currencyCode: string | null | undefined,
+  locale?: Intl.LocalesArgument,
+): string {
+  const code = String(currencyCode || "USD").trim().toUpperCase() || "USD"
+  try {
+    const part = new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: code,
+      currencyDisplay: "narrowSymbol",
+    })
+      .formatToParts(0)
+      .find((p) => p.type === "currency")
+    return part?.value || code
+  } catch {
+    return code
+  }
+}
+
+/**
+ * Strict symbol-first money format for compact cards.
+ * Never appends ISO codes (e.g. `USD`), falls back to `$` when unknown.
+ */
+export function formatCurrencySymbolOnly(
+  amount: number,
+  currencyCode: string | null | undefined,
+  locale?: Intl.LocalesArgument,
+): string {
+  if (!Number.isFinite(amount)) return "—"
+  const rounded = roundMoney(amount)
+  const code = String(currencyCode || "USD").trim().toUpperCase() || "USD"
+  const known = currencies.find((c) => c.code === code)?.symbol
+  const intlSymbol = getCurrencyNarrowSymbol(code, locale)
+  const symbol = known || (intlSymbol && intlSymbol !== code ? intlSymbol : "$")
+  return `${symbol}${rounded.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
 export const formatCurrencyWithRounding = (amount: number, currency: string): string => {
   const curr = currencies.find((c) => c.code === currency)
   const formattedNumber = formatNumber(amount)

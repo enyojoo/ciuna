@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useMemo, useState } from "react"
+import { type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
@@ -8,20 +8,94 @@ import { useAuth } from "@/lib/auth-context"
 import { fetchWithAuth } from "@/lib/fetch-with-auth"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { HubProductRow } from "@/lib/hub-types"
 import {
   isHubCatalogCacheFresh,
   readStaleHubCatalogCache,
   writeHubCatalogCache,
 } from "@/lib/hub-client-cache"
-import { ChevronRight } from "lucide-react"
+import { formatCurrencySymbolOnly } from "@/utils/currency"
 
 /** Product line name — not localized. */
 const HUB_PRODUCT_LINE = "Ciuna Hub"
 
-function formatPrice(amount: number | null, currency: string | null): string {
+const ALL_CATEGORIES_VALUE = "__all__"
+
+function featuredRank(p: HubProductRow): number {
+  return p.is_featured ? 1 : 0
+}
+
+/** Featured first, then `updated_at` descending (stable for cache + API). */
+function sortHubCatalogProducts(list: HubProductRow[]): HubProductRow[] {
+  return [...list].sort((a, b) => {
+    const fr = featuredRank(b) - featuredRank(a)
+    if (fr !== 0) return fr
+    const ta = new Date(a.updated_at).getTime()
+    const tb = new Date(b.updated_at).getTime()
+    return tb - ta
+  })
+}
+
+function formatCardPrice(amount: number | null, currency: string | null): string {
   if (amount == null) return "—"
-  return `${Number(amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency || ""}`.trim()
+  // Guard against any fallback formatter appending an ISO code like "USD".
+  return formatCurrencySymbolOnly(Number(amount), currency)
+    .replace(/\s?[A-Z]{3}\b/g, "")
+    .replace(/\.00\b/g, "")
+    .trim()
+}
+
+function formatAmountOnly(amount: number, currency: string | null): string {
+  return formatCardPrice(amount, currency).replace(/^[^\d-]*/, "")
+}
+
+const amountValueClass = "text-lg sm:text-xl font-bold tabular-nums tracking-tight text-gray-900"
+const amountPrefixClass = "text-[11px] font-medium text-gray-500"
+
+function renderUserInputRangeLabel(
+  min: number | null,
+  max: number | null,
+  currency: string | null,
+  t: (key: string) => string,
+): ReactNode {
+  const hasMin = typeof min === "number" && Number.isFinite(min)
+  const hasMax = typeof max === "number" && Number.isFinite(max)
+  if (!hasMin && !hasMax) return t("hub.setAmount")
+
+  const minVal = hasMin ? Number(min) : null
+  const maxVal = hasMax ? Number(max) : null
+  const minLabel = minVal != null ? formatCardPrice(minVal, currency) : null
+  const maxLabel = maxVal != null ? formatCardPrice(maxVal, currency) : null
+
+  if (minLabel && maxLabel) {
+    // Keep one symbol prefix: "Pay from $5 to 1,000"
+    return (
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+        <span className={amountPrefixClass}>{t("hub.payFrom")}</span>
+        <span className={amountValueClass}>{minLabel}</span>
+        <span className={amountPrefixClass}>{t("hub.toRange")}</span>
+        <span className={amountValueClass}>{formatAmountOnly(maxVal!, currency)}</span>
+      </div>
+    )
+  }
+  if (minLabel) {
+    return (
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+        <span className={amountPrefixClass}>{t("hub.payFrom")}</span>
+        <span className={amountValueClass}>{minLabel}</span>
+      </div>
+    )
+  }
+  if (maxLabel) {
+    return (
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+        <span className={amountPrefixClass}>{t("hub.payUpTo")}</span>
+        <span className={amountValueClass}>{maxLabel}</span>
+      </div>
+    )
+  }
+  return t("hub.setAmount")
 }
 
 export default function HubCatalogPage() {
@@ -40,7 +114,7 @@ export default function HubCatalogPage() {
     setProducts((prev) => {
       if (prev.length > 0) return prev
       const stale = readStaleHubCatalogCache(cacheUserId)
-      if (stale && stale.length > 0) return stale
+      if (stale && stale.length > 0) return sortHubCatalogProducts(stale)
       return prev
     })
     const stale = readStaleHubCatalogCache(cacheUserId)
@@ -59,17 +133,15 @@ export default function HubCatalogPage() {
       return
     }
     if (!cacheUserId) return
-    if (isHubCatalogCacheFresh(cacheUserId)) {
-      return
-    }
 
     let cancelled = false
     ;(async () => {
       try {
-        const res = await fetchWithAuth("/api/hub/products")
+        // Always revalidate on mount so Office DB changes (e.g. image edits) reflect quickly.
+        const res = await fetchWithAuth("/api/hub/products", { cache: "no-store" })
         if (!res.ok) throw new Error("load")
         const data = await res.json()
-        const list = (data.products || []) as HubProductRow[]
+        const list = sortHubCatalogProducts((data.products || []) as HubProductRow[])
         if (!cancelled) {
           setProducts(list)
           writeHubCatalogCache(cacheUserId, list)
@@ -85,34 +157,62 @@ export default function HubCatalogPage() {
     }
   }, [user, authLoading, router, cacheUserId])
 
-  const grouped = useMemo(() => {
-    const map = new Map<string, HubProductRow[]>()
+  const categoryOptions = useMemo(() => {
+    const set = new Set<string>()
     for (const p of products) {
-      const key = (p.category || "Other").trim() || "Other"
-      if (!map.has(key)) map.set(key, [])
-      map.get(key)!.push(p)
+      const c = (p.category || "").trim()
+      if (c) set.add(c)
     }
-    const entries = Array.from(map.entries()).map(([category, rows]) => ({ category, rows }))
-    entries.sort((a, b) => a.category.localeCompare(b.category))
-    return entries
-  }, [products])
+    const sorted = [...set].sort((a, b) => a.localeCompare(b))
+    if (selectedCategory && !sorted.some((c) => c.toLowerCase() === selectedCategory.toLowerCase())) {
+      sorted.unshift(selectedCategory)
+    }
+    return sorted
+  }, [products, selectedCategory])
 
-  const visibleSections = selectedCategory
-    ? grouped.filter((g) => g.category.toLowerCase() === selectedCategory.toLowerCase())
-    : grouped
+  /** Match URL `category` to canonical casing from loaded products when possible. */
+  const categorySelectValue = useMemo(() => {
+    if (!selectedCategory) return ALL_CATEGORIES_VALUE
+    const q = selectedCategory.toLowerCase()
+    for (const c of categoryOptions) {
+      if (c.toLowerCase() === q) return c
+    }
+    return selectedCategory
+  }, [selectedCategory, categoryOptions])
+
+  const orderedProducts = useMemo(() => sortHubCatalogProducts(products), [products])
+
+  const visibleProducts = useMemo(() => {
+    if (!selectedCategory) return orderedProducts
+    const q = selectedCategory.toLowerCase()
+    return orderedProducts.filter((p) => (p.category || "").trim().toLowerCase() === q)
+  }, [orderedProducts, selectedCategory])
+
+  const onCategoryFilterChange = useCallback(
+    (value: string) => {
+      if (value === ALL_CATEGORIES_VALUE) {
+        router.replace("/hub")
+        return
+      }
+      router.replace(`/hub?category=${encodeURIComponent(value)}`)
+    },
+    [router],
+  )
 
   if (!user) {
     return (
       <div className="min-w-0">
         <div className="px-4 py-5 sm:px-6 mx-auto w-full max-w-5xl space-y-5 animate-pulse">
           <div className="rounded-2xl bg-gray-100 h-28" />
-          <div className="space-y-3">
-            <div className="h-8 w-40 rounded bg-gray-100" />
-            <div className="flex gap-3 overflow-hidden">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="w-[150px] h-[210px] rounded-xl bg-gray-100 shrink-0" />
-              ))}
-            </div>
+          <div className="flex items-center gap-3">
+            <div className="h-7 w-28 rounded bg-gray-100 shrink-0" />
+            <div className="flex-1 h-px bg-gray-100" />
+            <div className="h-9 w-40 rounded bg-gray-100 shrink-0" />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-xl bg-gray-100 aspect-[4/3] max-h-[220px]" />
+            ))}
           </div>
         </div>
       </div>
@@ -127,99 +227,130 @@ export default function HubCatalogPage() {
           <p className="mt-2 text-sm/6 text-orange-50 max-w-xl">{t("hub.catalogSubtitle")}</p>
         </section>
 
-        {selectedCategory ? (
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-700">
-              {t("hub.showingCategory")} <span className="font-semibold">{selectedCategory}</span>
-            </p>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/hub">{t("hub.allCategories")}</Link>
-            </Button>
-          </div>
-        ) : null}
-
         {loading && products.length === 0 ? (
-          <div className="space-y-6 animate-pulse">
-            {[1, 2].map((row) => (
-              <section key={row} className="space-y-3">
-                <div className="h-8 w-36 rounded bg-gray-100" />
-                <div className="flex gap-3 overflow-hidden">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={`${row}-${i}`} className="w-[150px] h-[210px] rounded-xl bg-gray-100 shrink-0" />
-                  ))}
-                </div>
-              </section>
-            ))}
+          <div className="space-y-5 animate-pulse">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-7 w-28 rounded bg-gray-100 shrink-0" />
+              <div className="flex-1 h-px bg-gray-100" />
+              <div className="h-9 w-44 rounded bg-gray-100 shrink-0" />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="rounded-xl bg-gray-100 aspect-[4/3] max-h-[220px]" />
+              ))}
+            </div>
           </div>
-        ) : products.length === 0 || visibleSections.length === 0 ? (
+        ) : products.length === 0 ? (
           <Card>
             <CardContent className="py-10 text-center text-gray-600">{t("hub.noProducts")}</CardContent>
           </Card>
         ) : (
-          <div className="space-y-6">
-            {visibleSections.map(({ category, rows }) => (
-              <section key={category} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-2xl font-semibold text-gray-900">{category}</h3>
-                  <Button asChild variant="ghost" size="sm" className="text-primary">
-                    <Link href={`/hub?category=${encodeURIComponent(category)}`}>
-                      {t("hub.all")}
-                      <ChevronRight className="h-4 w-4 ml-1" />
-                    </Link>
-                  </Button>
-                </div>
+          <>
+            <div className="flex items-center gap-3 min-w-0">
+              <h3 className="text-lg font-semibold text-gray-900 shrink-0">{t("hub.productsSectionTitle")}</h3>
+              <div className="flex-1 min-w-[1rem] border-t border-dashed border-gray-300" aria-hidden />
+              <div className="shrink-0 w-[min(100%,12rem)] sm:w-56">
+                <Select value={categorySelectValue} onValueChange={onCategoryFilterChange}>
+                  <SelectTrigger aria-label={t("hub.categoryFilterAria")}>
+                    <SelectValue placeholder={t("hub.allCategories")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL_CATEGORIES_VALUE}>{t("hub.allCategories")}</SelectItem>
+                    {categoryOptions.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-                <div className="-mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
-                  <div className="flex gap-3 min-w-max sm:min-w-0 sm:grid sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-                    {(selectedCategory ? rows : rows.slice(0, 12)).map((p) => (
-                      <Card
-                        key={p.id}
-                        className="group w-[31vw] max-w-[180px] min-w-[150px] sm:w-auto sm:max-w-none sm:min-w-0 overflow-hidden hover:shadow-md transition-shadow"
+            {visibleProducts.length === 0 ? (
+              <Card>
+                <CardContent className="py-10 space-y-3 text-center text-gray-600">
+                  <p>{t("hub.noProductsInCategory")}</p>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/hub">{t("hub.allCategories")}</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                {visibleProducts.map((p) => (
+                  <Card
+                    key={p.id}
+                    className="h-full group overflow-hidden rounded-3xl border border-gray-200 bg-white gap-0 py-0 shadow-[0_8px_24px_rgba(15,23,42,0.08)] transition-all duration-300 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_18px_36px_rgba(15,23,42,0.14)] motion-safe:hover:border-orange-300/70"
+                  >
+                    <CardContent className="p-0 h-full flex flex-col">
+                      <Link
+                        href={`/hub/${p.id}`}
+                        className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
                       >
-                        <CardContent className="p-0">
-                          <Link href={`/hub/${p.id}`} className="block">
-                            <div className="aspect-[4/3] w-full bg-gray-100">
-                              {p.image_url ? (
-                                <img
-                                  src={p.image_url}
-                                  alt={p.title}
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                <div className="h-full w-full flex items-center justify-center text-xs text-gray-500">
-                                  {t("hub.noImage")}
-                                </div>
-                              )}
+                        <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
+                          {p.image_url ? (
+                            <img
+                              src={p.image_url}
+                              alt={p.title}
+                              className="absolute inset-0 h-full w-full object-contain"
+                            />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center px-3 text-center text-xs text-gray-500">
+                              {t("hub.noImage")}
                             </div>
-                          </Link>
-                          <div className="p-2.5 space-y-2">
-                            <Link href={`/hub/${p.id}`} className="block">
-                              <p className="line-clamp-2 text-sm font-medium leading-snug text-gray-900">{p.title}</p>
-                              {p.short_description ? (
-                                <p className="line-clamp-1 text-xs text-gray-500 mt-1">{p.short_description}</p>
-                              ) : null}
-                            </Link>
-                            <div className="space-y-2">
-                              {p.pricing_type === "fixed" ? (
-                                <p className="text-base font-semibold text-gray-900">
-                                  {formatPrice(p.fixed_amount, p.fixed_currency)}
-                                </p>
-                              ) : (
-                                <p className="text-sm text-gray-600">{t("hub.setAmount")}</p>
-                              )}
-                              <Button asChild size="sm" className="w-full h-8 text-xs">
-                                <Link href={`/hub/${p.id}`}>{p.pricing_type === "fixed" ? t("hub.buy") : t("hub.order")}</Link>
-                              </Button>
+                          )}
+                        </div>
+                      </Link>
+                      <div className="flex flex-1 flex-col gap-1 px-2.5 pb-1.5 pt-2 sm:px-3 sm:pt-2 sm:pb-2">
+                        <Link href={`/hub/${p.id}`} className="block min-w-0 group/title">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900 group-hover/title:text-orange-700 transition-colors">
+                              {p.title}
+                            </p>
+                            <div className="shrink-0">
+                              <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-700">
+                                {p.category || "Other"}
+                              </span>
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              </section>
-            ))}
-          </div>
+                          {p.short_description ? (
+                            <p className="line-clamp-2 text-xs text-gray-500 mt-1 leading-relaxed mb-2">{p.short_description}</p>
+                          ) : null}
+                        </Link>
+                        <div className="mt-auto flex flex-col gap-1.5 pt-3">
+                          {p.pricing_type === "fixed" ? (
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                              <span className={amountPrefixClass}>
+                                {(() => {
+                                  const label = t("hub.sellPrice")
+                                  return label === "hub.sellPrice" ? "Sell price" : label
+                                })()}
+                              </span>
+                              <span className={amountValueClass}>{formatCardPrice(p.fixed_amount, p.fixed_currency)}</span>
+                            </div>
+                          ) : (
+                            <div className="text-gray-600">
+                              {renderUserInputRangeLabel(
+                                p.funded_min,
+                                p.funded_max,
+                                p.default_input_currency || p.fixed_currency || "USD",
+                                t,
+                              )}
+                            </div>
+                          )}
+                          <Button asChild size="sm" className="w-full h-8 text-xs font-semibold rounded-xl">
+                            <Link href={`/hub/checkout/${p.id}`}>
+                              {p.pricing_type === "fixed" ? t("hub.buy") : t("hub.order")}
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

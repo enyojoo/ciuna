@@ -32,6 +32,9 @@
   "hub": {
     "hub": "Hub",
     "catalogSubtitle": "A marketplace to order foreign services and products you need.",
+    "productsSectionTitle": "Products",
+    "categoryFilterAria": "Filter by category",
+    "noProductsInCategory": "No products in this category.",
     "showingCategory": "Showing category:",
     "allCategories": "All categories",
     "all": "All",
@@ -92,7 +95,11 @@
         "missingTransaction": "Missing transaction",
         "failed": "Failed"
       }
-    }
+    },
+    "payFrom": "Pay from",
+    "payUpTo": "Pay up to",
+    "toRange": "to",
+    "sellPrice": "Sell price"
   },
   "transactions": {
     "title": "Transactions",
@@ -596,4 +603,3 @@
     "loadFailed": "Could not load data. Please try again."
   }
 }
-

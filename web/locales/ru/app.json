@@ -32,6 +32,9 @@
   "hub": {
     "hub": "Хаб",
     "catalogSubtitle": "Маркетплейс для заказа нужных вам международных услуг и товаров.",
+    "productsSectionTitle": "Продукты",
+    "categoryFilterAria": "Фильтр по категории",
+    "noProductsInCategory": "В этой категории нет продуктов.",
     "showingCategory": "Показана категория:",
     "allCategories": "Все категории",
     "all": "Все",
@@ -92,7 +95,11 @@
         "missingTransaction": "Отсутствует транзакция",
         "failed": "Ошибка"
       }
-    }
+    },
+    "payFrom": "Оплатить от",
+    "payUpTo": "Оплатить до",
+    "toRange": "до",
+    "sellPrice": "Цена продажи"
   },
   "transactions": {
     "title": "Операции",

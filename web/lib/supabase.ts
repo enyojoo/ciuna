@@ -3,7 +3,10 @@ import { createClient } from "@supabase/supabase-js"
 // Use placeholders during build when env vars are missing (e.g. CI without secrets).
 // At runtime, real env vars from Vercel/local .env will be used.
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co"
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key"
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "placeholder-anon-key"
 
 // Client-side Supabase client (singleton pattern)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {

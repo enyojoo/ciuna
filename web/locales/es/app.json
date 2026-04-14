@@ -32,6 +32,9 @@
   "hub": {
     "hub": "Centro",
     "catalogSubtitle": "Un mercado para pedir los servicios y productos internacionales que necesitas.",
+    "productsSectionTitle": "Productos",
+    "categoryFilterAria": "Filtrar por categoría",
+    "noProductsInCategory": "No hay productos en esta categoría.",
     "showingCategory": "Mostrando categoría:",
     "allCategories": "Todas las categorías",
     "all": "Todo",
@@ -92,7 +95,11 @@
         "missingTransaction": "Falta la transacción",
         "failed": "Falló"
       }
-    }
+    },
+    "payFrom": "Paga desde",
+    "payUpTo": "Paga hasta",
+    "toRange": "a",
+    "sellPrice": "Precio de venta"
   },
   "transactions": {
     "title": "Transacciones",

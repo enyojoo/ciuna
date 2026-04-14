@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
 import { requireAuth, withErrorHandling, createErrorResponse } from "@/lib/auth-utils"
+import { sortHubProductRows } from "@/lib/hub-products-sort"
 
 export const GET = withErrorHandling(async (request: NextRequest) => {
   try {
@@ -12,17 +13,14 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   const server = createServerClient()
   const { data, error } = await server
     .from("hub_products")
-    .select(
-      "id, title, short_description, long_description, category, status, pricing_type, fixed_amount, fixed_currency, default_input_currency, fee_percent, funded_min, funded_max, billing_context, sla_text, image_url, form_schema, sort_order, created_at, updated_at",
-    )
+    .select("*")
     .eq("status", "live")
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: false })
+    .order("updated_at", { ascending: false })
 
   if (error) {
     console.error("hub products list", error)
     return createErrorResponse("Failed to load products", 500)
   }
 
-  return NextResponse.json({ products: data || [] })
+  return NextResponse.json({ products: sortHubProductRows(data || []) })
 })

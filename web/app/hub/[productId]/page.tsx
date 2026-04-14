@@ -15,9 +15,10 @@ import {
   readStaleHubProductCache,
   writeHubProductCache,
 } from "@/lib/hub-client-cache"
+import { formatIsoCurrency, getCurrencyNarrowSymbol } from "@/utils/currency"
 
 export default function HubProductDetailPage() {
-  const { t } = useTranslation("app")
+  const { t, i18n } = useTranslation("app")
   const params = useParams()
   const productId = params.productId as string
   const { user, userProfile, loading: authLoading } = useAuth()
@@ -111,9 +112,9 @@ export default function HubProductDetailPage() {
       <div className="px-4 py-5 sm:px-6 max-w-2xl mx-auto space-y-4">
         <Card>
           <CardContent className="p-4 sm:p-6 space-y-3">
-            <div className="aspect-[16/9] w-full overflow-hidden rounded-lg bg-gray-100">
+            <div className="aspect-[16/9] w-full overflow-hidden rounded-lg bg-gray-100 p-3 flex items-center justify-center">
               {product.image_url ? (
-                <img src={product.image_url} alt={product.title} className="h-full w-full object-cover" />
+                <img src={product.image_url} alt={product.title} className="h-full w-full object-contain" />
               ) : (
                 <div className="h-full w-full flex items-center justify-center text-sm text-gray-500">
                   {t("hub.noProductImage")}
@@ -121,17 +122,22 @@ export default function HubProductDetailPage() {
               )}
             </div>
             <p className="text-xs font-medium uppercase text-gray-500">{product.category}</p>
-            {product.long_description || product.short_description ? (
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{product.long_description || product.short_description}</p>
-            ) : null}
+            {product.short_description ? <p className="text-sm text-gray-700 whitespace-pre-wrap">{product.short_description}</p> : null}
             {product.sla_text ? <p className="text-sm text-gray-600 border-t pt-3">{product.sla_text}</p> : null}
             {product.pricing_type === "fixed" ? (
-              <p className="text-lg font-semibold">
-                {product.fixed_amount} {product.fixed_currency}
+              <p className="text-lg font-semibold tabular-nums tracking-tight">
+                {product.fixed_amount == null
+                  ? "—"
+                  : formatIsoCurrency(Number(product.fixed_amount), product.fixed_currency, i18n.resolvedLanguage ?? undefined)}
               </p>
             ) : (
               <p className="text-sm text-gray-600">
-                {t("hub.userInputPricingHint", { currency: product.default_input_currency || "USD" })}
+                {t("hub.userInputPricingHint", {
+                  currency: getCurrencyNarrowSymbol(
+                    product.default_input_currency || "USD",
+                    i18n.resolvedLanguage ?? undefined,
+                  ),
+                })}
               </p>
             )}
           </CardContent>

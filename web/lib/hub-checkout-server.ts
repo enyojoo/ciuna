@@ -114,8 +114,7 @@ export async function createHubCheckoutTransaction(
 
   const requiredSend = fundedAmount / rate
   const corridor = computeCorridorFee(requiredSend, rateRow as ExchangeRate)
-  const feePercent =
-    product.pricing_type === "user_input" && product.fee_percent != null ? Number(product.fee_percent) : 0
+  const feePercent = product.fee_percent != null ? Number(product.fee_percent) : 0
   const hubFee = computeHubFeeFromReceive(fundedAmount, rateRow as ExchangeRate, feePercent)
   const sendAmount = roundMoney(requiredSend)
   const feeAmount = roundMoney(corridor.fee)
@@ -127,10 +126,10 @@ export async function createHubCheckoutTransaction(
     productPricingType: product.pricing_type,
     fundedAmount: roundMoney(fundedAmount),
     fundedCurrency: receiveCurrencyResolved,
-    feePercent: product.pricing_type === "user_input" ? feePercent : null,
+    feePercent: feePercent > 0 ? feePercent : null,
     hubFeeAmount,
     corridorFeeAmount: feeAmount,
-    billingContext: product.billing_context ?? null,
+    billingContext: null,
     contactName: contactName.trim(),
     contactPhone: contactPhone.trim(),
     deliveryAddressLine: deliveryAddressLine?.trim() || null,

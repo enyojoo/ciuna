@@ -28,7 +28,9 @@ export async function getAuthenticatedUser(
 ): Promise<AuthenticatedUser | null> {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    const supabaseAnonKey =
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     
     // Get access token from cookies (same as admin-auth-utils)
     const token = getAccessTokenFromRequest(request)

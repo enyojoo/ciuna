@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { HubProductRow, HubFormFieldSchema } from "@/lib/hub-types"
+import type { HubProductRow } from "@/lib/hub-types"
 import {
   isHubProductCacheFresh,
   readStaleHubProductCache,
@@ -24,9 +24,24 @@ import { computeHubFeeFromReceive } from "@/lib/hub-fee"
 import { roundMoney } from "@/utils/currency"
 import { paymentMethodService } from "@/lib/database"
 
-function normalizeFormSchema(raw: unknown): HubFormFieldSchema[] {
-  if (!Array.isArray(raw)) return []
-  return raw.filter((x) => x && typeof (x as HubFormFieldSchema).key === "string") as HubFormFieldSchema[]
+function autoInfoLabelByProductType(category: string): string {
+  const key = category.trim().toLowerCase()
+  if (key === "ai" || key === "language") return "Account email or username"
+  if (key === "connectivity" || key === "communication") return "Phone number or account ID"
+  if (key === "money") return "Recipient account or wallet identifier"
+  return "Account identifier or recipient reference"
+}
+
+function resolveCheckoutFields(product: HubProductRow) {
+  return [
+    {
+      key: "customer_info",
+      label: autoInfoLabelByProductType(String(product.category || "Other")),
+      placeholder: "Enter required account info",
+      required: true,
+      type: "text",
+    },
+  ]
 }
 
 export default function HubCheckoutPage() {
@@ -169,7 +184,7 @@ export default function HubCheckoutPage() {
     let fee = 0
     if (rateRow.fee_type === "fixed") fee = Number(rateRow.fee_amount) || 0
     else if (rateRow.fee_type === "percentage") fee = (requiredSend * (Number(rateRow.fee_amount) || 0)) / 100
-    const feePct = product.pricing_type === "user_input" ? Number(product.fee_percent) || 0 : 0
+    const feePct = Number(product.fee_percent) || 0
     const hubFee = computeHubFeeFromReceive(fundedReceiveAmount, rateRow, feePct)
     const sendAmt = roundMoney(requiredSend)
     const feeR = roundMoney(fee)
@@ -209,7 +224,7 @@ export default function HubCheckoutPage() {
         setError(t("hub.checkout.errors.namePhoneRequired"))
         return
       }
-      const fields = normalizeFormSchema(product?.form_schema)
+      const fields = product ? resolveCheckoutFields(product) : []
       for (const f of fields) {
         if (f.required && !String(formAnswers[f.key] || "").trim()) {
           setError(t("hub.checkout.errors.fillField", { field: f.label || f.key }))
@@ -297,7 +312,7 @@ export default function HubCheckoutPage() {
     )
   }
 
-  const formFields = normalizeFormSchema(product.form_schema)
+  const formFields = resolveCheckoutFields(product)
 
   return (
     <div className="min-w-0 space-y-0">
