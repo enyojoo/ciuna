@@ -50,8 +50,8 @@ function formatAmountOnly(amount: number, currency: string | null): string {
   return formatCardPrice(amount, currency).replace(/^[^\d-]*/, "")
 }
 
-const amountValueClass = "text-lg sm:text-xl font-bold tabular-nums tracking-tight text-gray-900"
-const amountPrefixClass = "text-[11px] font-medium text-gray-500"
+const amountValueClass = "text-base sm:text-xl font-bold tabular-nums tracking-tight text-gray-900"
+const amountPrefixClass = "text-[10px] sm:text-[11px] font-medium text-gray-500"
 
 function renderUserInputRangeLabel(
   min: number | null,
@@ -69,19 +69,17 @@ function renderUserInputRangeLabel(
   const maxLabel = maxVal != null ? formatCardPrice(maxVal, currency) : null
 
   if (minLabel && maxLabel) {
-    // Keep one symbol prefix: "Pay from $5 to 1,000"
+    // Simplified per UX: show only "Pay from X" on cards.
     return (
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+      <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
         <span className={amountPrefixClass}>{t("hub.payFrom")}</span>
         <span className={amountValueClass}>{minLabel}</span>
-        <span className={amountPrefixClass}>{t("hub.toRange")}</span>
-        <span className={amountValueClass}>{formatAmountOnly(maxVal!, currency)}</span>
       </div>
     )
   }
   if (minLabel) {
     return (
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+      <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
         <span className={amountPrefixClass}>{t("hub.payFrom")}</span>
         <span className={amountValueClass}>{minLabel}</span>
       </div>
@@ -89,7 +87,7 @@ function renderUserInputRangeLabel(
   }
   if (maxLabel) {
     return (
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+      <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
         <span className={amountPrefixClass}>{t("hub.payUpTo")}</span>
         <span className={amountValueClass}>{maxLabel}</span>
       </div>
@@ -299,27 +297,25 @@ export default function HubCatalogPage() {
                               {t("hub.noImage")}
                             </div>
                           )}
+                          <div className="absolute right-2 top-2">
+                            <span className="inline-flex items-center rounded-full bg-white/90 backdrop-blur px-1.5 py-0.5 sm:px-2 text-[9px] sm:text-[10px] font-medium text-gray-700">
+                              {p.category || "Other"}
+                            </span>
+                          </div>
                         </div>
                       </Link>
                       <div className="flex flex-1 flex-col gap-1 px-2.5 pb-1.5 pt-2 sm:px-3 sm:pt-2 sm:pb-2">
                         <Link href={`/hub/${p.id}`} className="block min-w-0 group/title">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900 group-hover/title:text-orange-700 transition-colors">
-                              {p.title}
-                            </p>
-                            <div className="shrink-0">
-                              <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-700">
-                                {p.category || "Other"}
-                              </span>
-                            </div>
-                          </div>
+                          <p className="line-clamp-2 text-[13px] sm:text-sm font-semibold leading-snug text-gray-900 group-hover/title:text-orange-700 transition-colors">
+                            {p.title}
+                          </p>
                           {p.short_description ? (
-                            <p className="line-clamp-2 text-xs text-gray-500 mt-1 leading-relaxed mb-2">{p.short_description}</p>
+                            <p className="line-clamp-2 text-[11px] sm:text-xs text-gray-500 mt-1 leading-relaxed mb-2">{p.short_description}</p>
                           ) : null}
                         </Link>
                         <div className="mt-auto flex flex-col gap-1.5 pt-3">
                           {p.pricing_type === "fixed" ? (
-                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                            <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
                               <span className={amountPrefixClass}>
                                 {(() => {
                                   const label = t("hub.sellPrice")
