@@ -240,6 +240,8 @@
     "noCurrencies": "No currencies available. Please contact support.",
     "youSend": "You Send",
     "receiverGets": "Receiver Gets",
+    "sendMoneyHeroTitle": "Send Money",
+    "sendMoneyHeroSubtitle": "Choose amount and currencies to start your transfer.",
     "fee": "Exchange fee",
     "rate": "Rate",
     "free": "Free",

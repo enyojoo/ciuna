@@ -240,6 +240,8 @@
     "noCurrencies": "Aucune devise disponible. Contactez l’assistance.",
     "youSend": "Vous envoyez",
     "receiverGets": "Le destinataire reçoit",
+    "sendMoneyHeroTitle": "Envoyer de l'argent",
+    "sendMoneyHeroSubtitle": "Choisissez le montant et les devises pour commencer votre transfert.",
     "fee": "Frais de change",
     "rate": "Taux",
     "free": "Gratuit",

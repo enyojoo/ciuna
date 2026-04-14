@@ -867,6 +867,19 @@ export default function UserSendPage() {
               {currentStep === 1 && (
                 <Card className="py-4">
                   <CardContent className="space-y-6 pt-0">
+                    <div className="rounded-2xl bg-gradient-to-br from-orange-600 via-orange-500 to-amber-400 p-5 text-white">
+                      <div className="space-y-1">
+                        <h2 className="text-2xl font-bold leading-tight">
+                          {t("send.sendMoneyHeroTitle", { defaultValue: "Send Money" })}
+                        </h2>
+                        <p className="text-sm/6 text-orange-50">
+                          {t("send.sendMoneyHeroSubtitle", {
+                            defaultValue: "Choose amount and currencies to start your transfer.",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+
                     {/* You Send Section */}
                     <div className="space-y-4">
                       <h3 className="text-sm font-medium text-gray-700">{t("send.youSend")}</h3>

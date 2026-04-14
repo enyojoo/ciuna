@@ -240,6 +240,8 @@
     "noCurrencies": "No hay monedas disponibles. Contacta soporte.",
     "youSend": "Tú envías",
     "receiverGets": "El destinatario recibe",
+    "sendMoneyHeroTitle": "Enviar dinero",
+    "sendMoneyHeroSubtitle": "Elige monto y monedas para iniciar tu transferencia.",
     "fee": "Comisión de cambio",
     "rate": "Tipo",
     "free": "Gratis",

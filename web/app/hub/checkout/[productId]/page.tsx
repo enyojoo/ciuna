@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
@@ -17,7 +17,9 @@ import {
   QrCode,
   Search,
   Smartphone,
+  Upload,
   UserRound,
+  X,
 } from "lucide-react"
 import { QRCodeSVG } from "qrcode.react"
 import { useAuth } from "@/lib/auth-context"
@@ -28,7 +30,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   CurrencyFlagIcon,
   CurrencyPickerPopover,
@@ -42,7 +43,8 @@ import {
   writeHubProductCache,
 } from "@/lib/hub-client-cache"
 import type { Currency, ExchangeRate } from "@/types"
-import { paymentMethodService } from "@/lib/database"
+import { paymentMethodService, transactionService } from "@/lib/database"
+import { generateTransactionId } from "@/lib/transaction-id"
 import { roundMoney, formatCurrency } from "@/utils/currency"
 import { cn } from "@/lib/utils"
 import { accountFieldLabel } from "@/lib/account-field-i18n"
@@ -160,6 +162,13 @@ export default function HubCheckoutPage() {
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState("")
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({})
   const [sendDropdownOpen, setSendDropdownOpen] = useState(false)
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [isUploading, setIsUploading] = useState(false)
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [transactionIdNote, setTransactionIdNote] = useState("")
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const receiveCurrency = useMemo(() => {
     if (!product) return ""
@@ -223,6 +232,12 @@ export default function HubCheckoutPage() {
     const fullName = [userProfile?.first_name, userProfile?.last_name].filter(Boolean).join(" ").trim()
     if (fullName) setContactName((prev) => prev || fullName)
   }, [userProfile?.first_name, userProfile?.last_name])
+
+  useEffect(() => {
+    if (step === 3 && !transactionIdNote) {
+      setTransactionIdNote(generateTransactionId())
+    }
+  }, [step, transactionIdNote])
 
   useEffect(() => {
     if (!product || product.pricing_type !== "user_input") return
@@ -429,12 +444,92 @@ export default function HubCheckoutPage() {
 
       const transactionId = data.transaction?.transaction_id
       if (!transactionId) throw new Error(t("hub.checkout.errors.missingTransaction"))
+
+      if (uploadedFile && uploadProgress === 100 && !isUploading) {
+        setTimeout(async () => {
+          try {
+            await transactionService.uploadReceipt(transactionId, uploadedFile)
+          } catch (receiptUploadError) {
+            console.error("Error uploading receipt:", receiptUploadError)
+          }
+        }, 100)
+      }
+
       router.push(`/send/${String(transactionId).toLowerCase()}`)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : t("hub.checkout.errors.failed"))
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const handleFileSelect = async (file: File) => {
+    setUploadError(null)
+
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError(t("send.fileTooLarge"))
+      return
+    }
+
+    const allowedTypes = ["image/jpeg", "image/png", "application/pdf"]
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError(t("send.fileTypeInvalid"))
+      return
+    }
+
+    setUploadedFile(file)
+    setIsUploading(true)
+    setUploadProgress(0)
+
+    const progressInterval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(progressInterval)
+          setIsUploading(false)
+          return 100
+        }
+        return prev + 10
+      })
+    }, 100)
+  }
+
+  const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) void handleFileSelect(file)
+  }
+
+  const handleDragOver = (e: DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (e: DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+  }
+
+  const handleDrop = (e: DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+    const file = e.dataTransfer.files[0]
+    if (file) void handleFileSelect(file)
+  }
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleRemoveFile = () => {
+    setUploadedFile(null)
+    setUploadProgress(0)
+    setUploadError(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  const handleDismissUploadError = () => {
+    setUploadError(null)
   }
 
   const showCheckoutSkeleton = !user || (loadingProduct && !product)
@@ -999,35 +1094,193 @@ export default function HubCheckoutPage() {
                             amount: formatCurrency(pricingPreview?.total || 0, sendCurrency),
                           })}
                         </h3>
-                        <p className="text-xs text-gray-600">
-                          {t("hub.checkout.sendAmountPlusFees", {
-                            defaultValue: "Order total {{base}} + exchange fee before we begin fulfillment.",
-                            base: formatCurrency(pricingPreview?.orderTotalSend || 0, sendCurrency),
-                          })}
-                        </p>
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label>{t("hub.checkout.paymentMethodFor", { currency: sendCurrency })}</Label>
-                      <Select value={selectedPaymentMethodId} onValueChange={setSelectedPaymentMethodId}>
-                        <SelectTrigger className="h-12 rounded-xl">
-                          <SelectValue placeholder={t("hub.checkout.selectPaymentMethod")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {paymentMethods.map((method) => (
-                            <SelectItem key={method.id} value={method.id}>
-                              {method.name} ({method.type})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      {renderPaymentMethodCard()}
+
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-gray-900 text-xs uppercase tracking-wide">
+                          {t("send.importantInstructions")}
+                        </h4>
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                          <ul className="text-xs text-amber-700 space-y-1.5">
+                            <li className="flex items-start gap-2">
+                              <span className="text-amber-500 mt-0.5 text-xs">•</span>
+                              <span>
+                                {t("send.transferExactly")}{" "}
+                                <strong>{formatCurrency(pricingPreview?.total || 0, sendCurrency)}</strong>
+                              </span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-amber-500 mt-0.5 text-xs">•</span>
+                              <span className="flex-1">
+                                {t("send.noteTransactionId")}{" "}
+                                <span className="inline-flex items-center gap-1">
+                                  <strong>{transactionIdNote}</strong>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleCopy(transactionIdNote, "transactionIdInstructions")}
+                                    className="h-4 w-4 p-0 hover:bg-amber-100"
+                                  >
+                                    {copiedStates.transactionIdInstructions ? (
+                                      <Check className="h-3 w-3 text-green-600" />
+                                    ) : (
+                                      <Copy className="h-3 w-3 text-amber-700" />
+                                    )}
+                                  </Button>
+                                </span>
+                              </span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-amber-500 mt-0.5 text-xs">•</span>
+                              <span>
+                                {t("send.completeWithin")} <strong>{t("send.aFewMinutes")}</strong>
+                              </span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-amber-500 mt-0.5 text-xs">•</span>
+                              <span>{t("send.uploadReceiptVerify")}</span>
+                            </li>
+                            {selectedPaymentMethod?.type === "qr_code" ? (
+                              <li className="flex items-start gap-2">
+                                <span className="text-amber-500 mt-0.5 text-xs">•</span>
+                                <span>{t("send.scanQrBanking")}</span>
+                              </li>
+                            ) : null}
+                            {selectedPaymentMethod?.type === "stablecoin" ? (
+                              <li className="flex items-start gap-2">
+                                <span className="text-amber-500 mt-0.5 text-xs">•</span>
+                                <span>{t("send.scanWalletQr")}</span>
+                              </li>
+                            ) : null}
+                            {selectedPaymentMethod?.type === "mobile_money" ? (
+                              <li className="flex items-start gap-2">
+                                <span className="text-amber-500 mt-0.5 text-xs">•</span>
+                                <span>{t("send.payMobileMoney")}</span>
+                              </li>
+                            ) : null}
+                          </ul>
+                        </div>
+                      </div>
                     </div>
 
-                    {renderPaymentMethodCard()}
+                    <div className="space-y-3">
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileInputChange}
+                        accept=".jpg,.jpeg,.png,.pdf"
+                        className="hidden"
+                      />
 
-                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-                      {t("hub.checkout.serverRecalculated")}
+                      {uploadError ? (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                          <div className="flex items-start gap-2">
+                            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                              <p className="text-sm text-red-700 font-medium">{t("send.uploadError")}</p>
+                              <p className="text-xs text-red-600 mt-1">{uploadError}</p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleDismissUploadError}
+                              className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      <div
+                        onClick={handleUploadClick}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        className={cn(
+                          "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all duration-200",
+                          isDragOver
+                            ? "border-primary bg-primary/[0.06] shadow-sm ring-2 ring-primary/35"
+                            : uploadedFile
+                              ? "border-green-300 bg-green-50"
+                              : uploadError
+                                ? "border-red-300 bg-red-50"
+                                : "border-gray-200 hover:border-primary/35",
+                        )}
+                      >
+                        <div className="flex items-center justify-center gap-3">
+                          <div
+                            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+                              uploadedFile
+                                ? "bg-green-100"
+                                : uploadError
+                                  ? "bg-red-100"
+                                  : isDragOver
+                                    ? "bg-primary/10"
+                                    : "bg-gray-100"
+                            }`}
+                          >
+                            {uploadedFile ? (
+                              <Check className="h-5 w-5 text-green-600" />
+                            ) : uploadError ? (
+                              <AlertCircle className="h-5 w-5 text-red-600" />
+                            ) : (
+                              <Upload className={`h-5 w-5 transition-colors ${isDragOver ? "text-primary" : "text-gray-400"}`} />
+                            )}
+                          </div>
+                          <div className="text-left min-w-0 flex-1">
+                            <h3 className="font-medium text-gray-900 text-sm truncate" title={uploadedFile?.name}>
+                              {uploadedFile
+                                ? uploadedFile.name
+                                : uploadError
+                                  ? t("send.uploadFailed")
+                                  : t("send.uploadReceipt")}
+                            </h3>
+                            <p className="text-xs text-gray-500">
+                              {uploadedFile
+                                ? `${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB`
+                                : uploadError
+                                  ? t("send.clickTryAgain")
+                                  : t("send.fileTypesHint")}
+                            </p>
+                          </div>
+                          {uploadedFile ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleRemoveFile()
+                              }}
+                              className="h-6 w-6 p-0 text-gray-400 hover:text-red-600"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          ) : null}
+                        </div>
+
+                        {isUploading ? (
+                          <div className="mt-3">
+                            <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                              <span>{t("send.uploading")}</span>
+                              <span>{uploadProgress}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-1.5">
+                              <div
+                                className="bg-primary h-1.5 rounded-full transition-all duration-300"
+                                style={{ width: `${uploadProgress}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
 
                     <div className="flex gap-3 sm:gap-4">
@@ -1040,7 +1293,7 @@ export default function HubCheckoutPage() {
                         disabled={submitting || !pricingPreview || !selectedPaymentMethodId}
                         className="min-h-12 flex-1 rounded-xl bg-primary text-base font-semibold hover:bg-primary/90"
                       >
-                        {submitting ? t("hub.checkout.creating") : t("hub.checkout.makePayment")}
+                        {submitting ? t("hub.checkout.creating") : t("send.ivePaid")}
                       </Button>
                     </div>
                   </CardContent>
