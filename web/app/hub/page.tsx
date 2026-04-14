@@ -278,11 +278,11 @@ export default function HubCatalogPage() {
                 {visibleProducts.map((p) => (
                   <Card
                     key={p.id}
-                    className="h-full group overflow-hidden rounded-3xl border border-gray-200 bg-white gap-0 py-0 shadow-[0_8px_24px_rgba(15,23,42,0.08)] transition-all duration-300 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_18px_36px_rgba(15,23,42,0.14)] motion-safe:hover:border-orange-300/70"
+                    className="h-full group overflow-hidden rounded-2xl border border-gray-200 bg-white gap-0 py-0 shadow-[0_8px_24px_rgba(15,23,42,0.08)] transition-all duration-300 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_18px_36px_rgba(15,23,42,0.14)] motion-safe:hover:border-orange-300/70"
                   >
                     <CardContent className="p-0 h-full flex flex-col">
                       <Link
-                        href={`/hub/${p.id}`}
+                        href={`/hub/checkout/${p.id}`}
                         className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
                       >
                         <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
@@ -297,15 +297,15 @@ export default function HubCatalogPage() {
                               {t("hub.noImage")}
                             </div>
                           )}
-                          <div className="absolute right-2 top-2">
-                            <span className="inline-flex items-center rounded-full bg-white/90 backdrop-blur px-1.5 py-0.5 sm:px-2 text-[9px] sm:text-[10px] font-medium text-gray-700">
+                          <div className="absolute right-2 top-1.5">
+                            <span className="inline-flex items-center rounded-full bg-white/90 backdrop-blur px-1 py-0.5 sm:px-1.5 text-[8px] sm:text-[9px] font-medium text-gray-700">
                               {p.category || "Other"}
                             </span>
                           </div>
                         </div>
                       </Link>
                       <div className="flex flex-1 flex-col gap-1 px-2.5 pb-1.5 pt-2 sm:px-3 sm:pt-2 sm:pb-2">
-                        <Link href={`/hub/${p.id}`} className="block min-w-0 group/title">
+                        <Link href={`/hub/checkout/${p.id}`} className="block min-w-0 group/title">
                           <p className="line-clamp-2 text-[13px] sm:text-sm font-semibold leading-snug text-gray-900 group-hover/title:text-orange-700 transition-colors">
                             {p.title}
                           </p>

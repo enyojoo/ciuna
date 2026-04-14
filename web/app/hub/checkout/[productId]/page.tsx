@@ -247,6 +247,16 @@ export default function HubCheckoutPage() {
     return roundMoney(Number.parseFloat(fundedInput) || 0)
   }, [product, fundedInput])
 
+  const hubFeeReceiveAmount = useMemo(() => {
+    if (!product || fundedReceiveAmount <= 0) return 0
+    return roundMoney((fundedReceiveAmount * (Number(product.fee_percent) || 0)) / 100)
+  }, [fundedReceiveAmount, product])
+
+  const subtotalReceiveAmount = useMemo(
+    () => roundMoney(fundedReceiveAmount + hubFeeReceiveAmount),
+    [fundedReceiveAmount, hubFeeReceiveAmount],
+  )
+
   const rateRow = useMemo(() => {
     if (!sendCurrency || !receiveCurrency) return null
     return (
@@ -432,7 +442,7 @@ export default function HubCheckoutPage() {
   if (showCheckoutSkeleton) {
     return (
       <div className="min-w-0 space-y-0">
-        <AppPageHeader title={t("hub.checkout.title")} backHref={`/hub/${productId}`} />
+        <AppPageHeader title={t("hub.checkout.title")} backHref="/hub" />
         <div className="px-4 py-5 sm:px-6">
           <div className="mx-auto max-w-6xl animate-pulse space-y-6">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -658,7 +668,7 @@ export default function HubCheckoutPage() {
 
   return (
     <div className="min-w-0 space-y-0">
-      <AppPageHeader title={t("hub.checkout.forProduct", { product: product.title })} backHref={`/hub/${productId}`} />
+      <AppPageHeader title={t("hub.checkout.forProduct", { product: product.title })} backHref="/hub" />
       <div className="min-w-0 px-4 py-5 sm:px-6">
         <div className="mx-auto max-w-6xl">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
@@ -678,11 +688,6 @@ export default function HubCheckoutPage() {
                         <div className="space-y-1">
                           <p className="text-sm/6 text-orange-100">{product.category}</p>
                           <h2 className="text-2xl font-bold leading-tight">{product.title}</h2>
-                        </div>
-                        <div className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white">
-                          {product.pricing_type === "fixed"
-                            ? t("hub.checkout.fixedPrice", { defaultValue: "Fixed price" })
-                            : t("hub.checkout.flexibleAmount", { defaultValue: "Flexible amount" })}
                         </div>
                       </div>
                       {product.short_description ? (
@@ -738,7 +743,9 @@ export default function HubCheckoutPage() {
                         <div className="flex items-center justify-between gap-3">
                           <div className="min-w-0 flex-1">
                             <div className="text-app-money-input font-bold text-gray-900">
-                              {pricingPreview ? formatCurrency(pricingPreview.total, sendCurrency) : "—"}
+                              {pricingPreview
+                                ? formatCurrency(pricingPreview.total, sendCurrency)
+                                : formatCurrency(fundedReceiveAmount, sendCurrency || receiveCurrency)}
                             </div>
                           </div>
                           <div className="md:hidden shrink-0">
@@ -774,12 +781,8 @@ export default function HubCheckoutPage() {
                               </div>
                               <span className="text-sm text-gray-600">{t("hub.checkout.hubFee")}</span>
                             </div>
-                            <span className={cn("font-medium", (pricingPreview?.hubFeeReceive || 0) === 0 ? "text-green-600" : "text-gray-900")}>
-                              {pricingPreview
-                                ? pricingPreview.hubFeeReceive === 0
-                                  ? t("send.free")
-                                  : formatCurrency(pricingPreview.hubFeeReceive, receiveCurrency)
-                                : "—"}
+                            <span className={cn("font-medium", hubFeeReceiveAmount === 0 ? "text-green-600" : "text-gray-900")}>
+                              {hubFeeReceiveAmount === 0 ? t("send.free") : formatCurrency(hubFeeReceiveAmount, receiveCurrency)}
                             </span>
                           </div>
 
@@ -1059,17 +1062,13 @@ export default function HubCheckoutPage() {
                     <div className="flex min-w-0 items-start justify-between gap-2">
                       <span className="min-w-0 text-gray-600">{t("hub.checkout.productPrice", { defaultValue: "Product price" })}</span>
                       <span className="shrink-0 text-right font-semibold tabular-nums">
-                        {pricingPreview ? formatCurrency(pricingPreview.productPrice, receiveCurrency) : "—"}
+                        {formatCurrency(fundedReceiveAmount, receiveCurrency)}
                       </span>
                     </div>
                     <div className="flex min-w-0 items-start justify-between gap-2">
                       <span className="min-w-0 text-gray-600">{t("hub.checkout.hubFee")}</span>
-                      <span className={cn("shrink-0 text-right font-semibold tabular-nums", (pricingPreview?.hubFeeReceive || 0) === 0 ? "text-green-600" : "text-gray-900")}>
-                        {pricingPreview
-                          ? pricingPreview.hubFeeReceive === 0
-                            ? t("send.free")
-                            : formatCurrency(pricingPreview.hubFeeReceive, receiveCurrency)
-                          : "—"}
+                      <span className={cn("shrink-0 text-right font-semibold tabular-nums", hubFeeReceiveAmount === 0 ? "text-green-600" : "text-gray-900")}>
+                        {hubFeeReceiveAmount === 0 ? t("send.free") : formatCurrency(hubFeeReceiveAmount, receiveCurrency)}
                       </span>
                     </div>
                     <div className="flex min-w-0 items-start justify-between gap-2">
@@ -1081,7 +1080,7 @@ export default function HubCheckoutPage() {
                     <div className="flex min-w-0 items-start justify-between gap-2">
                       <span className="min-w-0 text-gray-600">{t("hub.checkout.subtotal")}</span>
                       <span className="shrink-0 text-right font-semibold tabular-nums text-gray-900">
-                        {pricingPreview ? formatCurrency(pricingPreview.subtotalReceive, receiveCurrency) : "—"}
+                        {formatCurrency(subtotalReceiveAmount, receiveCurrency)}
                       </span>
                     </div>
                     <div className="flex min-w-0 items-start justify-between gap-2">
@@ -1093,7 +1092,9 @@ export default function HubCheckoutPage() {
                     <div className="flex min-w-0 items-start justify-between gap-2 border-t pt-2">
                       <span className="min-w-0 text-gray-600">{t("hub.checkout.totalToPay", { defaultValue: "Total to Pay" })}</span>
                       <span className="shrink-0 text-right text-[clamp(1rem,2.8vmin,1.125rem)] font-semibold tabular-nums">
-                        {pricingPreview ? formatCurrency(pricingPreview.total, sendCurrency) : "—"}
+                        {pricingPreview
+                          ? formatCurrency(pricingPreview.total, sendCurrency)
+                          : formatCurrency(fundedReceiveAmount, sendCurrency || receiveCurrency)}
                       </span>
                     </div>
                   </div>

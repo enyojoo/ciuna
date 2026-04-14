@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,6 +24,7 @@ interface CurrencyConverterProps {
 }
 
 export function CurrencyConverter({ onSendMoney }: CurrencyConverterProps) {
+  const { t } = useTranslation("app")
   const [sendAmount, setSendAmount] = useState<string>("100")
   const [receiveAmount, setReceiveAmount] = useState<string>("0")
   const [sendCurrency, setSendCurrency] = useState<string>("USD")
@@ -450,7 +452,7 @@ export function CurrencyConverter({ onSendMoney }: CurrencyConverterProps) {
               <span className="text-sm text-gray-600">Fee</span>
             </div>
             <span className={`font-medium ${fee === 0 ? "text-green-600" : "text-gray-900"}`}>
-              {fee === 0 ? "FREE" : formatCurrency(fee, sendCurrency)}
+              {fee === 0 ? t("send.free") : formatCurrency(fee, sendCurrency)}
             </span>
           </div>
 

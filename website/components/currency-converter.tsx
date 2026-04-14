@@ -351,7 +351,7 @@ export function CurrencyConverter({ onSendMoney }: CurrencyConverterProps) {
               <span className="text-sm text-gray-600">Fee</span>
             </div>
             <span className={`font-medium ${fee === 0 ? "text-green-600" : "text-gray-900"}`}>
-              {fee === 0 ? "FREE" : formatCurrency(fee, sendCurrency)}
+              {fee === 0 ? "Free" : formatCurrency(fee, sendCurrency)}
             </span>
           </div>
           <div className="flex justify-between items-center">
