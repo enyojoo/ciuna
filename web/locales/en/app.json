@@ -51,6 +51,7 @@
     "orderNow": "Order now",
     "checkout": {
       "title": "Checkout",
+      "hubCheckoutTitle": "Ciuna Hub Checkout",
       "order": "Order",
       "steps": {
         "amount": "Amount",

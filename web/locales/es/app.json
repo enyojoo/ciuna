@@ -51,6 +51,7 @@
     "orderNow": "Pedir ahora",
     "checkout": {
       "title": "Pago",
+      "hubCheckoutTitle": "Pago de Ciuna Hub",
       "order": "Pedido",
       "steps": {
         "amount": "Monto",

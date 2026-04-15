@@ -51,6 +51,7 @@
     "orderNow": "Commander",
     "checkout": {
       "title": "Paiement",
+      "hubCheckoutTitle": "Paiement Ciuna Hub",
       "order": "Commande",
       "steps": {
         "amount": "Montant",

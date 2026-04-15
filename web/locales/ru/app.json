@@ -51,6 +51,7 @@
     "orderNow": "Заказать",
     "checkout": {
       "title": "Оплата",
+      "hubCheckoutTitle": "Оформление Ciuna Hub",
       "order": "Заказ",
       "steps": {
         "amount": "Сумма",

@@ -763,7 +763,7 @@ export default function HubCheckoutPage() {
 
   return (
     <div className="min-w-0 space-y-0">
-      <AppPageHeader title={t("hub.checkout.forProduct", { product: product.title })} backHref="/hub" />
+      <AppPageHeader title={t("hub.checkout.hubCheckoutTitle", { defaultValue: "Ciuna Hub Checkout" })} backHref="/hub" />
       <div className="min-w-0 px-4 py-5 sm:px-6">
         <div className="mx-auto max-w-6xl">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
