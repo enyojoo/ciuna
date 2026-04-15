@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { Send, Wallet, BadgeDollarSign, Store } from "lucide-react"
+import { Send, MessageCircle, Wallet, BadgeDollarSign, Store } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { useEffect, useState } from "react"
@@ -331,10 +331,10 @@ export default function UserDashboardPage() {
               </Link>
               <Link
                 href="/support"
-                className="inline-flex min-w-0 items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2 py-1.5 text-[11px] font-semibold leading-tight text-gray-800 shadow-sm hover:bg-gray-100 sm:gap-1.5 sm:px-3 sm:text-xs"
+                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
                 aria-label={t("dashboard.supportAria")}
               >
-                <span className="truncate">{t("dashboard.supportAria")}</span>
+                <MessageCircle className="h-6 w-6 text-gray-600" />
               </Link>
             </div>
           </div>
