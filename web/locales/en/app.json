@@ -72,6 +72,7 @@
       "orderTotal": "Order Total",
       "exchangeRate": "Exchange Rate",
       "totalToPay": "Total to Pay",
+      "fulfillmentSummary": "Fulfillment",
       "fulfilledWithin": "Fulfilled within",
       "selectCurrencyAmountHint": "Select currencies and amount to see totals.",
       "continue": "Continue",

@@ -72,6 +72,7 @@
       "orderTotal": "Total de la commande",
       "exchangeRate": "Taux de change",
       "totalToPay": "Total à payer",
+      "fulfillmentSummary": "Exécution",
       "fulfilledWithin": "Exécuté sous",
       "selectCurrencyAmountHint": "Sélectionnez les devises et le montant pour voir les totaux.",
       "continue": "Continuer",

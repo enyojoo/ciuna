@@ -72,6 +72,7 @@
       "orderTotal": "Итого по заказу",
       "exchangeRate": "Курс обмена",
       "totalToPay": "Итого к оплате",
+      "fulfillmentSummary": "Выполнение",
       "fulfilledWithin": "Выполним в течение",
       "selectCurrencyAmountHint": "Выберите валюты и сумму, чтобы увидеть итог.",
       "continue": "Продолжить",

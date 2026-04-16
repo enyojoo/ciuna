@@ -72,6 +72,7 @@
       "orderTotal": "Total del pedido",
       "exchangeRate": "Tipo de cambio",
       "totalToPay": "Total a pagar",
+      "fulfillmentSummary": "Cumplimiento",
       "fulfilledWithin": "Se completa en",
       "selectCurrencyAmountHint": "Selecciona moneda y monto para ver los totales.",
       "continue": "Continuar",
