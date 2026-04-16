@@ -112,13 +112,39 @@ export function formatExchangeRateForEmail(rate: number): string {
 }
 
 export const formatCurrency = (amount: number, currency: string): string => {
-  const curr = currencies.find((c) => c.code === currency)
-  const rounded = roundMoney(amount)
-  return `${curr?.symbol || ""}${rounded.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  return formatCurrencySymbolOnly(amount, currency)
 }
 
 export const formatCurrencyWithRounding = (amount: number, currency: string): string => {
-  const curr = currencies.find((c) => c.code === currency)
   const formattedNumber = formatNumber(amount)
-  return `${curr?.symbol || ""}${formattedNumber}`
+  const symbol = getCurrencyNarrowSymbol(currency)
+  return `${symbol === currency ? `${currency} ` : symbol}${formattedNumber}`
+}
+
+export function getCurrencyNarrowSymbol(currencyCode: string | null | undefined): string {
+  const code = String(currencyCode || "USD").trim().toUpperCase() || "USD"
+  const known = currencies.find((c) => c.code === code)?.symbol
+  if (known) return known
+  try {
+    const part = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: code,
+      currencyDisplay: "narrowSymbol",
+    })
+      .formatToParts(0)
+      .find((p) => p.type === "currency")
+    return part?.value || code
+  } catch {
+    return code
+  }
+}
+
+export function formatCurrencySymbolOnly(amount: number, currencyCode: string | null | undefined): string {
+  if (!Number.isFinite(amount)) return "—"
+  const rounded = roundMoney(amount)
+  const symbol = getCurrencyNarrowSymbol(currencyCode)
+  return `${symbol === currencyCode ? `${currencyCode} ` : symbol}${rounded.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`
 }

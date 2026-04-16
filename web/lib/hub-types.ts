@@ -20,6 +20,7 @@ export interface HubTransactionSnapshot {
   billingContext?: "one_time" | "recurring" | null
   contactName: string
   contactPhone: string
+  fulfillmentType?: "online" | "in_person"
   deliveryAddressLine?: string | null
   formAnswers: Record<string, unknown>
 }
@@ -33,6 +34,7 @@ export interface HubProductRow {
   is_featured?: boolean
   status: "draft" | "live" | "archived"
   pricing_type: "fixed" | "user_input"
+  fulfillment_type?: "online" | "in_person"
   fixed_amount: number | null
   fixed_currency: string | null
   default_input_currency: string | null

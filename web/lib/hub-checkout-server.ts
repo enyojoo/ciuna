@@ -78,6 +78,9 @@ export async function createHubCheckoutTransaction(
   if (product.status !== "live") {
     throw new Error("Product is not available for purchase")
   }
+  if (product.fulfillment_type === "in_person" && !deliveryAddressLine?.trim()) {
+    throw new Error("Delivery address required for in-person fulfillment")
+  }
 
   let fundedAmount: number
   if (product.pricing_type === "fixed") {
@@ -132,6 +135,7 @@ export async function createHubCheckoutTransaction(
     billingContext: null,
     contactName: contactName.trim(),
     contactPhone: contactPhone.trim(),
+    fulfillmentType: product.fulfillment_type === "in_person" ? "in_person" : "online",
     deliveryAddressLine: deliveryAddressLine?.trim() || null,
     formAnswers,
   }
@@ -192,7 +196,7 @@ export function validateHubFormAnswers(
   const fields = parseFormSchema(formSchema) as { key?: string; required?: boolean; label?: string }[]
   for (const f of fields) {
     const key = f?.key
-    if (!key) continue
+    if (!key || key === "customer_info") continue
     const v = answers[key]
     if (f.required && (v === undefined || v === null || String(v).trim() === "")) {
       return { ok: false, message: `Missing required field: ${f.label || key}` }

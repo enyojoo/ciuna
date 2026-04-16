@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Check, Clock, XCircle, Copy } from "lucide-react"
+import { Check, Clock, Copy, MapPin, Package2, Phone, UserRound, XCircle } from "lucide-react"
 import { useRouter, useParams } from "next/navigation"
 import { transactionService } from "@/lib/database"
 import { useAuth } from "@/lib/auth-context"
@@ -17,7 +17,8 @@ import { supabase } from "@/lib/supabase"
 import type { Transaction } from "@/types"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 import { formatLocaleDateTimeLine } from "@/lib/format-date-locale"
-import { roundMoney } from "@/utils/currency"
+import { formatCurrency, roundMoney } from "@/utils/currency"
+import { cn } from "@/lib/utils"
 
 const HUB_ORDER_TIMER_SECONDS = 3600
 
@@ -385,6 +386,7 @@ function TransactionStatusPage() {
 
 
   const getStatusSteps = (currentStatus: string) => {
+    const isHub = isHubOrderTx(transaction)
     // If transaction is failed or cancelled, show different steps
     if (currentStatus === "failed" || currentStatus === "cancelled") {
       return [
@@ -402,13 +404,15 @@ function TransactionStatusPage() {
         },
         {
           id: "initiated",
-          title: t("txDetail.stepTransferInitiated"),
+          title: isHub ? t("txDetail.hubStepFulfillmentStarted") : t("txDetail.stepTransferInitiated"),
           completed: false,
           icon: <XCircle className="h-4 w-4 text-white" />,
         },
         {
           id: "completed",
-          title: currentStatus === "failed" ? t("txDetail.stepTransferFailed") : t("txDetail.stepTransferCancelled"),
+          title: currentStatus === "failed"
+            ? (isHub ? t("txDetail.hubStepTransactionFailed") : t("txDetail.stepTransferFailed"))
+            : (isHub ? t("txDetail.hubStepTransactionCancelled") : t("txDetail.stepTransferCancelled")),
           completed: false,
           icon: <XCircle className="h-4 w-4 text-white" />,
         },
@@ -436,7 +440,7 @@ function TransactionStatusPage() {
         },
         {
           id: "completed",
-          title: t("txDetail.stepTransferComplete"),
+          title: isHub ? t("txDetail.hubStepOrderCompleted") : t("txDetail.stepTransferComplete"),
           completed: currentStatus === "completed",
             icon:
             currentStatus === "completed" ? (
@@ -466,14 +470,6 @@ function TransactionStatusPage() {
     return "text-gray-500"
   }
 
-  const formatCurrency = (amount: number | string, currency: string) => {
-    const numAmount = typeof amount === "string" ? Number.parseFloat(amount) : amount
-    const currencyData = currencies.find((c) => c.code === currency)
-    const symbol = currencyData?.symbol || currency
-    const a = roundMoney(Number.isFinite(numAmount) ? numAmount : 0)
-    return `${symbol}${a.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-  }
-
   const handleCopy = async (text: string, key: string) => {
     try {
       await navigator.clipboard.writeText(text)
@@ -488,8 +484,38 @@ function TransactionStatusPage() {
 
   const formatTimestamp = (dateString: string) => formatLocaleDateTimeLine(dateString, dateLocale)
 
+  const getHubComment = (tx: Transaction | null) => {
+    const formAnswers = (tx?.hub_snapshot as { formAnswers?: Record<string, unknown> } | undefined)?.formAnswers
+    return typeof formAnswers?.comment === "string" ? formAnswers.comment.trim() : ""
+  }
 
-  const getStatusMessage = (status: string, isReferralPayout: boolean) => {
+  const getHubFulfillmentType = (tx: Transaction | null) =>
+    (tx?.hub_snapshot as { fulfillmentType?: string } | undefined)?.fulfillmentType === "in_person"
+      ? "in_person"
+      : "online"
+
+  /** Hub fee on funded amount in receive currency (matches Hub checkout order summary). */
+  const getHubFeeReceiveAmount = (tx: Transaction | null): number => {
+    if (!tx) return 0
+    const snap = tx.hub_snapshot as
+      | { fundedAmount?: number; feePercent?: number | null }
+      | null
+      | undefined
+    const productPrice =
+      snap?.fundedAmount != null && Number.isFinite(Number(snap.fundedAmount))
+        ? Number(snap.fundedAmount)
+        : Number(tx.receive_amount) || 0
+    const pct = snap?.feePercent != null && Number.isFinite(Number(snap.feePercent)) ? Number(snap.feePercent) : null
+    if (pct != null && pct > 0 && productPrice > 0) {
+      return roundMoney((productPrice * pct) / 100)
+    }
+    const rate = Number(tx.exchange_rate) || 0
+    const hubSend = Number((tx as { hub_fee_amount?: number }).hub_fee_amount) || 0
+    if (rate > 0 && hubSend > 0) return roundMoney(hubSend * rate)
+    return 0
+  }
+
+  const getStatusMessage = (status: string, isReferralPayout: boolean, isHub: boolean) => {
     if (isReferralPayout) {
       switch (status) {
         case "pending":
@@ -526,6 +552,46 @@ function TransactionStatusPage() {
           return {
             title: t("txDetail.payoutProcessingGeneric"),
             description: t("txDetail.payoutProcessingGenericDesc"),
+            isCompleted: false,
+          }
+      }
+    }
+    if (isHub) {
+      switch (status) {
+        case "pending":
+          return {
+            title: t("txDetail.hubStatusOrderCreated"),
+            description: t("txDetail.hubStatusOrderCreatedDesc"),
+            isCompleted: false,
+          }
+        case "processing":
+          return {
+            title: t("txDetail.hubStatusFulfillmentStarted"),
+            description: t("txDetail.hubStatusFulfillmentStartedDesc"),
+            isCompleted: false,
+          }
+        case "completed":
+          return {
+            title: t("txDetail.hubStatusOrderCompleted"),
+            description: t("txDetail.hubStatusOrderCompletedDesc"),
+            isCompleted: true,
+          }
+        case "failed":
+          return {
+            title: t("txDetail.statusTxnFailed"),
+            description: t("txDetail.statusTxnFailedDesc"),
+            isCompleted: false,
+          }
+        case "cancelled":
+          return {
+            title: t("txDetail.statusTxnCancelled"),
+            description: t("txDetail.statusTxnCancelledDesc"),
+            isCompleted: false,
+          }
+        default:
+          return {
+            title: t("txDetail.hubStatusFulfillmentStarted"),
+            description: t("txDetail.hubStatusFulfillmentStartedDesc"),
             isCompleted: false,
           }
       }
@@ -573,7 +639,7 @@ function TransactionStatusPage() {
   if (hasAttemptedLoad && (error || !transaction)) {
     return (
       <div className="min-w-0 space-y-0">
-        <AppPageHeader title={t("txDetail.transfer")} backHref="/transactions" />
+        <AppPageHeader title={t("txDetail.transaction")} backHref="/transactions" />
         <div className="min-w-0 px-4 py-5 sm:p-6">
           <div className="mx-auto max-w-6xl">
             <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
@@ -601,7 +667,7 @@ function TransactionStatusPage() {
   if (authLoading || (!hasAttemptedLoad && !transaction)) {
     return (
       <div className="min-w-0 space-y-0">
-        <AppPageHeader title={t("txDetail.transfer")} backHref="/transactions" />
+        <AppPageHeader title={t("txDetail.transaction")} backHref="/transactions" />
         <div className="min-w-0 px-4 py-5 sm:p-6">
           <TransactionDetailsSkeleton />
         </div>
@@ -613,7 +679,7 @@ function TransactionStatusPage() {
     typeof transaction.reference === "string" && transaction.reference.startsWith(REFERRAL_PAYOUT_PREFIX)
   const isHub = isHubOrderTx(transaction)
 
-  const statusMessage = getStatusMessage(transaction.status, isReferralPayout)
+  const statusMessage = getStatusMessage(transaction.status, isReferralPayout, isHub)
   const statusSteps = getStatusSteps(transaction.status)
   const { timeRemaining, isOverdue } = getTimeInfo()
 
@@ -621,7 +687,11 @@ function TransactionStatusPage() {
     <div className="min-w-0 space-y-0">
       <AppPageHeader
         title={
-          isReferralPayout ? t("txDetail.referralPayout") : isHub ? t("txDetail.hubOrderTitle") : t("txDetail.transfer")
+          isReferralPayout
+            ? t("txDetail.referralPayout")
+            : isHub
+              ? t("hub.checkout.orderSummary", { defaultValue: "Order summary" })
+              : t("txDetail.transfer")
         }
         backHref={isReferralPayout ? "/more/referrals" : "/transactions"}
       />
@@ -640,7 +710,11 @@ function TransactionStatusPage() {
                         </span>
                       </div>
                       <span className="text-app-tx-amount max-w-full break-words text-center font-bold leading-tight text-gray-900 sm:text-left">
-                        {transaction && formatCurrency(transaction.send_amount, transaction.send_currency)}
+                        {transaction &&
+                          formatCurrency(
+                            isHub ? transaction.total_amount : transaction.send_amount,
+                            transaction.send_currency,
+                          )}
                       </span>
                       {transaction && getTimerDisplay() && (
                         <div className="flex items-center justify-center sm:hidden text-orange-600 mt-2">
@@ -745,36 +819,6 @@ function TransactionStatusPage() {
                     </>
                   )}
 
-                  {isHub && (transaction as { hub_snapshot?: Record<string, unknown> }).hub_snapshot ? (
-                    <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-4 space-y-2 text-sm">
-                      <p className="font-semibold text-amber-900">{t("txDetail.hubOrderTitle")}</p>
-                      {typeof (transaction as { hub_snapshot: { productTitle?: string } }).hub_snapshot.productTitle === "string" ? (
-                        <p className="text-gray-900 font-medium">
-                          {(transaction as { hub_snapshot: { productTitle: string } }).hub_snapshot.productTitle}
-                        </p>
-                      ) : null}
-                      <p className="text-gray-700">
-                        <span className="text-gray-500">Funded: </span>
-                        {formatCurrency(transaction.receive_amount, transaction.receive_currency)}
-                      </p>
-                      {Number((transaction as { hub_fee_amount?: number }).hub_fee_amount) > 0 ? (
-                        <p className="text-gray-700">
-                          <span className="text-gray-500">Hub fee: </span>
-                          {formatCurrency(
-                            Number((transaction as { hub_fee_amount?: number }).hub_fee_amount) || 0,
-                            transaction.send_currency,
-                          )}
-                        </p>
-                      ) : null}
-                      <p className="text-gray-700">
-                        <span className="text-gray-500">Contact: </span>
-                        {String((transaction as { hub_snapshot: { contactName?: string } }).hub_snapshot.contactName || "—")}{" "}
-                        /{" "}
-                        {String((transaction as { hub_snapshot: { contactPhone?: string } }).hub_snapshot.contactPhone || "—")}
-                      </p>
-                    </div>
-                  ) : null}
-
                   {/* Receipt Section */}
                   {transaction.receipt_url && (
                     <div className="bg-gray-50 rounded-lg p-4">
@@ -831,74 +875,219 @@ function TransactionStatusPage() {
               </Card>
             </div>
 
-            {/* Transaction Summary Sidebar */}
+            {/* Order summary (Hub checkout UI) / transaction summary sidebar */}
             <div className="min-w-0 lg:col-span-1">
-              <Card className="sticky top-6">
+              <Card className={cn(isHub ? "lg:sticky lg:top-6" : "sticky top-6")}>
                 <CardHeader>
-                  <CardTitle className="text-base sm:text-lg">
-                    {isReferralPayout ? t("txDetail.payoutSummary") : t("txDetail.transactionSummary")}
+                  <CardTitle className={cn(isHub ? "text-lg" : "text-base sm:text-lg")}>
+                    {isReferralPayout
+                      ? t("txDetail.payoutSummary")
+                      : isHub
+                        ? t("hub.checkout.orderSummary", { defaultValue: "Order summary" })
+                        : t("txDetail.transactionSummary")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex min-w-0 items-start justify-between gap-2">
-                      <span className="min-w-0 text-gray-600">
-                        {isReferralPayout
-                          ? t("txDetail.withdrawalAmount")
-                          : isHub
-                            ? t("txDetail.hubAmountPaid")
-                            : t("txDetail.youSent")}
-                      </span>
-                      <span className="shrink-0 text-right font-semibold tabular-nums">
-                        {formatCurrency(transaction.send_amount, transaction.send_currency)}
-                      </span>
-                    </div>
-                    <div className="flex min-w-0 items-start justify-between gap-2">
-                      <span className="min-w-0 text-gray-600">{t("txDetail.fee")}</span>
-                      <span
-                        className={`shrink-0 text-right font-medium tabular-nums ${transaction.fee_amount === 0 ? "text-green-600" : "text-gray-900"}`}
-                      >
-                        {transaction.fee_amount === 0
-                          ? t("txDetail.free")
-                          : formatCurrency(transaction.fee_amount, transaction.send_currency)}
-                      </span>
-                    </div>
-                    <div className="flex min-w-0 items-start justify-between gap-2">
-                      <span className="min-w-0 text-gray-600">
-                        {isHub ? t("txDetail.hubOrderAmount") : t("txDetail.recipientGets")}
-                      </span>
-                      <span className="shrink-0 text-right font-semibold tabular-nums">
-                        {formatCurrency(transaction.receive_amount, transaction.receive_currency)}
-                      </span>
-                    </div>
-                    <div className="flex min-w-0 items-start justify-between gap-2">
-                      <span className="min-w-0 text-gray-600">{t("txDetail.exchangeRate")}</span>
-                      <span className="shrink-0 text-right text-sm">
-                        1 {transaction.send_currency} = {transaction.exchange_rate.toFixed(2)}{" "}
-                        {transaction.receive_currency}
-                      </span>
-                    </div>
-                    {transaction.fulfillment_type === "cash_hand" ? (
-                      <div className="flex min-w-0 items-start justify-between gap-2">
-                        <span className="min-w-0 text-gray-600">{t("txDetail.logisticsFee")}</span>
-                        <span
-                          className={`shrink-0 text-right font-medium tabular-nums ${
-                            (transaction.logistics_fee_amount ?? 0) === 0 ? "text-green-600" : "text-gray-900"
-                          }`}
-                        >
-                          {(transaction.logistics_fee_amount ?? 0) === 0
-                            ? t("txDetail.free")
-                            : formatCurrency(transaction.logistics_fee_amount ?? 0, transaction.send_currency)}
-                        </span>
+                  {isHub ? (
+                    <>
+                      <div className="space-y-2">
+                        {(() => {
+                          const snap = transaction.hub_snapshot as
+                            | {
+                                productTitle?: string
+                                fundedAmount?: number
+                                fundedCurrency?: string
+                              }
+                            | undefined
+                          const receiveCur = String(snap?.fundedCurrency || transaction.receive_currency || "") || "—"
+                          const sendCur = transaction.send_currency || "—"
+                          const productPrice =
+                            snap?.fundedAmount != null && Number.isFinite(Number(snap.fundedAmount))
+                              ? Number(snap.fundedAmount)
+                              : Number(transaction.receive_amount) || 0
+                          const hubFeeRecv = getHubFeeReceiveAmount(transaction)
+                          const subtotalRecv = roundMoney(productPrice + hubFeeRecv)
+                          const rate = Number(transaction.exchange_rate)
+                          const feeAmount = Number(transaction.fee_amount) || 0
+                          return (
+                            <>
+                              <div className="flex min-w-0 items-start justify-between gap-2">
+                                <span className="min-w-0 text-gray-600">
+                                  {t("hub.checkout.productLabel", { defaultValue: "Product" })}
+                                </span>
+                                <span className="text-right font-semibold text-gray-900">
+                                  {typeof snap?.productTitle === "string" ? snap.productTitle : "—"}
+                                </span>
+                              </div>
+                              <div className="flex min-w-0 items-start justify-between gap-2">
+                                <span className="min-w-0 text-gray-600">
+                                  {t("hub.checkout.productPrice", { defaultValue: "Product price" })}
+                                </span>
+                                <span className="shrink-0 text-right font-semibold tabular-nums">
+                                  {formatCurrency(productPrice, receiveCur)}
+                                </span>
+                              </div>
+                              <div className="flex min-w-0 items-start justify-between gap-2">
+                                <span className="min-w-0 text-gray-600">{t("hub.checkout.hubFee")}</span>
+                                <span
+                                  className={cn(
+                                    "shrink-0 text-right font-semibold tabular-nums",
+                                    hubFeeRecv === 0 ? "text-green-600" : "text-gray-900",
+                                  )}
+                                >
+                                  {hubFeeRecv === 0 ? t("send.free") : formatCurrency(hubFeeRecv, receiveCur)}
+                                </span>
+                              </div>
+                              <div className="flex min-w-0 items-start justify-between gap-2">
+                                <span className="min-w-0 text-gray-600">{t("send.fee")}</span>
+                                <span
+                                  className={cn(
+                                    "shrink-0 text-right font-semibold tabular-nums",
+                                    feeAmount === 0 ? "text-green-600" : "text-gray-900",
+                                  )}
+                                >
+                                  {feeAmount === 0 ? t("send.free") : formatCurrency(feeAmount, sendCur)}
+                                </span>
+                              </div>
+                              <div className="flex min-w-0 items-start justify-between gap-2">
+                                <span className="min-w-0 text-gray-600">{t("hub.checkout.subtotal")}</span>
+                                <span className="shrink-0 text-right font-semibold tabular-nums text-gray-900">
+                                  {formatCurrency(subtotalRecv, receiveCur)}
+                                </span>
+                              </div>
+                              <div className="flex min-w-0 items-start justify-between gap-2">
+                                <span className="min-w-0 text-gray-600">
+                                  {t("hub.checkout.exchangeRate", { defaultValue: "Exchange Rate" })}
+                                </span>
+                                <span className="shrink-0 text-right text-sm">
+                                  {Number.isFinite(rate) && rate > 0
+                                    ? `1 ${sendCur} = ${rate.toFixed(2)} ${receiveCur}`
+                                    : "—"}
+                                </span>
+                              </div>
+                              <div className="flex min-w-0 items-start justify-between gap-2 border-t pt-2">
+                                <span className="min-w-0 text-gray-600">
+                                  {t("txDetail.hubTotalToPaid", { defaultValue: "Total to paid" })}
+                                </span>
+                                <span className="shrink-0 text-right text-[clamp(1rem,2.8vmin,1.125rem)] font-semibold tabular-nums">
+                                  {formatCurrency(transaction.total_amount, sendCur)}
+                                </span>
+                              </div>
+                            </>
+                          )
+                        })()}
                       </div>
-                    ) : null}
-                    <div className="flex min-w-0 items-start justify-between gap-2 border-t pt-2">
-                      <span className="min-w-0 text-gray-600">{t("txDetail.totalPaid")}</span>
-                      <span className="shrink-0 text-right font-semibold tabular-nums">
-                        {formatCurrency(transaction.total_amount, transaction.send_currency)}
-                      </span>
-                    </div>
-                  </div>
+
+                      <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                        <div className="mb-3 flex items-center gap-2">
+                          <Package2 className="h-4 w-4 text-gray-600" />
+                          <span className="font-medium text-gray-900">
+                            {t("hub.checkout.fulfillmentSummary", { defaultValue: "Fulfillment" })}
+                          </span>
+                        </div>
+                        <div className="space-y-3 text-sm">
+                          {(() => {
+                            const snap = transaction.hub_snapshot as
+                              | {
+                                  contactName?: string
+                                  contactPhone?: string
+                                  deliveryAddressLine?: string | null
+                                }
+                              | undefined
+                            const contactName = String(snap?.contactName || "").trim()
+                            const contactPhone = String(snap?.contactPhone || "").trim()
+                            const addressLine = String(snap?.deliveryAddressLine || "").trim()
+                            const commentText = getHubComment(transaction)
+                            const inPerson = getHubFulfillmentType(transaction) === "in_person"
+                            return (
+                              <>
+                                {contactName ? (
+                                  <div className="flex items-start gap-2 text-gray-700">
+                                    <UserRound className="mt-0.5 h-4 w-4 shrink-0 text-gray-500" />
+                                    <span>{contactName}</span>
+                                  </div>
+                                ) : null}
+                                {contactPhone ? (
+                                  <div className="flex items-start gap-2 text-gray-700">
+                                    <Phone className="mt-0.5 h-4 w-4 shrink-0 text-gray-500" />
+                                    <span>{contactPhone}</span>
+                                  </div>
+                                ) : null}
+                                {inPerson && addressLine ? (
+                                  <div className="flex items-start gap-2 text-gray-700">
+                                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gray-500" />
+                                    <span>{addressLine}</span>
+                                  </div>
+                                ) : null}
+                                {commentText ? (
+                                  <div className="flex items-start gap-2 text-gray-700">
+                                    <Package2 className="mt-0.5 h-4 w-4 shrink-0 text-gray-500" />
+                                    <span>{commentText}</span>
+                                  </div>
+                                ) : null}
+                              </>
+                            )
+                          })()}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <div className="flex min-w-0 items-start justify-between gap-2">
+                          <span className="min-w-0 text-gray-600">
+                            {isReferralPayout ? t("txDetail.withdrawalAmount") : t("txDetail.youSent")}
+                          </span>
+                          <span className="shrink-0 text-right font-semibold tabular-nums">
+                            {formatCurrency(transaction.send_amount, transaction.send_currency)}
+                          </span>
+                        </div>
+                        <div className="flex min-w-0 items-start justify-between gap-2">
+                          <span className="min-w-0 text-gray-600">{t("txDetail.fee")}</span>
+                          <span
+                            className={`shrink-0 text-right font-medium tabular-nums ${transaction.fee_amount === 0 ? "text-green-600" : "text-gray-900"}`}
+                          >
+                            {transaction.fee_amount === 0
+                              ? t("txDetail.free")
+                              : formatCurrency(transaction.fee_amount, transaction.send_currency)}
+                          </span>
+                        </div>
+                        <div className="flex min-w-0 items-start justify-between gap-2">
+                          <span className="min-w-0 text-gray-600">{t("txDetail.recipientGets")}</span>
+                          <span className="shrink-0 text-right font-semibold tabular-nums">
+                            {formatCurrency(transaction.receive_amount, transaction.receive_currency)}
+                          </span>
+                        </div>
+                        <div className="flex min-w-0 items-start justify-between gap-2">
+                          <span className="min-w-0 text-gray-600">{t("txDetail.exchangeRate")}</span>
+                          <span className="shrink-0 text-right text-sm">
+                            1 {transaction.send_currency} = {transaction.exchange_rate.toFixed(2)}{" "}
+                            {transaction.receive_currency}
+                          </span>
+                        </div>
+                        {transaction.fulfillment_type === "cash_hand" ? (
+                          <div className="flex min-w-0 items-start justify-between gap-2">
+                            <span className="min-w-0 text-gray-600">{t("txDetail.logisticsFee")}</span>
+                            <span
+                              className={`shrink-0 text-right font-medium tabular-nums ${
+                                (transaction.logistics_fee_amount ?? 0) === 0 ? "text-green-600" : "text-gray-900"
+                              }`}
+                            >
+                              {(transaction.logistics_fee_amount ?? 0) === 0
+                                ? t("txDetail.free")
+                                : formatCurrency(transaction.logistics_fee_amount ?? 0, transaction.send_currency)}
+                            </span>
+                          </div>
+                        ) : null}
+                        <div className="flex min-w-0 items-start justify-between gap-2 border-t pt-2">
+                          <span className="min-w-0 text-gray-600">{t("txDetail.totalPaid")}</span>
+                          <span className="shrink-0 text-right font-semibold tabular-nums">
+                            {formatCurrency(transaction.total_amount, transaction.send_currency)}
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   {transaction.fulfillment_type === "cash_hand" &&
                     (transaction.delivery_address_line || transaction.delivery_phone) && (
@@ -914,7 +1103,7 @@ function TransactionStatusPage() {
                         </div>
                       </div>
                     )}
-                  {transaction.recipient && (
+                  {transaction.recipient && !isHub && (
                     <div className="pt-4 border-t">
                       <h4 className="font-medium mb-2">{t("txDetail.recipient")}</h4>
                       <div className="space-y-1 text-sm">

@@ -24,11 +24,35 @@ type HubProduct = {
   category: string
   status: string
   pricing_type: string
+  fulfillment_type?: "online" | "in_person"
   fixed_amount: number | null
   fixed_currency: string | null
   fee_percent: number | null
   is_featured?: boolean
   updated_at: string
+}
+
+const HUB_PRODUCTS_CACHE_KEY = "office_hub_products_cache"
+
+function readHubProductsCache(): HubProduct[] {
+  if (typeof window === "undefined") return []
+  try {
+    const raw = localStorage.getItem(HUB_PRODUCTS_CACHE_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as { products?: HubProduct[] }
+    return Array.isArray(parsed.products) ? parsed.products : []
+  } catch {
+    return []
+  }
+}
+
+function writeHubProductsCache(products: HubProduct[]) {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(HUB_PRODUCTS_CACHE_KEY, JSON.stringify({ products }))
+  } catch {
+    // ignore cache write failures
+  }
 }
 
 function parseSlaTextToTimer(sla: string | null | undefined): { hours: number; minutes: number; seconds: number } {
@@ -60,8 +84,8 @@ function parseSlaTextToTimer(sla: string | null | undefined): { hours: number; m
 
 export default function OfficeHubProductsPage() {
   const { data: officeData } = useOfficeData()
-  const [products, setProducts] = useState<HubProduct[]>([])
-  const [loading, setLoading] = useState(true)
+  const [products, setProducts] = useState<HubProduct[]>(() => readHubProductsCache())
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [categoryMenuOpen, setCategoryMenuOpen] = useState(false)
@@ -75,6 +99,7 @@ export default function OfficeHubProductsPage() {
     category: "Other",
     status: "draft",
     pricing_type: "fixed",
+    fulfillment_type: "online",
     fixed_amount: "",
     fixed_currency: "USD",
     default_input_currency: "USD",
@@ -108,6 +133,7 @@ export default function OfficeHubProductsPage() {
       category: "Other",
       status: "draft",
       pricing_type: "fixed",
+      fulfillment_type: "online",
       fixed_amount: "",
       fixed_currency: "USD",
       default_input_currency: "USD",
@@ -125,12 +151,15 @@ export default function OfficeHubProductsPage() {
     const res = await officeFetch("/api/admin/hub/products")
     if (!res.ok) throw new Error("Failed to load")
     const data = await res.json()
-    setProducts(data.products || [])
+    const nextProducts = data.products || []
+    setProducts(nextProducts)
+    writeHubProductsCache(nextProducts)
   }
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
+      if (!products.length) setLoading(true)
       try {
         await loadProducts()
       } catch (e) {
@@ -179,6 +208,7 @@ export default function OfficeHubProductsPage() {
         category: product.category || "Other",
         status: product.status || "draft",
         pricing_type: product.pricing_type || "fixed",
+        fulfillment_type: product.fulfillment_type === "in_person" ? "in_person" : "online",
         fixed_amount: product.fixed_amount != null ? String(product.fixed_amount) : "",
         fixed_currency: product.fixed_currency || "USD",
         default_input_currency: product.default_input_currency || "USD",
@@ -206,6 +236,7 @@ export default function OfficeHubProductsPage() {
         category: form.category,
         status: form.status,
         pricing_type: form.pricing_type,
+        fulfillment_type: form.fulfillment_type,
         fixed_amount: form.pricing_type === "fixed" ? Number(form.fixed_amount) || null : null,
         fixed_currency: form.pricing_type === "fixed" ? form.fixed_currency : null,
         default_input_currency: form.default_input_currency,
@@ -368,6 +399,21 @@ export default function OfficeHubProductsPage() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div>
+                    <Label>Fulfillment type</Label>
+                    <Select
+                      value={form.fulfillment_type}
+                      onValueChange={(v: "online" | "in_person") => setForm({ ...form, fulfillment_type: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="online">Online</SelectItem>
+                        <SelectItem value="in_person">In-person</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
                   <Checkbox
@@ -524,12 +570,13 @@ export default function OfficeHubProductsPage() {
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Catalog</CardTitle>
-          </CardHeader>
           <CardContent>
-            {loading ? (
-              <p className="text-gray-500">Loading…</p>
+            {loading && products.length === 0 ? (
+              <div className="space-y-3 py-2">
+                <div className="h-10 animate-pulse rounded-md bg-gray-100" />
+                <div className="h-10 animate-pulse rounded-md bg-gray-100" />
+                <div className="h-10 animate-pulse rounded-md bg-gray-100" />
+              </div>
             ) : error ? (
               <p className="text-red-600">{error}</p>
             ) : products.length === 0 ? (
@@ -543,6 +590,7 @@ export default function OfficeHubProductsPage() {
                     <TableHead>Category</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Fulfillment</TableHead>
                     <TableHead>Featured</TableHead>
                     <TableHead>Price / fee</TableHead>
                     <TableHead className="w-[100px]">Actions</TableHead>
@@ -576,11 +624,12 @@ export default function OfficeHubProductsPage() {
                           {p.status}
                         </Badge>
                       </TableCell>
+                      <TableCell>{p.fulfillment_type === "in_person" ? "In-person" : "Online"}</TableCell>
                       <TableCell>
                         {p.is_featured ? (
                           <Badge className="bg-orange-100 text-orange-900">Yes</Badge>
                         ) : (
-                          <span className="text-sm text-gray-400">—</span>
+                          <span className="text-sm text-gray-500">No</span>
                         )}
                       </TableCell>
                       <TableCell className="text-sm text-gray-700">

@@ -6,7 +6,7 @@ import { Users, CreditCard, TrendingUp, AlertCircle, Activity, Clock, CheckCircl
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useOfficeData } from "@/hooks/use-office-data"
-import { roundMoney } from "@/utils/currency"
+import { formatCurrency as formatMoney } from "@/utils/currency"
 
 function OfficeDashboardSkeleton() {
   return (
@@ -111,18 +111,7 @@ export default function AdminDashboardPage() {
 
   const formatCurrency = (amount: number, currency?: string) => {
     const baseCurrency = data?.baseCurrency || currency || "NGN"
-    const symbols: { [key: string]: string } = {
-      NGN: "₦",
-      RUB: "₽",
-      USD: "$",
-      EUR: "€",
-      GBP: "£",
-    }
-    const a = roundMoney(amount)
-    return `${symbols[baseCurrency] || ""}${a.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`
+    return formatMoney(amount, baseCurrency)
   }
 
   return (

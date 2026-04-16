@@ -23,7 +23,7 @@ import {
   X,
   ChevronDown,
 } from "lucide-react"
-import { formatCurrency } from "@/utils/currency"
+import { formatCurrency, roundMoney } from "@/utils/currency"
 import {
   getAccountTypeConfigFromCurrency,
   formatFieldValue,
@@ -90,6 +90,8 @@ interface CombinedTransaction {
   hub_snapshot?: Record<string, unknown> | null
   hub_fee_amount?: number | null
   hub_product_id?: string | null
+  fee_amount?: number | null
+  total_amount?: number | null
 }
 
 /** Maps a raw send transaction from admin data into CombinedTransaction, preserving cash-delivery fields. */
@@ -130,6 +132,8 @@ function mapSendTransaction(tx: any): CombinedTransaction {
     hub_snapshot: tx.hub_snapshot ?? null,
     hub_fee_amount: tx.hub_fee_amount ?? null,
     hub_product_id: tx.hub_product_id ?? null,
+    fee_amount: tx.fee_amount ?? null,
+    total_amount: tx.total_amount ?? null,
   }
 }
 
@@ -517,6 +521,37 @@ export default function AdminTransactionsPage() {
     }
   }
 
+  const getHubComment = (tx: CombinedTransaction): string => {
+    const formAnswers = (tx.hub_snapshot as { formAnswers?: Record<string, unknown> } | null)?.formAnswers
+    const comment = formAnswers && typeof formAnswers.comment === "string" ? formAnswers.comment.trim() : ""
+    return comment
+  }
+
+  /** Hub fee on the order amount in receive currency (matches web checkout Order summary). */
+  const getHubFeeReceiveAmount = (tx: CombinedTransaction): number => {
+    const snap = tx.hub_snapshot as
+      | {
+          fundedAmount?: number
+          feePercent?: number | null
+        }
+      | null
+      | undefined
+    const productPrice =
+      snap?.fundedAmount != null && Number.isFinite(Number(snap.fundedAmount))
+        ? Number(snap.fundedAmount)
+        : Number(tx.receive_amount) || 0
+    const pct = snap?.feePercent != null && Number.isFinite(Number(snap.feePercent)) ? Number(snap.feePercent) : null
+    if (pct != null && pct > 0 && productPrice > 0) {
+      return roundMoney((productPrice * pct) / 100)
+    }
+    const rate = Number(tx.exchange_rate) || 0
+    const hubSend = Number(tx.hub_fee_amount) || 0
+    if (rate > 0 && hubSend > 0) return roundMoney(hubSend * rate)
+    return 0
+  }
+
+  const isHubTransaction = (tx: CombinedTransaction) => tx.type === "hub"
+
   const handleExport = () => {
     const csvContent = [
       ["Transaction ID", "Date", "User", "From", "To", "Send Amount", "Receive Amount", "Status", "Recipient"].join(
@@ -567,7 +602,7 @@ export default function AdminTransactionsPage() {
             <div className="relative flex-1 min-w-[300px]">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <Input
-                placeholder="Search by transaction ID, email, or blockchain hash..."
+                placeholder="Search by transaction ID, email, recipient, or Hub order..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-12 h-12 text-base"
@@ -833,7 +868,7 @@ export default function AdminTransactionsPage() {
                                   {transaction.type === "referral_payout"
                                     ? "Referral payout"
                                     : transaction.type === "hub"
-                                      ? "Hub order"
+                                      ? "Order summary"
                                       : "Transaction Details"}
                                 </DialogTitle>
                                 {getTimerDisplay(transaction) && (
@@ -891,49 +926,108 @@ export default function AdminTransactionsPage() {
                                         </p>
                                       </div>
                                   ) : transaction.type === "hub" ? (
-                                      <div className="col-span-2 rounded-lg border border-amber-200 bg-amber-50/60 p-4 space-y-2">
+                                      <div className="col-span-2 rounded-lg border border-amber-200 bg-amber-50/60 p-4 space-y-4">
                                         <Badge className="bg-amber-100 text-amber-800">Hub</Badge>
-                                        {transaction.hub_snapshot &&
-                                          typeof (transaction.hub_snapshot as { productTitle?: string }).productTitle === "string" && (
-                                            <p className="text-sm font-medium text-gray-900">
-                                              {(transaction.hub_snapshot as { productTitle: string }).productTitle}
-                                            </p>
-                                          )}
-                                        <p className="text-sm">
-                                          <span className="font-medium">Funded: </span>
-                                          {formatCurrency(
-                                            Number((transaction.hub_snapshot as { fundedAmount?: number })?.fundedAmount) ||
-                                              transaction.receive_amount ||
-                                              0,
-                                            String(
-                                              (transaction.hub_snapshot as { fundedCurrency?: string })?.fundedCurrency ||
-                                                transaction.receive_currency ||
-                                                "",
-                                            ),
-                                          )}
-                                        </p>
-                                        <p className="text-sm">
-                                          <span className="font-medium">Hub fee: </span>
-                                          {formatCurrency(
-                                            Number(transaction.hub_fee_amount) || 0,
-                                            transaction.send_currency || "",
-                                          )}
-                                        </p>
-                                        <p className="text-sm">
-                                          <span className="font-medium">Contact: </span>
-                                          {String((transaction.hub_snapshot as { contactName?: string })?.contactName || "—")} /{" "}
-                                          {String((transaction.hub_snapshot as { contactPhone?: string })?.contactPhone || "—")}
-                                        </p>
-                                        {(transaction.hub_snapshot as { deliveryAddressLine?: string })?.deliveryAddressLine ? (
+                                        {(() => {
+                                          const snap = transaction.hub_snapshot as
+                                            | {
+                                                productTitle?: string
+                                                fundedAmount?: number
+                                                fundedCurrency?: string
+                                              }
+                                            | null | undefined
+                                          const receiveCur =
+                                            String(snap?.fundedCurrency || transaction.receive_currency || "") || "—"
+                                          const productPrice =
+                                            snap?.fundedAmount != null && Number.isFinite(Number(snap.fundedAmount))
+                                              ? Number(snap.fundedAmount)
+                                              : Number(transaction.receive_amount) || 0
+                                          const hubFeeRecv = getHubFeeReceiveAmount(transaction)
+                                          const subtotalRecv = roundMoney(productPrice + hubFeeRecv)
+                                          const corridorFee = Number(transaction.fee_amount) || 0
+                                          const rate = Number(transaction.exchange_rate)
+                                          const sendCur = String(transaction.send_currency || "") || "—"
+                                          return (
+                                            <div className="space-y-2 text-sm">
+                                              <div className="flex min-w-0 items-start justify-between gap-2">
+                                                <span className="min-w-0 text-gray-600">Product</span>
+                                                <span className="text-right font-semibold text-gray-900 break-words max-w-[60%]">
+                                                  {typeof snap?.productTitle === "string" ? snap.productTitle : "—"}
+                                                </span>
+                                              </div>
+                                              <div className="flex min-w-0 items-start justify-between gap-2">
+                                                <span className="min-w-0 text-gray-600">Product price</span>
+                                                <span className="shrink-0 text-right font-semibold tabular-nums">
+                                                  {formatCurrency(productPrice, receiveCur)}
+                                                </span>
+                                              </div>
+                                              <div className="flex min-w-0 items-start justify-between gap-2">
+                                                <span className="min-w-0 text-gray-600">Hub fee</span>
+                                                <span
+                                                  className={`shrink-0 text-right font-semibold tabular-nums ${hubFeeRecv === 0 ? "text-green-600" : "text-gray-900"}`}
+                                                >
+                                                  {hubFeeRecv === 0 ? "Free" : formatCurrency(hubFeeRecv, receiveCur)}
+                                                </span>
+                                              </div>
+                                              <div className="flex min-w-0 items-start justify-between gap-2">
+                                                <span className="min-w-0 text-gray-600">Exchange fee</span>
+                                                <span
+                                                  className={`shrink-0 text-right font-semibold tabular-nums ${corridorFee === 0 ? "text-green-600" : "text-gray-900"}`}
+                                                >
+                                                  {corridorFee === 0
+                                                    ? "Free"
+                                                    : formatCurrency(corridorFee, sendCur)}
+                                                </span>
+                                              </div>
+                                              <div className="flex min-w-0 items-start justify-between gap-2">
+                                                <span className="min-w-0 text-gray-600">Subtotal</span>
+                                                <span className="shrink-0 text-right font-semibold tabular-nums text-gray-900">
+                                                  {formatCurrency(subtotalRecv, receiveCur)}
+                                                </span>
+                                              </div>
+                                              <div className="flex min-w-0 items-start justify-between gap-2">
+                                                <span className="min-w-0 text-gray-600">Exchange rate</span>
+                                                <span className="shrink-0 text-right text-sm tabular-nums">
+                                                  {Number.isFinite(rate) && rate > 0
+                                                    ? `1 ${sendCur} = ${rate.toFixed(2)} ${receiveCur}`
+                                                    : "—"}
+                                                </span>
+                                              </div>
+                                              <div className="flex min-w-0 items-start justify-between gap-2 border-t border-amber-200/80 pt-2">
+                                                <span className="min-w-0 text-gray-600">Total to paid</span>
+                                                <span className="shrink-0 text-right font-semibold tabular-nums">
+                                                  {formatCurrency(
+                                                    Number(transaction.total_amount) || 0,
+                                                    sendCur,
+                                                  )}
+                                                </span>
+                                              </div>
+                                            </div>
+                                          )
+                                        })()}
+                                        <div className="space-y-1 pt-2 border-t border-amber-200/60">
+                                          <p className="text-sm font-medium text-gray-900">Fulfillment</p>
                                           <p className="text-sm text-gray-700">
-                                            {(transaction.hub_snapshot as { deliveryAddressLine: string }).deliveryAddressLine}
+                                            <span className="font-medium">Name: </span>
+                                            {String((transaction.hub_snapshot as { contactName?: string })?.contactName || "—")}
                                           </p>
-                                        ) : null}
-                                        {(transaction.hub_snapshot as { formAnswers?: unknown })?.formAnswers != null ? (
-                                          <pre className="text-xs bg-white/80 p-2 rounded border overflow-auto max-h-48">
-                                            {JSON.stringify((transaction.hub_snapshot as { formAnswers: unknown }).formAnswers, null, 2)}
-                                          </pre>
-                                        ) : null}
+                                          <p className="text-sm text-gray-700">
+                                            <span className="font-medium">Phone: </span>
+                                            {String((transaction.hub_snapshot as { contactPhone?: string })?.contactPhone || "—")}
+                                          </p>
+                                          {(transaction.hub_snapshot as { deliveryAddressLine?: string })?.deliveryAddressLine ? (
+                                            <p className="text-sm text-gray-700">
+                                              <span className="font-medium">Address: </span>
+                                              {(transaction.hub_snapshot as { deliveryAddressLine: string }).deliveryAddressLine}
+                                            </p>
+                                          ) : null}
+                                          {getHubComment(transaction) ? (
+                                            <p className="text-sm text-gray-700">
+                                              <span className="font-medium">Comment: </span>
+                                              {getHubComment(transaction)}
+                                            </p>
+                                          ) : null}
+                                        </div>
                                       </div>
                                   ) : transaction.type === "send" ? (
                                     <>
@@ -1170,7 +1264,7 @@ export default function AdminTransactionsPage() {
                                         disabled={transaction.status === "completed"}
                                         className="text-green-600 hover:text-green-700"
                                       >
-                                        Transfer Complete
+                                        {isHubTransaction(transaction) ? "Transaction Complete" : "Transfer Complete"}
                                       </Button>
                                       <Button
                                         type="button"
@@ -1192,7 +1286,7 @@ export default function AdminTransactionsPage() {
                                         disabled={transaction.status === "cancelled"}
                                         className="text-gray-600 hover:text-gray-700"
                                       >
-                                        Cancel Transfer
+                                        {isHubTransaction(transaction) ? "Cancel Transaction" : "Cancel Transfer"}
                                       </Button>
                                     </div>
                                   )}

@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { ChevronDown, Search } from "lucide-react"
 import { currencyService } from "@/lib/database"
 import type { Currency, ExchangeRate } from "@/types"
-import { roundMoney } from "@/utils/currency"
+import { formatCurrency, roundMoney } from "@/utils/currency"
 
 interface CurrencyConverterProps {
   onSendMoney: (data: {
@@ -165,12 +165,6 @@ export function CurrencyConverter({ onSendMoney }: CurrencyConverterProps) {
     }
 
     return { fee: 0, feeType: "free" }
-  }
-
-  const formatCurrency = (amount: number, currency: string): string => {
-    const curr = currencies.find((c) => c.code === currency)
-    const a = roundMoney(amount)
-    return `${curr?.symbol || ""}${a.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   }
 
   // Component to render flag SVG safely

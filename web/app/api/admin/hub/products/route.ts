@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
       is_featured: Boolean(body.is_featured),
       status: body.status === "live" || body.status === "archived" ? body.status : "draft",
       pricing_type: body.pricing_type === "user_input" ? "user_input" : "fixed",
+      fulfillment_type: body.fulfillment_type === "in_person" ? "in_person" : "online",
       fixed_amount: body.fixed_amount != null ? Number(body.fixed_amount) : null,
       fixed_currency: body.fixed_currency ?? null,
       default_input_currency: body.default_input_currency ?? "USD",

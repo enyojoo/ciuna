@@ -30,6 +30,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import {
   CurrencyFlagIcon,
   CurrencyPickerPopover,
@@ -43,9 +45,9 @@ import {
   writeHubProductCache,
 } from "@/lib/hub-client-cache"
 import type { Currency, ExchangeRate } from "@/types"
-import { paymentMethodService, transactionService } from "@/lib/database"
+import { deliveryAddressService, paymentMethodService, transactionService, userService } from "@/lib/database"
 import { generateTransactionId } from "@/lib/transaction-id"
-import { roundMoney, formatCurrency } from "@/utils/currency"
+import { roundMoney, formatCurrency, getCurrencyNarrowSymbol } from "@/utils/currency"
 import { cn } from "@/lib/utils"
 import { accountFieldLabel } from "@/lib/account-field-i18n"
 import { formatFieldValue, getAccountTypeConfigFromCurrency } from "@/lib/currency-account-types"
@@ -69,26 +71,6 @@ type PaymentMethod = {
   instructions?: string
   is_default?: boolean
   status?: string
-}
-
-function autoInfoLabelByProductType(category: string): string {
-  const key = category.trim().toLowerCase()
-  if (key === "ai" || key === "language") return "Account email or username"
-  if (key === "connectivity" || key === "communication") return "Phone number or account ID"
-  if (key === "money") return "Recipient account or wallet identifier"
-  return "Account identifier or recipient reference"
-}
-
-function resolveCheckoutFields(product: HubProductRow) {
-  return [
-    {
-      key: "customer_info",
-      label: autoInfoLabelByProductType(String(product.category || "Other")),
-      placeholder: "Enter required account info",
-      required: true,
-      type: "text",
-    },
-  ]
 }
 
 function parseSlaText(slaText: string | null | undefined, t: (key: string, options?: Record<string, unknown>) => string) {
@@ -138,8 +120,8 @@ export default function HubCheckoutPage() {
   const params = useParams()
   const productId = params.productId as string
   const router = useRouter()
-  const { user, userProfile, loading: authLoading } = useAuth()
-  const { currencies, exchangeRates, deliveryAddresses } = useUserData()
+  const { user, userProfile, loading: authLoading, refreshUserProfile } = useAuth()
+  const { currencies, exchangeRates, deliveryAddresses, refreshDeliveryAddresses } = useUserData()
   const idempotencyKeyRef = useRef(
     typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
   )
@@ -152,10 +134,11 @@ export default function HubCheckoutPage() {
   const [fundedInput, setFundedInput] = useState("")
   const [contactName, setContactName] = useState("")
   const [contactPhone, setContactPhone] = useState("")
-  const [deliveryAddressLine, setDeliveryAddressLine] = useState("")
   const [selectedDeliveryAddressId, setSelectedDeliveryAddressId] = useState("")
   const [deliverySearch, setDeliverySearch] = useState("")
   const [formAnswers, setFormAnswers] = useState<Record<string, string>>({})
+  const [isAddDeliveryDialogOpen, setIsAddDeliveryDialogOpen] = useState(false)
+  const [newDeliveryData, setNewDeliveryData] = useState({ addressLine: "", phone: "" })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
@@ -234,6 +217,12 @@ export default function HubCheckoutPage() {
   }, [userProfile?.first_name, userProfile?.last_name])
 
   useEffect(() => {
+    if (userProfile?.phone) {
+      setContactPhone((prev) => prev || userProfile.phone || "")
+    }
+  }, [userProfile?.phone])
+
+  useEffect(() => {
     if (step === 3 && !transactionIdNote) {
       setTransactionIdNote(generateTransactionId())
     }
@@ -249,11 +238,6 @@ export default function HubCheckoutPage() {
   const sendCurrencyData = useMemo(
     () => currencies.find((currency) => currency.code === sendCurrency) || null,
     [currencies, sendCurrency],
-  )
-
-  const receiveCurrencyData = useMemo(
-    () => currencies.find((currency) => currency.code === receiveCurrency) || null,
-    [currencies, receiveCurrency],
   )
 
   const fundedReceiveAmount = useMemo(() => {
@@ -340,6 +324,51 @@ export default function HubCheckoutPage() {
     }
   }, [fundedReceiveAmount, product, rateRow])
 
+  /** FX rate from corridor config (does not depend on entered amount). */
+  const liveSpotRate = useMemo(() => {
+    if (!rateRow) return null
+    const r = Number(rateRow.rate) || 0
+    return r > 0 && Number.isFinite(r) ? r : null
+  }, [rateRow])
+
+  /**
+   * Exchange fee label: when order totals aren't ready yet, show corridor settings
+   * (free / fixed amount / configured %) instead of "—".
+   */
+  const corridorFeeRow = useMemo(() => {
+    if (!rateRow || !sendCurrency) {
+      return { text: "—", isFree: false }
+    }
+    if (pricingPreview) {
+      const fee = pricingPreview.fee
+      return {
+        text: fee === 0 ? t("send.free") : formatCurrency(fee, sendCurrency),
+        isFree: fee === 0,
+      }
+    }
+    if (rateRow.fee_type === "free") {
+      return { text: t("send.free"), isFree: true }
+    }
+    if (rateRow.fee_type === "fixed") {
+      const amt = Number(rateRow.fee_amount) || 0
+      if (amt === 0) return { text: t("send.free"), isFree: true }
+      return { text: formatCurrency(amt, sendCurrency), isFree: false }
+    }
+    if (rateRow.fee_type === "percentage") {
+      const pct = Number(rateRow.fee_amount) || 0
+      if (pct === 0) return { text: t("send.free"), isFree: true }
+      const pctStr = Number.isInteger(pct) ? String(pct) : String(pct)
+      return {
+        text: t("hub.checkout.exchangeFeePercentConfigured", {
+          defaultValue: "{{pct}}%",
+          pct: pctStr,
+        }),
+        isFree: false,
+      }
+    }
+    return { text: t("send.free"), isFree: true }
+  }, [rateRow, sendCurrency, pricingPreview, t])
+
   const filteredDeliveryAddresses = useMemo(() => {
     const query = deliverySearch.trim().toLowerCase()
     if (!query) return deliveryAddresses
@@ -354,8 +383,8 @@ export default function HubCheckoutPage() {
     () => deliveryAddresses.find((address) => address.id === selectedDeliveryAddressId) || null,
     [deliveryAddresses, selectedDeliveryAddressId],
   )
-
-  const formFields = useMemo(() => (product ? resolveCheckoutFields(product) : []), [product])
+  const fulfillmentType = product?.fulfillment_type === "in_person" ? "in_person" : "online"
+  const commentText = String(formAnswers.comment || "")
 
   const canContinueStep1 = () => {
     if (!product || !sendCurrency || !receiveCurrency || !rateRow || !pricingPreview) return false
@@ -382,7 +411,38 @@ export default function HubCheckoutPage() {
     }
   }
 
-  const handleContinue = () => {
+  const persistMissingPhone = async () => {
+    if (!user?.id || !contactPhone.trim() || userProfile?.phone?.trim()) return
+    try {
+      await userService.updateProfile(user.id, { phone: contactPhone.trim() })
+      await refreshUserProfile()
+    } catch (e) {
+      console.error("Failed to save phone from Hub checkout", e)
+    }
+  }
+
+  const handleAddDeliveryAddress = async () => {
+    if (!userProfile?.id) return
+    const line = newDeliveryData.addressLine.trim()
+    const phone = newDeliveryData.phone.trim()
+    if (!line || !phone) return
+
+    try {
+      const row = await deliveryAddressService.create(userProfile.id, {
+        addressLine: line,
+        phone,
+      })
+      await refreshDeliveryAddresses()
+      setSelectedDeliveryAddressId(row.id)
+      setNewDeliveryData({ addressLine: "", phone: "" })
+      setIsAddDeliveryDialogOpen(false)
+    } catch (e) {
+      console.error("Error adding Hub delivery address:", e)
+      setError(t("send.failedAddDelivery"))
+    }
+  }
+
+  const handleContinue = async () => {
     setError(null)
     if (step === 1) {
       if (!user?.email_confirmed_at) {
@@ -402,13 +462,12 @@ export default function HubCheckoutPage() {
       return
     }
 
-    for (const field of formFields) {
-      if (field.required && !String(formAnswers[field.key] || "").trim()) {
-        setError(t("hub.checkout.errors.fillField", { field: field.label || field.key }))
-        return
-      }
+    if (fulfillmentType === "in_person" && !selectedDeliveryAddressId) {
+      setError(t("hub.checkout.errors.deliveryAddressRequired", { defaultValue: "Select a delivery address." }))
+      return
     }
 
+    await persistMissingPhone()
     setStep(3)
   }
 
@@ -422,7 +481,8 @@ export default function HubCheckoutPage() {
     setSubmitting(true)
     setError(null)
     try {
-      const line = (selectedDeliveryAddress?.address_line ?? deliveryAddressLine).trim() || null
+      const line =
+        fulfillmentType === "in_person" ? selectedDeliveryAddress?.address_line?.trim() || null : null
       const res = await fetchWithAuth("/api/hub/checkout", {
         method: "POST",
         body: JSON.stringify({
@@ -433,8 +493,8 @@ export default function HubCheckoutPage() {
           contactName: contactName.trim(),
           contactPhone: contactPhone.trim(),
           deliveryAddressLine: line,
-          deliveryAddressId: selectedDeliveryAddressId || null,
-          formAnswers,
+          deliveryAddressId: fulfillmentType === "in_person" ? selectedDeliveryAddressId || null : null,
+          formAnswers: commentText.trim() ? { comment: commentText.trim() } : {},
           paymentMethodId: selectedPaymentMethodId,
           idempotencyKey: idempotencyKeyRef.current,
         }),
@@ -579,9 +639,6 @@ export default function HubCheckoutPage() {
   const minAmount = product.funded_min != null ? Number(product.funded_min) : null
   const maxAmount = product.funded_max != null ? Number(product.funded_max) : null
   const slaLabel = parseSlaText(product.sla_text, t)
-  const infoFieldLabel = t(`hub.checkout.dynamicLabels.${formFields[0]?.key || ""}`, {
-    defaultValue: formFields[0]?.label || "",
-  })
 
   const renderPaymentMethodCard = () => {
     if (!selectedPaymentMethod) {
@@ -790,50 +847,55 @@ export default function HubCheckoutPage() {
                       ) : null}
                     </div>
 
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-medium text-gray-700">
+                    <div className="space-y-1.5">
+                      <h3 className="text-sm font-medium text-gray-700 leading-snug">
                         {product.pricing_type === "fixed"
                           ? t("hub.checkout.productPrice", { defaultValue: "Product price" })
                           : t("hub.checkout.amountToCover", { currency: receiveCurrency })}
                       </h3>
                       <div className="rounded-xl bg-gray-50 px-4 py-4">
-                        <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
                           {product.pricing_type === "user_input" ? (
-                            <input
-                              type="number"
-                              inputMode="decimal"
-                              step="0.01"
-                              value={fundedInput}
-                              onChange={(e) => setFundedInput(e.target.value)}
-                              className="text-app-money-input min-w-0 flex-1 border-0 bg-transparent font-bold outline-none"
-                              placeholder="0.00"
-                            />
+                            <>
+                              <span
+                                className="shrink-0 text-app-money-input font-bold text-gray-500 tabular-nums select-none"
+                                aria-hidden
+                              >
+                                {getCurrencyNarrowSymbol(receiveCurrency)}
+                              </span>
+                              <input
+                                type="number"
+                                inputMode="decimal"
+                                step="0.01"
+                                value={fundedInput}
+                                onChange={(e) => setFundedInput(e.target.value)}
+                                className="text-app-money-input min-w-0 flex-1 border-0 bg-transparent font-bold outline-none"
+                                placeholder="0.00"
+                                aria-label={t("hub.checkout.amountToCover", { currency: receiveCurrency })}
+                              />
+                            </>
                           ) : (
-                            <div className="text-app-money-input min-w-0 flex-1 font-bold text-gray-900">
+                            <div className="text-app-money-input min-w-0 w-full font-bold text-gray-900">
                               {formatCurrency(fundedReceiveAmount, receiveCurrency)}
                             </div>
                           )}
-                          <div className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-sm font-medium shadow-sm">
-                            {receiveCurrencyData ? <CurrencyFlagIcon currency={receiveCurrencyData} /> : null}
-                            <span>{receiveCurrency}</span>
-                          </div>
                         </div>
+                        {product.pricing_type === "user_input" && (minAmount != null || maxAmount != null) ? (
+                          <p className="mt-1.5 text-xs leading-snug text-gray-500">
+                            {minAmount != null
+                              ? t("send.min", { amount: formatCurrency(minAmount, receiveCurrency) })
+                              : null}
+                            {minAmount != null && maxAmount != null ? " • " : null}
+                            {maxAmount != null
+                              ? t("send.max", { amount: formatCurrency(maxAmount, receiveCurrency) })
+                              : null}
+                          </p>
+                        ) : null}
                       </div>
-                      {product.pricing_type === "user_input" && (minAmount != null || maxAmount != null) ? (
-                        <div className="text-xs text-gray-500">
-                          {minAmount != null
-                            ? t("send.min", { amount: formatCurrency(minAmount, receiveCurrency) })
-                            : null}
-                          {minAmount != null && maxAmount != null ? " • " : null}
-                          {maxAmount != null
-                            ? t("send.max", { amount: formatCurrency(maxAmount, receiveCurrency) })
-                            : null}
-                        </div>
-                      ) : null}
                     </div>
 
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-medium text-gray-700">{t("hub.checkout.payWith")}</h3>
+                    <div className="space-y-1.5">
+                      <h3 className="text-sm font-medium text-gray-700 leading-snug">{t("hub.checkout.payWith")}</h3>
                       <div className="rounded-xl bg-gray-50 px-4 py-4">
                         <div className="flex items-center justify-between gap-3">
                           <div className="min-w-0 flex-1">
@@ -889,7 +951,11 @@ export default function HubCheckoutPage() {
                               <span className="text-sm text-gray-600">{t("send.rate")}</span>
                             </div>
                             <span className="text-sm font-medium text-primary">
-                              1 {sendCurrency || "—"} = {pricingPreview?.exchangeRate?.toFixed(2) || "—"} {receiveCurrency || "—"}
+                              {liveSpotRate != null && sendCurrency && receiveCurrency
+                                ? `1 ${sendCurrency} = ${liveSpotRate.toFixed(2)} ${receiveCurrency}`
+                                : sendCurrency && receiveCurrency
+                                  ? `1 ${sendCurrency} = — ${receiveCurrency}`
+                                  : "—"}
                             </span>
                           </div>
 
@@ -900,8 +966,13 @@ export default function HubCheckoutPage() {
                               </div>
                               <span className="text-sm text-gray-600">{t("send.fee")}</span>
                             </div>
-                            <span className={cn("font-medium", pricingPreview?.fee === 0 ? "text-green-600" : "text-gray-900")}>
-                              {pricingPreview ? (pricingPreview.fee === 0 ? t("send.free") : formatCurrency(pricingPreview.fee, sendCurrency)) : "—"}
+                            <span
+                              className={cn(
+                                "font-medium",
+                                corridorFeeRow.isFree ? "text-green-600" : "text-gray-900",
+                              )}
+                            >
+                              {corridorFeeRow.text}
                             </span>
                           </div>
 
@@ -951,114 +1022,128 @@ export default function HubCheckoutPage() {
                       </div>
                     </div>
 
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <h3 className="font-medium text-gray-900">
-                            {t("hub.checkout.deliverySectionTitle", { defaultValue: "Delivery or fulfillment notes" })}
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            {t("hub.checkout.deliverySectionHint", {
-                              defaultValue: "Use a saved address or add a one-off note for this order.",
-                            })}
-                          </p>
-                        </div>
-                      </div>
-
-                      {deliveryAddresses.length > 0 ? (
-                        <>
-                          <div className="relative">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                            <Input
-                              value={deliverySearch}
-                              onChange={(e) => setDeliverySearch(e.target.value)}
-                              placeholder={t("hub.checkout.searchSavedAddresses", { defaultValue: "Search saved addresses" })}
-                              className="h-11 rounded-xl border-0 bg-gray-50 pl-9"
-                            />
+                    {fulfillmentType === "in_person" ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <h3 className="font-medium text-gray-900">
+                              {t("send.deliveryAddressSection")}
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                              {t("hub.checkout.inPersonAddressHint", {
+                                defaultValue: "Choose a saved address for this in-person fulfillment.",
+                              })}
+                            </p>
                           </div>
+                          <Dialog open={isAddDeliveryDialogOpen} onOpenChange={setIsAddDeliveryDialogOpen}>
+                            <DialogTrigger asChild>
+                              <Button type="button" variant="outline" className="rounded-xl">
+                                {t("send.addDeliveryAddress")}
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="w-[95vw] max-w-md">
+                              <DialogHeader>
+                                <DialogTitle>{t("send.addDeliveryAddress")}</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="hub-delivery-address">{t("send.deliveryAddressLine")} *</Label>
+                                  <Textarea
+                                    id="hub-delivery-address"
+                                    rows={3}
+                                    value={newDeliveryData.addressLine}
+                                    onChange={(e) =>
+                                      setNewDeliveryData((prev) => ({ ...prev, addressLine: e.target.value }))
+                                    }
+                                    placeholder={t("send.deliveryAddressLinePlaceholder")}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="hub-delivery-phone">{t("send.deliveryPhone")} *</Label>
+                                  <Input
+                                    id="hub-delivery-phone"
+                                    value={newDeliveryData.phone}
+                                    onChange={(e) =>
+                                      setNewDeliveryData((prev) => ({ ...prev, phone: e.target.value }))
+                                    }
+                                    placeholder={t("send.deliveryPhonePlaceholder")}
+                                  />
+                                </div>
+                                <Button
+                                  type="button"
+                                  className="w-full bg-primary hover:bg-primary/90"
+                                  disabled={
+                                    !newDeliveryData.addressLine.trim() || !newDeliveryData.phone.trim()
+                                  }
+                                  onClick={() => void handleAddDeliveryAddress()}
+                                >
+                                  {t("send.saveDeliveryAddress")}
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
 
-                          <div className="space-y-2">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                          <Input
+                            value={deliverySearch}
+                            onChange={(e) => setDeliverySearch(e.target.value)}
+                            placeholder={t("send.searchDeliveryAddresses")}
+                            className="h-11 rounded-xl border-0 bg-gray-50 pl-9"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          {filteredDeliveryAddresses.map((address) => (
                             <button
+                              key={address.id}
                               type="button"
-                              onClick={() => setSelectedDeliveryAddressId("")}
+                              onClick={() => setSelectedDeliveryAddressId(address.id)}
                               className={cn(
-                                "flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors",
-                                !selectedDeliveryAddressId
-                                  ? "border-primary bg-primary/5 ring-1 ring-primary/20"
-                                  : "border-gray-200 bg-white hover:bg-gray-50",
+                                "selectable-row w-full",
+                                selectedDeliveryAddressId === address.id
+                                  ? "selectable-row--selected"
+                                  : "selectable-row--idle",
                               )}
                             >
-                              <div className="min-w-0">
-                                <p className="font-medium text-gray-900">
-                                  {t("hub.checkout.none", { defaultValue: "None" })}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  {t("hub.checkout.manualAddressHint", {
-                                    defaultValue: "I will enter a custom note or address for this order.",
-                                  })}
-                                </p>
+                              <div className="min-w-0 text-left">
+                                <p className="font-medium text-gray-900">{address.address_line}</p>
+                                {address.phone ? <p className="text-sm text-gray-600">{address.phone}</p> : null}
                               </div>
-                              {!selectedDeliveryAddressId ? (
-                                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary">
+                              {selectedDeliveryAddressId === address.id ? (
+                                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary">
                                   <Check className="h-4 w-4 text-white" />
                                 </div>
                               ) : null}
                             </button>
-
-                            {filteredDeliveryAddresses.map((address) => (
-                              <button
-                                key={address.id}
-                                type="button"
-                                onClick={() => setSelectedDeliveryAddressId(address.id)}
-                                className={cn(
-                                  "flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors",
-                                  selectedDeliveryAddressId === address.id
-                                    ? "border-primary bg-primary/5 ring-1 ring-primary/20"
-                                    : "border-gray-200 bg-white hover:bg-gray-50",
-                                )}
-                              >
-                                <div className="min-w-0">
-                                  <p className="font-medium text-gray-900">{address.address_line}</p>
-                                  {address.phone ? <p className="text-sm text-gray-500">{address.phone}</p> : null}
-                                </div>
-                                {selectedDeliveryAddressId === address.id ? (
-                                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary">
-                                    <Check className="h-4 w-4 text-white" />
-                                  </div>
-                                ) : null}
-                              </button>
-                            ))}
-                          </div>
-                        </>
-                      ) : null}
-
-                      <div className="space-y-2">
-                        <Label>{t("hub.checkout.deliveryNotesAddressOptional")}</Label>
-                        <Input
-                          value={deliveryAddressLine}
-                          onChange={(e) => setDeliveryAddressLine(e.target.value)}
-                          placeholder={t("hub.checkout.addressLine")}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h3 className="font-medium text-gray-900">
-                        {t("hub.checkout.productDetailsSection", { defaultValue: "Product details" })}
-                      </h3>
-                      {formFields.map((field) => (
-                        <div key={field.key} className="space-y-2">
-                          <Label>
-                            {field.key === "customer_info" ? infoFieldLabel : field.label}
-                            {field.required ? " *" : ""}
-                          </Label>
-                          <Input
-                            placeholder={field.placeholder}
-                            value={formAnswers[field.key] || ""}
-                            onChange={(e) => setFormAnswers({ ...formAnswers, [field.key]: e.target.value })}
-                          />
+                          ))}
                         </div>
-                      ))}
+
+                        {filteredDeliveryAddresses.length === 0 && deliverySearch.trim() ? (
+                          <div className="py-6 text-center text-sm text-gray-500">
+                            {t("send.noDeliverySearch", { term: deliverySearch })}
+                          </div>
+                        ) : null}
+                        {deliveryAddresses.length === 0 && !deliverySearch.trim() ? (
+                          <div className="py-6 text-center text-sm text-gray-500">
+                            <p>{t("send.noDeliveryAddressesYet")}</p>
+                            <p>{t("send.addDeliveryHint")}</p>
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+
+                    <div className="space-y-2">
+                      <Label>{t("hub.checkout.comment", { defaultValue: "Comment" })}</Label>
+                      <Textarea
+                        rows={4}
+                        value={commentText}
+                        onChange={(e) => setFormAnswers((prev) => ({ ...prev, comment: e.target.value }))}
+                        placeholder={t("hub.checkout.commentPlaceholder", {
+                          defaultValue: "Add any important notes for this order.",
+                        })}
+                      />
                     </div>
 
                     <div className="flex gap-3 sm:gap-4">
@@ -1067,7 +1152,7 @@ export default function HubCheckoutPage() {
                       </Button>
                       <Button
                         type="button"
-                        onClick={handleContinue}
+                        onClick={() => void handleContinue()}
                         className="min-h-12 flex-1 rounded-xl bg-primary text-base font-semibold hover:bg-primary/90"
                       >
                         {t("hub.checkout.continueToPayment")}
@@ -1326,8 +1411,13 @@ export default function HubCheckoutPage() {
                     </div>
                     <div className="flex min-w-0 items-start justify-between gap-2">
                       <span className="min-w-0 text-gray-600">{t("send.fee")}</span>
-                      <span className={cn("shrink-0 text-right font-semibold tabular-nums", pricingPreview?.fee === 0 ? "text-green-600" : "text-gray-900")}>
-                        {pricingPreview ? (pricingPreview.fee === 0 ? t("send.free") : formatCurrency(pricingPreview.fee, sendCurrency)) : "—"}
+                      <span
+                        className={cn(
+                          "shrink-0 text-right font-semibold tabular-nums",
+                          corridorFeeRow.isFree ? "text-green-600" : "text-gray-900",
+                        )}
+                      >
+                        {corridorFeeRow.text}
                       </span>
                     </div>
                     <div className="flex min-w-0 items-start justify-between gap-2">
@@ -1339,7 +1429,11 @@ export default function HubCheckoutPage() {
                     <div className="flex min-w-0 items-start justify-between gap-2">
                       <span className="min-w-0 text-gray-600">{t("hub.checkout.exchangeRate", { defaultValue: "Exchange Rate" })}</span>
                       <span className="shrink-0 text-right text-sm">
-                        1 {sendCurrency || "—"} = {pricingPreview?.exchangeRate?.toFixed(2) || "—"} {receiveCurrency || "—"}
+                        {liveSpotRate != null && sendCurrency && receiveCurrency
+                          ? `1 ${sendCurrency} = ${liveSpotRate.toFixed(2)} ${receiveCurrency}`
+                          : sendCurrency && receiveCurrency
+                            ? `1 ${sendCurrency} = — ${receiveCurrency}`
+                            : "—"}
                       </span>
                     </div>
                     <div className="flex min-w-0 items-start justify-between gap-2 border-t pt-2">
@@ -1362,7 +1456,9 @@ export default function HubCheckoutPage() {
                     <div className="space-y-3 text-sm">
                       <div className="flex items-start gap-2 text-gray-700">
                         <Clock className="mt-0.5 h-4 w-4 shrink-0 text-gray-500" />
-                        <span>{slaLabel}</span>
+                        <span>
+                          {t("hub.checkout.fulfilledWithin", { defaultValue: "Fulfilled within" })}: {slaLabel}
+                        </span>
                       </div>
                       {step >= 2 && contactName ? (
                         <div className="flex items-start gap-2 text-gray-700">
@@ -1376,39 +1472,20 @@ export default function HubCheckoutPage() {
                           <span>{contactPhone}</span>
                         </div>
                       ) : null}
-                      {step >= 2 && (selectedDeliveryAddress?.address_line || deliveryAddressLine.trim()) ? (
+                      {fulfillmentType === "in_person" && step >= 2 && selectedDeliveryAddress?.address_line ? (
                         <div className="flex items-start gap-2 text-gray-700">
                           <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gray-500" />
-                          <span>{selectedDeliveryAddress?.address_line || deliveryAddressLine.trim()}</span>
+                          <span>{selectedDeliveryAddress.address_line}</span>
+                        </div>
+                      ) : null}
+                      {step >= 2 && commentText.trim() ? (
+                        <div className="flex items-start gap-2 text-gray-700">
+                          <Package2 className="mt-0.5 h-4 w-4 shrink-0 text-gray-500" />
+                          <span>{commentText.trim()}</span>
                         </div>
                       ) : null}
                     </div>
                   </div>
-
-                  {step >= 2 && formFields.some((field) => String(formAnswers[field.key] || "").trim()) ? (
-                    <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-                      <div className="mb-3 flex items-center gap-2">
-                        <Package2 className="h-4 w-4 text-gray-600" />
-                        <span className="font-medium text-gray-900">
-                          {t("hub.checkout.requestDetailsSummary", { defaultValue: "Request details" })}
-                        </span>
-                      </div>
-                      <div className="space-y-2 text-sm">
-                        {formFields.map((field) => {
-                          const value = String(formAnswers[field.key] || "").trim()
-                          if (!value) return null
-                          return (
-                            <div key={field.key} className="flex min-w-0 items-start justify-between gap-3">
-                              <span className="min-w-0 text-gray-600">
-                                {field.key === "customer_info" ? infoFieldLabel : field.label}
-                              </span>
-                              <span className="text-right font-medium text-gray-900">{value}</span>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  ) : null}
                 </CardContent>
               </Card>
             </div>

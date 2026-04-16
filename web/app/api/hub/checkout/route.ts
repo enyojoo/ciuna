@@ -31,7 +31,11 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   }
 
   const server = createServerClient()
-  const { data: product } = await server.from("hub_products").select("form_schema, pricing_type").eq("id", hubProductId).single()
+  const { data: product } = await server
+    .from("hub_products")
+    .select("form_schema, pricing_type, fulfillment_type")
+    .eq("id", hubProductId)
+    .single()
 
   const fv = validateHubFormAnswers(product?.form_schema, formAnswers as Record<string, unknown>)
   if (!fv.ok) {

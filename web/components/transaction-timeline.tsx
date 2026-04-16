@@ -92,9 +92,13 @@ export function TransactionTimeline({ transaction }: TransactionTimelineProps) {
       {
         id: "completed",
         title: t("txTimeline.completed"),
-        description: transaction.recipient?.bank_name
-          ? t("txTimeline.completedDescBank", { bank: transaction.recipient.bank_name })
-          : t("txTimeline.completedDesc"),
+        description: isHub
+          ? t("txTimeline.hubOrderCompletedDesc", {
+              defaultValue: "Your order was fulfilled successfully.",
+            })
+          : transaction.recipient?.bank_name
+            ? t("txTimeline.completedDescBank", { bank: transaction.recipient.bank_name })
+            : t("txTimeline.completedDesc"),
         icon: <Check className="h-5 w-5" />,
         completed: status === "completed",
         timestamp:

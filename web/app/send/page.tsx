@@ -52,7 +52,7 @@ import {
   formatAccountNumber,
 } from "@/lib/formatters"
 import { cn } from "@/lib/utils"
-import { roundMoney } from "@/utils/currency"
+import { formatCurrency, roundMoney } from "@/utils/currency"
 
 function formatReceiveArrivalDuration(
   totalSeconds: number,
@@ -458,12 +458,6 @@ export default function UserSendPage() {
     }
 
     return { fee: 0, feeType: "free" }
-  }
-
-  const formatCurrency = (amount: number, currency: string): string => {
-    const curr = currencies.find((c) => c.code === currency)
-    const a = roundMoney(amount)
-    return `${curr?.symbol || ""}${a.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   }
 
   // Handle currency selection with same currency prevention

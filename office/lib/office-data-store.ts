@@ -1,6 +1,6 @@
 import { supabase } from "./supabase"
 import { officeFetch } from "./api-client"
-import { roundMoney } from "@/utils/currency"
+import { formatCurrency as formatMoney, roundMoney } from "@/utils/currency"
 
 interface AdminData {
   users: any[]
@@ -694,18 +694,7 @@ class OfficeDataStore {
   }
 
   private formatCurrency(amount: number, currency = "NGN") {
-    const symbols: { [key: string]: string } = {
-      NGN: "₦",
-      RUB: "₽",
-      USD: "$",
-      EUR: "€",
-      GBP: "£",
-    }
-    const a = roundMoney(amount)
-    return `${symbols[currency] || ""}${a.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`
+    return formatMoney(roundMoney(amount), currency)
   }
 
   private startAutoRefresh() {
