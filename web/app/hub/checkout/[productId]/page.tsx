@@ -519,7 +519,7 @@ export default function HubCheckoutPage() {
         }, 100)
       }
 
-      router.push(`/send/${String(transactionId).toLowerCase()}`)
+      router.push(`/hub/orders/${String(transactionId).toLowerCase()}`)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : t("hub.checkout.errors.failed"))
     } finally {

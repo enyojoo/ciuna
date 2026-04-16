@@ -331,9 +331,11 @@ export default function UserTransactionsPage() {
             filteredTransactions.map((transaction) => {
               if (!transaction) return null
               const statusColor = getStatusColor(transaction.status)
-              const detailUrl = `/send/${transaction.transaction_id.toLowerCase()}`
               const payout = isReferralPayoutRow(transaction)
               const isHub = transaction.type === "hub" || transaction.transaction_source === "hub"
+              const detailUrl = isHub
+                ? `/hub/orders/${transaction.transaction_id.toLowerCase()}`
+                : `/send/${transaction.transaction_id.toLowerCase()}`
 
               if (payout) {
                 return (

@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Check, Clock, Copy, MapPin, Package2, Phone, UserRound, XCircle } from "lucide-react"
-import { useRouter, useParams } from "next/navigation"
+import { useRouter, useParams, usePathname } from "next/navigation"
 import { transactionService } from "@/lib/database"
 import { useAuth } from "@/lib/auth-context"
 import { useUserData } from "@/hooks/use-user-data"
@@ -65,6 +65,7 @@ function TransactionStatusPage() {
   const { t, i18n } = useTranslation("app")
   const dateLocale = i18n.resolvedLanguage || i18n.language || "en"
   const router = useRouter()
+  const pathname = usePathname()
   const params = useParams()
   const { user, userProfile, loading: authLoading } = useAuth()
   const { currencies, refreshCurrencies } = useUserData()
@@ -156,6 +157,13 @@ function TransactionStatusPage() {
     if (!user?.id || !transaction) return
     writeTxDetailToCache(user.id, transaction)
   }, [user?.id, transaction])
+
+  /** Canonical URL for Hub orders is `/hub/orders/[id]` (emails, checkout); keep `/send/[id]` as a redirect for legacy links. */
+  useEffect(() => {
+    if (!transaction || !pathname?.startsWith("/send/")) return
+    if (!isHubOrderTx(transaction)) return
+    router.replace(`/hub/orders/${transaction.transaction_id.toLowerCase()}`)
+  }, [transaction, pathname, router])
 
   // Real-time subscription for transaction updates
   useEffect(() => {
