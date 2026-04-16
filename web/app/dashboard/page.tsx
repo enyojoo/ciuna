@@ -10,6 +10,7 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useUserData } from "@/hooks/use-user-data"
 import { DashboardSkeleton } from "@/components/dashboard-skeleton"
+import { fetchWithAuth } from "@/lib/fetch-with-auth"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 import { formatLocaleDateShort } from "@/lib/format-date-locale"
 import { roundMoney } from "@/utils/currency"
@@ -108,96 +109,31 @@ export default function UserDashboardPage() {
   const { transactions, currencies, exchangeRates, loading } = useUserData()
   const [totalSent, setTotalSent] = useState(0)
 
-  // Helper function to convert amount to base currency
-  const convertToBaseCurrency = (
-    amount: number,
-    fromCurrency: string,
-    baseCurrency: string,
-    exchangeRates: any[]
-  ): number => {
-    if (fromCurrency === baseCurrency) return amount
-
-    // Find exchange rate from transaction currency to base currency
-    const rate = exchangeRates.find(
-      (r) => r && r.from_currency === fromCurrency && r.to_currency === baseCurrency,
-    )
-
-    if (rate && rate.rate > 0) {
-      return amount * rate.rate
-    }
-
-    // If direct rate not found, try reverse rate
-    const reverseRate = exchangeRates.find(
-      (r) => r && r.from_currency === baseCurrency && r.to_currency === fromCurrency,
-    )
-    if (reverseRate && reverseRate.rate > 0) {
-      return amount / reverseRate.rate
-    }
-
-    // If no rate found, return original amount (assume same currency)
-    return amount
-  }
-
   useEffect(() => {
     if (!userProfile?.id) {
       setTotalSent(0)
       return
     }
 
-    // Need exchange rates for currency conversion
-    if (!exchangeRates || exchangeRates.length === 0) {
-      // If no exchange rates yet, wait (don't set to 0, keep previous value)
-      return
-    }
-
-    // If transactions is not loaded yet (still loading), wait
-    if (loading) {
-      return
-    }
-
-    try {
-      const calculateTotalSpent = () => {
-        const baseCurrency = userProfile.base_currency || "NGN"
-        let totalInBaseCurrency = 0
-
-        const transactionsList = transactions || []
-
-        // 1. Send transactions: total volume = sum of send_amount in send_currency (converted to base)
-        const sendTransactions = transactionsList.filter((t) => {
-          if (!t) return false
-          if (t.status !== "completed") return false
-          if (t.type === "send") return true
-          if (t.send_amount || t.receive_amount || t.recipient) return true
-          return false
-        })
-
-
-        for (const transaction of sendTransactions) {
-          const amount = transaction.send_amount || 0
-          const currency = transaction.send_currency || baseCurrency
-          
-          if (amount > 0) {
-            const amountInBaseCurrency = convertToBaseCurrency(
-              amount,
-              currency,
-              baseCurrency,
-              exchangeRates
-            )
-            if (amountInBaseCurrency > 0) {
-              totalInBaseCurrency += amountInBaseCurrency
-            }
-          }
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetchWithAuth("/api/user/completed-volume")
+        if (!res.ok) throw new Error(`completed-volume ${res.status}`)
+        const body = await res.json()
+        if (!cancelled) {
+          setTotalSent(Number(body.volume) || 0)
         }
-
-        setTotalSent(totalInBaseCurrency)
+      } catch (e) {
+        console.error("Error loading completed volume:", e)
+        if (!cancelled) setTotalSent(0)
       }
+    })()
 
-      calculateTotalSpent()
-    } catch (error) {
-      console.error("Error calculating total spent:", error)
-      setTotalSent(0)
+    return () => {
+      cancelled = true
     }
-  }, [transactions, exchangeRates, userProfile])
+  }, [userProfile?.id])
 
   const baseCurrency = userProfile?.base_currency || "NGN"
   const completedTransactions = transactions?.filter((t) => t && t.status === "completed").length || 0

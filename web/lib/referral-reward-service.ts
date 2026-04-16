@@ -40,12 +40,28 @@ type CompletedTxRow = {
   reference?: string | null
 }
 
+/**
+ * Principal in pay currency (`send_currency`) that referral rewards are computed from.
+ *
+ * Policy: referrer gets a % (or threshold sums) of the **completed principal** only.
+ * Excluded: corridor fee (`fee_amount`), Hub marketplace fee (`hub_fee_amount` when
+ * `transaction_source === "hub"`), and cash logistics (`logistics_fee_amount`). Those
+ * sit in `total_amount` with principal but must not increase referrer payout.
+ *
+ * @see `web/app/send/page.tsx` — `totalToPay = sendAmount + fee + logisticsFee`
+ * @see `web/lib/hub-checkout-server.ts` — `totalAmount = sendAmount + corridor + hubFee`
+ */
+function referralPrincipalInSendCurrency(row: Pick<Transaction, "send_amount"> | Pick<CompletedTxRow, "send_amount">): number {
+  const n = Number(row.send_amount)
+  return Number.isFinite(n) && n > 0 ? n : 0
+}
+
 function resolveTransactionAmountInPolicyCurrency(
   transaction: Transaction,
   policyCurrency: string,
   rateMap: Map<string, number>,
 ): number {
-  const sendAmount = Number(transaction.send_amount)
+  const sendAmount = referralPrincipalInSendCurrency(transaction)
   const sendCurrency = transaction.send_currency
   const receiveCurrency = transaction.receive_currency
   const exchangeRate = Number(transaction.exchange_rate)
@@ -294,7 +310,9 @@ export async function processReferralRewardsOnCompletedSend(transaction: Transac
     for (const tx of txs || []) {
       const ref = tx.reference as string | undefined
       if (ref?.startsWith(REFERRAL_PAYOUT_PREFIX)) continue
-      sumPolicy += convertWithRateMap(Number(tx.send_amount), tx.send_currency as string, policy, rateMap)
+      const principal = referralPrincipalInSendCurrency(tx as Pick<CompletedTxRow, "send_amount">)
+      if (principal <= 0) continue
+      sumPolicy += convertWithRateMap(principal, tx.send_currency as string, policy, rateMap)
     }
 
     if (sumPolicy < program.threshold_send_amount) return

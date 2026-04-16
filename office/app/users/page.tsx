@@ -32,6 +32,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { supabase } from "@/lib/supabase"
 import { formatCurrency } from "@/utils/currency"
 import { useOfficeData } from "@/hooks/use-office-data"
+import { officeFetch } from "@/lib/api-client"
 import { officeDataStore, calculateUserVolume } from "@/lib/office-data-store"
 import { OfficeUsersSkeleton } from "@/components/office-users-skeleton"
 import { kycService, KYCSubmission } from "@/lib/kyc-service"
@@ -77,7 +78,7 @@ interface TransactionData {
 
 export default function AdminUsersPage() {
   const { data, loading } = useOfficeData()
-  const { userProfile } = useAuth()
+  const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [verificationFilter, setVerificationFilter] = useState("all")
@@ -94,6 +95,27 @@ export default function AdminUsersPage() {
   const [rejectionReason, setRejectionReason] = useState("")
   const [updatingKyc, setUpdatingKyc] = useState(false)
   const [userKycMap, setUserKycMap] = useState<Map<string, KYCSubmission[]>>(new Map())
+  const [completedVolumesByUserId, setCompletedVolumesByUserId] = useState<Record<string, number>>({})
+
+  useEffect(() => {
+    if (!data?.users?.length || !user?.id) return
+    let cancelled = false
+    officeFetch("/api/admin/users/completed-volumes")
+      .then((r) => {
+        if (!r.ok) throw new Error(`completed-volumes ${r.status}`)
+        return r.json() as Promise<{ volumes?: Record<string, number> }>
+      })
+      .then((j) => {
+        if (!cancelled) setCompletedVolumesByUserId(j.volumes || {})
+      })
+      .catch((e) => {
+        console.error("Office users completed-volumes:", e)
+        if (!cancelled) setCompletedVolumesByUserId({})
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [data?.lastUpdated, data?.users?.length, user?.id])
 
   // Format currency using database currencies
   const formatCurrencyFromDB = (amount: number, currencyCode: string): string => {
@@ -204,8 +226,9 @@ export default function AdminUsersPage() {
     const userExchangeRates = data?.exchangeRates || []
     const baseCurrency = user.base_currency || "NGN"
 
-    // Use the same calculation method as the dashboard for consistency
-    const totalVolume = calculateUserVolume(userTransactions, baseCurrency, userExchangeRates)
+    const totalVolume =
+      completedVolumesByUserId[user.id] ??
+      calculateUserVolume(userTransactions, baseCurrency, userExchangeRates)
     const completedTransactions = userTransactions.filter((t: any) => t.status === "completed")
 
     const kycStatus = user.kyc_status || "not_started"
@@ -375,14 +398,14 @@ export default function AdminUsersPage() {
   }
 
   const handleKycReview = async () => {
-    if (!selectedKycSubmission || !userProfile) return
+    if (!selectedKycSubmission || !user) return
 
     setUpdatingKyc(true)
     try {
       await kycService.updateStatus(
         selectedKycSubmission.id,
         reviewStatus,
-        userProfile.id,
+        user.id,
         reviewStatus === "rejected" ? rejectionReason : undefined
       )
       

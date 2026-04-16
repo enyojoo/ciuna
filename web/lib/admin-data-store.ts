@@ -1,3 +1,4 @@
+import { sumCompletedVolumeInBaseCurrency } from "@ciuna/shared"
 import { supabase } from "./supabase"
 import { formatCurrency as formatMoney, roundMoney } from "@/utils/currency"
 
@@ -492,41 +493,7 @@ class AdminDataStore {
   }
 
   private calculateVolumeInBaseCurrency(transactions: any[], baseCurrency: string, exchangeRates: any[] = []): number {
-    let totalVolume = 0
-
-    // Create a map of exchange rates for fast lookup
-    const rateMap = new Map<string, number>()
-    exchangeRates
-      .filter((r) => r.status === "active")
-      .forEach((r) => {
-        const key = `${r.from_currency}_${r.to_currency}`
-        rateMap.set(key, r.rate)
-      })
-
-    // Helper to convert currency
-    const convertCurrency = (amount: number, fromCurrency: string): number => {
-      if (fromCurrency === baseCurrency) {
-        return amount
-      }
-      return this.convertCurrencyWithRates(amount, fromCurrency, baseCurrency, rateMap)
-    }
-
-    // Filter only completed transactions
-    const completedTransactions = transactions.filter((tx) => tx.status === "completed")
-
-    for (const tx of completedTransactions) {
-      const txType = tx.type || (tx.send_amount ? "send" : null)
-
-      if (txType === "send") {
-        const amount = Number(tx.send_amount) || 0
-        const currency = tx.send_currency || baseCurrency
-        if (amount > 0) {
-          totalVolume += convertCurrency(amount, currency)
-        }
-      }
-    }
-
-    return totalVolume
+    return sumCompletedVolumeInBaseCurrency(transactions, baseCurrency, exchangeRates)
   }
 
   private convertCurrencyWithRates(amount: number, fromCurrency: string, toCurrency: string, rateMap: Map<string, number>): number {
@@ -1334,72 +1301,10 @@ class AdminDataStore {
 
 export const adminDataStore = new AdminDataStore()
 
-// Helper function to calculate user volume - can be used by users page
 export function calculateUserVolume(
   transactions: any[],
   baseCurrency: string,
   exchangeRates: any[]
 ): number {
-  // Create a map of exchange rates for fast lookup
-  const rateMap = new Map<string, number>()
-  exchangeRates
-    .filter((r) => r.status === "active")
-    .forEach((r) => {
-      const key = `${r.from_currency}_${r.to_currency}`
-      rateMap.set(key, r.rate)
-    })
-
-  // Helper to convert currency
-  const convertCurrency = (amount: number, fromCurrency: string): number => {
-    if (fromCurrency === baseCurrency) {
-      return amount
-    }
-    return convertCurrencyWithRatesHelper(amount, fromCurrency, baseCurrency, rateMap)
-  }
-
-  let totalVolume = 0
-
-  // Only count completed transactions
-  const completedTransactions = transactions.filter((tx) => tx.status === "completed")
-
-  for (const tx of completedTransactions) {
-    const txType = tx.type || (tx.send_amount ? "send" : null)
-
-    if (txType === "send") {
-      const amount = Number(tx.send_amount) || 0
-      const currency = tx.send_currency || baseCurrency
-      if (amount > 0) {
-        totalVolume += convertCurrency(amount, currency)
-      }
-    }
-  }
-
-  return totalVolume
-}
-
-// Helper function for currency conversion
-function convertCurrencyWithRatesHelper(
-  amount: number,
-  fromCurrency: string,
-  toCurrency: string,
-  rateMap: Map<string, number>
-): number {
-  // Try direct rate first
-  const directKey = `${fromCurrency}_${toCurrency}`
-  const directRate = rateMap.get(directKey)
-  if (directRate) {
-    return amount * directRate
-  }
-
-  // Try reverse rate
-  const reverseKey = `${toCurrency}_${fromCurrency}`
-  const reverseRate = rateMap.get(reverseKey)
-  if (reverseRate && reverseRate > 0) {
-    return amount / reverseRate
-  }
-
-  // No rate found in database - return 0 to exclude from volume calculations
-  // This ensures we only use database rates
-  console.warn(`No exchange rate found for ${fromCurrency} to ${toCurrency} in database`)
-  return 0
+  return sumCompletedVolumeInBaseCurrency(transactions, baseCurrency, exchangeRates)
 }
