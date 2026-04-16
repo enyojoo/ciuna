@@ -20,6 +20,7 @@ export const userService = {
       lastName?: string
       phone?: string
       baseCurrency?: string
+      preferredLanguage?: "en" | "ru" | "fr" | "es"
     },
   ) {
     // Check if user has approved KYC - if so, prevent name updates
@@ -78,6 +79,9 @@ export const userService = {
     }
     if (updates.baseCurrency !== undefined) {
       updateData.base_currency = updates.baseCurrency
+    }
+    if (updates.preferredLanguage !== undefined) {
+      updateData.preferred_language = updates.preferredLanguage
     }
 
     const { data, error } = await supabase

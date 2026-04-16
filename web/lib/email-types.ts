@@ -1,7 +1,9 @@
 // Email notification types and interfaces
 
+export type EmailLocale = "en" | "ru" | "fr" | "es"
+
 export interface EmailTemplate {
-  subject: string
+  subject: string | ((data: any) => string)
   html: (data: any) => string
   text: (data: any) => string
 }
@@ -29,6 +31,36 @@ export interface TransactionEmailData {
   failureReason?: string
   createdAt: string
   updatedAt: string
+  /** User's preferred language for email content. Defaults to 'en'. */
+  locale?: EmailLocale
+}
+
+export interface HubTransactionEmailData {
+  transactionId: string
+  status: "pending" | "processing" | "completed" | "failed" | "cancelled"
+  // money
+  sendAmount: number
+  sendCurrency: string
+  fundedAmount: number
+  fundedCurrency: string
+  exchangeRate: number
+  corridorFee: number
+  hubFee: number
+  totalAmount: number
+  // product
+  productTitle: string
+  pricingType: "fixed" | "user_input"
+  // fulfillment / contact
+  fulfillmentType: "online" | "in_person"
+  contactName: string
+  contactPhone: string
+  deliveryAddressLine?: string | null
+  // misc
+  failureReason?: string
+  createdAt: string
+  updatedAt: string
+  /** User's preferred language for email content. Defaults to 'en'. */
+  locale?: EmailLocale
 }
 
 export interface WelcomeEmailData {
@@ -37,6 +69,7 @@ export interface WelcomeEmailData {
   email: string
   baseCurrency: string
   dashboardUrl: string
+  locale?: EmailLocale
 }
 
 /** Referral balance withdrawal / payout request lifecycle (mirrors send: pending → completed/cancelled) */
@@ -52,6 +85,7 @@ export interface ReferralPayoutEmailData {
   payoutTransactionId?: string
   linkedTransactionId?: string
   dashboardUrl: string
+  locale?: EmailLocale
 }
 
 export interface EmailServiceConfig {

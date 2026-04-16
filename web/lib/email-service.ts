@@ -2,13 +2,14 @@
 
 import sgMail from '@sendgrid/mail'
 import { emailTemplates } from './email-templates'
-import type { 
-  EmailData, 
-  EmailServiceConfig, 
+import type {
+  EmailData,
+  EmailServiceConfig,
+  HubTransactionEmailData,
   ReferralPayoutEmailData,
-  SendGridResponse, 
-  TransactionEmailData, 
-  WelcomeEmailData 
+  SendGridResponse,
+  TransactionEmailData,
+  WelcomeEmailData,
 } from './email-types'
 
 // Lazy init: set API key on first send (allows build without SENDGRID_API_KEY)
@@ -147,6 +148,32 @@ export class EmailService {
    */
   async sendTransactionCancelledEmail(userEmail: string, transactionData: TransactionEmailData): Promise<SendGridResponse> {
     return this.sendTransactionNotification(userEmail, transactionData, 'cancelled')
+  }
+
+  /**
+   * Hub order status lifecycle: pending / processing / completed / failed / cancelled.
+   */
+  async sendHubOrderStatusEmail(
+    userEmail: string,
+    data: HubTransactionEmailData,
+    status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled',
+  ): Promise<SendGridResponse> {
+    const templateMap = {
+      pending: 'hubOrderPending',
+      processing: 'hubOrderProcessing',
+      completed: 'hubOrderCompleted',
+      failed: 'hubOrderFailed',
+      cancelled: 'hubOrderCancelled',
+    } as const
+    const templateName = templateMap[status]
+    if (!templateName) {
+      throw new Error(`Invalid hub order status: ${status}`)
+    }
+    return this.sendEmail({
+      to: userEmail,
+      template: templateName,
+      data: { ...data, status },
+    })
   }
 
   /**

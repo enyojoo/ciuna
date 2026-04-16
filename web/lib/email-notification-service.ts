@@ -2,34 +2,88 @@
 
 import { createServerClient } from './supabase'
 import { emailService } from './email-service'
-import type { TransactionEmailData } from './email-types'
+import type { EmailLocale, HubTransactionEmailData, TransactionEmailData } from './email-types'
 
 export type { TransactionEmailData }
 
+type HubSnapshot = {
+  productTitle?: string
+  productPricingType?: "fixed" | "user_input"
+  fundedAmount?: number
+  fundedCurrency?: string
+  feePercent?: number | null
+  hubFeeAmount?: number
+  corridorFeeAmount?: number
+  contactName?: string
+  contactPhone?: string
+  fulfillmentType?: "online" | "in_person"
+  deliveryAddressLine?: string | null
+  formAnswers?: Record<string, unknown>
+}
+
+function normalizeLocale(value: unknown): EmailLocale {
+  const v = typeof value === 'string' ? value.toLowerCase() : ''
+  return (['en', 'ru', 'fr', 'es'] as const).includes(v as EmailLocale) ? (v as EmailLocale) : 'en'
+}
+
+function isHubTransaction(tx: { transaction_source?: string | null; type?: string | null }): boolean {
+  return tx.transaction_source === 'hub' || tx.type === 'hub'
+}
+
+function buildHubEmailDataFromRow(
+  transaction: any,
+  locale: EmailLocale,
+  normalizedStatus: HubTransactionEmailData['status'],
+): HubTransactionEmailData {
+  const snapshot: HubSnapshot = (transaction.hub_snapshot as HubSnapshot) || {}
+  return {
+    transactionId: String(transaction.transaction_id),
+    status: normalizedStatus,
+    sendAmount: Number(transaction.send_amount) || 0,
+    sendCurrency: String(transaction.send_currency || ''),
+    fundedAmount: Number(snapshot.fundedAmount ?? transaction.receive_amount ?? 0) || 0,
+    fundedCurrency: String(snapshot.fundedCurrency ?? transaction.receive_currency ?? ''),
+    exchangeRate: Number(transaction.exchange_rate) || 0,
+    corridorFee: Number(snapshot.corridorFeeAmount ?? transaction.fee_amount ?? 0) || 0,
+    hubFee: Number(snapshot.hubFeeAmount ?? transaction.hub_fee_amount ?? 0) || 0,
+    totalAmount: Number(transaction.total_amount) || 0,
+    productTitle: String(snapshot.productTitle || 'Hub order'),
+    pricingType: snapshot.productPricingType === 'user_input' ? 'user_input' : 'fixed',
+    fulfillmentType: snapshot.fulfillmentType === 'in_person' ? 'in_person' : 'online',
+    contactName: String(snapshot.contactName || ''),
+    contactPhone: String(snapshot.contactPhone || transaction.delivery_phone || ''),
+    deliveryAddressLine:
+      snapshot.deliveryAddressLine != null
+        ? String(snapshot.deliveryAddressLine)
+        : (transaction.delivery_address_line as string | null) || null,
+    failureReason: transaction.failure_reason || undefined,
+    createdAt: String(transaction.created_at || new Date().toISOString()),
+    updatedAt: String(transaction.updated_at || transaction.created_at || new Date().toISOString()),
+    locale,
+  }
+}
+
 export class EmailNotificationService {
   /**
-   * Send transaction status email notification
+   * Send transaction status email notification. Branches on `transaction_source`:
+   * Hub rows go through `hubOrder*` templates, everything else keeps existing send flow.
    */
   static async sendTransactionStatusEmail(
-    transactionId: string, 
-    status: string
+    transactionId: string,
+    status: string,
   ): Promise<void> {
-    const normalizedStatus = status.trim().toLowerCase()
+    const normalizedStatus = status.trim().toLowerCase() as TransactionEmailData['status']
     console.log('Sending email for transaction:', transactionId, 'status:', normalizedStatus)
-    
+
     try {
-      // Get transaction data from database
-      console.log('Creating Supabase client...')
       let supabase
       try {
         supabase = createServerClient()
-        console.log('Supabase client created successfully')
       } catch (clientError) {
         console.error('Failed to create Supabase client:', clientError)
         return
       }
-      
-      console.log('Fetching transaction data...')
+
       const { data: transaction, error: transactionError } = await supabase
         .from('transactions')
         .select('*')
@@ -46,13 +100,9 @@ export class EmailNotificationService {
         throw new Error(`Transaction not found for ID: ${transactionId}`)
       }
 
-      console.log('Transaction found:', transaction.transaction_id)
-
-      // Get user email
-      console.log('Fetching user data...')
       const { data: user, error: userError } = await supabase
         .from('users')
-        .select('email')
+        .select('email, preferred_language')
         .eq('id', transaction.user_id)
         .single()
 
@@ -61,25 +111,32 @@ export class EmailNotificationService {
         throw new Error(`User not found or no email: ${userError?.message || 'No email address'}`)
       }
 
-      console.log('User email found:', user.email)
+      const locale = normalizeLocale(user.preferred_language)
+
+      if (isHubTransaction(transaction)) {
+        const hubData = buildHubEmailDataFromRow(transaction, locale, normalizedStatus)
+        const result = await emailService.sendHubOrderStatusEmail(user.email, hubData, normalizedStatus)
+        if (result.success) {
+          console.log('Hub order email sent successfully!', result.messageId)
+        } else {
+          console.error('Hub order email sending failed:', result.error)
+        }
+        return
+      }
 
       let recipientName = 'Unknown'
       if (transaction.recipient_id) {
-        console.log('Fetching recipient data...')
         const { data: recipient } = await supabase
           .from('recipients')
           .select('full_name')
           .eq('id', transaction.recipient_id)
           .single()
         recipientName = recipient?.full_name || 'Unknown'
-        console.log('Recipient found:', recipientName)
       } else if (transaction.fulfillment_type === 'cash_hand') {
         recipientName =
           (transaction.delivery_address_line as string | null)?.trim() || 'Cash delivery'
-        console.log('Cash delivery — using address line as display name')
       }
 
-      // Create email data
       const emailData: TransactionEmailData = {
         transactionId: transaction.transaction_id,
         recipientName,
@@ -92,15 +149,13 @@ export class EmailNotificationService {
         logisticsFee: transaction.logistics_fee_amount ?? 0,
         totalAmount: transaction.total_amount,
         fulfillmentType: transaction.fulfillment_type,
-        status: normalizedStatus as TransactionEmailData['status'],
+        status: normalizedStatus,
         failureReason: transaction.failure_reason,
         createdAt: transaction.created_at,
-        updatedAt: transaction.updated_at
+        updatedAt: transaction.updated_at,
+        locale,
       }
 
-      // Send email based on status
-      console.log('Sending email to:', user.email, 'with status:', normalizedStatus)
-      
       let result
       if (normalizedStatus === 'completed') {
         result = await emailService.sendTransactionCompletedEmail(user.email, emailData)
@@ -139,13 +194,12 @@ export class EmailNotificationService {
     try {
       const supabase = createServerClient()
 
-      // Get crypto receive transaction data
       const { data: transaction, error: transactionError } = await supabase
         .from('crypto_receive_transactions')
         .select(`
           *,
           crypto_wallet:crypto_wallets(*, recipient:recipients(*)),
-          user:users(first_name, last_name, email)
+          user:users(first_name, last_name, email, preferred_language)
         `)
         .eq('transaction_id', transactionId)
         .single()
@@ -160,8 +214,8 @@ export class EmailNotificationService {
         console.error('User email not found')
         return
       }
+      const locale = normalizeLocale(transaction.user?.preferred_language)
 
-      // Map crypto receive status to transaction email status
       let emailStatus: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled' = 'processing'
       if (status === 'deposited') {
         emailStatus = 'completed'
@@ -171,7 +225,6 @@ export class EmailNotificationService {
         emailStatus = 'pending'
       }
 
-      // Create email data for crypto receive transaction
       const emailData: TransactionEmailData = {
         transactionId: transaction.transaction_id,
         recipientName: transaction.crypto_wallet?.recipient?.full_name || 'Your Account',
@@ -184,9 +237,9 @@ export class EmailNotificationService {
         status: emailStatus,
         createdAt: transaction.created_at,
         updatedAt: transaction.updated_at,
+        locale,
       }
 
-      // Send email based on status
       let result
       if (status === 'deposited') {
         result = await emailService.sendTransactionCompletedEmail(userEmail, emailData)
@@ -215,8 +268,9 @@ export class EmailNotificationService {
    * Send welcome email
    */
   static async sendWelcomeEmail(
-    userEmail: string, 
-    firstName: string
+    userEmail: string,
+    firstName: string,
+    locale: EmailLocale = 'en',
   ): Promise<void> {
     try {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.ciuna.com'
@@ -225,9 +279,10 @@ export class EmailNotificationService {
         lastName: '',
         email: userEmail,
         baseCurrency: 'USD',
-        dashboardUrl: `${appUrl}/dashboard`
+        dashboardUrl: `${appUrl}/dashboard`,
+        locale,
       })
-      
+
       if (result.success) {
         console.log('Welcome email sent to:', userEmail)
       } else {
@@ -239,29 +294,25 @@ export class EmailNotificationService {
   }
 
   /**
-   * Send admin notification email for transaction events
-   * Built exactly like sendTransactionStatusEmail (user emails) but sends to admin
+   * Send admin notification email for transaction events.
+   * Branches Hub rows to `adminHubTransactionNotification`.
    */
   static async sendAdminTransactionNotification(
-    transactionId: string, 
+    transactionId: string,
     status: string
   ): Promise<void> {
     const normalizedStatus = status.trim().toLowerCase()
     console.log('Sending admin notification for transaction:', transactionId, 'status:', normalizedStatus)
-    
+
     try {
-      // Get transaction data from database (exact same as user email method)
-      console.log('Creating Supabase client...')
       let supabase
       try {
         supabase = createServerClient()
-        console.log('Supabase client created successfully')
       } catch (clientError) {
         console.error('Failed to create Supabase client:', clientError)
         return
       }
-      
-      console.log('Fetching transaction data...')
+
       const { data: transaction, error: transactionError } = await supabase
         .from('transactions')
         .select('*')
@@ -278,10 +329,6 @@ export class EmailNotificationService {
         throw new Error(`Transaction not found for ID: ${transactionId}`)
       }
 
-      console.log('Transaction found:', transaction.transaction_id)
-
-      // Get user data (exact same as user email method)
-      console.log('Fetching user data...')
       const { data: user, error: userError } = await supabase
         .from('users')
         .select('email, first_name, last_name')
@@ -293,24 +340,66 @@ export class EmailNotificationService {
         throw new Error(`User not found or no email: ${userError?.message || 'No email address'}`)
       }
 
-      console.log('User data found:', user.email)
+      const adminNotifyEmail =
+        process.env.ADMIN_TRANSACTION_NOTIFICATION_EMAIL?.trim() || 'enyo@ciuna.com'
+
+      const userName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Unknown'
+
+      if (isHubTransaction(transaction)) {
+        const snapshot: HubSnapshot = (transaction.hub_snapshot as HubSnapshot) || {}
+        const adminHubData = {
+          transactionId: transaction.transaction_id,
+          status: normalizedStatus,
+          userId: transaction.user_id,
+          userEmail: user.email,
+          userName,
+          productTitle: snapshot.productTitle || 'Hub order',
+          pricingType: snapshot.productPricingType || 'fixed',
+          fundedAmount: Number(snapshot.fundedAmount ?? transaction.receive_amount ?? 0) || 0,
+          fundedCurrency: String(snapshot.fundedCurrency ?? transaction.receive_currency ?? ''),
+          sendAmount: Number(transaction.send_amount) || 0,
+          sendCurrency: String(transaction.send_currency || ''),
+          exchangeRate: Number(transaction.exchange_rate) || 0,
+          corridorFee: Number(snapshot.corridorFeeAmount ?? transaction.fee_amount ?? 0) || 0,
+          hubFee: Number(snapshot.hubFeeAmount ?? transaction.hub_fee_amount ?? 0) || 0,
+          totalAmount: Number(transaction.total_amount) || 0,
+          fulfillmentType: snapshot.fulfillmentType === 'in_person' ? 'in_person' : 'online',
+          contactName: snapshot.contactName || '',
+          contactPhone: snapshot.contactPhone || transaction.delivery_phone || '',
+          deliveryAddressLine:
+            snapshot.deliveryAddressLine != null
+              ? String(snapshot.deliveryAddressLine)
+              : (transaction.delivery_address_line as string | null) || null,
+          createdAt: transaction.created_at,
+          updatedAt: transaction.updated_at,
+          failureReason: transaction.failure_reason,
+        }
+        const result = await emailService.sendEmail({
+          to: adminNotifyEmail,
+          template: 'adminHubTransactionNotification',
+          data: adminHubData,
+        })
+        if (result.success) {
+          console.log('Admin Hub notification email sent!', result.messageId)
+        } else {
+          console.error('Admin Hub notification email failed:', result.error)
+        }
+        return
+      }
 
       let recipientName = 'Unknown'
       if (transaction.recipient_id) {
-        console.log('Fetching recipient data...')
         const { data: recipient } = await supabase
           .from('recipients')
           .select('full_name')
           .eq('id', transaction.recipient_id)
           .single()
         recipientName = recipient?.full_name || 'Unknown'
-        console.log('Recipient found:', recipientName)
       } else if (transaction.fulfillment_type === 'cash_hand') {
         recipientName =
           (transaction.delivery_address_line as string | null)?.trim() || 'Cash delivery'
       }
 
-      // Create admin email data
       const adminEmailData = {
         transactionId: transaction.transaction_id,
         status: normalizedStatus,
@@ -326,22 +415,16 @@ export class EmailNotificationService {
         recipientName,
         userId: transaction.user_id,
         userEmail: user.email,
-        userName: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Unknown',
+        userName,
         createdAt: transaction.created_at,
         updatedAt: transaction.updated_at,
-        failureReason: transaction.failure_reason
+        failureReason: transaction.failure_reason,
       }
 
-      // Send admin notification email (exact same pattern as user email)
-      const adminNotifyEmail =
-        process.env.ADMIN_TRANSACTION_NOTIFICATION_EMAIL?.trim() ||
-        'enyo@ciuna.com'
-      console.log('Sending admin notification email to:', adminNotifyEmail)
-      
       const result = await emailService.sendEmail({
         to: adminNotifyEmail,
         template: 'adminTransactionNotification',
-        data: adminEmailData
+        data: adminEmailData,
       })
 
       if (result.success) {
@@ -375,7 +458,7 @@ export class EmailNotificationService {
           currency,
           payout_transaction_id,
           recipient:recipients(full_name),
-          user:users(email, first_name)
+          user:users(email, first_name, preferred_language)
         `,
         )
         .eq("id", payoutRequestId)
@@ -386,7 +469,7 @@ export class EmailNotificationService {
         return
       }
 
-      const user = pay.user as { email?: string; first_name?: string } | null
+      const user = pay.user as { email?: string; first_name?: string; preferred_language?: string | null } | null
       const rec = pay.recipient as { full_name?: string } | { full_name?: string }[] | null
       const recipientName = Array.isArray(rec) ? rec[0]?.full_name : rec?.full_name
 
@@ -394,6 +477,7 @@ export class EmailNotificationService {
         console.error("sendReferralPayoutStatusEmail: missing user email")
         return
       }
+      const locale = normalizeLocale(user.preferred_language)
 
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.ciuna.com"
       const dashboardUrl =
@@ -414,6 +498,7 @@ export class EmailNotificationService {
         payoutTransactionId: payoutTxnId,
         linkedTransactionId: status === "completed" ? linkedTransactionId : undefined,
         dashboardUrl,
+        locale,
       })
 
       if (result.success) {

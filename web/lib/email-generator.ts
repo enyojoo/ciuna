@@ -2,16 +2,27 @@
 
 import { formatAmountPlain, formatExchangeRateForEmail } from "@/utils/currency"
 import { SEO_EMAIL_LOGO_DARK_URL, SEO_EMAIL_LOGO_LIGHT_URL } from "./seo"
+import { formatEmailDate, tEmail, type EmailLocale } from "./i18n/server"
+import type { HubTransactionEmailData, TransactionEmailData } from "./email-types"
 
 export function generateBaseEmailTemplate(
   title: string,
   subtitle: string,
   content: string,
-  ctaButton?: { text: string; url: string }
+  ctaButton?: { text: string; url: string },
+  lng?: EmailLocale | string | null,
 ): string {
+  const logoAlt = tEmail("common.logoAlt", {}, lng)
+  const needHelp = tEmail("common.needHelp", {}, lng)
+  const contactSupport = tEmail("common.contactSupport", {}, lng)
+  const contactMailto = tEmail("common.contactSupportMailto", {}, lng)
+  const year = new Date().getFullYear()
+  const copyright = tEmail("common.footerCopyright", { year }, lng)
+  const accountNote = tEmail("common.footerAccountNote", {}, lng)
+
   return `
 <!DOCTYPE html>
-<html lang="en">
+<html lang="${(lng as string) || "en"}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -375,8 +386,8 @@ export function generateBaseEmailTemplate(
     <div class="email-container">
         <!-- Header -->
         <div class="email-header">
-            <img src="${SEO_EMAIL_LOGO_LIGHT_URL}" alt="Ciuna" class="logo logo-light" width="120" style="max-width:120px;height:auto;">
-            <img src="${SEO_EMAIL_LOGO_DARK_URL}" alt="Ciuna" class="logo logo-dark" width="120" style="max-width:120px;height:auto;">
+            <img src="${SEO_EMAIL_LOGO_LIGHT_URL}" alt="${logoAlt}" class="logo logo-light" width="120" style="max-width:120px;height:auto;">
+            <img src="${SEO_EMAIL_LOGO_DARK_URL}" alt="${logoAlt}" class="logo logo-dark" width="120" style="max-width:120px;height:auto;">
             <h1 class="email-title">${title}</h1>
             ${subtitle ? `<p class="email-subtitle">${subtitle}</p>` : ''}
         </div>
@@ -395,16 +406,16 @@ export function generateBaseEmailTemplate(
         <!-- Footer -->
         <div class="email-footer">
             <p class="footer-text">
-                Need help? We're here for you!
+                ${needHelp}
             </p>
             
             <div class="footer-links">
-                <a href="mailto:support@ciuna.com">Contact Support</a>
+                <a href="${contactMailto}">${contactSupport}</a>
             </div>
             
             <p class="company-info">
-                © ${new Date().getFullYear()} Ciuna. All rights reserved.<br>
-                You received this email because you have a Ciuna account.
+                ${copyright}<br>
+                ${accountNote}
             </p>
         </div>
     </div>
@@ -413,7 +424,8 @@ export function generateBaseEmailTemplate(
   `
 }
 
-export function generateTransactionDetails(data: any): string {
+export function generateTransactionDetails(data: TransactionEmailData): string {
+  const lng = data.locale
   const sendAmt = formatAmountPlain(Number(data.sendAmount) || 0)
   const recvAmt = formatAmountPlain(Number(data.receiveAmount) || 0)
   const rateStr = formatExchangeRateForEmail(Number(data.exchangeRate) || 0)
@@ -421,39 +433,41 @@ export function generateTransactionDetails(data: any): string {
   const logStr = formatAmountPlain(Number(data.logisticsFee) || 0)
   const totalStr =
     data.totalAmount != null ? formatAmountPlain(Number(data.totalAmount) || 0) : null
+  const statusWord = tEmail(`status.${data.status}`, {}, lng)
+  const dateStr = formatEmailDate(data.createdAt, lng)
 
   return `
     <div class="transaction-details">
-      <h3>Transaction Details</h3>
+      <h3>${tEmail("summary.heading", {}, lng)}</h3>
       <div class="detail-row">
-        <span class="detail-label">Transaction ID: </span>
+        <span class="detail-label">${tEmail("summary.transactionId", {}, lng)} </span>
         <span class="detail-value">${data.transactionId}</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">Recipient: </span>
+        <span class="detail-label">${tEmail("summary.recipient", {}, lng)} </span>
         <span class="detail-value">${data.recipientName}</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">Amount: </span>
+        <span class="detail-label">${tEmail("summary.amount", {}, lng)} </span>
         <span class="detail-value">${sendAmt} ${data.sendCurrency}</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">Receiving: </span>
+        <span class="detail-label">${tEmail("summary.receiving", {}, lng)} </span>
         <span class="detail-value">${recvAmt} ${data.receiveCurrency}</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">Rate Used: </span>
+        <span class="detail-label">${tEmail("summary.rateUsed", {}, lng)} </span>
         <span class="detail-value">1 ${data.sendCurrency} = ${rateStr} ${data.receiveCurrency}</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">Exchange fee: </span>
+        <span class="detail-label">${tEmail("summary.exchangeFee", {}, lng)} </span>
         <span class="detail-value">${feeStr} ${data.sendCurrency}</span>
       </div>
       ${
         (data.logisticsFee ?? 0) > 0
           ? `
       <div class="detail-row">
-        <span class="detail-label">Logistics fee: </span>
+        <span class="detail-label">${tEmail("summary.logisticsFee", {}, lng)} </span>
         <span class="detail-value">${logStr} ${data.sendCurrency}</span>
       </div>`
           : ""
@@ -462,23 +476,164 @@ export function generateTransactionDetails(data: any): string {
         totalStr != null
           ? `
       <div class="detail-row">
-        <span class="detail-label">Total paid: </span>
+        <span class="detail-label">${tEmail("summary.totalPaid", {}, lng)} </span>
         <span class="detail-value">${totalStr} ${data.sendCurrency}</span>
       </div>`
           : ""
       }
       <div class="detail-row">
-        <span class="detail-label">Status: </span>
+        <span class="detail-label">${tEmail("summary.status", {}, lng)} </span>
         <span class="detail-value">
-          <span class="status-badge status-${data.status}">${data.status}</span>
+          <span class="status-badge status-${data.status}">${statusWord}</span>
         </span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">Date: </span>
-        <span class="detail-value">${new Date(data.createdAt).toLocaleDateString()}</span>
+        <span class="detail-label">${tEmail("summary.date", {}, lng)} </span>
+        <span class="detail-value">${dateStr}</span>
       </div>
     </div>
   `
+}
+
+/** Hub order summary block — mirrors the in-app Order summary on /hub/orders/[id]. */
+export function generateHubOrderSummary(data: HubTransactionEmailData): string {
+  const lng = data.locale
+  const sameCurrency = data.sendCurrency === data.fundedCurrency
+  const sendAmt = formatAmountPlain(Number(data.sendAmount) || 0)
+  const fundedAmt = formatAmountPlain(Number(data.fundedAmount) || 0)
+  const rateStr = formatExchangeRateForEmail(Number(data.exchangeRate) || 0)
+  const corridor = Number(data.corridorFee) || 0
+  const hubFee = Number(data.hubFee) || 0
+  const totalStr = formatAmountPlain(Number(data.totalAmount) || 0)
+  const typeLabel =
+    data.pricingType === "fixed"
+      ? tEmail("summary.typeFixed", {}, lng)
+      : tEmail("summary.typeUserInput", {}, lng)
+  const fulfillmentLine =
+    data.fulfillmentType === "in_person"
+      ? tEmail("summary.fulfillmentInPersonValue", { contactName: data.contactName }, lng)
+      : tEmail("summary.fulfillmentOnlineValue", { contactName: data.contactName }, lng)
+  const statusWord = tEmail(`status.${data.status}`, {}, lng)
+  const dateStr = formatEmailDate(data.createdAt, lng)
+
+  return `
+    <div class="transaction-details">
+      <h3>${tEmail("summary.heading", {}, lng)}</h3>
+      <div class="detail-row">
+        <span class="detail-label">${tEmail("summary.transactionId", {}, lng)} </span>
+        <span class="detail-value">${data.transactionId}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">${tEmail("summary.order", {}, lng)} </span>
+        <span class="detail-value">${data.productTitle}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">${tEmail("summary.type", {}, lng)} </span>
+        <span class="detail-value">${typeLabel}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">${tEmail("summary.fundedAmount", {}, lng)} </span>
+        <span class="detail-value">${fundedAmt} ${data.fundedCurrency}</span>
+      </div>
+      ${
+        sameCurrency
+          ? ""
+          : `
+      <div class="detail-row">
+        <span class="detail-label">${tEmail("summary.exchangeRate", {}, lng)} </span>
+        <span class="detail-value">1 ${data.sendCurrency} = ${rateStr} ${data.fundedCurrency}</span>
+      </div>`
+      }
+      ${
+        corridor > 0
+          ? `
+      <div class="detail-row">
+        <span class="detail-label">${tEmail("summary.corridorFee", {}, lng)} </span>
+        <span class="detail-value">${formatAmountPlain(corridor)} ${data.sendCurrency}</span>
+      </div>`
+          : ""
+      }
+      ${
+        hubFee > 0
+          ? `
+      <div class="detail-row">
+        <span class="detail-label">${tEmail("summary.hubFee", {}, lng)} </span>
+        <span class="detail-value">${formatAmountPlain(hubFee)} ${data.sendCurrency}</span>
+      </div>`
+          : ""
+      }
+      <div class="detail-row">
+        <span class="detail-label">${tEmail("summary.totalPaid", {}, lng)} </span>
+        <span class="detail-value">${totalStr} ${data.sendCurrency} (${sendAmt} ${data.sendCurrency})</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">${tEmail("summary.fulfillment", {}, lng)} </span>
+        <span class="detail-value">${fulfillmentLine}</span>
+      </div>
+      ${
+        data.fulfillmentType === "in_person" && data.deliveryAddressLine
+          ? `
+      <div class="detail-row">
+        <span class="detail-label">${tEmail("summary.deliveryAddress", {}, lng)} </span>
+        <span class="detail-value">${data.deliveryAddressLine}</span>
+      </div>`
+          : ""
+      }
+      <div class="detail-row">
+        <span class="detail-label">${tEmail("summary.contact", {}, lng)} </span>
+        <span class="detail-value">${data.contactPhone}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">${tEmail("summary.status", {}, lng)} </span>
+        <span class="detail-value">
+          <span class="status-badge status-${data.status}">${statusWord}</span>
+        </span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">${tEmail("summary.date", {}, lng)} </span>
+        <span class="detail-value">${dateStr}</span>
+      </div>
+    </div>
+  `
+}
+
+/** Plain-text Hub order summary (for text body). */
+export function generateHubOrderSummaryPlain(data: HubTransactionEmailData): string {
+  const lng = data.locale
+  const sameCurrency = data.sendCurrency === data.fundedCurrency
+  const sendAmt = formatAmountPlain(Number(data.sendAmount) || 0)
+  const fundedAmt = formatAmountPlain(Number(data.fundedAmount) || 0)
+  const rateStr = formatExchangeRateForEmail(Number(data.exchangeRate) || 0)
+  const corridor = Number(data.corridorFee) || 0
+  const hubFee = Number(data.hubFee) || 0
+  const totalStr = formatAmountPlain(Number(data.totalAmount) || 0)
+  const typeLabel =
+    data.pricingType === "fixed"
+      ? tEmail("summary.typeFixed", {}, lng)
+      : tEmail("summary.typeUserInput", {}, lng)
+
+  const lines: string[] = [
+    `- ${tEmail("summary.transactionId", {}, lng)} ${data.transactionId}`,
+    `- ${tEmail("summary.order", {}, lng)} ${data.productTitle}`,
+    `- ${tEmail("summary.type", {}, lng)} ${typeLabel}`,
+    `- ${tEmail("summary.fundedAmount", {}, lng)} ${fundedAmt} ${data.fundedCurrency}`,
+  ]
+  if (!sameCurrency) {
+    lines.push(`- ${tEmail("summary.exchangeRate", {}, lng)} 1 ${data.sendCurrency} = ${rateStr} ${data.fundedCurrency}`)
+  }
+  if (corridor > 0) {
+    lines.push(`- ${tEmail("summary.corridorFee", {}, lng)} ${formatAmountPlain(corridor)} ${data.sendCurrency}`)
+  }
+  if (hubFee > 0) {
+    lines.push(`- ${tEmail("summary.hubFee", {}, lng)} ${formatAmountPlain(hubFee)} ${data.sendCurrency}`)
+  }
+  lines.push(`- ${tEmail("summary.totalPaid", {}, lng)} ${totalStr} ${data.sendCurrency} (${sendAmt} ${data.sendCurrency})`)
+  if (data.fulfillmentType === "in_person" && data.deliveryAddressLine) {
+    lines.push(`- ${tEmail("summary.deliveryAddress", {}, lng)} ${data.deliveryAddressLine}`)
+  }
+  lines.push(`- ${tEmail("summary.contact", {}, lng)} ${data.contactPhone}`)
+  lines.push(`- ${tEmail("summary.status", {}, lng)} ${tEmail(`status.${data.status}`, {}, lng)}`)
+  return lines.join("\n")
 }
 
 export function generateFooter(): string {

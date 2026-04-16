@@ -10,6 +10,17 @@ import { hasPin, removePin, setAppLocked } from "./login-pin"
 import { emitAppLocked } from "./app-lock-bus"
 import { claimReferralWithRetry, getStoredReferralSlug } from "./referral-client"
 import { clearHubClientMemory } from "./hub-client-cache"
+import i18n from "./i18n/config"
+
+const SUPPORTED_LOCALES = new Set(["en", "ru", "fr", "es"])
+
+function syncI18nFromProfile(profile: { preferred_language?: string | null } | null | undefined) {
+  const pref = profile?.preferred_language
+  if (!pref || !SUPPORTED_LOCALES.has(pref)) return
+  if (typeof window === "undefined") return
+  if (i18n.language?.split("-")[0] === pref) return
+  void i18n.changeLanguage(pref)
+}
 
 interface UserProfile {
   id: string
@@ -18,6 +29,7 @@ interface UserProfile {
   last_name?: string
   phone?: string
   base_currency?: string
+  preferred_language?: "en" | "ru" | "fr" | "es" | null
   status?: string
   // verification_status removed - use the provider-backed KYC status field
   created_at?: string
@@ -160,6 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUserProfile(mergedProfile)
             setIsAdmin(false)
             setUser(authUser)
+            syncI18nFromProfile(mergedProfile)
             return mergedProfile
           }
         }
@@ -167,6 +180,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsAdmin(false)
         // Keep existing session user when refresh is called without authUser (should not happen if callers pass user)
         setUser((prev) => authUser ?? prev)
+        syncI18nFromProfile(userProfile)
         return userProfile
       }
 

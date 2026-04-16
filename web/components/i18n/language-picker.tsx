@@ -10,6 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import i18n from "@/lib/i18n/config"
+import { useAuth } from "@/lib/auth-context"
+import { userService } from "@/lib/database"
 
 const FLAGS = {
   en: IconUnitedKingdom,
@@ -29,7 +31,20 @@ function normalizeLng(lng: string): LocaleCode {
 
 export function LanguagePicker() {
   const { t } = useTranslation("common")
+  const { user, userProfile, refreshUserProfile } = useAuth()
   const value = normalizeLng(i18n.language)
+
+  const handleChange = async (v: LocaleCode) => {
+    await i18n.changeLanguage(v)
+    if (user && !userProfile?.id?.startsWith("admin")) {
+      try {
+        await userService.updateProfile(user.id, { preferredLanguage: v })
+        await refreshUserProfile?.()
+      } catch (err) {
+        console.warn("Failed to persist preferred_language:", err)
+      }
+    }
+  }
 
   return (
     <div className="flex items-center justify-between py-4 border-b border-gray-100 gap-3">
@@ -37,7 +52,7 @@ export function LanguagePicker() {
       <Select
         value={value}
         onValueChange={(v) => {
-          void i18n.changeLanguage(v as LocaleCode)
+          void handleChange(v as LocaleCode)
         }}
       >
         <SelectTrigger className="w-[min(100%,13rem)] h-11 rounded-lg border-gray-200">
