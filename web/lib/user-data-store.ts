@@ -9,6 +9,8 @@ interface UserData {
   deliveryAddresses: any[]
   currencies: any[]
   exchangeRates: any[]
+  /** Lifetime completed send+hub volume in the user's base currency (see `/api/user/completed-volume`). */
+  completedVolume: number
   lastUpdated: number
   /** Which user this cache belongs to (logout clears; avoids refetch on every route change) */
   userId: string | null
@@ -21,6 +23,7 @@ class UserDataStore {
     deliveryAddresses: [],
     currencies: [],
     exchangeRates: [],
+    completedVolume: 0,
     lastUpdated: 0,
     userId: null,
   }
@@ -67,6 +70,7 @@ class UserDataStore {
         deliveryAddresses: [],
         currencies: [],
         exchangeRates: [],
+        completedVolume: 0,
         lastUpdated: 0,
         userId: null,
       }
@@ -131,12 +135,24 @@ class UserDataStore {
         }
       })()
 
+      const completedVolumePromise = (async (): Promise<number> => {
+        try {
+          const res = await fetchWithAuth("/api/user/completed-volume")
+          if (!res.ok) return this.data.completedVolume
+          const body = await res.json()
+          return Number(body.volume) || 0
+        } catch {
+          return this.data.completedVolume
+        }
+      })()
+
       const dataPromise = Promise.allSettled([
         currencyService.getAll(),
         currencyService.getExchangeRates(),
         transactionsPromise,
         recipientService.getByUserId(userId),
         deliveryAddressService.getByUserId(userId),
+        completedVolumePromise,
       ])
 
       const results = (await Promise.race([dataPromise, timeoutPromise])) as PromiseSettledResult<any>[]
@@ -147,6 +163,8 @@ class UserDataStore {
       const transactions = results[2].status === "fulfilled" ? results[2].value || [] : this.data.transactions
       const recipients = results[3].status === "fulfilled" ? results[3].value || [] : this.data.recipients
       const deliveryAddresses = results[4].status === "fulfilled" ? results[4].value || [] : this.data.deliveryAddresses
+      const completedVolume =
+        results[5].status === "fulfilled" ? Number(results[5].value) || 0 : this.data.completedVolume
 
       // Only update and notify if data actually changed to prevent unnecessary re-renders
       const dataChanged = 
@@ -154,7 +172,8 @@ class UserDataStore {
         JSON.stringify(recipients) !== JSON.stringify(this.data.recipients) ||
         JSON.stringify(deliveryAddresses) !== JSON.stringify(this.data.deliveryAddresses) ||
         JSON.stringify(currencies) !== JSON.stringify(this.data.currencies) ||
-        JSON.stringify(exchangeRates) !== JSON.stringify(this.data.exchangeRates)
+        JSON.stringify(exchangeRates) !== JSON.stringify(this.data.exchangeRates) ||
+        completedVolume !== this.data.completedVolume
 
       if (dataChanged) {
         this.data = {
@@ -163,6 +182,7 @@ class UserDataStore {
           deliveryAddresses,
           currencies,
           exchangeRates,
+          completedVolume,
           lastUpdated: Date.now(),
           userId,
         }
@@ -174,6 +194,7 @@ class UserDataStore {
         // Update timestamp even if data didn't change to keep it fresh
         this.data.lastUpdated = Date.now()
         this.data.userId = userId
+        this.data.completedVolume = completedVolume
       }
 
       return this.data
@@ -307,16 +328,24 @@ class UserDataStore {
   async refreshTransactions(userId: string) {
     try {
       this.updateActivity()
-      // Fetch user send transactions from API
-      const response = await fetchWithAuth(`/api/transactions?type=all&limit=20`)
-      if (response.ok) {
-        const data = await response.json()
+      const [txRes, volRes] = await Promise.all([
+        fetchWithAuth(`/api/transactions?type=all&limit=20`),
+        fetchWithAuth("/api/user/completed-volume"),
+      ])
+
+      if (txRes.ok) {
+        const data = await txRes.json()
         this.data.transactions = data.transactions || []
       } else {
-        // Fallback to old method if API fails
         const transactions = await transactionService.getByUserId(userId, 20)
         this.data.transactions = transactions || []
       }
+
+      if (volRes.ok) {
+        const body = await volRes.json()
+        this.data.completedVolume = Number(body.volume) || 0
+      }
+
       this.data.lastUpdated = Date.now()
       this.data.userId = userId
       this.notify()
@@ -410,6 +439,7 @@ class UserDataStore {
       deliveryAddresses: [],
       currencies: [],
       exchangeRates: [],
+      completedVolume: 0,
       lastUpdated: 0,
       userId: null,
     }

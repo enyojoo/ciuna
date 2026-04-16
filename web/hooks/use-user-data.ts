@@ -124,6 +124,7 @@ export function useUserData() {
     deliveryAddresses: data.deliveryAddresses ?? [],
     currencies: data.currencies,
     exchangeRates: data.exchangeRates,
+    completedVolume: data.completedVolume ?? 0,
     loading,
     error,
     refreshRecipients,

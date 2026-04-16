@@ -6,11 +6,10 @@ import { cn } from "@/lib/utils"
 import { Send, MessageCircle, Wallet, BadgeDollarSign, Store } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useUserData } from "@/hooks/use-user-data"
 import { DashboardSkeleton } from "@/components/dashboard-skeleton"
-import { fetchWithAuth } from "@/lib/fetch-with-auth"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 import { formatLocaleDateShort } from "@/lib/format-date-locale"
 import { roundMoney } from "@/utils/currency"
@@ -106,38 +105,11 @@ export default function UserDashboardPage() {
   const { t, i18n } = useTranslation("app")
   const dateLocale = i18n.resolvedLanguage || i18n.language || "en"
   const { userProfile } = useAuth()
-  const { transactions, currencies, exchangeRates, loading } = useUserData()
-  const [totalSent, setTotalSent] = useState(0)
-
-  useEffect(() => {
-    if (!userProfile?.id) {
-      setTotalSent(0)
-      return
-    }
-
-    let cancelled = false
-    ;(async () => {
-      try {
-        const res = await fetchWithAuth("/api/user/completed-volume")
-        if (!res.ok) throw new Error(`completed-volume ${res.status}`)
-        const body = await res.json()
-        if (!cancelled) {
-          setTotalSent(Number(body.volume) || 0)
-        }
-      } catch (e) {
-        console.error("Error loading completed volume:", e)
-        if (!cancelled) setTotalSent(0)
-      }
-    })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [userProfile?.id])
+  const { transactions, currencies, exchangeRates, completedVolume, loading } = useUserData()
 
   const baseCurrency = userProfile?.base_currency || "NGN"
   const completedTransactions = transactions?.filter((t) => t && t.status === "completed").length || 0
-  const totalSentValue = totalSent > 0 ? totalSent : 0
+  const totalSentValue = completedVolume
 
   const formatCurrencyValue = (amount: number, currencyCode: string) => {
     try {
