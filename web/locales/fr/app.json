@@ -295,7 +295,6 @@
     "transferLine": "Transfert {{amount}}",
     "transferLineWithLogistics": "Transfert {{amount}} (+ frais logistiques)",
     "sendAmountPlusFee": "Envoi : {{send}} + frais de change : {{fee}}",
-    "sendMoneyCompleteHint": "Effectuez le paiement pour finaliser le transfert",
     "noPaymentMethods": "Aucun moyen de paiement pour {{currency}}",
     "contactSupport": "Contactez l’assistance",
     "importantInstructions": "Instructions importantes",

@@ -1752,37 +1752,36 @@ export default function UserSendPage() {
                     <CardTitle>{t("send.makePayment")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    {/* Transfer amount and description */}
-                    <div className="flex items-center gap-2">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-primary shadow-sm ring-2 ring-primary/25">
-                          {sendCurrencyData && <CurrencyFlagIcon currency={sendCurrencyData} />}
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-primary">
-                            {fulfillmentResolution.ok &&
-                            fulfillmentResolution.fulfillment === "cash_hand" &&
-                            logisticsFee > 0
-                              ? t("send.transferLineWithLogistics", {
-                                  amount: formatCurrency(totalToPay, sendCurrency),
-                                })
-                              : t("send.transferLine", { amount: formatCurrency(totalToPay, sendCurrency) })}
-                          </h3>
-                          {!(
-                            fulfillmentResolution.ok &&
-                            fulfillmentResolution.fulfillment === "cash_hand" &&
-                            logisticsFee > 0
-                          ) && (
+                    {/* Transfer amount and description — same framed header as hub checkout step 3 */}
+                    <div className="flex items-center gap-3 rounded-xl border border-primary/15 bg-primary/[0.04] p-4">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-primary shadow-sm ring-2 ring-primary/20">
+                        {sendCurrencyData ? <CurrencyFlagIcon currency={sendCurrencyData} /> : null}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-primary">
+                          {fulfillmentResolution.ok &&
+                          fulfillmentResolution.fulfillment === "cash_hand" &&
+                          logisticsFee > 0
+                            ? t("send.transferLineWithLogistics", {
+                                amount: formatCurrency(totalToPay, sendCurrency),
+                              })
+                            : t("send.transferLine", { amount: formatCurrency(totalToPay, sendCurrency) })}
+                        </h3>
+                        {!(
+                          fulfillmentResolution.ok &&
+                          fulfillmentResolution.fulfillment === "cash_hand" &&
+                          logisticsFee > 0
+                        ) &&
+                          fee > 0 && (
                             <p className="text-xs text-gray-600">
-                              {fee > 0
-                                ? t("send.sendAmountPlusFee", {
-                                    send: formatCurrency(Number.parseFloat(sendAmount) || 0, sendCurrency),
-                                    fee: formatCurrency(fee, sendCurrency),
-                                  })
-                                : t("send.sendMoneyCompleteHint")}
+                              {t("send.sendAmountPlusFee", {
+                                send: formatCurrency(Number.parseFloat(sendAmount) || 0, sendCurrency),
+                                fee: formatCurrency(fee, sendCurrency),
+                              })}
                             </p>
                           )}
-                        </div>
                       </div>
+                    </div>
 
                     {/* Payment method (Office-configured) */}
                       {(() => {

@@ -295,7 +295,6 @@
     "transferLine": "Перевод {{amount}}",
     "transferLineWithLogistics": "Перевод {{amount}} (+ логистический сбор)",
     "sendAmountPlusFee": "К отправке: {{send}} + комиссия за обмен: {{fee}}",
-    "sendMoneyCompleteHint": "Отправьте деньги, чтобы завершить перевод",
     "noPaymentMethods": "Нет способов оплаты для {{currency}}",
     "contactSupport": "Обратитесь в поддержку",
     "importantInstructions": "Важно",
