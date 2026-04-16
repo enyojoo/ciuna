@@ -1204,7 +1204,7 @@ export default function HubCheckoutPage() {
                         onClick={() => void handleContinue()}
                         className="min-h-12 flex-1 rounded-xl bg-primary text-base font-semibold hover:bg-primary/90"
                       >
-                        {t("hub.checkout.continueToPayment")}
+                        {t("hub.checkout.continue")}
                       </Button>
                     </div>
                   </CardContent>
