@@ -51,6 +51,7 @@ import { roundMoney, formatCurrency, getCurrencyNarrowSymbol } from "@/utils/cur
 import { cn } from "@/lib/utils"
 import { accountFieldLabel } from "@/lib/account-field-i18n"
 import { formatFieldValue, getAccountTypeConfigFromCurrency } from "@/lib/currency-account-types"
+import { hubPayMatchesProductCurrency, hubSyntheticSameCurrencyRateRow } from "@/lib/hub-same-currency-rate"
 
 type PaymentMethod = {
   id: string
@@ -258,6 +259,9 @@ export default function HubCheckoutPage() {
 
   const rateRow = useMemo(() => {
     if (!sendCurrency || !receiveCurrency) return null
+    if (hubPayMatchesProductCurrency(sendCurrency, receiveCurrency)) {
+      return hubSyntheticSameCurrencyRateRow(sendCurrency, receiveCurrency)
+    }
     return (
       (exchangeRates as ExchangeRate[]).find(
         (row) => row.from_currency === sendCurrency && row.to_currency === receiveCurrency,
@@ -755,39 +759,84 @@ export default function HubCheckoutPage() {
 
     if (method.type === "stablecoin") {
       return (
-        <div className="grid gap-4 rounded-xl border border-gray-200 bg-white p-4 md:grid-cols-[1fr_auto]">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Coins className="h-4 w-4 text-gray-600" />
-              <span className="font-medium text-gray-900">{method.name}</span>
+        <div className="bg-white rounded-lg p-3 border border-gray-100">
+          <div className="flex items-center gap-2 mb-3">
+            <Coins className="h-4 w-4 text-gray-600" />
+            <span className="font-medium text-sm">{method.name}</span>
+          </div>
+          {method.crypto_asset ? (
+            <div className="space-y-1 mb-2">
+              <span className="text-gray-600 text-xs">{t("send.cryptoAsset")}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-sm">{method.crypto_asset}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleCopy(String(method.crypto_asset || ""), "cryptoAsset")}
+                  className="h-5 w-5 p-0"
+                >
+                  {copiedStates.cryptoAsset ? (
+                    <Check className="h-3 w-3 text-green-600" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                </Button>
+              </div>
             </div>
-            <PaymentDetailRow
-              label={t("hub.checkout.asset", { defaultValue: "Asset" })}
-              value={method.crypto_asset}
-              onCopy={() => handleCopy(String(method.crypto_asset || ""), "crypto_asset")}
-              copied={!!copiedStates.crypto_asset}
-            />
-            <PaymentDetailRow
-              label={t("hub.checkout.network", { defaultValue: "Network" })}
-              value={method.crypto_network}
-              onCopy={() => handleCopy(String(method.crypto_network || ""), "crypto_network")}
-              copied={!!copiedStates.crypto_network}
-            />
-            <PaymentDetailRow
-              label={t("hub.checkout.walletAddress", { defaultValue: "Wallet address" })}
-              value={method.wallet_address}
-              onCopy={() => handleCopy(String(method.wallet_address || ""), "wallet_address")}
-              copied={!!copiedStates.wallet_address}
-              mono
-            />
-          </div>
-          <div className="flex items-center justify-center rounded-xl border bg-gray-50 p-3">
-            {method.wallet_address ? (
-              <QRCodeSVG value={method.wallet_address} size={144} />
-            ) : (
-              <QrCode className="h-16 w-16 text-gray-300" />
-            )}
-          </div>
+          ) : null}
+          {method.crypto_network ? (
+            <div className="space-y-1 mb-2">
+              <span className="text-gray-600 text-xs">{t("send.cryptoNetwork")}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-sm">{method.crypto_network}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleCopy(String(method.crypto_network || ""), "cryptoNetwork")}
+                  className="h-5 w-5 p-0"
+                >
+                  {copiedStates.cryptoNetwork ? (
+                    <Check className="h-3 w-3 text-green-600" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          ) : null}
+          {method.wallet_address?.trim() ? (
+            <>
+              <div className="space-y-1 mb-3">
+                <span className="text-gray-600 text-xs">{t("send.walletAddress")}</span>
+                <div className="flex items-start gap-2">
+                  <span className="font-medium font-mono text-xs break-all flex-1">
+                    {method.wallet_address.trim()}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleCopy(method.wallet_address.trim(), "walletAddress")}
+                    className="h-5 w-5 p-0 shrink-0"
+                  >
+                    {copiedStates.walletAddress ? (
+                      <Check className="h-3 w-3 text-green-600" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+              <div className="w-48 h-48 bg-white rounded-lg mx-auto mb-3 flex items-center justify-center border border-gray-100 p-2">
+                <QRCodeSVG value={method.wallet_address.trim()} size={176} level="M" includeMargin />
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-amber-700">{t("send.stablecoinMissingAddress")}</p>
+          )}
+          {method.instructions ? <p className="text-xs text-gray-500">{method.instructions}</p> : null}
         </div>
       )
     }
@@ -1182,8 +1231,8 @@ export default function HubCheckoutPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      {renderPaymentMethodCard()}
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                      <div className="space-y-3">{renderPaymentMethodCard()}</div>
 
                       <div className="space-y-3">
                         <h4 className="font-medium text-gray-900 text-xs uppercase tracking-wide">

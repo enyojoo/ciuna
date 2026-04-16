@@ -2,6 +2,7 @@ import { createServerClient } from "@/lib/supabase"
 import { generateTransactionId } from "@/lib/transaction-id"
 import { roundMoney } from "@/utils/currency"
 import { computeHubFeeFromReceive } from "@/lib/hub-fee"
+import { hubPayMatchesProductCurrency, hubSyntheticSameCurrencyRateRow } from "@/lib/hub-same-currency-rate"
 import type { HubTransactionSnapshot } from "@/lib/hub-types"
 import type { ExchangeRate } from "@/types"
 
@@ -100,25 +101,33 @@ export async function createHubCheckoutTransaction(
       ? String(product.fixed_currency || receiveCurrency)
       : String(product.default_input_currency || receiveCurrency)
 
-  const { data: rateRow, error: rErr } = await server
-    .from("exchange_rates")
-    .select("*")
-    .eq("from_currency", sendCurrency)
-    .eq("to_currency", receiveCurrencyResolved)
-    .eq("status", "active")
-    .single()
+  const payInProductCurrency = hubPayMatchesProductCurrency(sendCurrency, receiveCurrencyResolved)
 
-  if (rErr || !rateRow) {
-    throw new Error("Exchange rate not available for selected currencies")
+  let rateRow: ExchangeRate
+  if (payInProductCurrency) {
+    rateRow = hubSyntheticSameCurrencyRateRow(sendCurrency, receiveCurrencyResolved)
+  } else {
+    const { data: row, error: rErr } = await server
+      .from("exchange_rates")
+      .select("*")
+      .eq("from_currency", sendCurrency)
+      .eq("to_currency", receiveCurrencyResolved)
+      .eq("status", "active")
+      .single()
+
+    if (rErr || !row) {
+      throw new Error("Exchange rate not available for selected currencies")
+    }
+    rateRow = row as ExchangeRate
   }
 
   const rate = Number(rateRow.rate) || 0
   if (rate <= 0) throw new Error("Invalid exchange rate")
 
   const requiredSend = fundedAmount / rate
-  const corridor = computeCorridorFee(requiredSend, rateRow as ExchangeRate)
+  const corridor = computeCorridorFee(requiredSend, rateRow)
   const feePercent = product.fee_percent != null ? Number(product.fee_percent) : 0
-  const hubFee = computeHubFeeFromReceive(fundedAmount, rateRow as ExchangeRate, feePercent)
+  const hubFee = computeHubFeeFromReceive(fundedAmount, rateRow, feePercent)
   const sendAmount = roundMoney(requiredSend)
   const feeAmount = roundMoney(corridor.fee)
   const hubFeeAmount = roundMoney(hubFee)
