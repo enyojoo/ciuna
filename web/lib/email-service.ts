@@ -206,7 +206,7 @@ export class EmailService {
         lastName: 'User',
         email: to,
         baseCurrency: 'USD',
-        dashboardUrl: `${appUrl}/dashboard`
+        dashboardUrl: `${appUrl}/hub`
       }
     })
   }

@@ -31,6 +31,15 @@
   },
   "hub": {
     "hub": "Хаб",
+    "heroTitle": "Одно приложение — всё, что нужно",
+    "heroBody": "Отправляйте деньги домой, покупайте нужное, бронируйте услуги и решайте быт за рубежом — в одном месте.",
+    "referEarn": "Пригласить и заработать",
+    "referEarnShort": "Бонус",
+    "chatSupport": "Поддержка",
+    "servicesTitle": "Сервисы",
+    "serviceUnavailable": "Сервис временно недоступен.",
+    "unavailableTitle": "Недоступно",
+    "openingExternal": "Открываем ссылку…",
     "catalogSubtitle": "Маркетплейс, где вы можете заказать нужные вам услуги и товары, оплачивая в местной валюте.",
     "productsSectionTitle": "Продукты",
     "categoryFilterAria": "Фильтр по категории",
@@ -134,6 +143,19 @@
     "sendBadge": "ПЕРЕВОД",
     "amountPaid": "Оплачено",
     "orderAmount": "Сумма заказа"
+  },
+  "orders": {
+    "title": "Заказы",
+    "totalVolume": "Общий объём",
+    "totalTransactions": "Всего операций",
+    "searchPlaceholder": "Поиск заказов…",
+    "chipAll": "Все",
+    "chipSend": "Переводы",
+    "chipHub": "Хаб",
+    "chipReferral": "Реферал",
+    "chipCompleted": "Завершено",
+    "groupToday": "Сегодня",
+    "groupYesterday": "Вчера"
   },
   "txDetail": {
     "errorNotFound": "Операция не найдена или доступ запрещён",

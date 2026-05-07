@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
 import { requireAdmin } from "@/lib/admin-auth-utils"
+import { assertHubProductCategoryAllowed } from "@/lib/hub-product-category-validation"
 import { sortHubProductRows } from "@/lib/hub-products-sort"
 
 export async function GET(request: NextRequest) {
@@ -42,6 +43,11 @@ export async function POST(request: NextRequest) {
       sla_text: body.sla_text ?? null,
       image_url: body.image_url != null ? String(body.image_url) : null,
       updated_at: new Date().toISOString(),
+    }
+
+    const catCheck = await assertHubProductCategoryAllowed(server, row.category)
+    if (!catCheck.ok) {
+      return NextResponse.json({ error: catCheck.message }, { status: 400 })
     }
 
     const { data, error } = await server.from("hub_products").insert(row).select().single()

@@ -6,12 +6,16 @@ import { OfficeAuthLoadingSkeleton } from "@/components/office-auth-loading-skel
 
 const PROTECTED_PATHS = [
   "/dashboard",
+  "/hub",
+  "/assistant",
+  "/experts",
   "/rates",
   "/kyc",
   "/compliance",
   "/users",
   "/settings",
   "/transactions",
+  "/referrals",
 ]
 
 function isProtectedPath(pathname: string | null): boolean {

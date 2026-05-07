@@ -647,14 +647,14 @@ function TransactionStatusPage() {
   if (hasAttemptedLoad && (error || !transaction)) {
     return (
       <div className="min-w-0 space-y-0">
-        <AppPageHeader title={t("txDetail.transaction")} backHref="/transactions" />
+        <AppPageHeader title={t("txDetail.transaction")} backHref="/orders" />
         <div className="min-w-0 px-4 py-5 sm:p-6">
           <div className="mx-auto max-w-6xl">
             <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
               <p className="mb-4 text-red-700">{error || t("txDetail.notFound")}</p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button
-                  onClick={() => router.push("/dashboard")}
+                  onClick={() => router.push("/hub")}
                   className="bg-primary hover:bg-primary/90"
                 >
                   {t("txDetail.backToDashboard")}
@@ -675,7 +675,7 @@ function TransactionStatusPage() {
   if (authLoading || (!hasAttemptedLoad && !transaction)) {
     return (
       <div className="min-w-0 space-y-0">
-        <AppPageHeader title={t("txDetail.transaction")} backHref="/transactions" />
+        <AppPageHeader title={t("txDetail.transaction")} backHref="/orders" />
         <div className="min-w-0 px-4 py-5 sm:p-6">
           <TransactionDetailsSkeleton />
         </div>
@@ -701,7 +701,7 @@ function TransactionStatusPage() {
               ? t("hub.checkout.orderSummary", { defaultValue: "Order summary" })
               : t("txDetail.transfer")
         }
-        backHref={isReferralPayout ? "/more/referrals" : "/transactions"}
+        backHref={isReferralPayout ? "/more/referrals" : "/orders"}
       />
     <div className="min-w-0 px-4 py-5 sm:p-6">
         <div className="mx-auto max-w-6xl">
@@ -872,7 +872,7 @@ function TransactionStatusPage() {
                       </Button>
                     ) : (
                       <Button
-                        onClick={() => router.push("/dashboard")}
+                        onClick={() => router.push("/hub")}
                         className="flex-1 bg-primary hover:bg-primary/90"
                       >
                         {t("txDetail.dashboard")}

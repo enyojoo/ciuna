@@ -35,7 +35,7 @@ export default function UserSupportPage() {
 
   return (
     <div className="space-y-0">
-        <AppPageHeader title={t("support.title")} backHref="/dashboard" />
+        <AppPageHeader title={t("support.title")} backHref="/hub" />
         <div className="px-5 sm:px-6 pt-3 sm:pt-4 pb-5 sm:pb-6 space-y-4 sm:space-y-5">
           {/* Contact Options */}
           <Card className="bg-white gap-2 py-5">

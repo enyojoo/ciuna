@@ -57,8 +57,8 @@ export function middleware(request: NextRequest) {
     response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
   }
 
-  // Set cache headers for authenticated app pages (dashboard, send, transactions, etc.)
-  const appPaths = ['/dashboard', '/send', '/transactions', '/recipients', '/more', '/support', '/hub']
+  // Set cache headers for authenticated app pages (hub, send, orders, assistant, etc.)
+  const appPaths = ['/hub', '/send', '/orders', '/assistant', '/recipients', '/more', '/support']
   if (appPaths.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
     response.headers.set('Cache-Control', 'private, no-cache, must-revalidate')
   }
@@ -71,12 +71,13 @@ export const config = {
     '/',
     '/api/:path*',
     '/auth/:path*',
-    '/dashboard',
-    '/dashboard/:path*',
     '/send/:path*',
     '/hub',
     '/hub/:path*',
-    '/transactions/:path*',
+    '/orders',
+    '/orders/:path*',
+    '/assistant',
+    '/assistant/:path*',
     '/recipients/:path*',
     '/more/:path*',
     '/support/:path*',

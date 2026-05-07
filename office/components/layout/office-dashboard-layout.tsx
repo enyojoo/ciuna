@@ -4,7 +4,7 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, CreditCard, Users, TrendingUp, Settings, LogOut, Menu, X, ShieldCheck, Gift, Store } from "lucide-react"
+import { LayoutDashboard, CreditCard, Users, TrendingUp, Settings, LogOut, Menu, X, ShieldCheck, Gift, Store, HandHelping, UserCircle } from "lucide-react"
 import { BrandLogo } from "@ciuna/shared"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
@@ -17,6 +17,8 @@ interface OfficeDashboardLayoutProps {
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Hub", href: "/hub", icon: Store },
+  { name: "Assistant", href: "/assistant", icon: HandHelping },
+  { name: "Experts", href: "/experts", icon: UserCircle },
   { name: "Transactions", href: "/transactions", icon: CreditCard },
   { name: "Users", href: "/users", icon: Users },
   { name: "Referrals", href: "/referrals", icon: Gift },
@@ -67,7 +69,14 @@ export function OfficeDashboardLayout({ children }: OfficeDashboardLayoutProps) 
 
           <nav className="flex-1 px-3 py-6 space-y-1">
             {navigation.map((item) => {
-              const isActive = pathname === item.href
+              const isActive =
+                item.href === "/hub"
+                  ? pathname === "/hub" || Boolean(pathname?.startsWith("/hub/"))
+                  : item.href === "/assistant"
+                    ? pathname === "/assistant" || Boolean(pathname?.startsWith("/assistant/"))
+                    : item.href === "/experts"
+                      ? pathname === "/experts" || Boolean(pathname?.startsWith("/experts/"))
+                      : pathname === item.href
               return (
                 <Link
                   key={item.name}

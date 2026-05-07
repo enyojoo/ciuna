@@ -67,6 +67,12 @@ const nextConfig = {
     }
     return config
   },
+  async rewrites() {
+    return [
+      { source: "/transactions", destination: "/orders" },
+      { source: "/transactions/:path*", destination: "/orders/:path*" },
+    ]
+  },
 }
 
 export default nextConfig

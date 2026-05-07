@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
 import { requireAdmin } from "@/lib/admin-auth-utils"
+import { assertHubProductCategoryAllowed } from "@/lib/hub-product-category-validation"
 
 function getErrorMessage(e: unknown, fallback: string): string {
   if (e instanceof Error && e.message) return e.message
@@ -49,6 +50,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       sla_text: body.sla_text ?? null,
       image_url: body.image_url != null ? String(body.image_url) : null,
       updated_at: new Date().toISOString(),
+    }
+
+    const catCheck = await assertHubProductCategoryAllowed(server, row.category)
+    if (!catCheck.ok) {
+      return NextResponse.json({ error: catCheck.message }, { status: 400 })
     }
 
     // Office "new product" should POST, but tolerate accidental PATCH /products/new.

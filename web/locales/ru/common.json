@@ -1,11 +1,12 @@
 {
   "nav": {
-    "home": "Главная",
+    "home": "Hub",
     "sendMoney": "Отправить",
     "send": "Отправить",
     "hub": "Хаб",
     "recipients": "Получатели",
     "transactions": "Операции",
+    "orders": "Заказы",
     "more": "Ещё",
     "logout": "Выйти"
   },

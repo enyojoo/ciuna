@@ -665,7 +665,7 @@ export default function UserRecipientsPage() {
 
   return (
     <div className="space-y-0">
-        <AppPageHeader title={t("recipients.title")} backHref="/dashboard" />
+        <AppPageHeader title={t("recipients.title")} backHref="/hub" />
 
         {/* Add Recipient Button */}
         <div className="p-5 sm:p-6 pb-3 sm:pb-4">

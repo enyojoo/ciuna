@@ -88,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
-  /** After email verification, Supabase may redirect to /dashboard with a session but skip /auth/login — run claim once if ref was stored. */
+  /** After email verification, Supabase may redirect to /hub with a session but skip /auth/login — run claim once if ref was stored. */
   const referralClaimBootstrappedForUserId = useRef<string | null>(null)
   const [sessionTimeout, setSessionTimeout] = useState(30) // Default 30 minutes
   const [lastActivity, setLastActivity] = useState<number>(Date.now())

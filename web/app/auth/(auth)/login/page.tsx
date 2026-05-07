@@ -45,7 +45,7 @@ function LoginPageContent() {
       if (isAdmin) {
         router.push("/admin/dashboard")
       } else {
-        router.push("/dashboard")
+        router.push("/hub")
       }
     }
   }, [user, userProfile, isAdmin, loading, router])
@@ -96,7 +96,7 @@ function LoginPageContent() {
         router.push(`/send?${params.toString()}`)
       } else {
         // Regular users always go to user dashboard
-        router.push("/dashboard")
+        router.push("/hub")
       }
     } catch (err: any) {
       setError(err.message || t("auth.loginError"))

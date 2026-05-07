@@ -13,7 +13,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: SEO_SITE_NAME,
     short_name: SEO_SITE_NAME,
     description: SEO_MANIFEST_DESCRIPTION,
-    start_url: "/dashboard?source=pwa",
+    start_url: "/hub?source=pwa",
     scope: "/",
     display: "standalone",
     orientation: "portrait-primary",

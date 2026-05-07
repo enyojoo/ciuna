@@ -40,7 +40,7 @@ export default function AuthCallbackPage() {
       if (afterInit) {
         await claimReferralWithRetryForOAuthCallback()
         const isAdmin = afterInit.user?.user_metadata?.isAdmin ?? false
-        router.replace(isAdmin ? "/admin/dashboard" : "/dashboard")
+        router.replace(isAdmin ? "/admin/dashboard" : "/hub")
         return
       }
 
@@ -55,7 +55,7 @@ export default function AuthCallbackPage() {
           }
           await claimReferralWithRetryForOAuthCallback()
           const isAdmin = data?.user?.user_metadata?.isAdmin ?? false
-          router.replace(isAdmin ? "/admin/dashboard" : "/dashboard")
+          router.replace(isAdmin ? "/admin/dashboard" : "/hub")
         } catch (err: any) {
           setError(err?.message || t("auth.callbackFailedSignIn"))
           setTimeout(() => router.replace("/auth/login"), 2000)

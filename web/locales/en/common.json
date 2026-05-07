@@ -1,11 +1,12 @@
 {
   "nav": {
-    "home": "Home",
+    "home": "Hub",
     "sendMoney": "Send Money",
     "send": "Send",
     "hub": "Hub",
     "recipients": "Recipients",
     "transactions": "Transactions",
+    "orders": "Orders",
     "more": "More",
     "logout": "Logout"
   },

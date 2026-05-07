@@ -31,6 +31,15 @@
   },
   "hub": {
     "hub": "Centre",
+    "heroTitle": "Une app, tout ce dont vous avez besoin",
+    "heroBody": "Envoyez de l’argent au pays, achetez l’essentiel, réservez des services et gérez votre vie à l’étranger — au même endroit.",
+    "referEarn": "Parrainer et gagner",
+    "referEarnShort": "Gagner",
+    "chatSupport": "Support",
+    "servicesTitle": "Services",
+    "serviceUnavailable": "Ce service n’est pas disponible.",
+    "unavailableTitle": "Indisponible",
+    "openingExternal": "Ouverture du lien…",
     "catalogSubtitle": "Une marketplace pour commander les services et produits dont vous avez besoin en payant dans votre devise locale.",
     "productsSectionTitle": "Produits",
     "categoryFilterAria": "Filtrer par catégorie",
@@ -134,6 +143,19 @@
     "sendBadge": "ENVOI",
     "amountPaid": "Montant payé",
     "orderAmount": "Montant de la commande"
+  },
+  "orders": {
+    "title": "Commandes",
+    "totalVolume": "Volume total",
+    "totalTransactions": "Nombre d’opérations",
+    "searchPlaceholder": "Rechercher des commandes…",
+    "chipAll": "Tout",
+    "chipSend": "Envois",
+    "chipHub": "Centre",
+    "chipReferral": "Parrainage",
+    "chipCompleted": "Terminé",
+    "groupToday": "Aujourd’hui",
+    "groupYesterday": "Hier"
   },
   "txDetail": {
     "errorNotFound": "Transaction introuvable ou accès refusé",

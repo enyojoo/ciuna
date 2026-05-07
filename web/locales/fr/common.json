@@ -1,11 +1,12 @@
 {
   "nav": {
-    "home": "Accueil",
+    "home": "Hub",
     "sendMoney": "Envoyer",
     "send": "Envoyer",
     "hub": "Centre",
     "recipients": "Bénéficiaires",
     "transactions": "Opérations",
+    "orders": "Commandes",
     "more": "Plus",
     "logout": "Déconnexion"
   },

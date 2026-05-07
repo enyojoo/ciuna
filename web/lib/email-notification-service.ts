@@ -279,7 +279,7 @@ export class EmailNotificationService {
         lastName: '',
         email: userEmail,
         baseCurrency: 'USD',
-        dashboardUrl: `${appUrl}/dashboard`,
+        dashboardUrl: `${appUrl}/hub`,
         locale,
       })
 
@@ -481,7 +481,7 @@ export class EmailNotificationService {
 
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.ciuna.com"
       const dashboardUrl =
-        status === "completed" ? `${appUrl}/transactions` : `${appUrl}/more/referrals`
+        status === "completed" ? `${appUrl}/orders` : `${appUrl}/more/referrals`
 
       const payoutTxnId =
         typeof pay.payout_transaction_id === "string" && pay.payout_transaction_id.trim()

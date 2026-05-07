@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { OfficeDashboardLayout } from "@/components/layout/office-dashboard-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -14,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Plus, Pencil, Loader2, ImagePlus } from "lucide-react"
 import { officeFetch } from "@/lib/api-client"
+import { categoryMatchesSlug } from "@/lib/hub-slug"
 import { useOfficeData } from "@/hooks/use-office-data"
 import { supabase } from "@/lib/supabase"
 
@@ -83,6 +85,9 @@ function parseSlaTextToTimer(sla: string | null | undefined): { hours: number; m
 }
 
 export default function OfficeHubProductsPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const serviceLineSlug = (searchParams.get("line") || "").trim().toLowerCase()
   const { data: officeData } = useOfficeData()
   const [products, setProducts] = useState<HubProduct[]>(() => readHubProductsCache())
   const [loading, setLoading] = useState(false)
@@ -111,13 +116,39 @@ export default function OfficeHubProductsPage() {
     is_featured: false,
   })
 
-  const DEFAULT_CATEGORIES = ["Connectivity", "Card Payment", "AI Tools", "Entertainment"]
+  const DEFAULT_CATEGORIES = ["Connectivity", "Card Payment", "AI Tools", "Entertainment", "Experts", "Other"]
   const CATEGORIES = useMemo(() => {
     const fromProducts = products
       .map((p) => String(p.category || "").trim())
       .filter(Boolean)
     return Array.from(new Set([...DEFAULT_CATEGORIES, ...fromProducts]))
   }, [products])
+
+  const displayedProducts = useMemo(() => {
+    if (!serviceLineSlug) return products
+    return products.filter((p) => categoryMatchesSlug(p.category, serviceLineSlug))
+  }, [products, serviceLineSlug])
+
+  const [serviceLineOptions, setServiceLineOptions] = useState<{ slug: string; title: string; grid_kind?: string }[]>(
+    [],
+  )
+
+  useEffect(() => {
+    let cancelled = false
+    void officeFetch("/api/admin/hub/service-lines")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("lines"))))
+      .then((j: { serviceLines?: { slug: string; title: string; grid_kind?: string }[] }) => {
+        const rows = j.serviceLines || []
+        const hubCats = rows.filter((x) => x.grid_kind === "hub_category")
+        if (!cancelled) setServiceLineOptions(hubCats.length ? hubCats : rows)
+      })
+      .catch(() => {
+        if (!cancelled) setServiceLineOptions([])
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
   const filteredCategories = useMemo(() => {
     const q = form.category.trim().toLowerCase()
     if (!q) return CATEGORIES
@@ -273,6 +304,30 @@ export default function OfficeHubProductsPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Hub products</h1>
             <p className="text-gray-600">Create and publish marketplace services for the Ciuna app.</p>
+            <div className="mt-4 flex flex-wrap items-end gap-3">
+              <div className="space-y-1.5">
+                <Label>Service line</Label>
+                <Select
+                  value={serviceLineSlug || "__all__"}
+                  onValueChange={(v) => {
+                    if (v === "__all__") router.push("/hub")
+                    else router.push(`/hub?line=${encodeURIComponent(v)}`)
+                  }}
+                >
+                  <SelectTrigger className="w-[min(100vw-2rem,280px)]">
+                    <SelectValue placeholder="All lines" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">All lines</SelectItem>
+                    {serviceLineOptions.map((l) => (
+                      <SelectItem key={l.slug} value={l.slug}>
+                        {l.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
@@ -581,6 +636,11 @@ export default function OfficeHubProductsPage() {
               <p className="text-red-600">{error}</p>
             ) : products.length === 0 ? (
               <p className="text-gray-500">No products yet. Create one to get started.</p>
+            ) : displayedProducts.length === 0 ? (
+              <p className="text-gray-500">
+                No products for this service line (slug <span className="font-mono">{serviceLineSlug}</span>). Clear
+                the filter or pick another line.
+              </p>
             ) : (
               <Table>
                 <TableHeader>
@@ -597,7 +657,7 @@ export default function OfficeHubProductsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {products.map((p) => (
+                  {displayedProducts.map((p) => (
                     <TableRow key={p.id}>
                       <TableCell>
                         <div className="h-10 w-10 rounded overflow-hidden bg-gray-100">

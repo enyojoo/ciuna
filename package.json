@@ -5,21 +5,17 @@
   "packageManager": "npm@10.9.3",
   "workspaces": [
     "packages/*",
-    "website",
     "web",
     "office"
   ],
   "scripts": {
     "dev": "turbo run dev --filter=web",
-    "dev:website": "turbo run dev --filter=website",
     "dev:web": "turbo run dev --filter=web",
-    "dev:all": "turbo run dev --filter=website --filter=web",
+    "dev:all": "turbo run dev --filter=web --filter=office",
     "build": "turbo run build",
-    "build:website": "turbo run build --filter=website",
     "build:web": "turbo run build --filter=web",
     "build:shared": "turbo run build --filter=@ciuna/shared",
     "lint": "turbo run lint",
-    "start:website": "turbo run start --filter=website",
     "start:web": "turbo run start --filter=web",
     "dev:office": "turbo run dev --filter=office",
     "build:office": "turbo run build --filter=office",

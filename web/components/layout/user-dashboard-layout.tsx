@@ -4,7 +4,7 @@ import type React from "react"
 import { useMemo, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, LayoutDashboard, Send, History, LogOut, X, Store } from "lucide-react"
+import { Home, LayoutDashboard, Send, History, LogOut, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { BrandLogo } from "@/components/brand/brand-logo"
 import { Button } from "@/components/ui/button"
@@ -24,10 +24,9 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
 
   const baseNavigation = useMemo(
     () => [
-      { name: t("nav.home"), href: "/dashboard", icon: Home },
+      { name: t("nav.home"), href: "/hub", icon: Home },
       { name: t("nav.sendMoney"), href: "/send", icon: Send },
-      { name: t("nav.hub"), href: "/hub", icon: Store },
-      { name: t("nav.transactions"), href: "/transactions", icon: History },
+      { name: t("nav.orders"), href: "/orders", icon: History },
       { name: t("nav.more"), href: "/more", icon: LayoutDashboard },
     ],
     [t],
@@ -35,9 +34,9 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
 
   const bottomNavItems = useMemo(
     () => [
-      { name: t("nav.home"), href: "/dashboard", icon: Home },
+      { name: t("nav.home"), href: "/hub", icon: Home },
       { name: t("nav.send"), href: "/send", icon: Send },
-      { name: t("nav.hub"), href: "/hub", icon: Store },
+      { name: t("nav.orders"), href: "/orders", icon: History },
       { name: t("nav.more"), href: "/more", icon: LayoutDashboard },
     ],
     [t],
@@ -79,7 +78,9 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
                   ? pathname === "/send" || Boolean(pathname?.startsWith("/send/"))
                   : item.href === "/hub"
                     ? pathname === "/hub" || Boolean(pathname?.startsWith("/hub/"))
-                    : pathname === item.href
+                    : item.href === "/orders"
+                      ? pathname === "/orders" || Boolean(pathname?.startsWith("/orders/"))
+                      : pathname === item.href
               return (
                 <Link
                   key={item.href}
@@ -132,9 +133,11 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
                   ? pathname === "/send" || Boolean(pathname?.startsWith("/send/"))
                   : item.href === "/hub"
                     ? pathname === "/hub" || Boolean(pathname?.startsWith("/hub/"))
-                  : item.href === "/more"
-                    ? pathname === "/more" || Boolean(pathname?.startsWith("/more/"))
-                    : pathname === item.href
+                    : item.href === "/orders"
+                      ? pathname === "/orders" || Boolean(pathname?.startsWith("/orders/"))
+                      : item.href === "/more"
+                        ? pathname === "/more" || Boolean(pathname?.startsWith("/more/"))
+                        : pathname === item.href
 
               return (
                 <Link

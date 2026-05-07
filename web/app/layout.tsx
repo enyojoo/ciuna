@@ -9,6 +9,7 @@ import { PwaStandaloneRoot } from "@/components/pwa/pwa-standalone-root"
 import { InstallAppBanner } from "@/components/pwa/install-app-banner"
 import { PwaInstallProvider } from "@/hooks/use-pwa-install-prompt"
 import { I18nProvider } from "@/components/i18n/i18n-provider"
+import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
 import { PWA_APP_ICON_URL, SITE_FAVICON_URL } from "@/lib/pwa-brand"
 import {
@@ -96,10 +97,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f97316" },
-    { media: "(prefers-color-scheme: dark)", color: "#1a1a1a" },
-  ],
+  themeColor: "#f97316",
 }
 
 export default function RootLayout({
@@ -128,10 +126,12 @@ export default function RootLayout({
           <PwaStandaloneRoot />
           <PostHogProvider>
             <I18nProvider>
-              <InstallAppBanner />
-              <AuthProvider>
-                <ProtectedRouteWrapper>{children}</ProtectedRouteWrapper>
-              </AuthProvider>
+              <ThemeProvider>
+                <InstallAppBanner />
+                <AuthProvider>
+                  <ProtectedRouteWrapper>{children}</ProtectedRouteWrapper>
+                </AuthProvider>
+              </ThemeProvider>
             </I18nProvider>
           </PostHogProvider>
         </PwaInstallProvider>

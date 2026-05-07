@@ -1,11 +1,12 @@
 {
   "nav": {
-    "home": "Inicio",
+    "home": "Hub",
     "sendMoney": "Enviar dinero",
     "send": "Enviar",
     "hub": "Centro",
     "recipients": "Destinatarios",
     "transactions": "Transacciones",
+    "orders": "Pedidos",
     "more": "Más",
     "logout": "Cerrar sesión"
   },

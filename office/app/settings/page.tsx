@@ -26,7 +26,7 @@ import {
   Gift,
   Info,
   Coins,
-  Smartphone,
+  Store,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -35,6 +35,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { supabase } from "@/lib/supabase"
+import { HubServiceLinesManager } from "@/components/settings/hub-service-lines-manager"
 
 const REFERRAL_HELP_POLICY_CURRENCY =
   "Thresholds and fixed rewards are interpreted in this currency (FX uses your exchange rates)."
@@ -735,7 +736,7 @@ export default function AdminSettingsPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
             <TabsTrigger value="platform" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Platform
@@ -751,6 +752,10 @@ export default function AdminSettingsPage() {
             <TabsTrigger value="referrals" className="flex items-center gap-2">
               <Gift className="h-4 w-4" />
               Referrals
+            </TabsTrigger>
+            <TabsTrigger value="hubServices" className="flex items-center gap-2">
+              <Store className="h-4 w-4" />
+              Hub services
             </TabsTrigger>
           </TabsList>
 
@@ -2506,6 +2511,10 @@ export default function AdminSettingsPage() {
               </CardContent>
               </TooltipProvider>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="hubServices">
+            <HubServiceLinesManager />
           </TabsContent>
         </Tabs>
       </div>

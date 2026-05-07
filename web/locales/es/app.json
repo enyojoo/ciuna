@@ -31,6 +31,15 @@
   },
   "hub": {
     "hub": "Centro",
+    "heroTitle": "Una app, todo lo que necesitas",
+    "heroBody": "Envía dinero a casa, compra esenciales locales, reserva servicios y gestiona tu vida en el extranjero, desde un solo lugar.",
+    "referEarn": "Referir y ganar",
+    "referEarnShort": "Ganar",
+    "chatSupport": "Soporte",
+    "servicesTitle": "Servicios",
+    "serviceUnavailable": "Este servicio no está disponible.",
+    "unavailableTitle": "No disponible",
+    "openingExternal": "Abriendo enlace…",
     "catalogSubtitle": "Un mercado para pedir los servicios y productos que necesitas pagando con tu moneda local.",
     "productsSectionTitle": "Productos",
     "categoryFilterAria": "Filtrar por categoría",
@@ -134,6 +143,19 @@
     "sendBadge": "ENVÍO",
     "amountPaid": "Monto pagado",
     "orderAmount": "Monto del pedido"
+  },
+  "orders": {
+    "title": "Pedidos",
+    "totalVolume": "Volumen total",
+    "totalTransactions": "Transacciones totales",
+    "searchPlaceholder": "Buscar pedidos…",
+    "chipAll": "Todos",
+    "chipSend": "Envíos",
+    "chipHub": "Centro",
+    "chipReferral": "Referidos",
+    "chipCompleted": "Completados",
+    "groupToday": "Hoy",
+    "groupYesterday": "Ayer"
   },
   "txDetail": {
     "errorNotFound": "Transacción no encontrada o acceso denegado",
