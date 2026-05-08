@@ -3,6 +3,7 @@ import { createServerClient } from "@/lib/supabase"
 import { requireAuth, withErrorHandling, createErrorResponse } from "@/lib/auth-utils"
 import { sortHubProductRows } from "@/lib/hub-products-sort"
 import { enrichHubProductsWithVendors } from "@/lib/hub-product-vendors"
+import { hubProductBelongsToServiceLine } from "@/lib/hub-slug"
 import type { HubProductRow } from "@/lib/hub-types"
 
 export const GET = withErrorHandling(async (request: NextRequest) => {
@@ -20,8 +21,9 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   }
 
   let q = server.from("hub_products").select("*").eq("status", "live").order("updated_at", { ascending: false })
+  /** Legacy rows may have null `service_line_slug`; match client `hubProductBelongsToServiceLine` (explicit line or category). */
   if (serviceLine === "food" || serviceLine === "mart") {
-    q = q.eq("service_line_slug", serviceLine)
+    q = q.or(`service_line_slug.eq.${serviceLine},service_line_slug.is.null`)
   }
 
   const { data, error } = await q
@@ -31,7 +33,12 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     return createErrorResponse("Failed to load products", 500)
   }
 
-  const enriched = await enrichHubProductsWithVendors(server, (data || []) as HubProductRow[])
+  let rows = (data || []) as HubProductRow[]
+  if (serviceLine === "food" || serviceLine === "mart") {
+    rows = rows.filter((p) => hubProductBelongsToServiceLine(p, serviceLine))
+  }
+
+  const enriched = await enrichHubProductsWithVendors(server, rows)
 
   const res = NextResponse.json({ products: sortHubProductRows(enriched) })
   if (publicMarketplaceSlice) {

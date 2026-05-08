@@ -79,6 +79,7 @@
       "orderSummary": "Récapitulatif de la commande",
       "productLabel": "Produit",
       "productPrice": "Prix du produit",
+      "servicePrice": "Prix du service",
       "subtotal": "Sous-total",
       "transferFee": "Frais de change",
       "hubFee": "Frais du centre",
@@ -659,7 +660,8 @@
       "serviceArea": "Zone : {{area}}",
       "fulfillmentOnline": "En ligne",
       "fulfillmentInPerson": "En personne",
-      "fulfillmentBoth": "En ligne ou en personne"
+      "fulfillmentBoth": "En ligne ou en personne",
+      "fulfillmentHero": "Modalité : {{value}}"
     },
     "booking": {
       "title": "Réserver un expert",
@@ -678,8 +680,13 @@
     },
     "bookingWizard": {
       "pageTitle": "Réserver avec {{name}}",
+      "heroBookService": "Réserver le service {{title}}",
+      "providedBy": "Proposé par",
+      "checkoutServiceLabel": "Service",
+      "sessionTime": "Créneau",
       "stepSession": "Session",
       "stepTime": "Date et heure",
+      "stepCheckout": "Paiement",
       "stepConfirm": "Confirmer",
       "chooseService": "Choisissez un type de session",
       "noServices": "Aucun service réservable pour le moment.",

@@ -91,6 +91,14 @@ function HubSectionSubnav({
         <UserCircle className="h-4 w-4 shrink-0 opacity-80" />
         <span className="truncate">Profiles</span>
       </Link>
+      <Link
+        href="/experts/services"
+        className={linkClass(hubPathActive(pathname, "/experts/services"))}
+        onClick={onNavigate}
+      >
+        <Package className="h-4 w-4 shrink-0 opacity-80" />
+        <span className="truncate">Services</span>
+      </Link>
     </div>
   )
 }

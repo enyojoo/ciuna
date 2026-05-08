@@ -3,13 +3,15 @@ import { createServerClient } from "@/lib/supabase"
 import { withErrorHandling, createErrorResponse } from "@/lib/auth-utils"
 import { sortHubProductRows } from "@/lib/hub-products-sort"
 import { hubVendorDbRowToProductSummary } from "@/lib/hub-product-vendors"
+import { getPublishedHubVendorForLine } from "@/lib/hub-vendor-resolve"
 import type { HubProductRow } from "@/lib/hub-types"
 
 const ALLOWED_LINES = new Set(["food", "mart"])
 
-export const GET = withErrorHandling(async (request: NextRequest, { params }: { params: Promise<{ vendorSlug: string }> }) => {
-  const { vendorSlug } = await params
-  const slug = String(vendorSlug || "").trim().toLowerCase()
+export const GET = withErrorHandling(async (request: NextRequest, context?: { params?: Promise<{ vendorSlug: string }> }) => {
+  const params = context?.params ? await context.params : { vendorSlug: "" }
+  const vendorSlugParam = params.vendorSlug
+  const slug = String(vendorSlugParam || "").trim().toLowerCase()
   if (!slug) {
     return createErrorResponse("Missing vendor slug", 400)
   }
@@ -22,13 +24,7 @@ export const GET = withErrorHandling(async (request: NextRequest, { params }: { 
 
   const server = createServerClient()
 
-  const { data: vendor, error: vErr } = await server
-    .from("hub_vendors")
-    .select("*")
-    .eq("service_line_slug", serviceLine)
-    .eq("slug", slug)
-    .eq("is_published", true)
-    .maybeSingle()
+  const { row: vendor, error: vErr } = await getPublishedHubVendorForLine(server, slug, serviceLine as "food" | "mart")
 
   if (vErr) {
     console.error("hub vendor lookup", vErr)
@@ -38,11 +34,13 @@ export const GET = withErrorHandling(async (request: NextRequest, { params }: { 
     return createErrorResponse("Vendor not found", 404)
   }
 
+  const vendorId = String(vendor.id)
+
   const { data: products, error: pErr } = await server
     .from("hub_products")
     .select("*")
     .eq("status", "live")
-    .eq("vendor_id", vendor.id)
+    .eq("vendor_id", vendorId)
     .order("updated_at", { ascending: false })
 
   if (pErr) {

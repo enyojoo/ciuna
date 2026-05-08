@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/admin-auth-utils"
 import { buildExpertServiceRow } from "@/lib/expert-admin-validation"
 
 const SERVICE_SELECT =
-  "id, expert_profile_id, title, short_description, sort_order, is_published, pricing_type, hourly_rate, hourly_currency, fixed_amount, fixed_currency, package_label, default_duration_minutes, min_session_minutes, max_session_minutes, created_at, updated_at"
+  "id, expert_profile_id, title, short_description, sort_order, is_published, fulfillment_type, pricing_type, hourly_rate, hourly_currency, fixed_amount, fixed_currency, package_label, default_duration_minutes, min_session_minutes, max_session_minutes, created_at, updated_at"
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string; serviceId: string }> }) {
   try {
@@ -22,7 +22,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (exErr || !current) return NextResponse.json({ error: "Service not found" }, { status: 404 })
 
     const merged = { ...current, ...body, title: body.title != null ? body.title : current.title }
-    if (body.pricing_type != null || body.hourly_rate != null || body.fixed_amount != null) {
+    if (
+      body.pricing_type != null ||
+      body.hourly_rate != null ||
+      body.fixed_amount != null ||
+      body.fulfillment_type !== undefined
+    ) {
       const built = buildExpertServiceRow(merged as Record<string, unknown>)
       if (built.error) return NextResponse.json({ error: built.error }, { status: 400 })
     }
@@ -34,7 +39,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (body.sort_order != null) patch.sort_order = Number(body.sort_order) || 0
     if (body.is_published !== undefined) patch.is_published = Boolean(body.is_published)
 
-    if (body.pricing_type != null || body.hourly_rate != null || body.fixed_amount != null || body.hourly_currency != null || body.fixed_currency != null) {
+    if (
+      body.pricing_type != null ||
+      body.hourly_rate != null ||
+      body.fixed_amount != null ||
+      body.hourly_currency != null ||
+      body.fixed_currency != null ||
+      body.fulfillment_type !== undefined
+    ) {
       const built = buildExpertServiceRow(merged as Record<string, unknown>)
       if (built.error) return NextResponse.json({ error: built.error }, { status: 400 })
       Object.assign(patch, built.row)

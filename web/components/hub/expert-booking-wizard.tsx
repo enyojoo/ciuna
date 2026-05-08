@@ -1,35 +1,47 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { format } from "date-fns"
 import { useTranslation } from "react-i18next"
-import { APP_URLS } from "@ciuna/shared"
 import { CheckCircle2 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { fetchWithAuth } from "@/lib/fetch-with-auth"
-import { expertsBookPath, EXPERTS_CATALOG_PATH } from "@/lib/experts-public-paths"
+import { stashRedirectAfterLogin } from "@/lib/auth-login-redirect"
+import {
+  appendExpertsBookEntryFrom,
+  expertsBookPath,
+  expertsBookServicePath,
+  expertsProfilePath,
+  EXPERTS_BOOK_FROM_PROFILE,
+  EXPERTS_BOOK_FROM_QUERY,
+  EXPERTS_CATALOG_PATH,
+} from "@/lib/experts-public-paths"
+import { AppPageHeader } from "@/components/layout/app-page-header"
+import { HubExpertChipLight } from "@/components/hub/hub-expert-chip-light"
+import { ExpertSessionCheckoutPanel } from "@/components/hub/expert-session-checkout-panel"
 import { HubLinePageShell } from "@/components/hub/hub-line-page-shell"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
+import { formatCurrencySymbolOnly } from "@/utils/currency"
 
 type ExpertProfile = {
   id: string
+  slug?: string | null
   display_name: string
   headline: string | null
+  image_url?: string | null
+  service_area?: string | null
 }
 
 type ExpertService = {
   id: string
   title: string
   short_description: string | null
+  fulfillment_type?: string | null
   pricing_type: string
   hourly_rate: number | null
   hourly_currency: string | null
@@ -50,24 +62,12 @@ type Preflight = {
 function priceLine(s: ExpertService, t: (k: string, o?: Record<string, string>) => string): string {
   if (s.pricing_type === "quote") return t("experts.bookingWizard.priceQuote")
   if (s.pricing_type === "hourly" && s.hourly_rate != null && s.hourly_currency)
-    return t("experts.bookingWizard.priceHourly", { rate: String(s.hourly_rate), currency: s.hourly_currency })
+    return `${formatCurrencySymbolOnly(Number(s.hourly_rate), s.hourly_currency)} / hr`
   if (s.pricing_type === "fixed" && s.fixed_amount != null && s.fixed_currency) {
-    return s.package_label
-      ? t("experts.bookingWizard.priceFixedWithLabel", {
-          amount: String(s.fixed_amount),
-          currency: s.fixed_currency,
-          label: s.package_label,
-        })
-      : t("experts.bookingWizard.priceFixed", { amount: String(s.fixed_amount), currency: s.fixed_currency })
+    const amt = formatCurrencySymbolOnly(Number(s.fixed_amount), s.fixed_currency)
+    return s.package_label ? `${amt} — ${s.package_label}` : amt
   }
   return t("experts.bookingWizard.priceDash")
-}
-
-function primaryCtaLabel(s: ExpertService, t: (k: string, o?: Record<string, string>) => string): string {
-  if (s.pricing_type === "fixed" && s.fixed_amount != null && s.fixed_currency) {
-    return t("experts.bookingWizard.payAmount", { amount: `${s.fixed_amount} ${s.fixed_currency}` })
-  }
-  return t("experts.bookingWizard.confirmBooking")
 }
 
 function slotDayLocalKey(iso: string): string {
@@ -79,11 +79,16 @@ export function ExpertBookingWizard() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const profileId = String(params?.id || "").trim()
+  const slugOrId = String(params?.slug || "").trim()
+  const serviceIdFromPath = String((params as { serviceId?: string }).serviceId ?? "").trim()
   const slotFromQuery = (searchParams.get("slot") || "").trim()
+  const serviceFromQuery = (searchParams.get("service") || "").trim()
+  const entryFromProfile = searchParams.get(EXPERTS_BOOK_FROM_QUERY) === EXPERTS_BOOK_FROM_PROFILE
+
+  const resolvedServiceId = serviceIdFromPath || serviceFromQuery
 
   const { user, userProfile, loading: authLoading } = useAuth()
-  const [step, setStep] = useState<1 | 2 | 3 | "success">(1)
+  const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(() => (serviceIdFromPath ? 2 : 1))
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<ExpertProfile | null>(null)
   const [services, setServices] = useState<ExpertService[]>([])
@@ -92,26 +97,16 @@ export function ExpertBookingWizard() {
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [selectedDay, setSelectedDay] = useState<Date | undefined>(undefined)
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null)
-  const [preflight, setPreflight] = useState<Preflight | null>(null)
-  const [message, setMessage] = useState("")
-  const [termsAccepted, setTermsAccepted] = useState(false)
-  const [contactName, setContactName] = useState("")
-  const [contactEmail, setContactEmail] = useState("")
-  const [saving, setSaving] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [deepLinkError, setDeepLinkError] = useState(false)
   const [deepLinkPending, setDeepLinkPending] = useState(false)
 
-  useEffect(() => {
-    if (!userProfile) return
-    const fn = (userProfile.first_name || "").trim()
-    const ln = (userProfile.last_name || "").trim()
-    setContactName([fn, ln].filter(Boolean).join(" ").trim())
-  }, [userProfile])
-
-  useEffect(() => {
-    if (user?.email) setContactEmail(user.email)
-  }, [user?.email])
+  const [preflight, setPreflight] = useState<Preflight | null>(null)
+  const [contactEmail, setContactEmail] = useState("")
+  const [bookingSuccess, setBookingSuccess] = useState(false)
+  const idempotencyKeyRef = useRef(
+    typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+  )
 
   useEffect(() => {
     if (!slotFromQuery) {
@@ -120,11 +115,25 @@ export function ExpertBookingWizard() {
     }
   }, [slotFromQuery])
 
+  const skipServiceStep = useMemo(() => {
+    if (!resolvedServiceId || services.length === 0) return false
+    return services.some((s) => s.id === resolvedServiceId)
+  }, [resolvedServiceId, services])
+
+  /** Service deep-linked (`/book/[serviceId]` or legacy `?service=`) → jump to date/time. */
+  useLayoutEffect(() => {
+    if (!resolvedServiceId || services.length === 0) return
+    const match = services.find((s) => s.id === resolvedServiceId)
+    if (!match) return
+    setSelectedServiceId(match.id)
+    setWizardStep(2)
+  }, [resolvedServiceId, services])
+
   const loadProfile = useCallback(async () => {
-    if (!profileId) return
+    if (!slugOrId) return
     setLoading(true)
     try {
-      const res = await fetchWithAuth(`/api/expert/profiles/${encodeURIComponent(profileId)}`, { cache: "no-store" })
+      const res = await fetchWithAuth(`/api/expert/profiles/${encodeURIComponent(slugOrId)}`, { cache: "no-store" })
       if (!res.ok) {
         setProfile(null)
         setServices([])
@@ -139,18 +148,23 @@ export function ExpertBookingWizard() {
     } finally {
       setLoading(false)
     }
-  }, [profileId])
+  }, [slugOrId])
 
   useEffect(() => {
-    if (!user) {
-      if (!authLoading) router.push("/auth/login")
-      return
+    if (!user && !authLoading && typeof window !== "undefined") {
+      stashRedirectAfterLogin(`${window.location.pathname}${window.location.search}`)
+      router.replace("/auth/login")
     }
-    void loadProfile()
-  }, [user, authLoading, router, loadProfile])
+  }, [user, authLoading, router])
 
   useEffect(() => {
-    if (!user || !slotFromQuery || !profileId) return
+    if (!user || authLoading) return
+    void loadProfile()
+  }, [user, authLoading, loadProfile])
+
+  /** Deep link `?slot=` → load confirmation payload and open checkout on same route (send-style). */
+  useEffect(() => {
+    if (!user || !slotFromQuery || !slugOrId) return
     let cancelled = false
     setDeepLinkPending(true)
     ;(async () => {
@@ -162,15 +176,13 @@ export function ExpertBookingWizard() {
         }
         const data = (await res.json()) as Preflight
         if (cancelled) return
-        if (data.profile.id !== profileId) {
-          router.replace(expertsBookPath(data.profile.id, slotFromQuery))
-          return
-        }
         setPreflight(data)
-        setProfile((prev) => (prev ? prev : (data.profile as ExpertProfile)))
         setSelectedServiceId(data.service.id)
         setSelectedSlotId(data.slot.id)
-        setStep(3)
+        setWizardStep(3)
+        router.replace(
+          appendExpertsBookEntryFrom(expertsBookServicePath(data.profile, data.service.id), entryFromProfile),
+        )
       } catch {
         if (!cancelled) setDeepLinkError(true)
       } finally {
@@ -180,7 +192,11 @@ export function ExpertBookingWizard() {
     return () => {
       cancelled = true
     }
-  }, [user, slotFromQuery, profileId, router])
+  }, [user, slotFromQuery, slugOrId, router, entryFromProfile])
+
+  useEffect(() => {
+    if (user?.email) setContactEmail(user.email)
+  }, [user?.email])
 
   const loadSlots = useCallback(async (serviceId: string) => {
     setLoadingSlots(true)
@@ -199,9 +215,9 @@ export function ExpertBookingWizard() {
   }, [])
 
   useEffect(() => {
-    if (step !== 2 || !selectedServiceId) return
+    if (wizardStep !== 2 || !selectedServiceId) return
     void loadSlots(selectedServiceId)
-  }, [step, selectedServiceId, loadSlots])
+  }, [wizardStep, selectedServiceId, loadSlots])
 
   const slotDayKeys = useMemo(() => {
     const s = new Set<string>()
@@ -215,60 +231,41 @@ export function ExpertBookingWizard() {
     return slots.filter((sl) => slotDayLocalKey(sl.slot_start) === key)
   }, [slots, selectedDay])
 
-  const refreshPreflight = useCallback(async () => {
-    if (!selectedSlotId) return
-    const res = await fetchWithAuth(`/api/expert/slots/${encodeURIComponent(selectedSlotId)}`, { cache: "no-store" })
-    if (res.ok) setPreflight((await res.json()) as Preflight)
-  }, [selectedSlotId])
-
-  useEffect(() => {
-    if (step === 3 && selectedSlotId) void refreshPreflight()
-  }, [step, selectedSlotId, refreshPreflight])
-
   const goConfirm = async () => {
-    if (!selectedServiceId || !selectedSlotId) return
+    if (!selectedServiceId || !selectedSlotId || !profile) return
     setSubmitError(null)
     const res = await fetchWithAuth(`/api/expert/slots/${encodeURIComponent(selectedSlotId)}`, { cache: "no-store" })
     if (!res.ok) {
       setSubmitError(t("experts.bookingWizard.slotTaken"))
       return
     }
-    setPreflight((await res.json()) as Preflight)
-    setStep(3)
+    const data = (await res.json()) as Preflight
+    setPreflight(data)
+    setWizardStep(3)
   }
 
-  const submitBooking = async () => {
-    if (!selectedSlotId) return
-    if (!termsAccepted) {
-      setSubmitError(t("experts.bookingWizard.acceptTerms"))
-      return
-    }
-    if (!contactName.trim()) {
-      setSubmitError(t("experts.bookingWizard.nameRequired"))
-      return
-    }
-    setSaving(true)
-    setSubmitError(null)
-    try {
+  const handleQuoteBooking = useCallback(
+    async ({ message }: { message: string }) => {
+      if (!preflight?.slot.id || !profile) throw new Error(t("experts.booking.failed"))
       const res = await fetchWithAuth("/api/expert/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ expert_service_slot_id: selectedSlotId, message: message.trim() || null }),
+        body: JSON.stringify({
+          expert_service_slot_id: preflight.slot.id,
+          message: message || null,
+        }),
       })
-      if (res.status === 409) {
-        setSubmitError(t("experts.bookingWizard.slotTaken"))
-        return
-      }
-      if (!res.ok) throw new Error("book")
-      setStep("success")
-    } catch {
-      setSubmitError(t("experts.booking.failed"))
-    } finally {
-      setSaving(false)
-    }
-  }
+      if (res.status === 409) throw new Error(t("experts.bookingWizard.slotTaken"))
+      if (!res.ok) throw new Error(t("experts.booking.failed"))
+      setBookingSuccess(true)
+      router.replace(
+        appendExpertsBookEntryFrom(expertsBookServicePath(profile, preflight.service.id), entryFromProfile),
+      )
+    },
+    [preflight, profile, router, t, entryFromProfile],
+  )
 
-  if (!user) {
+  if (!user && authLoading) {
     return (
       <div className="min-w-0 px-4 py-5 sm:px-6">
         <div className="mx-auto max-w-5xl animate-pulse space-y-4">
@@ -278,7 +275,11 @@ export function ExpertBookingWizard() {
     )
   }
 
-  if (!profileId) {
+  if (!user) {
+    return null
+  }
+
+  if (!slugOrId) {
     return null
   }
 
@@ -294,82 +295,84 @@ export function ExpertBookingWizard() {
 
   if (deepLinkError) {
     return (
-      <HubLinePageShell
-        title={t("experts.bookingWizard.slotUnavailable")}
-        subtitle={profile?.display_name ?? null}
-        backToHubAriaLabel={t("hub.backToHub")}
-      >
-        <div className="flex flex-col gap-3 sm:flex-row">
+      <div className="min-w-0 px-4 pb-10 pt-2 sm:px-6">
+        <AppPageHeader title={t("experts.bookingWizard.slotUnavailable")} backHref={EXPERTS_CATALOG_PATH} />
+        <div className="mx-auto mt-6 flex max-w-lg flex-col gap-3 sm:flex-row">
           {profile ? (
             <Button asChild variant="default" className="rounded-xl">
-              <Link href={expertsBookPath(profileId)}>{t("experts.bookingWizard.tryAgain")}</Link>
+              <Link href={expertsBookPath(profile)}>{t("experts.bookingWizard.tryAgain")}</Link>
             </Button>
           ) : null}
           <Button asChild variant="outline" className="rounded-xl">
             <Link href={EXPERTS_CATALOG_PATH}>{t("hub.expertsAll")}</Link>
           </Button>
         </div>
-      </HubLinePageShell>
+      </div>
     )
   }
 
   if (!profile) {
     return (
-      <HubLinePageShell title={t("hub.expertNotFound")} subtitle={null} backToHubAriaLabel={t("hub.backToHub")}>
-        <Button asChild variant="outline">
-          <Link href={EXPERTS_CATALOG_PATH}>{t("hub.expertsAll")}</Link>
-        </Button>
-      </HubLinePageShell>
+      <div className="min-w-0 px-4 pb-10 pt-2 sm:px-6">
+        <AppPageHeader title={t("hub.expertNotFound")} backHref={EXPERTS_CATALOG_PATH} />
+        <div className="mx-auto mt-6 max-w-lg">
+          <Button asChild variant="outline">
+            <Link href={EXPERTS_CATALOG_PATH}>{t("hub.expertsAll")}</Link>
+          </Button>
+        </div>
+      </div>
     )
   }
 
   const p = profile
-  const stepper = (
-    <div className="mb-8 flex flex-wrap items-center justify-center gap-2 text-xs sm:gap-4 sm:text-sm">
-      {[
-        { n: 1, label: t("experts.bookingWizard.stepSession") },
-        { n: 2, label: t("experts.bookingWizard.stepTime") },
-        { n: 3, label: t("experts.bookingWizard.stepConfirm") },
-      ].map((s, idx) => {
-        const active = step === "success" ? idx < 3 : typeof step === "number" ? step >= s.n : false
-        const current = typeof step === "number" && step === s.n
-        return (
-          <div key={s.n} className="flex items-center gap-2">
-            <span
-              className={cn(
-                "flex size-8 items-center justify-center rounded-full border text-xs font-semibold",
-                current || (step === "success" && s.n <= 3)
-                  ? "border-orange-500 bg-orange-500 text-white"
-                  : active
-                    ? "border-orange-300 text-orange-700 dark:text-orange-300"
-                    : "border-muted-foreground/30 text-muted-foreground",
-              )}
-            >
-              {s.n}
-            </span>
-            <span className={cn("hidden font-medium sm:inline", current ? "text-foreground" : "text-muted-foreground")}>
-              {s.label}
-            </span>
-            {idx < 2 ? <span className="hidden h-px w-6 bg-border sm:block" /> : null}
-          </div>
-        )
-      })}
+  const bookExitFallback = entryFromProfile ? expertsProfilePath(p) : EXPERTS_CATALOG_PATH
+  const selectedService = selectedServiceId ? services.find((s) => s.id === selectedServiceId) ?? null : null
+  const serviceTitleForHero =
+    selectedService?.title ??
+    (resolvedServiceId.trim() ? services.find((s) => s.id === resolvedServiceId)?.title : undefined)
+  const heroTitle =
+    serviceTitleForHero != null
+      ? t("experts.bookingWizard.heroBookService", { title: serviceTitleForHero })
+      : t("experts.bookingWizard.chooseService")
+
+  const heroBelowTitle = (
+    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+      <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-orange-100/95">
+        {t("experts.bookingWizard.providedBy")}
+      </span>
+      <div className="min-w-0 [&_a]:text-orange-50 [&_a:hover]:text-white [&_span]:text-orange-50 [&_span:hover]:text-white">
+        <HubExpertChipLight
+          expert={{
+            id: p.id,
+            slug: p.slug,
+            display_name: p.display_name,
+            image_url: p.image_url ?? null,
+            is_verified: false,
+          }}
+          verifiedAriaLabel={t("hub.expertVerified", { defaultValue: "Verified expert" })}
+          className="text-orange-50 hover:text-white"
+        />
+      </div>
     </div>
   )
 
-  if (step === "success" && preflight) {
+  if (bookingSuccess && preflight) {
+    const svc = preflight.service
+    const slot = preflight.slot
+    const ep = preflight.profile
     return (
-      <HubLinePageShell title={t("experts.bookingWizard.successTitle")} subtitle={p.display_name} backToHubAriaLabel={t("hub.backToHub")}>
-        <div className="mx-auto max-w-lg space-y-6 text-center">
+      <div className="min-w-0 px-4 pb-10 pt-2 sm:px-6">
+        <AppPageHeader title={t("experts.bookingWizard.successTitle")} backHref={bookExitFallback} />
+        <div className="mx-auto mt-6 max-w-lg space-y-6 text-center">
           <CheckCircle2 className="mx-auto size-14 text-green-600 dark:text-green-500" aria-hidden />
-          <p className="text-sm text-muted-foreground">{t("experts.bookingWizard.successBody", { name: p.display_name })}</p>
+          <p className="text-sm text-muted-foreground">{t("experts.bookingWizard.successBody", { name: ep.display_name })}</p>
           <Card className="rounded-2xl border-border text-left">
             <CardContent className="space-y-2 p-4 text-sm">
-              <p className="font-semibold text-foreground">{preflight.service.title}</p>
+              <p className="font-semibold text-foreground">{svc.title}</p>
               <p className="text-muted-foreground">
-                {new Date(preflight.slot.slot_start).toLocaleString()} — {new Date(preflight.slot.slot_end).toLocaleString()}
+                {new Date(slot.slot_start).toLocaleString()} — {new Date(slot.slot_end).toLocaleString()}
               </p>
-              <p className="font-medium text-orange-700 dark:text-orange-300">{priceLine(preflight.service, t)}</p>
+              <p className="font-medium text-orange-700 dark:text-orange-300">{priceLine(svc, t)}</p>
             </CardContent>
           </Card>
           <p className="text-xs text-muted-foreground">
@@ -377,23 +380,57 @@ export function ExpertBookingWizard() {
           </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Button asChild className="rounded-xl">
-              <Link href={expertsBookPath(profileId)}>{t("experts.bookingWizard.bookAnother")}</Link>
+              <Link href={expertsProfilePath(ep)}>{t("experts.bookingWizard.bookAnother")}</Link>
             </Button>
             <Button variant="outline" asChild className="rounded-xl">
               <Link href={EXPERTS_CATALOG_PATH}>{t("hub.expertsAll")}</Link>
             </Button>
           </div>
         </div>
-      </HubLinePageShell>
+      </div>
+    )
+  }
+
+  if (wizardStep === 3 && preflight) {
+    const svc = preflight.service
+    const checkoutProfile = preflight.profile
+    const slotPickerHref = appendExpertsBookEntryFrom(
+      expertsBookServicePath(checkoutProfile, svc.id),
+      entryFromProfile,
+    )
+    return (
+      <div className="min-w-0 space-y-8 px-4 pb-10 pt-2 sm:px-6">
+        <AppPageHeader
+          title={t("hub.checkout.title")}
+          backHref={slotPickerHref}
+          onBack={() => {
+            setWizardStep(2)
+            setPreflight(null)
+            setSelectedSlotId(null)
+            setSubmitError(null)
+            router.replace(slotPickerHref)
+          }}
+        />
+
+        <ExpertSessionCheckoutPanel
+          preflight={preflight}
+          idempotencyKeyRef={idempotencyKeyRef}
+          onQuoteBooking={handleQuoteBooking}
+        />
+      </div>
     )
   }
 
   return (
-    <HubLinePageShell title={t("experts.bookingWizard.pageTitle", { name: p.display_name })} subtitle={p.headline} backToHubAriaLabel={t("hub.backToHub")}>
+    <HubLinePageShell
+      title={heroTitle}
+      subtitle={null}
+      heroBelowTitle={heroBelowTitle}
+      backToHubAriaLabel={t("hub.backToExperts")}
+      backHref={bookExitFallback}
+    >
       <div className="mx-auto max-w-3xl">
-        {stepper}
-
-        {step === 1 ? (
+        {wizardStep === 1 && !skipServiceStep ? (
           <div className="space-y-4">
             <h2 className="text-base font-semibold text-foreground">{t("experts.bookingWizard.chooseService")}</h2>
             {services.length === 0 ? (
@@ -422,7 +459,9 @@ export function ExpertBookingWizard() {
                 className="rounded-xl"
                 disabled={!selectedServiceId}
                 onClick={() => {
-                  setStep(2)
+                  if (!selectedServiceId || !profile) return
+                  router.push(appendExpertsBookEntryFrom(expertsBookServicePath(profile, selectedServiceId), entryFromProfile))
+                  setWizardStep(2)
                   setSelectedDay(undefined)
                   setSelectedSlotId(null)
                 }}
@@ -433,7 +472,7 @@ export function ExpertBookingWizard() {
           </div>
         ) : null}
 
-        {step === 2 ? (
+        {wizardStep === 2 ? (
           <div className="space-y-6">
             <h2 className="text-base font-semibold text-foreground">{t("experts.bookingWizard.chooseTime")}</h2>
             <div className="flex flex-col gap-6 lg:flex-row">
@@ -484,13 +523,18 @@ export function ExpertBookingWizard() {
                 )}
               </div>
             </div>
+            {submitError ? <p className="text-sm text-destructive">{submitError}</p> : null}
             <div className="flex flex-wrap justify-between gap-3 pt-2">
               <Button
                 variant="outline"
                 className="rounded-xl"
                 onClick={() => {
-                  setStep(1)
-                  setPreflight(null)
+                  setSubmitError(null)
+                  if (skipServiceStep) {
+                    router.push(expertsProfilePath(p))
+                    return
+                  }
+                  setWizardStep(1)
                   setSelectedSlotId(null)
                 }}
               >
@@ -498,73 +542,6 @@ export function ExpertBookingWizard() {
               </Button>
               <Button className="rounded-xl" disabled={!selectedSlotId} onClick={() => void goConfirm()}>
                 {t("experts.bookingWizard.continue")}
-              </Button>
-            </div>
-          </div>
-        ) : null}
-
-        {step === 3 && !preflight ? (
-          <p className="text-sm text-muted-foreground">{t("experts.bookingWizard.loadingConfirm")}</p>
-        ) : null}
-
-        {step === 3 && preflight ? (
-          <div className="space-y-6">
-            <h2 className="text-base font-semibold text-foreground">{t("experts.bookingWizard.confirmTitle")}</h2>
-            <Card className="rounded-2xl border-border">
-              <CardContent className="space-y-2 p-4 text-sm">
-                <p className="font-medium text-foreground">{preflight.service.title}</p>
-                <p className="text-muted-foreground">
-                  {new Date(preflight.slot.slot_start).toLocaleString()} — {new Date(preflight.slot.slot_end).toLocaleString()}
-                </p>
-                <p className="font-medium text-orange-700 dark:text-orange-300">{priceLine(preflight.service, t)}</p>
-              </CardContent>
-            </Card>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="bk-name">{t("experts.bookingWizard.yourName")}</Label>
-                <Input id="bk-name" value={contactName} onChange={(e) => setContactName(e.target.value)} autoComplete="name" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="bk-email">{t("experts.bookingWizard.email")}</Label>
-                <Input id="bk-email" type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} autoComplete="email" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="bk-msg">{t("experts.booking.message")}</Label>
-              <Textarea id="bk-msg" rows={3} value={message} onChange={(e) => setMessage(e.target.value)} />
-            </div>
-            {preflight.service.pricing_type === "quote" ? (
-              <p className="text-xs leading-relaxed text-muted-foreground">{t("experts.bookingWizard.quoteNote")}</p>
-            ) : null}
-            <div className="flex items-start gap-2">
-              <Checkbox id="bk-terms" checked={termsAccepted} onCheckedChange={(v) => setTermsAccepted(Boolean(v))} />
-              <label htmlFor="bk-terms" className="text-xs leading-snug text-muted-foreground">
-                {t("experts.bookingWizard.termsPrefix")}{" "}
-                <a href={`${APP_URLS.website}/terms`} target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                  {t("experts.bookingWizard.terms")}
-                </a>{" "}
-                {t("experts.bookingWizard.and")}{" "}
-                <a href={`${APP_URLS.website}/privacy`} target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                  {t("experts.bookingWizard.privacy")}
-                </a>
-                .
-              </label>
-            </div>
-            {submitError ? <p className="text-sm text-destructive">{submitError}</p> : null}
-            <p className="text-xs text-muted-foreground">{t("experts.bookingWizard.paymentStubNote")}</p>
-            <div className="flex flex-wrap justify-between gap-3">
-              <Button
-                variant="outline"
-                className="rounded-xl"
-                onClick={() => {
-                  setSubmitError(null)
-                  setStep(2)
-                }}
-              >
-                {t("experts.bookingWizard.back")}
-              </Button>
-              <Button className="min-w-[10rem] rounded-xl" disabled={saving} onClick={() => void submitBooking()}>
-                {saving ? t("experts.booking.saving") : primaryCtaLabel(preflight.service, t)}
               </Button>
             </div>
           </div>

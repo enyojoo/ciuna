@@ -7,7 +7,8 @@
     "recipients": "Destinatarios",
     "transactions": "Transacciones",
     "more": "Más",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "login": "Iniciar sesión"
   },
   "more": {
     "title": "Más",

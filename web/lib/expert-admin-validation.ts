@@ -2,6 +2,14 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 
 export type ExpertPricingType = "hourly" | "fixed" | "quote"
 
+export type ExpertFulfillmentType = "online" | "in_person" | "both"
+
+export function parseExpertFulfillment(v: unknown): ExpertFulfillmentType {
+  const s = String(v ?? "online").trim().toLowerCase()
+  if (s === "in_person" || s === "both") return s
+  return "online"
+}
+
 export function normalizeExpertPricingType(v: unknown): ExpertPricingType | null {
   const s = String(v || "").trim().toLowerCase()
   if (s === "hourly" || s === "fixed" || s === "quote") return s
@@ -21,6 +29,7 @@ export function buildExpertServiceRow(body: Record<string, unknown>): {
     short_description: body.short_description != null ? String(body.short_description).trim() || null : null,
     sort_order: body.sort_order != null ? Number(body.sort_order) || 0 : 0,
     is_published: Boolean(body.is_published),
+    fulfillment_type: parseExpertFulfillment(body.fulfillment_type),
     pricing_type: pricingType,
     hourly_rate: null,
     hourly_currency: null,

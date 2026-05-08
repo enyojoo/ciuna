@@ -4,7 +4,7 @@ import type React from "react"
 import { useMemo, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, LayoutDashboard, History, LogOut, X } from "lucide-react"
+import { Home, LayoutDashboard, History, LogIn, LogOut, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { BrandLogo } from "@/components/brand/brand-logo"
 import { Button } from "@/components/ui/button"
@@ -21,9 +21,17 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { signOut } = useAuth()
+  const { user, signOut } = useAuth()
 
-  const isHubRoute = pathname === "/hub" || Boolean(pathname?.startsWith("/hub/"))
+  const showHubHeaderActions =
+    pathname === "/hub" ||
+    Boolean(pathname?.startsWith("/hub/")) ||
+    pathname === "/food" ||
+    Boolean(pathname?.startsWith("/food/")) ||
+    pathname === "/mart" ||
+    Boolean(pathname?.startsWith("/mart/")) ||
+    pathname === "/experts" ||
+    Boolean(pathname?.startsWith("/experts/"))
 
   const baseNavigation = useMemo(
     () => [
@@ -76,7 +84,14 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
             {baseNavigation.map((item) => {
               const isActive =
                 item.href === "/hub"
-                  ? pathname === "/hub" || Boolean(pathname?.startsWith("/hub/"))
+                  ? pathname === "/hub" ||
+                    Boolean(pathname?.startsWith("/hub/")) ||
+                    pathname === "/food" ||
+                    Boolean(pathname?.startsWith("/food/")) ||
+                    pathname === "/mart" ||
+                    Boolean(pathname?.startsWith("/mart/")) ||
+                    pathname === "/experts" ||
+                    Boolean(pathname?.startsWith("/experts/"))
                   : item.href === "/transactions"
                     ? pathname === "/transactions" || Boolean(pathname?.startsWith("/transactions/"))
                     : pathname === item.href
@@ -99,16 +114,25 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
             })}
           </nav>
 
-          {/* Logout */}
+          {/* Log in (guest) / Log out (session) — desktop sidebar only; mobile uses bottom nav + auth pages */}
           <div className="px-3 py-4 border-t border-sidebar-border">
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-100 px-3 py-3"
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-3 h-5 w-5 flex-shrink-0" />
-              <span className="truncate">{t("nav.logout")}</span>
-            </Button>
+            {user ? (
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-100 px-3 py-3"
+                onClick={handleLogout}
+              >
+                <LogOut className="mr-3 h-5 w-5 flex-shrink-0" />
+                <span className="truncate">{t("nav.logout")}</span>
+              </Button>
+            ) : (
+              <Button asChild variant="ghost" className="w-full justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-100 px-3 py-3">
+                <Link href="/auth/login" prefetch={true}>
+                  <LogIn className="mr-3 h-5 w-5 flex-shrink-0" />
+                  <span className="truncate">{t("nav.login", { defaultValue: "Log in" })}</span>
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -117,7 +141,15 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:ml-56">
         {/* Top bar - Desktop only: Hub routes show refer + support (logo is in sidebar). */}
         <div className="hidden h-16 w-full shrink-0 items-center justify-end gap-2 border-b border-sidebar-border bg-background px-4 sm:px-6 lg:px-8 lg:flex">
-          {isHubRoute ? <HubReferSupportActions /> : null}
+          {showHubHeaderActions ? (
+            user ? (
+              <HubReferSupportActions />
+            ) : (
+              <Button asChild variant="outline" size="sm" className="font-medium">
+                <Link href="/auth/login">{t("nav.login", { defaultValue: "Log in" })}</Link>
+              </Button>
+            )
+          ) : null}
         </div>
 
         {/* Page content */}
@@ -131,7 +163,14 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
             {bottomNavItems.map((item) => {
               const isActive =
                 item.href === "/hub"
-                  ? pathname === "/hub" || Boolean(pathname?.startsWith("/hub/"))
+                  ? pathname === "/hub" ||
+                    Boolean(pathname?.startsWith("/hub/")) ||
+                    pathname === "/food" ||
+                    Boolean(pathname?.startsWith("/food/")) ||
+                    pathname === "/mart" ||
+                    Boolean(pathname?.startsWith("/mart/")) ||
+                    pathname === "/experts" ||
+                    Boolean(pathname?.startsWith("/experts/"))
                   : item.href === "/transactions"
                     ? pathname === "/transactions" || Boolean(pathname?.startsWith("/transactions/"))
                     : item.href === "/more"

@@ -12,9 +12,12 @@ export {
   categoryMatchesSlugForLine,
   resolveTransactionListLine,
   transactionLinePrimaryBadge,
+  transactionListLineIconKind,
   type TransactionListLine,
+  type TransactionListLineIconKind,
 } from "./transaction-display"
 export { cn } from "./utils/cn"
+export { normalizePublicSlug, isUuidLike } from "./utils/public-slug"
 export { BrandLogo } from "./components/BrandLogo"
 export type { BrandLogoProps } from "./components/BrandLogo"
 export * from "./types"

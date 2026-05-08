@@ -3,8 +3,10 @@
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useRouteProtection } from "@/hooks/use-route-protection"
+import { useMediaQueryMinLg } from "@/hooks/use-media-query"
 import { AuthLoadingSkeleton } from "@/components/auth-loading-skeleton"
 import { UserDashboardLayout } from "@/components/layout/user-dashboard-layout"
+import { useAuth } from "@/lib/auth-context"
 
 /** Keeps `useTranslation` off public routes (e.g. `/[referralSlug]`) so SSR/build does not warn NO_I18NEXT_INSTANCE. */
 function AdminAccessDeniedScreen() {
@@ -27,7 +29,7 @@ function AdminAccessDeniedScreen() {
 
 const PROTECTED_PATHS = ["/hub", "/send", "/transactions", "/assistant", "/recipients", "/more", "/support"]
 
-/** Published expert profile at `/experts/[id]` (browse without login). */
+/** Published expert profile at `/experts/[slug]` (browse without login; UUID in the path still works). */
 function isPublicExpertProfilePathname(pathname: string): boolean {
   const m = pathname.match(/^\/experts\/([^/]+)$/)
   if (!m) return false
@@ -36,30 +38,76 @@ function isPublicExpertProfilePathname(pathname: string): boolean {
   return true
 }
 
-function isProtectedPath(pathname: string | null): boolean {
+/** Public vendor storefront: `/food/v/...`, `/mart/v/...` */
+function isVendorStorefrontPath(pathname: string): boolean {
+  return /^\/(food|mart)\/v\//.test(pathname)
+}
+
+/** Sidebar + top bar (same chrome as `/send`). Includes `/food/v/*` & `/mart/v/*` storefronts (public or signed-in). */
+function usesUserDashboardLayoutPathname(pathname: string | null): boolean {
   if (!pathname) return false
+  if (pathname.startsWith("/auth/")) return false
+
   if (isPublicExpertProfilePathname(pathname)) return false
-  if (pathname === "/experts") return false
+
+  /** Experts line subroutes (`/experts/browse`, book, checkout) — not bare `/experts/[slug]` profile (excluded above). */
   if (pathname.startsWith("/experts/")) return true
-  return PROTECTED_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))
+
+  if (pathname.startsWith("/admin")) return true
+
+  if (PROTECTED_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))) return true
+
+  if (pathname === "/food" || pathname.startsWith("/food/")) return true
+  if (pathname === "/mart" || pathname.startsWith("/mart/")) return true
+
+  if (pathname === "/experts") return true
+
+  return false
+}
+
+/** Logged-in desktop: expert profiles sit in the hub shell like `/mart/v/*`; guests and mobile stay full-width. */
+function usesDashboardForExpertProfile(pathname: string | null, user: unknown, isLg: boolean): boolean {
+  return Boolean(user && isLg && pathname && isPublicExpertProfilePathname(pathname))
+}
+
+function usesUserDashboardLayout(
+  pathname: string | null,
+  opts: { user: unknown; isLg: boolean },
+): boolean {
+  return usesDashboardForExpertProfile(pathname, opts.user, opts.isLg) || usesUserDashboardLayoutPathname(pathname)
 }
 
 /** Only these routes should trigger "must be logged in → redirect to /auth/login" in the wrapper. */
 function requiresProtectedAuth(pathname: string | null): boolean {
   if (!pathname) return false
-  // All /auth/* (login, register, callback, …) must stay public — never push logged-out users to login.
   if (pathname.startsWith("/auth/")) return false
+
+  if (isVendorStorefrontPath(pathname)) return false
+  if (isPublicExpertProfilePathname(pathname)) return false
+
   if (pathname.startsWith("/admin")) return true
-  return isProtectedPath(pathname)
+
+  if (pathname === "/experts") return true
+
+  if (PROTECTED_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))) return true
+
+  if (pathname.startsWith("/experts/")) return true
+
+  if (pathname === "/food" || (pathname.startsWith("/food/") && !pathname.startsWith("/food/v/"))) return true
+  if (pathname === "/mart" || (pathname.startsWith("/mart/") && !pathname.startsWith("/mart/v/"))) return true
+
+  return false
 }
 
 export function ProtectedRouteWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const { user } = useAuth()
+  const isLg = useMediaQueryMinLg()
   const { isChecking, isAdmin } = useRouteProtection({
     requireAuth: requiresProtectedAuth(pathname),
   })
 
-  if (!isProtectedPath(pathname)) {
+  if (!usesUserDashboardLayout(pathname, { user, isLg })) {
     return <>{children}</>
   }
 

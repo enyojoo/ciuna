@@ -1,15 +1,23 @@
 "use client"
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState, type MouseEvent } from "react"
+import { useCallback, useEffect, useLayoutEffect, useState, type MouseEvent } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { isUuidLike } from "@ciuna/shared"
 import { useAuth } from "@/lib/auth-context"
 import { stashRedirectAfterLogin } from "@/lib/auth-login-redirect"
-import { expertsBookPath, expertsProfilePath, EXPERTS_CATALOG_PATH } from "@/lib/experts-public-paths"
+import {
+  appendExpertsBookEntryFrom,
+  expertsBookServicePath,
+  expertsProfilePath,
+  EXPERTS_CATALOG_PATH,
+} from "@/lib/experts-public-paths"
 import { HubLinePageShell } from "@/components/hub/hub-line-page-shell"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import { formatCurrencySymbolOnly } from "@/utils/currency"
 import {
   isExpertProfileDetailCacheFresh,
   readStaleExpertProfileDetailCache,
@@ -18,12 +26,12 @@ import {
 
 type ExpertProfile = {
   id: string
+  slug?: string | null
   display_name: string
   headline: string | null
   bio: string | null
   category?: string | null
   image_url?: string | null
-  fulfillment_type?: string | null
   service_area?: string | null
   meeting_hint?: string | null
 }
@@ -32,6 +40,7 @@ type ExpertService = {
   id: string
   title: string
   short_description: string | null
+  fulfillment_type?: string | null
   pricing_type: string
   hourly_rate: number | null
   hourly_currency: string | null
@@ -41,23 +50,25 @@ type ExpertService = {
   default_duration_minutes?: number | null
 }
 
+function fulfillmentKindLabel(ft: string | null | undefined, t: (k: string, o?: Record<string, string>) => string): string {
+  const f = ft || "online"
+  if (f === "in_person") return t("experts.profile.fulfillmentInPerson")
+  if (f === "both") return t("experts.profile.fulfillmentBoth")
+  return t("experts.profile.fulfillmentOnline")
+}
+
 function servicePriceLabel(s: ExpertService, t: (k: string, o?: Record<string, string>) => string): string {
   if (s.pricing_type === "quote") return t("experts.bookingWizard.priceQuote")
   if (s.pricing_type === "hourly" && s.hourly_rate != null && s.hourly_currency)
-    return t("experts.bookingWizard.priceHourly", { rate: String(s.hourly_rate), currency: s.hourly_currency })
+    return `${formatCurrencySymbolOnly(Number(s.hourly_rate), s.hourly_currency)} / hr`
   if (s.pricing_type === "fixed" && s.fixed_amount != null && s.fixed_currency) {
-    return s.package_label
-      ? t("experts.bookingWizard.priceFixedWithLabel", {
-          amount: String(s.fixed_amount),
-          currency: s.fixed_currency,
-          label: s.package_label,
-        })
-      : t("experts.bookingWizard.priceFixed", { amount: String(s.fixed_amount), currency: s.fixed_currency })
+    const amt = formatCurrencySymbolOnly(Number(s.fixed_amount), s.fixed_currency)
+    return s.package_label ? `${amt} — ${s.package_label}` : amt
   }
   return "—"
 }
 
-export function ExpertProfileView({ id }: { id: string }) {
+export function ExpertProfileView({ slugOrId }: { slugOrId: string }) {
   const { t } = useTranslation("app")
   const router = useRouter()
   const pathname = usePathname() || ""
@@ -66,23 +77,21 @@ export function ExpertProfileView({ id }: { id: string }) {
   const [services, setServices] = useState<ExpertService[]>([])
   const [loading, setLoading] = useState(true)
 
-  const returnPath = pathname || expertsProfilePath(id)
-
   const onGuestBookNav = useCallback(
-    (e: MouseEvent<HTMLAnchorElement>) => {
+    (e: MouseEvent<HTMLAnchorElement>, bookUrl: string) => {
       e.preventDefault()
-      stashRedirectAfterLogin(returnPath)
+      stashRedirectAfterLogin(bookUrl)
       router.push("/auth/login")
     },
-    [returnPath, router],
+    [router],
   )
 
   useLayoutEffect(() => {
-    if (!id) {
+    if (!slugOrId) {
       setLoading(false)
       return
     }
-    const stale = readStaleExpertProfileDetailCache(id)
+    const stale = readStaleExpertProfileDetailCache(slugOrId)
     if (!stale) {
       setProfile(null)
       setServices([])
@@ -98,21 +107,21 @@ export function ExpertProfileView({ id }: { id: string }) {
     setProfile((stale.profile || null) as ExpertProfile | null)
     setServices((stale.services || []) as ExpertService[])
     setLoading(false)
-  }, [id])
+  }, [slugOrId])
 
   useEffect(() => {
-    if (!id) {
+    if (!slugOrId) {
       setLoading(false)
       return
     }
-    if (isExpertProfileDetailCacheFresh(id)) return
+    if (isExpertProfileDetailCacheFresh(slugOrId)) return
 
     let cancelled = false
     ;(async () => {
       try {
-        const res = await fetch(`/api/expert/profiles/${encodeURIComponent(id)}`, { cache: "no-store" })
+        const res = await fetch(`/api/expert/profiles/${encodeURIComponent(slugOrId)}`, { cache: "no-store" })
         if (res.status === 404) {
-          writeExpertProfileDetailCache(id, { profile: null, services: [], notFound: true })
+          writeExpertProfileDetailCache(slugOrId, { profile: null, services: [], notFound: true })
           if (!cancelled) {
             setProfile(null)
             setServices([])
@@ -123,7 +132,7 @@ export function ExpertProfileView({ id }: { id: string }) {
         const data = await res.json()
         const profile = (data.profile || null) as ExpertProfile | null
         const services = (data.services || []) as ExpertService[]
-        writeExpertProfileDetailCache(id, {
+        writeExpertProfileDetailCache(slugOrId, {
           profile: profile as unknown as Record<string, unknown>,
           services: services as unknown as Record<string, unknown>[],
           notFound: false,
@@ -144,14 +153,16 @@ export function ExpertProfileView({ id }: { id: string }) {
     return () => {
       cancelled = true
     }
-  }, [id])
+  }, [slugOrId])
 
-  const fulfillmentLabel = useMemo(() => {
-    const f = profile?.fulfillment_type || "online"
-    if (f === "in_person") return t("experts.profile.fulfillmentInPerson")
-    if (f === "both") return t("experts.profile.fulfillmentBoth")
-    return t("experts.profile.fulfillmentOnline")
-  }, [profile?.fulfillment_type, t])
+  /** Show `/experts/{slug}` in the address bar when the user opens `/experts/{uuid}` but the profile has a slug. */
+  useEffect(() => {
+    if (!profile) return
+    const slug = typeof profile.slug === "string" ? profile.slug.trim() : ""
+    if (!slug || !isUuidLike(slugOrId)) return
+    const canonical = expertsProfilePath(profile)
+    if (pathname !== canonical) router.replace(canonical)
+  }, [profile, slugOrId, pathname, router])
 
   if (loading && !profile) {
     return (
@@ -160,20 +171,14 @@ export function ExpertProfileView({ id }: { id: string }) {
         subtitle={null}
         backToHubAriaLabel={t("hub.backToHub")}
         backHref={EXPERTS_CATALOG_PATH}
-        heroLoading={false}
+        heroLoading
+        showHeroClose={Boolean(user)}
       >
-        <div className="animate-pulse space-y-8">
-          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-            <div className="h-24 w-24 shrink-0 rounded-full bg-muted" />
-            <div className="min-w-0 flex-1 space-y-3 text-center sm:text-left">
-              <div className="mx-auto h-6 w-48 max-w-full rounded bg-muted sm:mx-0" />
-              <div className="mx-auto h-4 w-full max-w-md rounded bg-muted sm:mx-0" />
-              <div className="mx-auto h-20 w-full max-w-lg rounded bg-muted sm:mx-0" />
-            </div>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 max-w-[55%] rounded-md bg-muted" />
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-28 rounded-2xl bg-muted" />
+              <div key={i} className="h-44 rounded-2xl bg-muted" />
             ))}
           </div>
         </div>
@@ -188,6 +193,7 @@ export function ExpertProfileView({ id }: { id: string }) {
         subtitle={null}
         backToHubAriaLabel={t("hub.backToHub")}
         backHref={EXPERTS_CATALOG_PATH}
+        showHeroClose={Boolean(user)}
       >
         <Button asChild variant="outline">
           <Link href={EXPERTS_CATALOG_PATH}>{t("hub.expertsAll")}</Link>
@@ -198,87 +204,105 @@ export function ExpertProfileView({ id }: { id: string }) {
 
   const p = profile
 
+  const heroSubtitle = (p.headline || "").trim() || null
+  const heroLocation = (p.service_area || "").trim() || null
+  const heroPhotoUrl = (p.image_url || "").trim() || null
+
+  const serviceCardClass =
+    "flex h-full flex-col rounded-2xl border border-gray-200 bg-white py-0 shadow-[0_8px_24px_rgba(15,23,42,0.08)] transition-all duration-300 motion-safe:hover:-translate-y-1 motion-safe:hover:border-orange-300/70 motion-safe:hover:shadow-[0_18px_36px_rgba(15,23,42,0.14)] dark:border-border dark:bg-card"
+
+  const bioBlock = (p.bio || "").trim()
+  const meetingBlock = (p.meeting_hint || "").trim()
+  const showBioFrame = Boolean(bioBlock || meetingBlock)
+
   return (
     <HubLinePageShell
       title={p.display_name}
-      subtitle={p.headline}
+      subtitle={heroSubtitle}
       backToHubAriaLabel={t("hub.backToHub")}
       backHref={EXPERTS_CATALOG_PATH}
+      heroPhotoUrl={heroPhotoUrl || null}
+      heroLocation={heroLocation}
+      heroLoading={false}
+      showHeroClose={Boolean(user)}
     >
       <div className="space-y-8">
-        <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-          {p.image_url ? (
-            <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-border bg-muted">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.image_url} alt="" className="h-full w-full object-cover" />
-            </div>
-          ) : (
-            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-3xl font-bold text-white">
-              {p.display_name?.charAt(0)?.toUpperCase() || "?"}
-            </div>
-          )}
-          <div className="min-w-0 flex-1 space-y-2 text-center sm:text-left">
-            {p.category ? (
-              <p className="text-xs font-medium uppercase tracking-wide text-orange-600 dark:text-orange-400">{p.category}</p>
-            ) : null}
-            <p className="text-xs text-muted-foreground">{fulfillmentLabel}</p>
-            {p.service_area ? (
-              <p className="text-xs text-muted-foreground">
-                {t("experts.profile.serviceArea", { area: p.service_area })}
+        {showBioFrame ? (
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+            {bioBlock ? <p className="text-sm leading-relaxed text-foreground">{bioBlock}</p> : null}
+            {meetingBlock ? (
+              <p
+                className={cn(
+                  "text-sm leading-relaxed text-muted-foreground",
+                  bioBlock ? "mt-4 border-t border-border pt-4" : "",
+                )}
+              >
+                {meetingBlock}
               </p>
             ) : null}
-            {p.bio ? <p className="text-sm leading-relaxed text-muted-foreground">{p.bio}</p> : null}
-            {p.meeting_hint ? <p className="text-xs text-muted-foreground">{p.meeting_hint}</p> : null}
           </div>
-        </div>
+        ) : null}
 
-        <div className="flex flex-col items-center gap-3 sm:items-start">
-          {services.length === 0 ? (
-            <Button disabled className="rounded-full px-8" size="lg">
-              {t("experts.profile.bookSession")}
-            </Button>
-          ) : user ? (
-            <Button asChild className="rounded-full px-8" size="lg">
-              <Link href={expertsBookPath(id)}>{t("experts.profile.bookSession")}</Link>
-            </Button>
-          ) : (
-            <Button asChild className="rounded-full px-8" size="lg">
-              <Link href="/auth/login" onClick={onGuestBookNav}>
-                {t("experts.profile.bookSession")}
-              </Link>
-            </Button>
-          )}
-        </div>
-
-        <section className="space-y-3">
-          <h2 className="text-base font-semibold text-foreground">{t("experts.profile.servicesHeading")}</h2>
+        <section className="space-y-6">
+          <h2 className="text-lg font-semibold text-foreground sm:text-xl">{t("experts.profile.servicesHeading")}</h2>
           {services.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("experts.profile.noServices")}</p>
           ) : (
-            <ul className="grid gap-3 sm:grid-cols-2">
+            <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
               {services.map((s) => (
-                <li key={s.id} className={cn("rounded-2xl border border-border bg-card p-4 text-left")}>
-                  <p className="font-semibold text-foreground">{s.title}</p>
-                  <p className="mt-1 text-sm font-medium text-orange-700 dark:text-orange-300">{servicePriceLabel(s, t)}</p>
-                  {s.default_duration_minutes != null && Number(s.default_duration_minutes) > 0 ? (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {t("experts.profile.typicalSession", { minutes: String(s.default_duration_minutes) })}
-                    </p>
-                  ) : null}
-                  {s.short_description ? (
-                    <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">{s.short_description}</p>
-                  ) : null}
+                <li key={s.id} className="h-full min-w-0">
+                  <Card className={cn(serviceCardClass, "h-full")}>
+                    <CardContent className="flex min-h-[11rem] flex-1 flex-col gap-2.5 p-3 sm:min-h-[12rem] sm:gap-3 sm:p-5">
+                      <div className="min-w-0 flex-1 space-y-1.5 sm:space-y-2">
+                        <p className="break-words text-base font-semibold leading-snug tracking-tight text-gray-900 dark:text-foreground sm:text-lg">
+                          {s.title}
+                        </p>
+                        {s.short_description ? (
+                          <p className="line-clamp-4 text-xs leading-relaxed text-gray-600 dark:text-muted-foreground sm:text-sm">
+                            {s.short_description}
+                          </p>
+                        ) : null}
+                        {s.default_duration_minutes != null && Number(s.default_duration_minutes) > 0 ? (
+                          <p className="text-xs text-muted-foreground">
+                            {t("experts.profile.typicalSession", { minutes: String(s.default_duration_minutes) })}
+                          </p>
+                        ) : null}
+                      </div>
+                      <p className="text-sm font-semibold tabular-nums text-orange-700 dark:text-orange-300 sm:text-base">
+                        {servicePriceLabel(s, t)}
+                      </p>
+                      <div className="mt-auto flex flex-col gap-2 pt-0.5">
+                        <Button asChild size="sm" className="h-9 w-full rounded-xl text-xs font-semibold sm:h-10 sm:text-sm">
+                          <Link
+                            href={
+                              user
+                                ? appendExpertsBookEntryFrom(expertsBookServicePath(p, s.id), true)
+                                : "/auth/login"
+                            }
+                            onClick={
+                              user
+                                ? undefined
+                                : (e) =>
+                                    onGuestBookNav(
+                                      e,
+                                      appendExpertsBookEntryFrom(expertsBookServicePath(p, s.id), true),
+                                    )
+                            }
+                          >
+                            {t("experts.profile.bookSession")}
+                          </Link>
+                        </Button>
+                        <p className="text-center text-[11px] leading-snug text-muted-foreground sm:text-xs">
+                          {t("experts.profile.fulfillmentHero", { value: fulfillmentKindLabel(s.fulfillment_type, t) })}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </li>
               ))}
             </ul>
           )}
         </section>
-
-        <div className="flex flex-wrap justify-center sm:justify-start">
-          <Button asChild variant="outline" className="rounded-full">
-            <Link href={EXPERTS_CATALOG_PATH}>{t("experts.booking.backCatalog")}</Link>
-          </Button>
-        </div>
       </div>
     </HubLinePageShell>
   )

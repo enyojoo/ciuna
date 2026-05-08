@@ -7,7 +7,8 @@
     "recipients": "Bénéficiaires",
     "transactions": "Opérations",
     "more": "Plus",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "login": "Connexion"
   },
   "more": {
     "title": "Plus",

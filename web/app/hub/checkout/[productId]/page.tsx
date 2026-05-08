@@ -6,22 +6,16 @@ import { useParams, usePathname, useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import {
   AlertCircle,
-  Building2,
   Check,
   Clock,
   Copy,
-  Coins,
   MapPin,
   Package2,
   Phone,
-  QrCode,
   Search,
-  Smartphone,
-  Upload,
   UserRound,
   X,
 } from "lucide-react"
-import { QRCodeSVG } from "qrcode.react"
 import { useAuth } from "@/lib/auth-context"
 import { useUserData } from "@/hooks/use-user-data"
 import { fetchWithAuth } from "@/lib/fetch-with-auth"
@@ -33,11 +27,11 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import {
-  CurrencyFlagIcon,
   CurrencyPickerPopover,
   CurrencyPickerSheet,
   CurrencyPickerTrigger,
 } from "@/components/send/currency-picker-sheet"
+import { SendMakePaymentStep } from "@/components/send/send-make-payment-step"
 import type { HubProductRow } from "@/lib/hub-types"
 import {
   isHubProductCacheFresh,
@@ -51,8 +45,7 @@ import { deliveryAddressService, paymentMethodService, transactionService, userS
 import { generateTransactionId } from "@/lib/transaction-id"
 import { roundMoney, formatCurrency, getCurrencyNarrowSymbol } from "@/utils/currency"
 import { cn } from "@/lib/utils"
-import { accountFieldLabel } from "@/lib/account-field-i18n"
-import { formatFieldValue, getAccountTypeConfigFromCurrency } from "@/lib/currency-account-types"
+import { pickDefaultPaymentMethod } from "@/lib/pick-default-payment-method"
 import { hubPayMatchesProductCurrency, hubSyntheticSameCurrencyRateRow } from "@/lib/hub-same-currency-rate"
 import { hubCheckoutBackHrefFromPathname } from "@/lib/hub-public-paths"
 
@@ -91,34 +84,6 @@ function parseSlaText(slaText: string | null | undefined, t: (key: string, optio
   return t("hub.checkout.defaultSla", { defaultValue: "We reach out after payment." })
 }
 
-function PaymentDetailRow({
-  label,
-  value,
-  onCopy,
-  copied,
-  mono = false,
-}: {
-  label: string
-  value?: string | null
-  onCopy: () => void
-  copied: boolean
-  mono?: boolean
-}) {
-  if (!value?.trim()) return null
-
-  return (
-    <div className="space-y-1">
-      <span className="text-xs text-gray-600">{label}</span>
-      <div className="flex items-start gap-2">
-        <span className={cn("min-w-0 break-all text-sm font-medium text-gray-900", mono && "font-mono")}>{value}</span>
-        <Button type="button" variant="ghost" size="sm" onClick={onCopy} className="h-6 w-6 shrink-0 p-0">
-          {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
-        </Button>
-      </div>
-    </div>
-  )
-}
-
 export default function HubCheckoutPage() {
   const { t } = useTranslation("app")
   const params = useParams()
@@ -148,7 +113,6 @@ export default function HubCheckoutPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
-  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState("")
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({})
   const [sendDropdownOpen, setSendDropdownOpen] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
@@ -278,7 +242,6 @@ export default function HubCheckoutPage() {
     let cancelled = false
     if (!sendCurrency) {
       setPaymentMethods([])
-      setSelectedPaymentMethodId("")
       return
     }
     ;(async () => {
@@ -287,12 +250,9 @@ export default function HubCheckoutPage() {
         if (cancelled) return
         const activeMethods = methods.filter((method) => method.status === "active")
         setPaymentMethods(activeMethods)
-        const preferred = activeMethods.find((method) => method.is_default) || activeMethods[0]
-        setSelectedPaymentMethodId(preferred?.id || "")
       } catch {
         if (!cancelled) {
           setPaymentMethods([])
-          setSelectedPaymentMethodId("")
         }
       }
     })()
@@ -301,9 +261,9 @@ export default function HubCheckoutPage() {
     }
   }, [sendCurrency])
 
-  const selectedPaymentMethod = useMemo(
-    () => paymentMethods.find((method) => method.id === selectedPaymentMethodId) || null,
-    [paymentMethods, selectedPaymentMethodId],
+  const defaultPaymentMethod = useMemo(
+    () => pickDefaultPaymentMethod(paymentMethods, sendCurrency),
+    [paymentMethods, sendCurrency],
   )
 
   const pricingPreview = useMemo(() => {
@@ -482,7 +442,7 @@ export default function HubCheckoutPage() {
 
   const handlePay = async () => {
     if (!product || !userProfile?.id || !pricingPreview) return
-    if (!selectedPaymentMethodId) {
+    if (!defaultPaymentMethod?.id) {
       setError(t("hub.checkout.errors.noPaymentMethodForCurrency", { currency: sendCurrency }))
       return
     }
@@ -504,7 +464,7 @@ export default function HubCheckoutPage() {
           deliveryAddressLine: line,
           deliveryAddressId: fulfillmentType === "in_person" ? selectedDeliveryAddressId || null : null,
           formAnswers: commentText.trim() ? { comment: commentText.trim() } : {},
-          paymentMethodId: selectedPaymentMethodId,
+          paymentMethodId: defaultPaymentMethod.id,
           idempotencyKey: idempotencyKeyRef.current,
         }),
       })
@@ -648,229 +608,6 @@ export default function HubCheckoutPage() {
   const minAmount = product.funded_min != null ? Number(product.funded_min) : null
   const maxAmount = product.funded_max != null ? Number(product.funded_max) : null
   const slaLabel = parseSlaText(product.sla_text, t)
-
-  const renderPaymentMethodCard = () => {
-    if (!selectedPaymentMethod) {
-      return (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          {t("hub.checkout.noActivePaymentMethod", { currency: sendCurrency })}
-        </div>
-      )
-    }
-
-    const method = selectedPaymentMethod
-    const accountConfig = getAccountTypeConfigFromCurrency(sendCurrency)
-    const accountType = accountConfig.accountType
-
-    if (method.type === "bank_account") {
-      return (
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <div className="mb-4 flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-gray-600" />
-            <span className="font-medium text-gray-900">{method.name}</span>
-          </div>
-          <div className="space-y-4">
-            <PaymentDetailRow
-              label={accountFieldLabel(t, "account_name", accountConfig.fieldLabels.account_name)}
-              value={method.account_name}
-              onCopy={() => handleCopy(method.account_name || "", "account_name")}
-              copied={!!copiedStates.account_name}
-            />
-            {accountType === "us" ? (
-              <PaymentDetailRow
-                label={accountFieldLabel(t, "routing_number", accountConfig.fieldLabels.routing_number)}
-                value={formatFieldValue(accountType, "routing_number", method.routing_number || "")}
-                onCopy={() => handleCopy(method.routing_number || "", "routing_number")}
-                copied={!!copiedStates.routing_number}
-                mono
-              />
-            ) : null}
-            {accountType === "uk" ? (
-              <PaymentDetailRow
-                label={accountFieldLabel(t, "sort_code", accountConfig.fieldLabels.sort_code)}
-                value={formatFieldValue(accountType, "sort_code", method.sort_code || "")}
-                onCopy={() => handleCopy(method.sort_code || "", "sort_code")}
-                copied={!!copiedStates.sort_code}
-                mono
-              />
-            ) : null}
-            {(accountType === "us" || accountType === "uk" || accountType === "generic") && method.account_number ? (
-              <PaymentDetailRow
-                label={accountFieldLabel(t, "account_number", accountConfig.fieldLabels.account_number)}
-                value={method.account_number}
-                onCopy={() => handleCopy(method.account_number || "", "account_number")}
-                copied={!!copiedStates.account_number}
-                mono
-              />
-            ) : null}
-            {accountType === "euro" && method.iban ? (
-              <PaymentDetailRow
-                label={accountFieldLabel(t, "iban", accountConfig.fieldLabels.iban)}
-                value={formatFieldValue(accountType, "iban", method.iban)}
-                onCopy={() => handleCopy(method.iban || "", "iban")}
-                copied={!!copiedStates.iban}
-                mono
-              />
-            ) : null}
-            {method.swift_bic ? (
-              <PaymentDetailRow
-                label={accountFieldLabel(t, "swift_bic", accountConfig.fieldLabels.swift_bic || "SWIFT/BIC")}
-                value={method.swift_bic}
-                onCopy={() => handleCopy(method.swift_bic || "", "swift_bic")}
-                copied={!!copiedStates.swift_bic}
-                mono
-              />
-            ) : null}
-            <PaymentDetailRow
-              label={accountFieldLabel(t, "bank_name", accountConfig.fieldLabels.bank_name)}
-              value={method.bank_name}
-              onCopy={() => handleCopy(method.bank_name || "", "bank_name")}
-              copied={!!copiedStates.bank_name}
-            />
-          </div>
-        </div>
-      )
-    }
-
-    if (method.type === "qr_code") {
-      return (
-        <div className="grid gap-4 rounded-xl border border-gray-200 bg-white p-4 md:grid-cols-[1fr_auto]">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <QrCode className="h-4 w-4 text-gray-600" />
-              <span className="font-medium text-gray-900">{method.name}</span>
-            </div>
-            {method.instructions ? <p className="text-sm text-gray-600">{method.instructions}</p> : null}
-            {method.qr_code_data ? (
-              <PaymentDetailRow
-                label={t("hub.checkout.qrPayload", { defaultValue: "QR payload" })}
-                value={method.qr_code_data}
-                onCopy={() => handleCopy(method.qr_code_data || "", "qr_code_data")}
-                copied={!!copiedStates.qr_code_data}
-                mono
-              />
-            ) : null}
-          </div>
-          <div className="flex items-center justify-center rounded-xl border bg-gray-50 p-3">
-            {method.qr_code_data ? (
-              <QRCodeSVG value={method.qr_code_data} size={144} />
-            ) : (
-              <QrCode className="h-16 w-16 text-gray-300" />
-            )}
-          </div>
-        </div>
-      )
-    }
-
-    if (method.type === "stablecoin") {
-      return (
-        <div className="bg-white rounded-lg p-3 border border-gray-100">
-          <div className="flex items-center gap-2 mb-3">
-            <Coins className="h-4 w-4 text-gray-600" />
-            <span className="font-medium text-sm">{method.name}</span>
-          </div>
-          {method.crypto_asset ? (
-            <div className="space-y-1 mb-2">
-              <span className="text-gray-600 text-xs">{t("send.cryptoAsset")}</span>
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-sm">{method.crypto_asset}</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleCopy(String(method.crypto_asset || ""), "cryptoAsset")}
-                  className="h-5 w-5 p-0"
-                >
-                  {copiedStates.cryptoAsset ? (
-                    <Check className="h-3 w-3 text-green-600" />
-                  ) : (
-                    <Copy className="h-3 w-3" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          ) : null}
-          {method.crypto_network ? (
-            <div className="space-y-1 mb-2">
-              <span className="text-gray-600 text-xs">{t("send.cryptoNetwork")}</span>
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-sm">{method.crypto_network}</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleCopy(String(method.crypto_network || ""), "cryptoNetwork")}
-                  className="h-5 w-5 p-0"
-                >
-                  {copiedStates.cryptoNetwork ? (
-                    <Check className="h-3 w-3 text-green-600" />
-                  ) : (
-                    <Copy className="h-3 w-3" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          ) : null}
-          {method.wallet_address?.trim() ? (
-            <>
-              <div className="space-y-1 mb-3">
-                <span className="text-gray-600 text-xs">{t("send.walletAddress")}</span>
-                <div className="flex items-start gap-2">
-                  <span className="font-medium font-mono text-xs break-all flex-1">
-                    {method.wallet_address.trim()}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleCopy(method.wallet_address.trim(), "walletAddress")}
-                    className="h-5 w-5 p-0 shrink-0"
-                  >
-                    {copiedStates.walletAddress ? (
-                      <Check className="h-3 w-3 text-green-600" />
-                    ) : (
-                      <Copy className="h-3 w-3" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-              <div className="w-48 h-48 bg-white rounded-lg mx-auto mb-3 flex items-center justify-center border border-gray-100 p-2">
-                <QRCodeSVG value={method.wallet_address.trim()} size={176} level="M" includeMargin />
-              </div>
-            </>
-          ) : (
-            <p className="text-sm text-amber-700">{t("send.stablecoinMissingAddress")}</p>
-          )}
-          {method.instructions ? <p className="text-xs text-gray-500">{method.instructions}</p> : null}
-        </div>
-      )
-    }
-
-    return (
-      <div className="rounded-xl border border-gray-200 bg-white p-4">
-        <div className="mb-4 flex items-center gap-2">
-          <Smartphone className="h-4 w-4 text-gray-600" />
-          <span className="font-medium text-gray-900">{method.name}</span>
-        </div>
-        <div className="space-y-4">
-          <PaymentDetailRow
-            label={t("hub.checkout.displayName", { defaultValue: "Display name" })}
-            value={method.account_name}
-            onCopy={() => handleCopy(method.account_name || "", "mobile_name")}
-            copied={!!copiedStates.mobile_name}
-          />
-          <PaymentDetailRow
-            label={t("hub.checkout.phoneNumber", { defaultValue: "Phone number" })}
-            value={method.account_number}
-            onCopy={() => handleCopy(method.account_number || "", "mobile_number")}
-            copied={!!copiedStates.mobile_number}
-            mono
-          />
-          {method.instructions ? <p className="text-sm text-gray-600">{method.instructions}</p> : null}
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="min-w-0 space-y-0">
@@ -1234,226 +971,49 @@ export default function HubCheckoutPage() {
               ) : null}
 
               {step === 3 ? (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t("hub.checkout.makePayment")}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="flex items-center gap-3 rounded-xl border border-primary/15 bg-primary/[0.04] p-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-primary shadow-sm ring-2 ring-primary/20">
-                        {sendCurrencyData ? <CurrencyFlagIcon currency={sendCurrencyData} /> : null}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-primary">
-                          {t("hub.checkout.transferLine", {
-                            defaultValue: "Transfer {{amount}}",
-                            amount: formatCurrency(pricingPreview?.total || 0, sendCurrency),
-                          })}
-                        </h3>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                      <div className="space-y-3">{renderPaymentMethodCard()}</div>
-
-                      <div className="space-y-3">
-                        <h4 className="font-medium text-gray-900 text-xs uppercase tracking-wide">
-                          {t("send.importantInstructions")}
-                        </h4>
-                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                          <ul className="text-xs text-amber-700 space-y-1.5">
-                            <li className="flex items-start gap-2">
-                              <span className="text-amber-500 mt-0.5 text-xs">•</span>
-                              <span>
-                                {t("send.transferExactly")}{" "}
-                                <strong>{formatCurrency(pricingPreview?.total || 0, sendCurrency)}</strong>
-                              </span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <span className="text-amber-500 mt-0.5 text-xs">•</span>
-                              <span className="flex-1">
-                                {t("send.noteTransactionId")}{" "}
-                                <span className="inline-flex items-center gap-1">
-                                  <strong>{transactionIdNote}</strong>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleCopy(transactionIdNote, "transactionIdInstructions")}
-                                    className="h-4 w-4 p-0 hover:bg-amber-100"
-                                  >
-                                    {copiedStates.transactionIdInstructions ? (
-                                      <Check className="h-3 w-3 text-green-600" />
-                                    ) : (
-                                      <Copy className="h-3 w-3 text-amber-700" />
-                                    )}
-                                  </Button>
-                                </span>
-                              </span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <span className="text-amber-500 mt-0.5 text-xs">•</span>
-                              <span>
-                                {t("send.completeWithin")} <strong>{t("send.aFewMinutes")}</strong>
-                              </span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <span className="text-amber-500 mt-0.5 text-xs">•</span>
-                              <span>{t("send.uploadReceiptVerify")}</span>
-                            </li>
-                            {selectedPaymentMethod?.type === "qr_code" ? (
-                              <li className="flex items-start gap-2">
-                                <span className="text-amber-500 mt-0.5 text-xs">•</span>
-                                <span>{t("send.scanQrBanking")}</span>
-                              </li>
-                            ) : null}
-                            {selectedPaymentMethod?.type === "stablecoin" ? (
-                              <li className="flex items-start gap-2">
-                                <span className="text-amber-500 mt-0.5 text-xs">•</span>
-                                <span>{t("send.scanWalletQr")}</span>
-                              </li>
-                            ) : null}
-                            {selectedPaymentMethod?.type === "mobile_money" ? (
-                              <li className="flex items-start gap-2">
-                                <span className="text-amber-500 mt-0.5 text-xs">•</span>
-                                <span>{t("send.payMobileMoney")}</span>
-                              </li>
-                            ) : null}
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileInputChange}
-                        accept=".jpg,.jpeg,.png,.pdf"
-                        className="hidden"
-                      />
-
-                      {uploadError ? (
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                          <div className="flex items-start gap-2">
-                            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
-                            <div className="flex-1">
-                              <p className="text-sm text-red-700 font-medium">{t("send.uploadError")}</p>
-                              <p className="text-xs text-red-600 mt-1">{uploadError}</p>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={handleDismissUploadError}
-                              className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      ) : null}
-
-                      <div
-                        onClick={handleUploadClick}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        className={cn(
-                          "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all duration-200",
-                          isDragOver
-                            ? "border-primary bg-primary/[0.06] shadow-sm ring-2 ring-primary/35"
-                            : uploadedFile
-                              ? "border-green-300 bg-green-50"
-                              : uploadError
-                                ? "border-red-300 bg-red-50"
-                                : "border-gray-200 hover:border-primary/35",
-                        )}
-                      >
-                        <div className="flex items-center justify-center gap-3">
-                          <div
-                            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-                              uploadedFile
-                                ? "bg-green-100"
-                                : uploadError
-                                  ? "bg-red-100"
-                                  : isDragOver
-                                    ? "bg-primary/10"
-                                    : "bg-gray-100"
-                            }`}
-                          >
-                            {uploadedFile ? (
-                              <Check className="h-5 w-5 text-green-600" />
-                            ) : uploadError ? (
-                              <AlertCircle className="h-5 w-5 text-red-600" />
-                            ) : (
-                              <Upload className={`h-5 w-5 transition-colors ${isDragOver ? "text-primary" : "text-gray-400"}`} />
-                            )}
-                          </div>
-                          <div className="text-left min-w-0 flex-1">
-                            <h3 className="font-medium text-gray-900 text-sm truncate" title={uploadedFile?.name}>
-                              {uploadedFile
-                                ? uploadedFile.name
-                                : uploadError
-                                  ? t("send.uploadFailed")
-                                  : t("send.uploadReceipt")}
-                            </h3>
-                            <p className="text-xs text-gray-500">
-                              {uploadedFile
-                                ? `${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB`
-                                : uploadError
-                                  ? t("send.clickTryAgain")
-                                  : t("send.fileTypesHint")}
-                            </p>
-                          </div>
-                          {uploadedFile ? (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleRemoveFile()
-                              }}
-                              className="h-6 w-6 p-0 text-gray-400 hover:text-red-600"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          ) : null}
-                        </div>
-
-                        {isUploading ? (
-                          <div className="mt-3">
-                            <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-                              <span>{t("send.uploading")}</span>
-                              <span>{uploadProgress}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-1.5">
-                              <div
-                                className="bg-primary h-1.5 rounded-full transition-all duration-300"
-                                style={{ width: `${uploadProgress}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3 sm:gap-4">
-                      <Button type="button" variant="outline" onClick={() => setStep(2)} disabled={submitting} className="min-h-12 flex-1">
-                        {t("hub.checkout.back")}
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={handlePay}
-                        disabled={submitting || !pricingPreview || !selectedPaymentMethodId}
-                        className="min-h-12 flex-1 rounded-xl bg-primary text-base font-semibold hover:bg-primary/90"
-                      >
-                        {submitting ? t("hub.checkout.creating") : t("send.ivePaid")}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <SendMakePaymentStep
+                  sendCurrency={sendCurrency}
+                  sendCurrencyData={sendCurrencyData}
+                  transactionIdNote={transactionIdNote}
+                  totalToPay={pricingPreview?.total ?? 0}
+                  transferTitle={t("send.transferLine", { amount: formatCurrency(pricingPreview?.total || 0, sendCurrency) })}
+                  transferSubtitle={
+                    pricingPreview && pricingPreview.fee > 0 ? (
+                      <p className="text-xs text-gray-600">
+                        {t("send.sendAmountPlusFee", {
+                          send: formatCurrency(pricingPreview.orderTotalSend, sendCurrency),
+                          fee: formatCurrency(pricingPreview.fee, sendCurrency),
+                        })}
+                      </p>
+                    ) : undefined
+                  }
+                  activePaymentMethodsCount={paymentMethods.length}
+                  defaultMethod={defaultPaymentMethod}
+                  copiedStates={copiedStates}
+                  onCopy={handleCopy}
+                  showInstructionAmountFeeBreakdown={Boolean(pricingPreview && pricingPreview.fee > 0)}
+                  instructionBreakdownPrincipal={pricingPreview?.orderTotalSend}
+                  instructionBreakdownFee={pricingPreview?.fee}
+                  fileInputRef={fileInputRef}
+                  uploadedFile={uploadedFile}
+                  uploadError={uploadError}
+                  uploadProgress={uploadProgress}
+                  isUploading={isUploading}
+                  isDragOver={isDragOver}
+                  onFileInputChange={handleFileInputChange}
+                  onUploadClick={handleUploadClick}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onRemoveFile={handleRemoveFile}
+                  onDismissUploadError={handleDismissUploadError}
+                  onBack={() => setStep(2)}
+                  onPaid={() => void handlePay()}
+                  submitting={submitting}
+                  payDisabled={!pricingPreview || !defaultPaymentMethod?.id}
+                  submittingLabel={t("hub.checkout.creating")}
+                  idlePaidLabel={t("send.ivePaid")}
+                />
               ) : null}
             </div>
 

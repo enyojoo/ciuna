@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/admin-auth-utils"
 import { buildExpertServiceRow } from "@/lib/expert-admin-validation"
 
 const SERVICE_SELECT =
-  "id, expert_profile_id, title, short_description, sort_order, is_published, pricing_type, hourly_rate, hourly_currency, fixed_amount, fixed_currency, package_label, default_duration_minutes, min_session_minutes, max_session_minutes, created_at, updated_at"
+  "id, expert_profile_id, title, short_description, sort_order, is_published, fulfillment_type, pricing_type, hourly_rate, hourly_currency, fixed_amount, fixed_currency, package_label, default_duration_minutes, min_session_minutes, max_session_minutes, created_at, updated_at"
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {

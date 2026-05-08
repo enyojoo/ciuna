@@ -4,7 +4,8 @@ import { Suspense, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { fetchWithAuth } from "@/lib/fetch-with-auth"
-import { expertsBookPath, EXPERTS_CATALOG_PATH } from "@/lib/experts-public-paths"
+import { stashRedirectAfterLogin } from "@/lib/auth-login-redirect"
+import { expertsBookServicePath, EXPERTS_CATALOG_PATH } from "@/lib/experts-public-paths"
 
 function ExpertsCheckoutRedirect() {
   const router = useRouter()
@@ -14,7 +15,10 @@ function ExpertsCheckoutRedirect() {
 
   useEffect(() => {
     if (!user) {
-      if (!authLoading) router.replace("/auth/login")
+      if (!authLoading && typeof window !== "undefined") {
+        stashRedirectAfterLogin(`${window.location.pathname}${window.location.search}`)
+        router.replace("/auth/login")
+      }
       return
     }
     if (!slotId) {
@@ -30,13 +34,11 @@ function ExpertsCheckoutRedirect() {
           router.replace(EXPERTS_CATALOG_PATH)
           return
         }
-        const data = (await res.json()) as { profile?: { id?: string } }
-        const profileId = data.profile?.id
-        if (!profileId) {
-          router.replace(EXPERTS_CATALOG_PATH)
-          return
+        const data = (await res.json()) as {
+          profile: { id: string; slug?: string | null }
+          service: { id: string }
         }
-        router.replace(expertsBookPath(profileId, slotId))
+        router.replace(expertsBookServicePath(data.profile, data.service.id, { slot: slotId }))
       } catch {
         if (!cancelled) router.replace(EXPERTS_CATALOG_PATH)
       }

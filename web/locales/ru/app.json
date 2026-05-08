@@ -79,6 +79,7 @@
       "orderSummary": "Сводка заказа",
       "productLabel": "Товар",
       "productPrice": "Стоимость товара",
+      "servicePrice": "Стоимость услуги",
       "subtotal": "Подытог",
       "transferFee": "Комиссия обмена",
       "hubFee": "Комиссия Хаба",
@@ -663,7 +664,8 @@
       "serviceArea": "Регион: {{area}}",
       "fulfillmentOnline": "Онлайн",
       "fulfillmentInPerson": "Очно",
-      "fulfillmentBoth": "Онлайн или очно"
+      "fulfillmentBoth": "Онлайн или очно",
+      "fulfillmentHero": "Формат: {{value}}"
     },
     "booking": {
       "title": "Запись к эксперту",
@@ -682,8 +684,13 @@
     },
     "bookingWizard": {
       "pageTitle": "Запись к {{name}}",
+      "heroBookService": "Запись на услугу «{{title}}»",
+      "providedBy": "Оказывает",
+      "checkoutServiceLabel": "Услуга",
+      "sessionTime": "Время сессии",
       "stepSession": "Сессия",
       "stepTime": "Дата и время",
+      "stepCheckout": "Оформление",
       "stepConfirm": "Подтверждение",
       "chooseService": "Выберите тип сессии",
       "noServices": "Пока нет доступных для записи услуг.",

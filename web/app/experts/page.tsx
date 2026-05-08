@@ -1,8 +1,10 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useMemo, useState } from "react"
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react"
 import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { ChevronRight } from "lucide-react"
 import type { HubServiceLineRow } from "@/lib/hub-service-line-types"
 import {
   hubPublicHubJsonCacheUserId,
@@ -15,39 +17,68 @@ import {
   readStaleExpertProfilesListCache,
   writeExpertProfilesListCache,
 } from "@/lib/expert-profile-client-cache"
+import {
+  HubExpertCatalogFeaturedChip,
+  type ExpertCatalogProfile,
+} from "@/components/hub/hub-expert-catalog-card"
+import { HubExpertServiceCatalogCard, type ExpertCatalogService } from "@/components/hub/hub-expert-service-catalog-card"
 import { HubLinePageShell } from "@/components/hub/hub-line-page-shell"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { expertsProfilePath } from "@/lib/experts-public-paths"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { EXPERTS_BROWSE_PATH } from "@/lib/experts-public-paths"
 
-type ExpertProfile = {
-  id: string
-  display_name: string
-  headline: string | null
-  bio: string | null
-  category?: string | null
-  image_url?: string | null
-  pricing_hint?: string | null
-}
-
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
-  }
-  return a
-}
+const ALL_CATEGORIES_VALUE = "__all__"
+const FEATURED_PREVIEW_COUNT = 8
 
 const SERVICE_LINES_CACHE_USER = hubPublicHubJsonCacheUserId()
 
-export default function ExpertsDiscoveryPage() {
+type ExpertProfile = ExpertCatalogProfile & {
+  bio: string | null
+  category?: string | null
+  created_at?: string
+}
+
+function ExpertsDiscoveryFallback() {
   const { t } = useTranslation("app")
+  return (
+    <HubLinePageShell title={t("hub.expertsTitle")} subtitle={null} backToHubAriaLabel={t("hub.backToHub")} backHref="/hub">
+      <div className="space-y-12 animate-pulse sm:space-y-14">
+        <div className="space-y-4">
+          <div className="h-7 max-w-[40%] rounded-md bg-muted" />
+          <div className="flex gap-3 overflow-hidden pb-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-36 w-28 shrink-0 rounded-2xl bg-muted sm:h-40 sm:w-32" />
+            ))}
+          </div>
+        </div>
+        <div className="space-y-4">
+          <div className="flex justify-between gap-3">
+            <div className="h-7 max-w-[35%] rounded-md bg-muted" />
+            <div className="h-10 w-44 rounded-md bg-muted sm:w-56" />
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-44 min-h-[11rem] rounded-2xl bg-muted sm:h-48" />
+            ))}
+          </div>
+        </div>
+      </div>
+    </HubLinePageShell>
+  )
+}
+
+function ExpertsDiscoveryInner() {
+  const { t } = useTranslation("app")
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const selectedCategory = (searchParams.get("category") || "").trim()
+
   const [lines, setLines] = useState<HubServiceLineRow[]>([])
   const [linesLoaded, setLinesLoaded] = useState(false)
   const [profiles, setProfiles] = useState<ExpertProfile[]>([])
   const [loadingProfiles, setLoadingProfiles] = useState(true)
-  const [categoryFilter, setCategoryFilter] = useState("")
+  const [catalogServices, setCatalogServices] = useState<ExpertCatalogService[]>([])
+  const [loadingCatalog, setLoadingCatalog] = useState(true)
 
   useLayoutEffect(() => {
     const stale = readStaleExpertProfilesListCache()
@@ -129,22 +160,73 @@ export default function ExpertsDiscoveryPage() {
     }
   }, [])
 
-  const displayedProfiles = useMemo(() => {
-    const c = categoryFilter.trim()
-    if (!c) return profiles
-    return profiles.filter((p) => (p.category || "").trim() === c)
-  }, [profiles, categoryFilter])
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch("/api/expert/catalog-services", { cache: "no-store" })
+        if (!res.ok) throw new Error("catalog")
+        const data = await res.json()
+        const list = (data.services || []) as ExpertCatalogService[]
+        if (!cancelled) setCatalogServices(list)
+      } catch {
+        if (!cancelled) setCatalogServices([])
+      } finally {
+        if (!cancelled) setLoadingCatalog(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
-  const carouselExperts = useMemo(() => shuffle(displayedProfiles).slice(0, 10), [displayedProfiles])
+  const featuredPreview = useMemo(() => {
+    const sorted = [...profiles].sort((a, b) => {
+      const ta = a.created_at ? new Date(a.created_at).getTime() : 0
+      const tb = b.created_at ? new Date(b.created_at).getTime() : 0
+      return tb - ta
+    })
+    return sorted.slice(0, FEATURED_PREVIEW_COUNT)
+  }, [profiles])
+
+  const displayedServices = useMemo(() => {
+    const c = selectedCategory.trim()
+    if (!c) return catalogServices
+    return catalogServices.filter((s) => (s.expert.category || "").trim() === c)
+  }, [catalogServices, selectedCategory])
 
   const categoryOptions = useMemo(() => {
     const set = new Set<string>()
-    for (const p of profiles) {
-      const cat = (p.category || "").trim()
+    for (const s of catalogServices) {
+      const cat = (s.expert.category || "").trim()
       if (cat) set.add(cat)
     }
-    return Array.from(set).sort()
-  }, [profiles])
+    const sorted = Array.from(set).sort((a, b) => a.localeCompare(b))
+    if (selectedCategory && !sorted.some((c) => c.toLowerCase() === selectedCategory.toLowerCase())) {
+      sorted.unshift(selectedCategory)
+    }
+    return sorted
+  }, [catalogServices, selectedCategory])
+
+  const categorySelectValue = useMemo(() => {
+    if (!selectedCategory) return ALL_CATEGORIES_VALUE
+    const q = selectedCategory.toLowerCase()
+    for (const c of categoryOptions) {
+      if (c.toLowerCase() === q) return c
+    }
+    return selectedCategory
+  }, [selectedCategory, categoryOptions])
+
+  const onCategoryFilterChange = useCallback(
+    (value: string) => {
+      if (value === ALL_CATEGORIES_VALUE) {
+        router.replace("/experts")
+        return
+      }
+      router.replace(`/experts?category=${encodeURIComponent(value)}`)
+    },
+    [router],
+  )
 
   const title = t("hub.expertsTitle")
   const subtitle =
@@ -166,100 +248,100 @@ export default function ExpertsDiscoveryPage() {
 
   return (
     <HubLinePageShell title={title} subtitle={subtitle} backToHubAriaLabel={t("hub.backToHub")} backHref="/hub">
-      <div className="space-y-10 sm:space-y-12">
-        {categoryOptions.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-muted-foreground">Category</span>
-            <Button
-              type="button"
-              variant={categoryFilter === "" ? "default" : "outline"}
-              size="sm"
-              className="h-8 rounded-full text-xs"
-              onClick={() => setCategoryFilter("")}
-            >
-              All
-            </Button>
-            {categoryOptions.map((c) => (
-              <Button
-                key={c}
-                type="button"
-                variant={categoryFilter === c ? "default" : "outline"}
-                size="sm"
-                className="h-8 rounded-full text-xs"
-                onClick={() => setCategoryFilter(c)}
+      <div className="space-y-12 sm:space-y-14">
+        <section className="space-y-4">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <h2 className="text-lg font-semibold text-foreground sm:text-xl">
+              {t("hub.expertsFeaturedHeading", { defaultValue: "Featured" })}
+            </h2>
+            {profiles.length > 0 ? (
+              <Link
+                href={EXPERTS_BROWSE_PATH}
+                className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-orange-600 transition hover:text-orange-700"
               >
-                {c}
-              </Button>
-            ))}
+                {t("hub.expertsSeeAll", { defaultValue: "See all" })}
+                <ChevronRight className="h-4 w-4" aria-hidden />
+              </Link>
+            ) : null}
           </div>
-        ) : null}
 
-        <section>
-          <h3 className="mb-4 text-sm font-semibold text-foreground">{t("hub.expertsFeatured", { defaultValue: "Featured" })}</h3>
           {loadingProfiles && profiles.length === 0 ? (
-            <div className="flex gap-3 overflow-hidden">
+            <div className="flex gap-3 overflow-hidden pb-1">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-36 w-28 shrink-0 rounded-xl bg-muted sm:h-40 sm:w-32" />
+                <div key={i} className="h-36 w-28 shrink-0 rounded-2xl bg-muted sm:h-40 sm:w-32" />
               ))}
             </div>
-          ) : carouselExperts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("hub.expertsEmpty", { defaultValue: "No experts listed yet." })}</p>
+          ) : featuredPreview.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {t("hub.expertsFeaturedEmpty", { defaultValue: "No experts yet — check back soon." })}
+            </p>
           ) : (
-            <div className="-mx-1 flex gap-3 overflow-x-auto pb-2 sm:gap-4">
-              {carouselExperts.map((ex) => (
-                <Link
-                  key={ex.id}
-                  href={expertsProfilePath(ex.id)}
-                  className="w-[7.5rem] shrink-0 overflow-hidden rounded-2xl border border-border bg-card p-3 text-center shadow-sm transition hover:border-orange-300/70 sm:w-[8.5rem]"
-                >
-                  <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-lg font-bold text-white">
-                    {ex.display_name?.charAt(0)?.toUpperCase() || "?"}
-                  </div>
-                  <p className="line-clamp-2 text-xs font-semibold text-foreground">{ex.display_name}</p>
-                  {ex.pricing_hint ? (
-                    <p className="mt-1 line-clamp-1 text-[10px] font-medium text-orange-700 dark:text-orange-300">{ex.pricing_hint}</p>
-                  ) : null}
-                  {ex.headline ? <p className="mt-1 line-clamp-2 text-[10px] text-muted-foreground">{ex.headline}</p> : null}
-                </Link>
+            <div className="-mx-1 flex gap-3 overflow-x-auto pb-2 pt-0.5 sm:gap-4">
+              {featuredPreview.map((ex) => (
+                <HubExpertCatalogFeaturedChip key={ex.id} expert={ex} />
               ))}
             </div>
           )}
         </section>
 
-        <section>
-          <h3 className="mb-4 text-sm font-semibold text-foreground">{t("hub.expertsAll", { defaultValue: "All experts" })}</h3>
-          {loadingProfiles && profiles.length === 0 ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-40 rounded-2xl bg-muted" />
+        <section className="space-y-6">
+          <div className="flex min-w-0 flex-nowrap items-center justify-between gap-2 sm:gap-3">
+            <h2 className="min-w-0 flex-1 truncate text-lg font-semibold text-foreground sm:text-xl">
+              {t("hub.expertsServicesHeading", { defaultValue: "Services" })}
+            </h2>
+            {categoryOptions.length > 0 ? (
+              <div className="shrink-0 basis-44 sm:basis-56 w-44 sm:w-56 min-w-0">
+                <Select value={categorySelectValue} onValueChange={onCategoryFilterChange}>
+                  <SelectTrigger className="max-w-full" aria-label={t("hub.categoryFilterAria")}>
+                    <SelectValue placeholder={t("hub.allCategories")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL_CATEGORIES_VALUE}>{t("hub.allCategories")}</SelectItem>
+                    {categoryOptions.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
+          </div>
+
+          {loadingCatalog && catalogServices.length === 0 ? (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-44 min-h-[11rem] rounded-2xl bg-muted sm:h-48" />
               ))}
             </div>
-          ) : profiles.length === 0 ? null : displayedProfiles.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t("hub.expertsNoneInCategory", { defaultValue: "No experts in this category." })}
-            </p>
+          ) : catalogServices.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("hub.expertsServicesEmpty", { defaultValue: "No services listed yet." })}</p>
+          ) : displayedServices.length === 0 ? (
+            <div className="space-y-3 py-10 text-center text-sm text-muted-foreground">
+              <p>{t("hub.expertsServicesNoneInCategory", { defaultValue: "No services in this category." })}</p>
+              <Button type="button" variant="outline" size="sm" onClick={() => onCategoryFilterChange(ALL_CATEGORIES_VALUE)}>
+                {t("hub.allCategories")}
+              </Button>
+            </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 sm:gap-4">
-              {displayedProfiles.map((ex) => (
-                <Link key={ex.id} href={expertsProfilePath(ex.id)} className="block">
-                  <Card className="h-full overflow-hidden transition hover:border-orange-300/70 hover:shadow-md">
-                    <CardContent className="space-y-2 p-4 text-center">
-                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-xl font-bold text-white">
-                        {ex.display_name?.charAt(0)?.toUpperCase() || "?"}
-                      </div>
-                      <p className="line-clamp-2 font-semibold text-foreground">{ex.display_name}</p>
-                      {ex.pricing_hint ? (
-                        <p className="line-clamp-1 text-xs font-medium text-orange-700 dark:text-orange-300">{ex.pricing_hint}</p>
-                      ) : null}
-                      {ex.headline ? <p className="line-clamp-2 text-xs text-muted-foreground">{ex.headline}</p> : null}
-                    </CardContent>
-                  </Card>
-                </Link>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+              {displayedServices.map((s) => (
+                <div key={s.id} className="h-full min-w-0">
+                  <HubExpertServiceCatalogCard service={s} />
+                </div>
               ))}
             </div>
           )}
         </section>
       </div>
     </HubLinePageShell>
+  )
+}
+
+export default function ExpertsDiscoveryPage() {
+  return (
+    <Suspense fallback={<ExpertsDiscoveryFallback />}>
+      <ExpertsDiscoveryInner />
+    </Suspense>
   )
 }

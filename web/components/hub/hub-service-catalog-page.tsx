@@ -76,13 +76,8 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
 
   useLayoutEffect(() => {
     if (!marketplaceCatalogUserId) return
-    setProducts((prev) => {
-      if (prev.length > 0) return prev
-      const stale = readStaleHubCatalogCache(marketplaceCatalogUserId, catalogScope)
-      if (stale && stale.length > 0) return sortHubCatalogProducts(stale)
-      return prev
-    })
     const stale = readStaleHubCatalogCache(marketplaceCatalogUserId, catalogScope)
+    setProducts(stale && stale.length > 0 ? sortHubCatalogProducts(stale) : [])
     const hasRows = (stale?.length ?? 0) > 0
     const cacheFresh = isHubCatalogCacheFresh(marketplaceCatalogUserId, catalogScope)
     if (!cacheFresh && !hasRows) {
@@ -94,13 +89,8 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
 
   useLayoutEffect(() => {
     if (!isMarketplaceLine) return
-    setVendors((prev) => {
-      if (prev.length > 0) return prev
-      const stale = readStaleHubVendorListCache(marketplaceJsonCacheId, slug)
-      if (stale && stale.length > 0) return stale
-      return prev
-    })
     const stale = readStaleHubVendorListCache(marketplaceJsonCacheId, slug)
+    setVendors(stale ?? [])
     const hasRows = (stale?.length ?? 0) > 0
     const vendorListFresh = isHubVendorListCacheFresh(marketplaceJsonCacheId, slug)
     if (!vendorListFresh && !hasRows) {
@@ -165,7 +155,15 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
   useEffect(() => {
     if (!marketplaceCatalogUserId) return
     if (!isMarketplaceLine && !user) return
-    if (isHubCatalogCacheFresh(marketplaceCatalogUserId, catalogScope)) return
+    const staleCatalog = readStaleHubCatalogCache(marketplaceCatalogUserId, catalogScope)
+    if (
+      isHubCatalogCacheFresh(marketplaceCatalogUserId, catalogScope) &&
+      isMarketplaceLine &&
+      (staleCatalog?.length ?? 0) > 0
+    ) {
+      return
+    }
+    if (!isMarketplaceLine && isHubCatalogCacheFresh(marketplaceCatalogUserId, catalogScope)) return
 
     let cancelled = false
     ;(async () => {
@@ -194,11 +192,11 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
 
   useEffect(() => {
     if (!isMarketplaceLine) return
-    if (isHubVendorListCacheFresh(marketplaceJsonCacheId, slug)) return
+    const staleVendors = readStaleHubVendorListCache(marketplaceJsonCacheId, slug)
+    if (isHubVendorListCacheFresh(marketplaceJsonCacheId, slug) && (staleVendors?.length ?? 0) > 0) return
 
     let cancelled = false
-    const staleRows = readStaleHubVendorListCache(marketplaceJsonCacheId, slug)
-    const hasRows = (staleRows?.length ?? 0) > 0
+    const hasRows = (staleVendors?.length ?? 0) > 0
     if (!hasRows) setLoadingVendors(true)
 
     ;(async () => {

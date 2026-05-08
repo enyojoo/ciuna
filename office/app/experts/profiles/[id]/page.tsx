@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { normalizePublicSlug } from "@ciuna/shared"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { OfficeDashboardLayout } from "@/components/layout/office-dashboard-layout"
@@ -17,16 +18,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { ExpertServiceScheduleEditor } from "@/components/experts/expert-service-schedule-editor"
 import { officeFetch } from "@/lib/api-client"
+import { useOfficeData } from "@/hooks/use-office-data"
+import { formatCurrencySymbolOnly } from "@/utils/currency"
 
 type Profile = {
   id: string
+  slug: string | null
   display_name: string
   headline: string | null
   bio: string | null
   is_published: boolean
   category: string
   image_url: string | null
-  fulfillment_type: string
   service_area: string | null
   meeting_hint: string | null
 }
@@ -35,6 +38,7 @@ type Service = {
   id: string
   title: string
   short_description: string | null
+  fulfillment_type?: string
   sort_order: number
   is_published: boolean
   pricing_type: string
@@ -81,6 +85,7 @@ export default function OfficeExpertProfileDetailPage() {
   const [slotEndLocal, setSlotEndLocal] = useState("")
   const [savingSlot, setSavingSlot] = useState(false)
   const [slotSubTab, setSlotSubTab] = useState<"schedule" | "manual">("schedule")
+  const [slugTouched, setSlugTouched] = useState(true)
 
   const loadProfile = useCallback(async () => {
     if (!id) return
@@ -155,22 +160,30 @@ export default function OfficeExpertProfileDetailPage() {
   const [form, setForm] = useState<Partial<Profile>>({})
 
   useEffect(() => {
-    if (profile) setForm(profile)
+    if (profile) {
+      setForm(profile)
+      setSlugTouched(true)
+    }
   }, [profile])
 
   const saveProfile = async () => {
     if (!id || !profile) return
+    const slugNorm = normalizePublicSlug(String(form.slug ?? ""))
+    if (!slugNorm) {
+      alert("Please set a URL slug.")
+      return
+    }
     setSavingProfile(true)
     try {
       const res = await officeFetch(`/api/admin/expert/profiles/${id}`, {
         method: "PATCH",
         body: JSON.stringify({
           display_name: form.display_name,
+          slug: String(form.slug ?? "").trim() || undefined,
           headline: form.headline,
           bio: form.bio,
           category: form.category,
           image_url: form.image_url,
-          fulfillment_type: form.fulfillment_type,
           service_area: form.service_area,
           meeting_hint: form.meeting_hint,
           is_published: form.is_published,
@@ -189,8 +202,15 @@ export default function OfficeExpertProfileDetailPage() {
   }
 
   const ServiceForm = () => {
+    const { data: officeData } = useOfficeData()
+    const currencyList = useMemo(() => {
+      const raw = officeData?.currencies?.filter((c: { code?: string; status?: string }) => c?.code && c.status !== "inactive") ?? []
+      return raw.length ? raw : [{ code: "USD", name: "US Dollar", flag_svg: "" }]
+    }, [officeData])
+
     const [title, setTitle] = useState(editingService?.title ?? "")
     const [shortDescription, setShortDescription] = useState(editingService?.short_description ?? "")
+    const [fulfillmentType, setFulfillmentType] = useState(editingService?.fulfillment_type ?? "online")
     const [sortOrder, setSortOrder] = useState(String(editingService?.sort_order ?? 0))
     const [pub, setPub] = useState(Boolean(editingService?.is_published))
     const [pricingType, setPricingType] = useState(editingService?.pricing_type ?? "quote")
@@ -206,6 +226,7 @@ export default function OfficeExpertProfileDetailPage() {
         const body: Record<string, unknown> = {
           title: title.trim() || "Service",
           short_description: shortDescription.trim() || null,
+          fulfillment_type: fulfillmentType,
           sort_order: Number(sortOrder) || 0,
           is_published: pub,
           pricing_type: pricingType,
@@ -244,6 +265,20 @@ export default function OfficeExpertProfileDetailPage() {
           <Label>Short description</Label>
           <Textarea value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} rows={2} />
         </div>
+        <div className="space-y-2">
+          <Label>Fulfillment</Label>
+          <Select value={fulfillmentType} onValueChange={setFulfillmentType}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="online">Online</SelectItem>
+              <SelectItem value="in_person">In person</SelectItem>
+              <SelectItem value="both">Both</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">How this session is delivered.</p>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <Label>Sort order</Label>
@@ -275,7 +310,24 @@ export default function OfficeExpertProfileDetailPage() {
             </div>
             <div className="space-y-2">
               <Label>Currency</Label>
-              <Input value={hourlyCur} onChange={(e) => setHourlyCur(e.target.value)} maxLength={8} />
+              <Select value={hourlyCur} onValueChange={setHourlyCur}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[220px] overflow-y-auto">
+                  {currencyList.map((c: { code: string; name?: string; flag_svg?: string }) => (
+                    <SelectItem key={c.code} value={c.code}>
+                      <span className="inline-flex items-center gap-2">
+                        {c.flag_svg ? (
+                          <span className="h-4 w-4 shrink-0" dangerouslySetInnerHTML={{ __html: c.flag_svg }} />
+                        ) : null}
+                        <span>{c.code}</span>
+                        {c.name ? <span className="text-gray-500">— {c.name}</span> : null}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         ) : null}
@@ -287,7 +339,24 @@ export default function OfficeExpertProfileDetailPage() {
             </div>
             <div className="space-y-2">
               <Label>Currency</Label>
-              <Input value={fixedCur} onChange={(e) => setFixedCur(e.target.value)} maxLength={8} />
+              <Select value={fixedCur} onValueChange={setFixedCur}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[220px] overflow-y-auto">
+                  {currencyList.map((c: { code: string; name?: string; flag_svg?: string }) => (
+                    <SelectItem key={c.code} value={c.code}>
+                      <span className="inline-flex items-center gap-2">
+                        {c.flag_svg ? (
+                          <span className="h-4 w-4 shrink-0" dangerouslySetInnerHTML={{ __html: c.flag_svg }} />
+                        ) : null}
+                        <span>{c.code}</span>
+                        {c.name ? <span className="text-gray-500">— {c.name}</span> : null}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="col-span-2 space-y-2">
               <Label>Package label</Label>
@@ -407,7 +476,29 @@ export default function OfficeExpertProfileDetailPage() {
               <CardContent className="max-w-xl space-y-4">
                 <div className="space-y-2">
                   <Label>Display name</Label>
-                  <Input value={form.display_name ?? ""} onChange={(e) => setForm((f) => ({ ...f, display_name: e.target.value }))} />
+                  <Input
+                    value={form.display_name ?? ""}
+                    onChange={(e) => {
+                      const display_name = e.target.value
+                      setForm((f) => ({
+                        ...f,
+                        display_name,
+                        slug: slugTouched ? f.slug : normalizePublicSlug(display_name),
+                      }))
+                    }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>URL slug</Label>
+                  <Input
+                    value={form.slug ?? ""}
+                    onChange={(e) => {
+                      setSlugTouched(true)
+                      setForm((f) => ({ ...f, slug: e.target.value }))
+                    }}
+                    className="font-mono text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">Public URL: /experts/{normalizePublicSlug(String(form.slug ?? "")) || "…"}</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Headline</Label>
@@ -426,24 +517,9 @@ export default function OfficeExpertProfileDetailPage() {
                   <Input value={form.image_url ?? ""} onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Fulfillment</Label>
-                  <Select
-                    value={form.fulfillment_type ?? "online"}
-                    onValueChange={(v) => setForm((f) => ({ ...f, fulfillment_type: v }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="online">Online</SelectItem>
-                      <SelectItem value="in_person">In person</SelectItem>
-                      <SelectItem value="both">Both</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Service area</Label>
+                  <Label>Location</Label>
                   <Input value={form.service_area ?? ""} onChange={(e) => setForm((f) => ({ ...f, service_area: e.target.value }))} />
+                  <p className="text-xs text-muted-foreground">Shown on the public profile (no &quot;Area:&quot; prefix).</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Meeting hint</Label>
@@ -496,6 +572,7 @@ export default function OfficeExpertProfileDetailPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Title</TableHead>
+                        <TableHead>Fulfillment</TableHead>
                         <TableHead>Pricing</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
@@ -505,14 +582,15 @@ export default function OfficeExpertProfileDetailPage() {
                       {services.map((s) => (
                         <TableRow key={s.id}>
                           <TableCell className="font-medium">{s.title}</TableCell>
-                          <TableCell className="text-xs capitalize">
-                            {s.pricing_type}
-                            {s.pricing_type === "hourly" && s.hourly_rate != null
-                              ? ` — ${s.hourly_rate} ${s.hourly_currency || ""}`
-                              : null}
-                            {s.pricing_type === "fixed" && s.fixed_amount != null
-                              ? ` — ${s.fixed_amount} ${s.fixed_currency || ""}`
-                              : null}
+                          <TableCell className="text-xs capitalize text-muted-foreground">
+                            {(s.fulfillment_type || "online").replace("_", " ")}
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {s.pricing_type === "hourly" && s.hourly_rate != null && s.hourly_currency
+                              ? `${formatCurrencySymbolOnly(Number(s.hourly_rate), s.hourly_currency)}/hr`
+                              : s.pricing_type === "fixed" && s.fixed_amount != null && s.fixed_currency
+                                ? formatCurrencySymbolOnly(Number(s.fixed_amount), s.fixed_currency)
+                                : s.pricing_type}
                           </TableCell>
                           <TableCell>{s.is_published ? <Badge>On</Badge> : <Badge variant="secondary">Off</Badge>}</TableCell>
                           <TableCell className="space-x-2 text-right">

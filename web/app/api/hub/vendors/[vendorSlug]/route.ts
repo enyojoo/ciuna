@@ -1,11 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
 import { withErrorHandling, createErrorResponse } from "@/lib/auth-utils"
+import { getPublishedHubVendorForLine } from "@/lib/hub-vendor-resolve"
 
 const ALLOWED_LINES = new Set(["food", "mart"])
 
-export const GET = withErrorHandling(async (request: NextRequest, { params }: { params: Promise<{ vendorSlug: string }> }) => {
-  const { vendorSlug } = await params
+export const GET = withErrorHandling(async (request: NextRequest, context?: { params?: Promise<{ vendorSlug: string }> }) => {
+  const params = context?.params ? await context.params : { vendorSlug: "" }
+  const vendorSlug = params.vendorSlug
   const slug = String(vendorSlug || "").trim().toLowerCase()
   if (!slug) {
     return createErrorResponse("Missing vendor slug", 400)
@@ -18,13 +20,7 @@ export const GET = withErrorHandling(async (request: NextRequest, { params }: { 
   }
 
   const server = createServerClient()
-  const { data: vendor, error } = await server
-    .from("hub_vendors")
-    .select("id, service_line_slug, name, slug, photo_url, short_bio, location, is_published, is_verified, created_at, updated_at")
-    .eq("service_line_slug", serviceLine)
-    .eq("slug", slug)
-    .eq("is_published", true)
-    .maybeSingle()
+  const { row: vendor, error } = await getPublishedHubVendorForLine(server, slug, serviceLine as "food" | "mart")
 
   if (error) {
     console.error("hub vendor by slug", error)
@@ -34,7 +30,21 @@ export const GET = withErrorHandling(async (request: NextRequest, { params }: { 
     return createErrorResponse("Vendor not found", 404)
   }
 
-  const res = NextResponse.json({ vendor })
+  const res = NextResponse.json({
+    vendor: {
+      id: String(vendor.id),
+      service_line_slug: vendor.service_line_slug != null ? String(vendor.service_line_slug) : null,
+      name: String(vendor.name || ""),
+      slug: String(vendor.slug || ""),
+      photo_url: vendor.photo_url != null ? String(vendor.photo_url) : null,
+      short_bio: vendor.short_bio != null ? String(vendor.short_bio) : null,
+      location: vendor.location != null ? String(vendor.location) : null,
+      is_published: Boolean(vendor.is_published),
+      is_verified: Boolean(vendor.is_verified),
+      created_at: String(vendor.created_at || ""),
+      updated_at: String(vendor.updated_at || ""),
+    },
+  })
   res.headers.set("Cache-Control", "public, max-age=120, stale-while-revalidate=300")
   return res
 })

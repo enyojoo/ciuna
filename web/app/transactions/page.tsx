@@ -6,15 +6,14 @@ import { useTranslation } from "react-i18next"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Search, ArrowDownLeft, ArrowUpRight } from "lucide-react"
+import { Search, ArrowDownLeft, ArrowUpRight, ShoppingBag, UtensilsCrossed, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { roundMoney } from "@/utils/currency"
 import { TransactionsListSkeleton } from "@/components/transactions-skeleton"
 import { useAuth } from "@/lib/auth-context"
 import { useUserData } from "@/hooks/use-user-data"
 import Link from "next/link"
-import { Badge } from "@/components/ui/badge"
-import { resolveTransactionListLine, transactionLinePrimaryBadge } from "@ciuna/shared"
+import { resolveTransactionListLine, transactionListLineIconKind } from "@ciuna/shared"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 import { formatLocaleDateShort, formatLocaleDateTimeLine } from "@/lib/format-date-locale"
 import {
@@ -65,7 +64,7 @@ function isHubTx(t: CombinedTransaction): boolean {
   return t.type === "hub" || t.transaction_source === "hub"
 }
 
-function listLineBadgeLabel(tx: CombinedTransaction, t: (key: string) => string) {
+function transactionRowIconMeta(tx: CombinedTransaction) {
   const line = resolveTransactionListLine(
     {
       type: tx.type,
@@ -73,27 +72,22 @@ function listLineBadgeLabel(tx: CombinedTransaction, t: (key: string) => string)
       reference: tx.reference ?? null,
     },
     tx.hub_product_category ?? null,
+    tx.hub_snapshot ?? null,
   )
-  const primary = transactionLinePrimaryBadge(line)
-  if (primary === "Send") return t("orders.chipSend")
-  if (primary === "Food") return t("orders.badgeFood")
-  if (primary === "Mart") return t("orders.badgeMart")
-  return t("orders.badgeReferral")
-}
-
-function listLineBadgeClass(tx: CombinedTransaction) {
-  const line = resolveTransactionListLine(
-    {
-      type: tx.type,
-      transaction_source: tx.transaction_source ?? null,
-      reference: tx.reference ?? null,
-    },
-    tx.hub_product_category ?? null,
-  )
-  if (line.kind === "referral_payout") return "border-transparent bg-indigo-100 text-indigo-800"
-  if (line.kind === "send") return "border-transparent bg-primary/15 text-primary"
-  if (line.kind === "hub" && line.line === "food") return "border-transparent bg-emerald-100 text-emerald-900"
-  return "border-transparent bg-amber-100 text-amber-900"
+  const kind = transactionListLineIconKind(line)
+  if (kind === "referral") {
+    return { Icon: ArrowDownLeft, iconWrap: "bg-emerald-100 text-emerald-700" as const }
+  }
+  if (kind === "send") {
+    return { Icon: ArrowUpRight, iconWrap: "bg-primary/15 text-primary" as const }
+  }
+  if (kind === "hub_food") {
+    return { Icon: UtensilsCrossed, iconWrap: "bg-emerald-100 text-emerald-800" as const }
+  }
+  if (kind === "hub_mart") {
+    return { Icon: ShoppingBag, iconWrap: "bg-amber-100 text-amber-800" as const }
+  }
+  return { Icon: Sparkles, iconWrap: "bg-violet-100 text-violet-800" as const }
 }
 
 type ChipFilter = "all" | "send" | "hub" | "referral"
@@ -270,6 +264,9 @@ export default function TransactionsPage() {
     const payout = isReferralPayoutRow(transaction)
     const isHub = isHubTx(transaction)
     const detailUrl = `/hub/orders/${transaction.transaction_id.toLowerCase()}`
+    const lineVisual = transactionRowIconMeta(transaction)
+    const Icon = lineVisual.Icon
+    const iconWrap = lineVisual.iconWrap
 
     const recipientName = sendRowRecipientLabel(transaction, t("transactions.unknownRecipient"))
     const hubProductTitle =
@@ -294,13 +291,6 @@ export default function TransactionsPage() {
         ? "text-destructive"
         : "text-muted-foreground"
 
-    const Icon = payout ? ArrowDownLeft : ArrowUpRight
-    const iconWrap = payout
-      ? "bg-emerald-100 text-emerald-700"
-      : isHub
-        ? "bg-amber-100 text-amber-800"
-        : "bg-primary/15 text-primary"
-
     return (
       <Link href={detailUrl} className="block focus-visible:outline-none">
         <div
@@ -318,12 +308,7 @@ export default function TransactionsPage() {
             <Icon className="h-5 w-5" strokeWidth={2.25} aria-hidden />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary" className={cn("text-[10px] font-semibold uppercase tracking-wide", listLineBadgeClass(transaction))}>
-                {listLineBadgeLabel(transaction, t)}
-              </Badge>
-            </div>
-            <p className="mt-0.5 truncate font-semibold leading-snug text-foreground">{title}</p>
+            <p className="truncate font-semibold leading-snug text-foreground">{title}</p>
             <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">{subtitle}</p>
           </div>
           <div className="shrink-0 text-right">

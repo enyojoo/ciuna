@@ -101,6 +101,19 @@ export async function uploadHubVendorPhoto(file: File): Promise<string> {
   return uploadToHubAssets(path, file, productContentType(file, ext))
 }
 
+/** Expert profile photo in Office admin (JPG, PNG, WebP, SVG). */
+export async function uploadHubExpertPhoto(file: File): Promise<string> {
+  if (!isAllowedProductFile(file)) {
+    throw new Error("Only JPG, PNG, WebP, or SVG files are allowed.")
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error("Image must be 5MB or less.")
+  }
+  const ext = productExt(file)
+  const path = `hub-experts/expert_${Date.now()}.${ext}`
+  return uploadToHubAssets(path, file, productContentType(file, ext))
+}
+
 /** Hub service line tile icon (JPG, PNG, WebP, SVG). */
 export async function uploadHubServiceLineIcon(file: File): Promise<string> {
   if (!isAllowedHubIconFile(file)) {

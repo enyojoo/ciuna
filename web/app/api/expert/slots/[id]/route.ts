@@ -40,7 +40,7 @@ export const GET = withErrorHandling(async (request: NextRequest, { params }: { 
 
   const { data: profile, error: pe } = await server
     .from("expert_profiles")
-    .select("id, display_name, headline, image_url, is_published")
+    .select("id, slug, display_name, headline, image_url, is_published")
     .eq("id", svc.expert_profile_id)
     .maybeSingle()
   if (pe || !profile?.is_published) return createErrorResponse("Not found", 404)

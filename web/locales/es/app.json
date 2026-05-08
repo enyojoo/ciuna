@@ -79,6 +79,7 @@
       "orderSummary": "Resumen del pedido",
       "productLabel": "Producto",
       "productPrice": "Precio del producto",
+      "servicePrice": "Precio del servicio",
       "subtotal": "Subtotal",
       "transferFee": "Comisión de cambio",
       "hubFee": "Comisión del Centro",
@@ -659,7 +660,8 @@
       "serviceArea": "Zona: {{area}}",
       "fulfillmentOnline": "En línea",
       "fulfillmentInPerson": "Presencial",
-      "fulfillmentBoth": "En línea o presencial"
+      "fulfillmentBoth": "En línea o presencial",
+      "fulfillmentHero": "Modalidad: {{value}}"
     },
     "booking": {
       "title": "Reservar un experto",
@@ -678,8 +680,13 @@
     },
     "bookingWizard": {
       "pageTitle": "Reservar con {{name}}",
+      "heroBookService": "Reservar servicio {{title}}",
+      "providedBy": "Ofrecido por",
+      "checkoutServiceLabel": "Servicio",
+      "sessionTime": "Horario de la sesión",
       "stepSession": "Sesión",
       "stepTime": "Fecha y hora",
+      "stepCheckout": "Pago",
       "stepConfirm": "Confirmar",
       "chooseService": "Elige un tipo de sesión",
       "noServices": "Aún no hay servicios reservables.",

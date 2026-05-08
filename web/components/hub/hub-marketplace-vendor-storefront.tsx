@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { useAuth } from "@/lib/auth-context"
 import type { HubProductRow, HubProductVendorSummary } from "@/lib/hub-types"
 import type { HubVendorRow } from "@/lib/hub-vendor-types"
 import type { HubServiceLineRow } from "@/lib/hub-service-line-types"
@@ -79,13 +80,8 @@ function VendorCatalogInner({
 
   useLayoutEffect(() => {
     if (!cacheUserId) return
-    setProducts((prev) => {
-      if (prev.length > 0) return prev
-      const stale = readStaleHubVendorCatalogCache(cacheUserId, lineSlug, vendorSlug)
-      if (stale && stale.length > 0) return sortHubCatalogProducts(stale)
-      return prev
-    })
     const stale = readStaleHubVendorCatalogCache(cacheUserId, lineSlug, vendorSlug)
+    setProducts(stale && stale.length > 0 ? sortHubCatalogProducts(stale) : [])
     const hasRows = (stale?.length ?? 0) > 0
     const fresh = isHubVendorCatalogCacheFresh(cacheUserId, lineSlug, vendorSlug)
     if (!fresh && !hasRows) setLoading(true)
@@ -94,7 +90,8 @@ function VendorCatalogInner({
 
   useEffect(() => {
     if (!cacheUserId || !MARKETPLACE.has(lineSlug)) return
-    if (isHubVendorCatalogCacheFresh(cacheUserId, lineSlug, vendorSlug)) return
+    const staleCatalog = readStaleHubVendorCatalogCache(cacheUserId, lineSlug, vendorSlug)
+    if (isHubVendorCatalogCacheFresh(cacheUserId, lineSlug, vendorSlug) && (staleCatalog?.length ?? 0) > 0) return
 
     let cancelled = false
     ;(async () => {
@@ -129,6 +126,8 @@ export function HubMarketplaceVendorStorefront({ lineSlug: lineProp, vendorSlug:
   const vendorSlug = String(vendorProp || "").trim().toLowerCase()
   const router = useRouter()
   const { t } = useTranslation("app")
+  const { user } = useAuth()
+  const showHeroClose = Boolean(user)
   const [lines, setLines] = useState<HubServiceLineRow[]>([])
   const [linesLoaded, setLinesLoaded] = useState(false)
   /** Authoritative row from `GET /api/hub/vendors/[slug]`. */
@@ -275,6 +274,7 @@ export function HubMarketplaceVendorStorefront({ lineSlug: lineProp, vendorSlug:
         title={t("hub.unavailableTitle")}
         subtitle={null}
         backToHubAriaLabel={t("hub.backToHub")}
+        showHeroClose={showHeroClose}
       >
         <p className="text-center text-sm text-muted-foreground">{t("hub.serviceUnavailable")}</p>
       </HubLinePageShell>
@@ -288,6 +288,7 @@ export function HubMarketplaceVendorStorefront({ lineSlug: lineProp, vendorSlug:
         subtitle={null}
         backToHubAriaLabel={t("hub.backToLine", { defaultValue: "Back to line" })}
         backHref={hubLineHomePath(lineSlug)}
+        showHeroClose={showHeroClose}
       >
         <p className="text-center text-sm text-muted-foreground">
           {t("hub.vendorStoreNotFoundBody", { defaultValue: "This store is unavailable or the link may be incorrect." })}
@@ -307,6 +308,7 @@ export function HubMarketplaceVendorStorefront({ lineSlug: lineProp, vendorSlug:
       heroTitleVerified={Boolean(displayVendor?.is_verified)}
       heroTitleVerifiedAriaLabel={t("hub.verifiedVendor", { defaultValue: "Verified vendor" })}
       heroLoading={false}
+      showHeroClose={showHeroClose}
     >
       <VendorCatalogInner lineSlug={lineSlug} vendorSlug={vendorSlug} cacheUserId={JSON_CACHE_USER} />
     </HubLinePageShell>

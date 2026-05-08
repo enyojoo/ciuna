@@ -47,13 +47,8 @@ export function HubMarketplaceStoresDirectory({ lineSlug: slugProp }: { lineSlug
 
   useLayoutEffect(() => {
     if (!MARKETPLACE.has(slug)) return
-    setVendors((prev) => {
-      if (prev.length > 0) return prev
-      const stale = readStaleHubVendorListCache(JSON_CACHE_USER, slug)
-      if (stale && stale.length > 0) return stale
-      return prev
-    })
     const stale = readStaleHubVendorListCache(JSON_CACHE_USER, slug)
+    setVendors(stale ?? [])
     const hasRows = (stale?.length ?? 0) > 0
     const vendorListFresh = isHubVendorListCacheFresh(JSON_CACHE_USER, slug)
     if (!vendorListFresh && !hasRows) {
@@ -104,7 +99,8 @@ export function HubMarketplaceStoresDirectory({ lineSlug: slugProp }: { lineSlug
 
   useEffect(() => {
     if (!MARKETPLACE.has(slug)) return
-    if (isHubVendorListCacheFresh(JSON_CACHE_USER, slug)) return
+    const staleVendors = readStaleHubVendorListCache(JSON_CACHE_USER, slug)
+    if (isHubVendorListCacheFresh(JSON_CACHE_USER, slug) && (staleVendors?.length ?? 0) > 0) return
 
     let cancelled = false
     const staleRows = readStaleHubVendorListCache(JSON_CACHE_USER, slug)

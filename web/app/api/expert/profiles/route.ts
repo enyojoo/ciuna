@@ -1,9 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
 import { withErrorHandling, createErrorResponse } from "@/lib/auth-utils"
+import { formatCurrencySymbolOnly } from "@/utils/currency"
 
 const LIST_SELECT =
-  "id, display_name, headline, bio, is_published, category, image_url, fulfillment_type, service_area, created_at"
+  "id, slug, display_name, headline, bio, is_published, category, image_url, service_area, created_at"
 
 export const GET = withErrorHandling(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url)
@@ -51,8 +52,9 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
             }
           }
         }
-        if (hourlyMin) pricingHints.set(pid, `From ${hourlyMin.rate} ${hourlyMin.cur}/hr`)
-        else if (fixedMin) pricingHints.set(pid, `From ${fixedMin.amt} ${fixedMin.cur}`)
+        if (hourlyMin)
+          pricingHints.set(pid, `From ${formatCurrencySymbolOnly(hourlyMin.rate, hourlyMin.cur)}/hr`)
+        else if (fixedMin) pricingHints.set(pid, `From ${formatCurrencySymbolOnly(fixedMin.amt, fixedMin.cur)}`)
         else if (rows.some((r) => r.pricing_type === "quote")) pricingHints.set(pid, "Custom quote")
       }
     } else if (svcErr) {

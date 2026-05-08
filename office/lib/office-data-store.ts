@@ -672,10 +672,11 @@ class OfficeDataStore {
       (t) => t?.status === "completed" && !isReferralPayoutMirrorReference(t?.reference),
     )
 
-    const buckets: Record<"Send" | "Food" | "Mart" | "Referral", any[]> = {
+    const buckets: Record<"Send" | "Food" | "Mart" | "Experts" | "Referral", any[]> = {
       Send: [],
       Food: [],
       Mart: [],
+      Experts: [],
       Referral: [],
     }
 
@@ -687,14 +688,23 @@ class OfficeDataStore {
           reference: tx.reference ?? null,
         },
         tx.hub_product_category ?? null,
+        (tx as { hub_snapshot?: Record<string, unknown> | null }).hub_snapshot ?? null,
       )
       const label = transactionLinePrimaryBadge(line)
       const key: keyof typeof buckets =
-        label === "Food" ? "Food" : label === "Mart" ? "Mart" : label === "Referral" ? "Referral" : "Send"
+        label === "Food"
+          ? "Food"
+          : label === "Mart"
+            ? "Mart"
+            : label === "Referral"
+              ? "Referral"
+              : label === "Experts"
+                ? "Experts"
+                : "Send"
       buckets[key].push(tx)
     }
 
-    const order: Array<keyof typeof buckets> = ["Send", "Food", "Mart", "Referral"]
+    const order: Array<keyof typeof buckets> = ["Send", "Food", "Mart", "Experts", "Referral"]
     const rows = order.map((service) => {
       const list = buckets[service]
       let baseVolume = 0
@@ -754,7 +764,9 @@ class OfficeDataStore {
         reference: transaction.reference ?? null,
       },
       transaction.hub_product_category ?? null,
+      transaction.hub_snapshot ?? null,
     )
+    if (line.kind === "experts") return "Expert Session"
     if (line.kind === "hub") {
       return line.line === "food" ? "Food Order" : "Mart Order"
     }

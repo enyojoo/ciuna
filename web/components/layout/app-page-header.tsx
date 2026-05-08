@@ -11,6 +11,8 @@ interface AppPageHeaderProps {
   title: string
   /** Used when browser history has no prior entry (e.g. opened in a new tab). Otherwise back uses history. */
   backHref?: string
+  /** When set (e.g. expert checkout → slot picker), runs instead of history/backHref navigation. */
+  onBack?: () => void
   backLabel?: string
   className?: string
   trailing?: ReactNode
@@ -18,11 +20,13 @@ interface AppPageHeaderProps {
 
 /**
  * Sticky app-style header for sub-pages (mobile-first; works on all breakpoints).
- * Back prefers the previous screen in history; falls back to `backHref` when that is not available.
+ * Back: use `onBack` when you must reset client state (e.g. expert checkout → slot picker).
+ * Otherwise prefers browser history when possible; falls back to `backHref`.
  */
 export function AppPageHeader({
   title,
   backHref,
+  onBack,
   backLabel,
   className,
   trailing,
@@ -32,12 +36,18 @@ export function AppPageHeader({
   const router = useRouter()
 
   const handleBack = () => {
+    if (onBack) {
+      onBack()
+      return
+    }
     if (typeof window !== "undefined" && window.history.length > 1) {
       router.back()
     } else if (backHref) {
       router.push(backHref)
     }
   }
+
+  const showBack = Boolean(backHref || onBack)
 
   return (
     <header
@@ -46,7 +56,7 @@ export function AppPageHeader({
         className,
       )}
     >
-      {backHref ? (
+      {showBack ? (
         <Button
           type="button"
           variant="ghost"
