@@ -61,9 +61,7 @@ export async function GET(request: NextRequest) {
         userId: user.id
       })
       
-      const sc = error.statusCode
-      const scNum = typeof sc === "number" ? sc : Number.parseInt(String(sc ?? ""), 10)
-      if (scNum === 404 || String(sc) === "404" || error.message?.includes("not found")) {
+      if (error.statusCode === 404 || error.statusCode === "404" || error.message?.includes("not found")) {
         return NextResponse.json({ error: "File not found" }, { status: 404 })
       }
       

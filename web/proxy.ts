@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { getOfficeCorsHeaders } from '@/lib/cors'
 
 // App root redirect: app.ciuna.com/ -> /auth/login
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // CORS for office app: admin routes + email hook (office → web transaction emails)

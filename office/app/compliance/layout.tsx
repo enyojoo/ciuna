@@ -4,7 +4,9 @@ export const metadata: Metadata = {
   title: "Compliance - Ciuna",
   robots: {
     index: false,
+    noindex: true,
     follow: false,
+    nofollow: true,
   },
 }
 

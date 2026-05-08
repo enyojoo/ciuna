@@ -1,4 +1,4 @@
-import { type NextRequest, type NextResponse } from "next/server"
+import { type NextRequest } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { createServerClient } from "./supabase"
 import { getAccessTokenFromRequest } from "./supabase-server-helpers"
@@ -222,27 +222,23 @@ export function createSuccessResponse(data: any, status: number = 200) {
  * Supports both handlers with and without params
  * In Next.js 15, params can be a Promise, so we handle that
  */
-export function withErrorHandling(
-  handler: (request: NextRequest, context?: any) => Promise<Response | NextResponse>,
+export function withErrorHandling<T extends { params?: any } = {}>(
+  handler: (request: NextRequest, context?: T | Promise<T>) => Promise<Response>
 ) {
-  return async (request: NextRequest, context?: unknown): Promise<Response> => {
+  return async (
+    request: NextRequest, 
+    context?: T | Promise<T>
+  ): Promise<Response> => {
     try {
       // Handle async params in Next.js 15
       let resolvedContext = context
-      if (context && typeof context === "object" && "then" in context) {
-        resolvedContext = await context
-      } else if (
-        context &&
-        typeof context === "object" &&
-        "params" in context &&
-        context.params &&
-        typeof context.params === "object" &&
-        "then" in context.params
-      ) {
+      if (context && typeof context === 'object' && 'then' in context) {
+        resolvedContext = await context as T
+      } else if (context && 'params' in context && context.params && typeof context.params === 'object' && 'then' in context.params) {
         resolvedContext = {
-          ...(context as object),
-          params: await (context as { params: Promise<unknown> }).params,
-        }
+          ...context,
+          params: await context.params
+        } as T
       }
       return await handler(request, resolvedContext)
     } catch (error) {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type Dispatch, type SetStateAction } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -29,71 +29,9 @@ import { AppPageHeader } from "@/components/layout/app-page-header"
 import { accountFieldLabel, accountFieldPlaceholder } from "@/lib/account-field-i18n"
 import { cn } from "@/lib/utils"
 
-type RecipientFormData = {
-  name: string
-  accountNumber: string
-  bankName: string
-  currency: string
-  routingNumber: string
-  sortCode: string
-  iban: string
-  swiftBic: string
-  addressLine1: string
-  addressLine2: string
-  city: string
-  state: string
-  postalCode: string
-  transferType: "ACH" | "Wire" | ""
-  checkingOrSavings: "checking" | "savings" | ""
-}
-
-type RecipientListRow = {
-  id: string
-  full_name: string
-  account_number: string
-  bank_name: string
-  currency: string
-  routing_number?: string | null
-  sort_code?: string | null
-  iban?: string | null
-  swift_bic?: string | null
-  address_line1?: string | null
-  address_line2?: string | null
-  city?: string | null
-  state?: string | null
-  postal_code?: string | null
-  transfer_type?: string | null
-  checking_or_savings?: string | null
-}
-
-type CurrencyRow = {
-  code: string
-  name: string
-  symbol: string
-  flag_svg: string
-}
-
-type RecipientFormProps = {
-  isEdit?: boolean
-  formData: RecipientFormData
-  setFormData: Dispatch<SetStateAction<RecipientFormData>>
-  error: string
-  isSubmitting: boolean
-  currencies: CurrencyRow[]
-  onSubmit: () => void | Promise<void>
-}
-
-const RecipientForm = ({
-  isEdit = false,
-  formData,
-  setFormData,
-  error,
-  isSubmitting,
-  currencies,
-  onSubmit,
-}: RecipientFormProps) => {
+const RecipientForm = ({ isEdit = false, formData, setFormData, error, isSubmitting, currencies, onSubmit }) => {
   const { t } = useTranslation("app")
-  const selectedCurrency = currencies.find((c: CurrencyRow) => c.code === formData.currency)
+  const selectedCurrency = currencies.find((c) => c.code === formData.currency)
   const accountConfig = formData.currency ? getAccountTypeConfigFromCurrency(formData.currency) : null
 
   // Map snake_case field names from config to camelCase form field names
@@ -171,7 +109,7 @@ const RecipientForm = ({
             </SelectValue>
           </SelectTrigger>
           <SelectContent className="max-h-60">
-            {currencies.map((currency: CurrencyRow) => (
+            {currencies.map((currency) => (
               <SelectItem key={currency.code} value={currency.code}>
                 <div className="flex items-center gap-3">
                   <div
@@ -533,9 +471,9 @@ export default function UserRecipientsPage() {
   const { userProfile } = useAuth()
   const { recipients, currencies, loading, refreshRecipients } = useUserData()
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [editingRecipient, setEditingRecipient] = useState<RecipientListRow | null>(null)
+  const [editingRecipient, setEditingRecipient] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
-  const [formData, setFormData] = useState<RecipientFormData>({
+  const [formData, setFormData] = useState({
     name: "",
     accountNumber: "",
     bankName: "",
@@ -554,10 +492,10 @@ export default function UserRecipientsPage() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [deleteErrors, setDeleteErrors] = useState<Record<string, string>>({})
+  const [deletingId, setDeletingId] = useState(null)
+  const [deleteErrors, setDeleteErrors] = useState({})
 
-  const filteredRecipients = recipients.filter((recipient: RecipientListRow) => {
+  const filteredRecipients = recipients.filter((recipient) => {
     const matchesSearch =
       recipient.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       recipient.account_number.includes(searchTerm)
@@ -603,7 +541,7 @@ export default function UserRecipientsPage() {
     }
   }
 
-  const handleEditRecipient = (recipient: RecipientListRow) => {
+  const handleEditRecipient = (recipient) => {
     setEditingRecipient(recipient)
     setFormData({
       name: recipient.full_name,
@@ -662,7 +600,7 @@ export default function UserRecipientsPage() {
     }
   }
 
-  const handleDeleteRecipient = async (id: string) => {
+  const handleDeleteRecipient = async (id) => {
     try {
       setDeletingId(id)
       setDeleteErrors((prev) => ({ ...prev, [id]: "" }))
@@ -678,13 +616,13 @@ export default function UserRecipientsPage() {
     }
   }
 
-  const getCurrencySymbol = (currencyCode: string) => {
-    const currency = currencies.find((c: CurrencyRow) => c.code === currencyCode)
+  const getCurrencySymbol = (currencyCode) => {
+    const currency = currencies.find((c) => c.code === currencyCode)
     return currency?.symbol || currencyCode
   }
 
-  const getCurrencyFlag = (currencyCode: string) => {
-    const currency = currencies.find((c: CurrencyRow) => c.code === currencyCode)
+  const getCurrencyFlag = (currencyCode) => {
+    const currency = currencies.find((c) => c.code === currencyCode)
     return currency?.flag_svg || ""
   }
 
@@ -709,7 +647,7 @@ export default function UserRecipientsPage() {
     setError("")
   }
 
-  const handleAddDialogOpenChange = (open: boolean) => {
+  const handleAddDialogOpenChange = (open) => {
     setIsAddDialogOpen(open)
     if (open) {
       // Reset form and clear edit state when opening Add dialog
@@ -781,7 +719,7 @@ export default function UserRecipientsPage() {
               </p>
             </div>
           ) : (
-            filteredRecipients.map((recipient: RecipientListRow) => (
+            filteredRecipients.map((recipient) => (
               <Card key={recipient.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4 sm:p-5">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0">
@@ -790,7 +728,7 @@ export default function UserRecipientsPage() {
                       <span className="text-primary font-semibold text-sm">
                         {recipient.full_name
                           .split(" ")
-                          .map((n: string) => n[0])
+                          .map((n) => n[0])
                           .join("")
                           .toUpperCase()}
                       </span>

@@ -116,41 +116,6 @@ export const userService = {
       verified: verifiedUsers?.length || 0,
     }
   },
-
-  async create(data: {
-    email: string
-    password: string
-    firstName: string
-    lastName: string
-    phone?: string
-    baseCurrency?: string
-  }) {
-    const server = createServerClient()
-    const { data: authData, error } = await server.auth.admin.createUser({
-      email: data.email,
-      password: data.password,
-      email_confirm: true,
-      user_metadata: {
-        first_name: data.firstName,
-        last_name: data.lastName,
-        base_currency: data.baseCurrency || "USD",
-      },
-    })
-    if (error) throw error
-    if (!authData.user) throw new Error("Failed to create user")
-
-    const { data: profile, error: profileError } = await server.from("users").select("*").eq("id", authData.user.id).single()
-    if (profileError || !profile) throw profileError || new Error("User profile not found after signup")
-
-    if (data.phone) {
-      await server
-        .from("users")
-        .update({ phone: data.phone, updated_at: new Date().toISOString() })
-        .eq("id", authData.user.id)
-    }
-
-    return profile
-  },
 }
 
 // Currency operations with stale-while-revalidate caching

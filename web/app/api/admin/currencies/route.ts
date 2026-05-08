@@ -23,7 +23,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin(request)
+    const user = await requireAuth(request)
+    
+    if (!user.isAdmin) {
+      return NextResponse.json({ error: "Admin access required" }, { status: 403 })
+    }
 
     const { code, name, symbol, is_active } = await request.json()
 
@@ -48,7 +52,11 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    await requireAdmin(request)
+    const user = await requireAuth(request)
+    
+    if (!user.isAdmin) {
+      return NextResponse.json({ error: "Admin access required" }, { status: 403 })
+    }
 
     const { searchParams } = new URL(request.url)
     const code = searchParams.get("code")

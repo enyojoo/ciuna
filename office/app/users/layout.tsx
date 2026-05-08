@@ -5,7 +5,9 @@ export const metadata: Metadata = {
   description: "Manage user accounts, view user activity, and handle user-related operations on the Ciuna platform.",
   robots: {
     index: false,
+    noindex: true,
     follow: false,
+    nofollow: true,
   },
 }
 

@@ -58,14 +58,12 @@ export async function GET(request: NextRequest) {
       })
       
       // If it's a 404, the file doesn't exist
-      const sc = error.statusCode
-      const scNum = typeof sc === "number" ? sc : Number.parseInt(String(sc ?? ""), 10)
-      if (scNum === 404 || String(sc) === "404" || error.message?.includes("not found")) {
+      if (error.statusCode === 404 || error.statusCode === "404" || error.message?.includes("not found")) {
         return NextResponse.json({ error: "File not found" }, { status: 404 })
       }
-
+      
       // If it's a 403, log it but this shouldn't happen with service role key
-      if (scNum === 403 || String(sc) === "403" || error.message?.includes("Forbidden")) {
+      if (error.statusCode === 403 || error.statusCode === "403" || error.message?.includes("Forbidden")) {
         console.error("Unexpected 403 error with service role key - this should not happen")
         return NextResponse.json({ 
           error: "Access denied. Please check Storage configuration." 

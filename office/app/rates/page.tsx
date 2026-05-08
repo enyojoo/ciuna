@@ -15,11 +15,10 @@ import { Plus, MoreHorizontal, Edit, Pause, Trash2, Loader2, X } from "lucide-re
 import { useOfficeData } from "@/hooks/use-office-data"
 import { officeDataStore } from "@/lib/office-data-store"
 import { OfficeRatesSkeleton } from "@/components/office-rates-skeleton"
-import type { Currency, ExchangeRate } from "@/types"
 
 const AdminRatesPage = () => {
   const { data, loading } = useOfficeData()
-  const [selectedCurrency, setSelectedCurrency] = useState<Currency | null>(null)
+  const [selectedCurrency, setSelectedCurrency] = useState<any>(null)
   const [isEditingRates, setIsEditingRates] = useState(false)
   const [isAddingCurrency, setIsAddingCurrency] = useState(false)
   const [newCurrencyData, setNewCurrencyData] = useState({
@@ -63,8 +62,8 @@ const AdminRatesPage = () => {
     )
   }
 
-  const currencies = (data?.currencies || []) as Currency[]
-  const exchangeRates = (data?.exchangeRates || []) as ExchangeRate[]
+  const currencies = data?.currencies || []
+  const exchangeRates = data?.exchangeRates || []
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -94,7 +93,7 @@ const AdminRatesPage = () => {
       const newCurrency = await officeDataStore.addCurrency(currencyData)
 
       // Create default exchange rates for the new currency
-      const existingCurrencies = currencies.filter((c: Currency) => c.code !== newCurrencyData.code.toUpperCase())
+      const existingCurrencies = currencies.filter((c) => c.code !== newCurrencyData.code.toUpperCase())
       const newRates = []
 
       // Add rates FROM new currency TO existing currencies
@@ -142,12 +141,12 @@ const AdminRatesPage = () => {
     }
   }
 
-  const handleEditRates = (currency: Currency) => {
+  const handleEditRates = (currency: any) => {
     setSelectedCurrency(currency)
     const currencyRates = exchangeRates.filter((rate) => rate.from_currency === currency.code)
     const updates: any = {}
 
-    currencyRates.forEach((rate: ExchangeRate) => {
+    currencyRates.forEach((rate: any) => {
       updates[rate.to_currency] = {
         rate: rate.rate.toString(),
         feeType: rate.fee_type,
@@ -173,8 +172,6 @@ const AdminRatesPage = () => {
   }
 
   const handleSaveRates = async () => {
-    if (!selectedCurrency) return
-    const fromCode = selectedCurrency.code
     try {
       setSaving(true)
       const updates = []
@@ -182,7 +179,7 @@ const AdminRatesPage = () => {
       for (const [toCurrency, rateData] of Object.entries(rateUpdates)) {
         const rateInfo = rateData as any
         updates.push({
-          from_currency: fromCode,
+          from_currency: selectedCurrency.code,
           to_currency: toCurrency,
           rate: Number.parseFloat(rateInfo.rate),
           fee_type: rateInfo.feeType,
@@ -231,7 +228,7 @@ const AdminRatesPage = () => {
 
   const handleSuspendCurrency = async (currencyId: string) => {
     try {
-      const currency = currencies.find((c: Currency) => c.id === currencyId)
+      const currency = currencies.find((c) => c.id === currencyId)
       if (!currency) return
 
       const newStatus = currency.status === "active" ? "suspended" : "active"
@@ -268,7 +265,7 @@ const AdminRatesPage = () => {
   }
 
   const getCurrencyRates = (currencyCode: string) => {
-    return exchangeRates.filter((rate: ExchangeRate) => rate.from_currency === currencyCode)
+    return exchangeRates.filter((rate) => rate.from_currency === currencyCode)
   }
 
   return (
@@ -382,11 +379,11 @@ const AdminRatesPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {currencies.map((currency: Currency) => (
+                {currencies.map((currency) => (
                   <TableRow key={currency.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <div dangerouslySetInnerHTML={{ __html: currency.flag_svg ?? "" }} />
+                        <div dangerouslySetInnerHTML={{ __html: currency.flag_svg }} />
                         <span className="font-medium">{currency.name}</span>
                       </div>
                     </TableCell>
@@ -531,10 +528,10 @@ const AdminRatesPage = () => {
             </DialogHeader>
             <div className="space-y-6">
               <div className="max-h-[400px] overflow-y-auto space-y-4 pr-2">
-                {(selectedCurrency ? getCurrencyRates(selectedCurrency.code) : []).map((rate: ExchangeRate) => (
+                {getCurrencyRates(selectedCurrency?.code || "").map((rate: any) => (
                   <div key={rate.to_currency} className="office-panel-card">
                     <div className="flex items-center gap-2 text-lg font-medium">
-                      <span>{selectedCurrency!.code}</span>
+                      <span>{selectedCurrency.code}</span>
                       <span>→</span>
                       <span>{rate.to_currency}</span>
                     </div>
@@ -569,7 +566,7 @@ const AdminRatesPage = () => {
                           Fee Amount{" "}
                           {(rateUpdates[rate.to_currency]?.feeType || rate.fee_type) === "percentage"
                             ? "(%)"
-                            : `(${selectedCurrency!.code})`}
+                            : `(${selectedCurrency.code})`}
                         </Label>
                         <Input
                           type="number"
@@ -586,7 +583,7 @@ const AdminRatesPage = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Min Amount ({selectedCurrency!.code})</Label>
+                        <Label>Min Amount ({selectedCurrency.code})</Label>
                         <Input
                           type="number"
                           step="1"
@@ -597,7 +594,7 @@ const AdminRatesPage = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Max Amount ({selectedCurrency!.code})</Label>
+                        <Label>Max Amount ({selectedCurrency.code})</Label>
                         <Input
                           type="number"
                           step="1"

@@ -5,7 +5,9 @@ export const metadata: Metadata = {
   description: "Manage currency exchange rates and update rate configurations for the Ciuna platform.",
   robots: {
     index: false,
+    noindex: true,
     follow: false,
+    nofollow: true,
   },
 }
 

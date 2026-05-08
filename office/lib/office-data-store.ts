@@ -4,7 +4,6 @@ import {
   sumCompletedVolumeInBaseCurrency,
   transactionLinePrimaryBadge,
 } from "@ciuna/shared"
-import type { Transaction } from "@/types"
 import { supabase } from "./supabase"
 import { officeFetch } from "./api-client"
 import { formatCurrency as formatMoney, roundMoney } from "@/utils/currency"
@@ -230,7 +229,7 @@ class OfficeDataStore {
       })
       const recentActivity = this.processRecentActivity(sortedTransactions.slice(0, 10))
       const serviceLinePopularity = this.processServiceLinePopularity(
-        transactionsResult.filter((t: Transaction) => t.status === "completed"),
+        transactionsResult.filter((t) => t.status === "completed"),
         baseCurrency,
         exchangeRatesResult,
       )
@@ -306,8 +305,7 @@ class OfficeDataStore {
       // Try to load from cache as fallback
       if (this.loadFromCache()) {
         this.notify()
-        const cached = this.data
-        if (cached) return cached
+        return this.data
       }
       // If no existing data, return minimal structure
       throw error
@@ -368,7 +366,7 @@ class OfficeDataStore {
         const totalVolume = 0
 
         // Find corresponding auth user to get email_confirmed_at
-        const authUser = authUsers?.users?.find((au: { id: string }) => au.id === user.id)
+        const authUser = authUsers?.users?.find(au => au.id === user.id)
         
         return {
           ...user,

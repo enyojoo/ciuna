@@ -43,7 +43,7 @@ DropdownMenuSubTrigger.displayName =
 const DropdownMenuSubContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>
->(({ className, ...props }, ref) => (
+>(({ className, onOpenAutoFocus, ...props }, ref) => (
   <DropdownMenuPrimitive.SubContent
     ref={ref}
     className={cn(
@@ -51,6 +51,13 @@ const DropdownMenuSubContent = React.forwardRef<
       className
     )}
     {...props}
+    tabIndex={-1}
+    onOpenAutoFocus={(event) => {
+      onOpenAutoFocus?.(event)
+      if (event.defaultPrevented) return
+      event.preventDefault()
+      event.currentTarget.focus()
+    }}
   />
 ))
 DropdownMenuSubContent.displayName =
@@ -59,7 +66,7 @@ DropdownMenuSubContent.displayName =
 const DropdownMenuContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
->(({ className, sideOffset = 4, ...props }, ref) => (
+>(({ className, sideOffset = 4, onOpenAutoFocus, ...props }, ref) => (
   <DropdownMenuPrimitive.Portal>
     <DropdownMenuPrimitive.Content
       ref={ref}
@@ -69,6 +76,13 @@ const DropdownMenuContent = React.forwardRef<
         className
       )}
       {...props}
+      tabIndex={-1}
+      onOpenAutoFocus={(event) => {
+        onOpenAutoFocus?.(event)
+        if (event.defaultPrevented) return
+        event.preventDefault()
+        event.currentTarget.focus()
+      }}
     />
   </DropdownMenuPrimitive.Portal>
 ))

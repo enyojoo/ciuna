@@ -675,19 +675,6 @@ function TransactionOrderDetailPage() {
     )
   }
 
-  if (!transaction) {
-    return (
-      <div className="min-w-0 space-y-0">
-        <AppPageHeader title={t("txDetail.transaction")} backHref="/transactions" />
-        <div className="min-w-0 px-4 py-5 sm:p-6">
-          <div className="mx-auto max-w-6xl rounded-lg border border-red-200 bg-red-50 p-6 text-center">
-            <p className="text-red-700">{t("txDetail.notFound")}</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   const isReferralPayout =
     typeof transaction.reference === "string" && transaction.reference.startsWith(REFERRAL_PAYOUT_PREFIX)
   const isHub = isHubOrderTx(transaction)

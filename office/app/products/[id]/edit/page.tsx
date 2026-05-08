@@ -334,7 +334,7 @@ export default function OfficeEditProductPage() {
                         <SelectValue placeholder="Select currency" />
                       </SelectTrigger>
                       <SelectContent>
-                        {(currencyOptions.length > 0 ? currencyOptions : ["USD"]).map((code: string) => (
+                        {(currencyOptions.length > 0 ? currencyOptions : ["USD"]).map((code) => (
                           <SelectItem key={code} value={code}>
                             {code}
                           </SelectItem>
