@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
 import { withErrorHandling, createErrorResponse } from "@/lib/auth-utils"
+import { EXPERT_CATALOG_JSON_CACHE_CONTROL } from "@/lib/expert-http-cache"
 
 const PROFILE_FIELDS = "id, slug, display_name, image_url, category, is_published"
 
@@ -122,6 +123,6 @@ export const GET = withErrorHandling(async (_request: NextRequest) => {
   })
 
   const res = NextResponse.json({ services })
-  res.headers.set("Cache-Control", "public, max-age=120, stale-while-revalidate=300")
+  res.headers.set("Cache-Control", EXPERT_CATALOG_JSON_CACHE_CONTROL)
   return res
 })

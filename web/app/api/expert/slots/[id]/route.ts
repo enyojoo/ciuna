@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
 import { requireAuth, withErrorHandling, createErrorResponse } from "@/lib/auth-utils"
+import { EXPERT_SLOTS_JSON_CACHE_CONTROL } from "@/lib/expert-http-cache"
 
 export const GET = withErrorHandling(async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
@@ -45,5 +46,7 @@ export const GET = withErrorHandling(async (request: NextRequest, { params }: { 
     .maybeSingle()
   if (pe || !profile?.is_published) return createErrorResponse("Not found", 404)
 
-  return NextResponse.json({ slot, service: svc, profile })
+  const res = NextResponse.json({ slot, service: svc, profile })
+  res.headers.set("Cache-Control", EXPERT_SLOTS_JSON_CACHE_CONTROL)
+  return res
 })

@@ -33,6 +33,25 @@ const nextConfig = {
           { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
         ],
       },
+      /** Experts catalog + booking UI — avoid CDN caching HTML (client + auth-sensitive flows). */
+      {
+        source: '/experts',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'private, no-cache, no-store, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/experts/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'private, no-cache, no-store, must-revalidate',
+          },
+        ],
+      },
       {
         source: '/_next/static/:path*',
         headers: [

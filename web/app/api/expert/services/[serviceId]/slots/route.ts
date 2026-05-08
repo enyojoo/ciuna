@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
 import { requireAuth, withErrorHandling, createErrorResponse } from "@/lib/auth-utils"
+import { EXPERT_SLOTS_JSON_CACHE_CONTROL } from "@/lib/expert-http-cache"
 
 export const GET = withErrorHandling(async (request: NextRequest, { params }: { params: Promise<{ serviceId: string }> }) => {
   try {
@@ -43,5 +44,7 @@ export const GET = withErrorHandling(async (request: NextRequest, { params }: { 
     return createErrorResponse("Failed to load slots", 500)
   }
 
-  return NextResponse.json({ slots: data || [] })
+  const res = NextResponse.json({ slots: data || [] })
+  res.headers.set("Cache-Control", EXPERT_SLOTS_JSON_CACHE_CONTROL)
+  return res
 })

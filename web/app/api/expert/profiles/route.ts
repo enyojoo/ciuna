@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
 import { withErrorHandling, createErrorResponse } from "@/lib/auth-utils"
+import { EXPERT_CATALOG_JSON_CACHE_CONTROL } from "@/lib/expert-http-cache"
 import { formatCurrencySymbolOnly } from "@/utils/currency"
 
 const LIST_SELECT =
@@ -68,6 +69,6 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   }))
 
   const res = NextResponse.json({ profiles: enriched })
-  res.headers.set("Cache-Control", "public, max-age=120, stale-while-revalidate=300")
+  res.headers.set("Cache-Control", EXPERT_CATALOG_JSON_CACHE_CONTROL)
   return res
 })

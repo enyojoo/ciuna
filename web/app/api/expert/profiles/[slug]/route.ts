@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { isUuidLike, normalizePublicSlug } from "@ciuna/shared"
 import { createServerClient } from "@/lib/supabase"
 import { withErrorHandling, createErrorResponse } from "@/lib/auth-utils"
+import { EXPERT_CATALOG_JSON_CACHE_CONTROL } from "@/lib/expert-http-cache"
 
 const PROFILE_FIELDS =
   "id, slug, display_name, headline, bio, is_published, category, image_url, capabilities, service_area, meeting_hint, created_at"
@@ -74,6 +75,6 @@ export const GET = withErrorHandling(async (_request: NextRequest, context?: { p
   }
 
   const res = NextResponse.json({ profile, services: services || [] })
-  res.headers.set("Cache-Control", "public, max-age=120, stale-while-revalidate=300")
+  res.headers.set("Cache-Control", EXPERT_CATALOG_JSON_CACHE_CONTROL)
   return res
 })
