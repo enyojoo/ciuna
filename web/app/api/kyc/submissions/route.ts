@@ -29,30 +29,52 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   if (type === "identity") {
     const country_code = formData.get("country_code") as string
     const id_type = formData.get("id_type") as string
+    const full_name = (formData.get("full_name") as string) || ""
+    const date_of_birth = (formData.get("date_of_birth") as string) || ""
 
-    if (!country_code || !id_type) {
-      return createErrorResponse("Country code and ID type are required for identity verification", 400)
+    if (!country_code || !id_type || !full_name.trim() || !date_of_birth.trim()) {
+      return createErrorResponse(
+        "Country code, ID type, full name, and date of birth are required for identity verification",
+        400,
+      )
     }
 
-    const submission = await kycService.createIdentitySubmission(user.id, {
-      country_code,
-      id_type,
-      id_document_file: file,
-    }, client)
+    const submission = await kycService.createIdentitySubmission(
+      user.id,
+      {
+        full_name: full_name.trim(),
+        date_of_birth: date_of_birth.trim(),
+        country_code,
+        id_type,
+        id_document_file: file,
+      },
+      client,
+    )
 
     return NextResponse.json({ submission })
   } else if (type === "address") {
     const document_type = formData.get("document_type") as string
+    const country_code = (formData.get("country_code") as string) || ""
+    const address = (formData.get("address") as string) || ""
 
     const validDocumentTypes = ["utility_bill", "bank_statement", "lease_agreement"]
     if (!document_type || !validDocumentTypes.includes(document_type)) {
       return createErrorResponse("Valid document type is required for address verification", 400)
     }
+    if (!country_code.trim() || !address.trim()) {
+      return createErrorResponse("Country and address text are required for address verification", 400)
+    }
 
-    const submission = await kycService.createAddressSubmission(user.id, {
-      document_type: document_type as "utility_bill" | "bank_statement" | "lease_agreement",
-      address_document_file: file,
-    }, client)
+    const submission = await kycService.createAddressSubmission(
+      user.id,
+      {
+        country_code: country_code.trim(),
+        address: address.trim(),
+        document_type: document_type as "utility_bill" | "bank_statement" | "lease_agreement",
+        address_document_file: file,
+      },
+      client,
+    )
 
     return NextResponse.json({ submission })
   } else {

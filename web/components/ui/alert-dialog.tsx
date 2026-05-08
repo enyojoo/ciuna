@@ -45,7 +45,8 @@ const AlertDialogContent = React.forwardRef<
         onOpenAutoFocus?.(event)
         if (event.defaultPrevented) return
         event.preventDefault()
-        event.currentTarget.focus()
+        const el = event.currentTarget
+        if (el instanceof HTMLElement) el.focus()
       }}
     />
   </AlertDialogPortal>

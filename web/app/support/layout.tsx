@@ -7,9 +7,7 @@ export const metadata: Metadata = {
   description: SEO_PAGE_DESCRIPTIONS.support,
   robots: {
     index: false,
-    noindex: true,
     follow: false,
-    nofollow: true,
   },
 }
 

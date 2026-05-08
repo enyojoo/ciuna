@@ -30,6 +30,8 @@ export interface CreateIdentitySubmission {
   country_code: string
   id_type: string
   id_document_file: File
+  /** Optional provider-specific fields persisted on `kyc_submissions.metadata`. */
+  metadata?: Record<string, unknown> | null
 }
 
 export interface CreateAddressSubmission {

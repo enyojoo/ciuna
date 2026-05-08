@@ -817,13 +817,13 @@ export default function HubCheckoutPage() {
                 <span className="text-gray-600 text-xs">{t("send.walletAddress")}</span>
                 <div className="flex items-start gap-2">
                   <span className="font-medium font-mono text-xs break-all flex-1">
-                    {method.wallet_address.trim()}
+                    {(method.wallet_address || "").trim()}
                   </span>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleCopy(method.wallet_address.trim(), "walletAddress")}
+                    onClick={() => handleCopy((method.wallet_address || "").trim(), "walletAddress")}
                     className="h-5 w-5 p-0 shrink-0"
                   >
                     {copiedStates.walletAddress ? (

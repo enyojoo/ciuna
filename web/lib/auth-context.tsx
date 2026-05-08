@@ -124,8 +124,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // For admin users, create profile from user metadata
         const adminProfile = {
           id: authUser.id,
-          email: authUser.email,
-          first_name: authUser.user_metadata?.first_name || authUser.name || '',
+          email: authUser.email ?? "",
+          first_name: authUser.user_metadata?.first_name || "",
           last_name: authUser.user_metadata?.last_name || '',
           phone: authUser.phone || '',
           base_currency: authUser.user_metadata?.base_currency || 'NGN',

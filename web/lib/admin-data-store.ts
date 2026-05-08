@@ -1,4 +1,5 @@
 import { sumCompletedVolumeInBaseCurrency } from "@ciuna/shared"
+import type { Transaction } from "@/types"
 import { supabase } from "./supabase"
 import { formatCurrency as formatMoney, roundMoney } from "@/utils/currency"
 
@@ -217,7 +218,7 @@ class AdminDataStore {
         return dateB - dateA
       })
       const recentActivity = this.processRecentActivity(sortedTransactions.slice(0, 10))
-      const currencyPairs = this.processCurrencyPairs(transactionsResult.filter((t) => t.status === "completed"))
+      const currencyPairs = this.processCurrencyPairs(transactionsResult.filter((t: Transaction) => t.status === "completed"))
 
       // Create initial data structure with critical data - preserve existing data to prevent flickering
       const existingData = this.data
@@ -284,7 +285,8 @@ class AdminDataStore {
       // Try to load from cache as fallback
       if (this.loadFromCache()) {
         this.notify()
-        return this.data
+        const cached = this.data
+        if (cached) return cached
       }
       // If no existing data, return minimal structure
       throw error
@@ -345,7 +347,7 @@ class AdminDataStore {
         const totalVolume = 0
 
         // Find corresponding auth user to get email_confirmed_at
-        const authUser = authUsers?.users?.find(au => au.id === user.id)
+        const authUser = authUsers?.users?.find((au: { id: string }) => au.id === user.id)
         
         return {
           ...user,
@@ -757,7 +759,7 @@ class AdminDataStore {
       // Use already-loaded exchange rates for volume calculation
       const stats = await this.calculateStats(this.data.users, transactionsResult, this.data.baseCurrency, this.data.exchangeRates)
       const recentActivity = this.processRecentActivity(transactionsResult.slice(0, 10))
-      const currencyPairs = this.processCurrencyPairs(transactionsResult.filter((t) => t.status === "completed"))
+      const currencyPairs = this.processCurrencyPairs(transactionsResult.filter((t: Transaction) => t.status === "completed"))
 
       // Create a new object reference to ensure React detects the change
       this.data = {
