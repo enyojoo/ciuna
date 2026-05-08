@@ -13,6 +13,8 @@ import { TransactionsListSkeleton } from "@/components/transactions-skeleton"
 import { useAuth } from "@/lib/auth-context"
 import { useUserData } from "@/hooks/use-user-data"
 import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
+import { resolveTransactionListLine, transactionLinePrimaryBadge } from "@ciuna/shared"
 import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 import { formatLocaleDateShort, formatLocaleDateTimeLine } from "@/lib/format-date-locale"
 import {
@@ -29,6 +31,7 @@ interface CombinedTransaction {
   reference?: string | null
   transaction_source?: string | null
   hub_snapshot?: Record<string, unknown> | null
+  hub_product_category?: string | null
   send_amount?: number
   send_currency?: string
   receive_amount?: number
@@ -60,6 +63,37 @@ function isReferralPayoutRow(t: CombinedTransaction): boolean {
 
 function isHubTx(t: CombinedTransaction): boolean {
   return t.type === "hub" || t.transaction_source === "hub"
+}
+
+function listLineBadgeLabel(tx: CombinedTransaction, t: (key: string) => string) {
+  const line = resolveTransactionListLine(
+    {
+      type: tx.type,
+      transaction_source: tx.transaction_source ?? null,
+      reference: tx.reference ?? null,
+    },
+    tx.hub_product_category ?? null,
+  )
+  const primary = transactionLinePrimaryBadge(line)
+  if (primary === "Send") return t("orders.chipSend")
+  if (primary === "Food") return t("orders.badgeFood")
+  if (primary === "Mart") return t("orders.badgeMart")
+  return t("orders.badgeReferral")
+}
+
+function listLineBadgeClass(tx: CombinedTransaction) {
+  const line = resolveTransactionListLine(
+    {
+      type: tx.type,
+      transaction_source: tx.transaction_source ?? null,
+      reference: tx.reference ?? null,
+    },
+    tx.hub_product_category ?? null,
+  )
+  if (line.kind === "referral_payout") return "border-transparent bg-indigo-100 text-indigo-800"
+  if (line.kind === "send") return "border-transparent bg-primary/15 text-primary"
+  if (line.kind === "hub" && line.line === "food") return "border-transparent bg-emerald-100 text-emerald-900"
+  return "border-transparent bg-amber-100 text-amber-900"
 }
 
 type ChipFilter = "all" | "send" | "hub" | "referral"
@@ -235,9 +269,7 @@ export default function TransactionsPage() {
     if (!transaction) return null
     const payout = isReferralPayoutRow(transaction)
     const isHub = isHubTx(transaction)
-    const detailUrl = isHub
-      ? `/hub/orders/${transaction.transaction_id.toLowerCase()}`
-      : `/send/${transaction.transaction_id.toLowerCase()}`
+    const detailUrl = `/hub/orders/${transaction.transaction_id.toLowerCase()}`
 
     const recipientName = sendRowRecipientLabel(transaction, t("transactions.unknownRecipient"))
     const hubProductTitle =
@@ -286,7 +318,12 @@ export default function TransactionsPage() {
             <Icon className="h-5 w-5" strokeWidth={2.25} aria-hidden />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate font-semibold leading-snug text-foreground">{title}</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="secondary" className={cn("text-[10px] font-semibold uppercase tracking-wide", listLineBadgeClass(transaction))}>
+                {listLineBadgeLabel(transaction, t)}
+              </Badge>
+            </div>
+            <p className="mt-0.5 truncate font-semibold leading-snug text-foreground">{title}</p>
             <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">{subtitle}</p>
           </div>
           <div className="shrink-0 text-right">

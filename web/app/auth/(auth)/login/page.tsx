@@ -16,6 +16,7 @@ import {
   getReferralSlugFromSearchParams,
   persistReferralSlugFromSearchParam,
 } from "@/lib/referral-client"
+import { REDIRECT_AFTER_LOGIN_KEY } from "@/lib/auth-login-redirect"
 import { useTranslation } from "react-i18next"
 
 function LoginPageContent() {
@@ -45,7 +46,13 @@ function LoginPageContent() {
       if (isAdmin) {
         router.push("/admin/dashboard")
       } else {
-        router.push("/hub")
+        const next = sessionStorage.getItem(REDIRECT_AFTER_LOGIN_KEY)?.trim()
+        if (next?.startsWith("/") && !next.startsWith("/auth/")) {
+          sessionStorage.removeItem(REDIRECT_AFTER_LOGIN_KEY)
+          router.replace(next)
+        } else {
+          router.push("/hub")
+        }
       }
     }
   }, [user, userProfile, isAdmin, loading, router])
@@ -73,12 +80,11 @@ function LoginPageContent() {
       })
 
       // Check for stored redirect and conversion data
-      const redirectPath = sessionStorage.getItem("redirectAfterLogin")
+      const redirectPath = sessionStorage.getItem(REDIRECT_AFTER_LOGIN_KEY)
       const conversionData = sessionStorage.getItem("conversionData")
 
       if (redirectPath && conversionData) {
-        // Clear stored data
-        sessionStorage.removeItem("redirectAfterLogin")
+        sessionStorage.removeItem(REDIRECT_AFTER_LOGIN_KEY)
         sessionStorage.removeItem("conversionData")
 
         // Parse conversion data and add to URL
@@ -94,8 +100,10 @@ function LoginPageContent() {
         })
 
         router.push(`/send?${params.toString()}`)
+      } else if (redirectPath?.trim()) {
+        sessionStorage.removeItem(REDIRECT_AFTER_LOGIN_KEY)
+        router.push(redirectPath.trim())
       } else {
-        // Regular users always go to user dashboard
         router.push("/hub")
       }
     } catch (err: any) {

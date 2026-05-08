@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
-/** Layout mirrors `/send/[id]` (2+1 grid). Outer padding comes from the parent. */
+/** Layout mirrors transaction detail (2+1 grid). Outer padding comes from the parent. */
 export function TransactionDetailsSkeleton() {
   return (
     <div className="mx-auto max-w-6xl">

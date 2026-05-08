@@ -1,4 +1,6 @@
-// Combined Transaction Service — `transactions` rows (Send + Hub) for user and admin lists.
+// Combined Transaction Service — `transactions` rows (Send + Hub checkout) for user/admin lists.
+// Referral withdrawals appear on the same table when `reference` starts with `REFERRAL_PAYOUT:`.
+// Office additionally merges `referral_payout_requests` and drops mirror `transactions` rows (see office transactions page).
 import { createServerClient } from "@/lib/supabase"
 import { adminService } from "./database"
 
@@ -27,6 +29,8 @@ export interface CombinedTransaction {
   reference?: string | null
   transaction_source?: string | null
   hub_product_id?: string | null
+  /** From `hub_products.category` when joined (food vs mart badges). */
+  hub_product_category?: string | null
   hub_snapshot?: Record<string, unknown> | null
   hub_fee_amount?: number | null
 }
@@ -90,6 +94,33 @@ export const combinedTransactionService = {
       }
     })
 
+    /** Hub food vs mart list badges: join `hub_products.category` by `hub_product_id`. */
+    const hubProductIds = [
+      ...new Set(
+        sendTxns
+          .map((t) => (t.hub_product_id ? String(t.hub_product_id).trim() : ""))
+          .filter(Boolean),
+      ),
+    ]
+    let categoryByProductId = new Map<string, string>()
+    if (hubProductIds.length > 0) {
+      const { data: products, error: pErr } = await supabase
+        .from("hub_products")
+        .select("id, category")
+        .in("id", hubProductIds)
+      if (!pErr && products?.length) {
+        categoryByProductId = new Map(
+          products.map((p: { id: string; category?: string | null }) => [String(p.id), String(p.category ?? "")]),
+        )
+      }
+    }
+    for (const t of sendTxns) {
+      const pid = t.hub_product_id ? String(t.hub_product_id).trim() : ""
+      if (pid && categoryByProductId.has(pid)) {
+        t.hub_product_category = categoryByProductId.get(pid) ?? null
+      }
+    }
+
     let combined: CombinedTransaction[] = [...sendTxns]
 
     if (filters.type === "send") {
@@ -151,12 +182,40 @@ export const combinedTransactionService = {
           delivery_address_line: tx.delivery_address_line ?? null,
           delivery_phone: tx.delivery_phone ?? null,
           user: tx.user,
+          reference: (tx as { reference?: string | null }).reference ?? null,
           transaction_source: (tx as { transaction_source?: string }).transaction_source ?? "send",
           hub_product_id: (tx as { hub_product_id?: string }).hub_product_id ?? null,
           hub_snapshot: (tx as { hub_snapshot?: Record<string, unknown> | null }).hub_snapshot ?? null,
           hub_fee_amount: (tx as { hub_fee_amount?: number }).hub_fee_amount ?? null,
         }
       })
+
+    const hubProductIdsAdmin = [
+      ...new Set(
+        sendTxns
+          .map((t) => (t.hub_product_id ? String(t.hub_product_id).trim() : ""))
+          .filter(Boolean),
+      ),
+    ]
+    let categoryByProductIdAdmin = new Map<string, string>()
+    if (hubProductIdsAdmin.length > 0) {
+      const adminSupabase = createServerClient()
+      const { data: products, error: pErr } = await adminSupabase
+        .from("hub_products")
+        .select("id, category")
+        .in("id", hubProductIdsAdmin)
+      if (!pErr && products?.length) {
+        categoryByProductIdAdmin = new Map(
+          products.map((p: { id: string; category?: string | null }) => [String(p.id), String(p.category ?? "")]),
+        )
+      }
+    }
+    for (const t of sendTxns) {
+      const pid = t.hub_product_id ? String(t.hub_product_id).trim() : ""
+      if (pid && categoryByProductIdAdmin.has(pid)) {
+        t.hub_product_category = categoryByProductIdAdmin.get(pid) ?? null
+      }
+    }
 
     let combined: CombinedTransaction[] = [...sendTxns]
 

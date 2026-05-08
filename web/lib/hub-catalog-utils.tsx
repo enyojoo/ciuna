@@ -1,6 +1,11 @@
 import type { ReactNode } from "react"
 import type { HubProductRow } from "@/lib/hub-types"
 import { formatCurrencySymbolOnly } from "@/utils/currency"
+import {
+  hubProductEffectivePrice,
+  hubProductListPrice,
+  hubProductShowListStrike,
+} from "@/lib/hub-product-price"
 
 export function featuredRank(p: HubProductRow): number {
   return p.is_featured ? 1 : 0
@@ -26,6 +31,31 @@ export function formatCardPrice(amount: number | null, currency: string | null):
 
 export const amountValueClass = "text-base sm:text-xl font-bold tabular-nums tracking-tight text-gray-900"
 export const amountPrefixClass = "text-xs font-medium text-gray-500 sm:text-sm"
+
+/** Fixed-price line for catalog cards: optional struck list + effective (sale or list). */
+export function HubCatalogFixedPrice({
+  product,
+  compact,
+}: {
+  product: HubProductRow
+  /** Smaller type for narrow carousel tiles. */
+  compact?: boolean
+}) {
+  const list = hubProductListPrice(product)
+  const eff = hubProductEffectivePrice(product)
+  const strike = hubProductShowListStrike(product)
+  const cur = product.fixed_currency
+  const valueCls = compact ? "text-[11px] font-bold tabular-nums text-foreground" : amountValueClass
+  const strikeCls = compact
+    ? "text-[10px] font-medium tabular-nums text-muted-foreground line-through opacity-80"
+    : `${amountPrefixClass} line-through opacity-70`
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+      {strike && list != null ? <span className={strikeCls}>{formatCardPrice(list, cur)}</span> : null}
+      <span className={valueCls}>{formatCardPrice(eff, cur)}</span>
+    </div>
+  )
+}
 
 export function renderUserInputRangeLabel(
   min: number | null,

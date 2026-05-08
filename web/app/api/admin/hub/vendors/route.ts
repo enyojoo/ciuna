@@ -65,7 +65,9 @@ export async function POST(request: NextRequest) {
       slug,
       photo_url: body.photo_url != null ? String(body.photo_url).trim() || null : null,
       short_bio: body.short_bio != null ? String(body.short_bio).trim() || null : null,
+      location: body.location != null ? String(body.location).trim() || null : null,
       is_published: Boolean(body.is_published),
+      is_verified: Boolean(body.is_verified),
       updated_at: new Date().toISOString(),
     }
 

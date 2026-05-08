@@ -30,7 +30,7 @@ import {
 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { supabase } from "@/lib/supabase"
-import { formatCurrency } from "@/utils/currency"
+import { roundMoney } from "@/utils/currency"
 import { useOfficeData } from "@/hooks/use-office-data"
 import { officeFetch } from "@/lib/api-client"
 import { officeDataStore, calculateUserVolume } from "@/lib/office-data-store"
@@ -69,8 +69,14 @@ interface TransactionData {
   send_currency: string
   receive_currency: string
   send_amount: number
+  /** Full charge in send currency when set (hub / send with fees). */
+  total_amount?: number | null
   receive_amount: number
   status: string
+  transaction_source?: string | null
+  hub_snapshot?: Record<string, unknown> | null
+  hub_fee_amount?: number | null
+  exchange_rate?: number | null
   recipient: {
     full_name: string
   }
@@ -146,6 +152,55 @@ export default function AdminUsersPage() {
     return `${month} ${day}, ${year}`
   }
 
+  /** Customer charge in send currency (matches office `/transactions` total paid). */
+  const totalPaidSendAmount = (tx: Pick<TransactionData, "total_amount" | "send_amount">): number => {
+    const total = Number(tx.total_amount)
+    if (Number.isFinite(total) && total > 0) return total
+    return Number(tx.send_amount) || 0
+  }
+
+  /** Hub fee in receive (product) currency — same logic as office `/transactions` order summary. */
+  const getHubFeeReceiveAmount = (tx: Pick<TransactionData, "hub_snapshot" | "receive_amount" | "exchange_rate" | "hub_fee_amount">): number => {
+    const snap = tx.hub_snapshot as
+      | {
+          fundedAmount?: number
+          feePercent?: number | null
+        }
+      | null
+      | undefined
+    const productPrice =
+      snap?.fundedAmount != null && Number.isFinite(Number(snap.fundedAmount))
+        ? Number(snap.fundedAmount)
+        : Number(tx.receive_amount) || 0
+    const pct = snap?.feePercent != null && Number.isFinite(Number(snap.feePercent)) ? Number(snap.feePercent) : null
+    if (pct != null && pct > 0 && productPrice > 0) {
+      return roundMoney((productPrice * pct) / 100)
+    }
+    const rate = Number(tx.exchange_rate) || 0
+    const hubSend = Number(tx.hub_fee_amount) || 0
+    if (rate > 0 && hubSend > 0) return roundMoney(hubSend * rate)
+    return 0
+  }
+
+  /** Hub: product + hub fee in funded/receive currency (not product price alone). Send: corridor receive. */
+  const receiveSideDisplayAmount = (tx: TransactionData): { amount: number; currency: string } => {
+    if (tx.transaction_source !== "hub") {
+      return { amount: Number(tx.receive_amount) || 0, currency: tx.receive_currency }
+    }
+    const snap = tx.hub_snapshot as { fundedAmount?: number; fundedCurrency?: string } | null | undefined
+    const productPrice =
+      snap?.fundedAmount != null && Number.isFinite(Number(snap.fundedAmount))
+        ? Number(snap.fundedAmount)
+        : Number(tx.receive_amount) || 0
+    const hubFeeRecv = getHubFeeReceiveAmount(tx)
+    const subtotal = roundMoney(productPrice + hubFeeRecv)
+    const currency =
+      typeof snap?.fundedCurrency === "string" && snap.fundedCurrency.trim()
+        ? snap.fundedCurrency.trim()
+        : tx.receive_currency
+    return { amount: subtotal, currency }
+  }
+
   const fetchUserTransactions = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -156,8 +211,13 @@ export default function AdminUsersPage() {
           send_currency,
           receive_currency,
           send_amount,
+          total_amount,
           receive_amount,
           status,
+          transaction_source,
+          hub_snapshot,
+          hub_fee_amount,
+          exchange_rate,
           recipient:recipients(full_name)
         `)
         .eq("user_id", userId)
@@ -172,8 +232,13 @@ export default function AdminUsersPage() {
         send_currency: tx.send_currency,
         receive_currency: tx.receive_currency,
         send_amount: tx.send_amount,
+        total_amount: tx.total_amount ?? null,
         receive_amount: tx.receive_amount,
         status: tx.status,
+        transaction_source: tx.transaction_source ?? null,
+        hub_snapshot: tx.hub_snapshot ?? null,
+        hub_fee_amount: tx.hub_fee_amount ?? null,
+        exchange_rate: tx.exchange_rate ?? null,
         recipient: {
           full_name: Array.isArray(tx.recipient) ? tx.recipient[0]?.full_name || '' : tx.recipient?.full_name || ''
         }
@@ -759,14 +824,17 @@ export default function AdminUsersPage() {
                                             <TableCell>
                                               <div>
                                                 <div className="font-medium">
-                                                  {formatCurrencyFromDB(transaction.send_amount, transaction.send_currency)}
+                                                  {formatCurrencyFromDB(
+                                                    totalPaidSendAmount(transaction),
+                                                    transaction.send_currency,
+                                                  )}
                                                 </div>
                                                 <div className="text-sm text-gray-500">
                                                   →{" "}
-                                                  {formatCurrencyFromDB(
-                                                    transaction.receive_amount,
-                                                    transaction.receive_currency,
-                                                  )}
+                                                  {(() => {
+                                                    const { amount, currency } = receiveSideDisplayAmount(transaction)
+                                                    return formatCurrencyFromDB(amount, currency)
+                                                  })()}
                                                 </div>
                                               </div>
                                             </TableCell>

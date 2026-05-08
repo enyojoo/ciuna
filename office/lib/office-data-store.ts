@@ -1,4 +1,9 @@
-import { sumCompletedVolumeInBaseCurrency } from "@ciuna/shared"
+import {
+  isReferralPayoutMirrorReference,
+  resolveTransactionListLine,
+  sumCompletedVolumeInBaseCurrency,
+  transactionLinePrimaryBadge,
+} from "@ciuna/shared"
 import { supabase } from "./supabase"
 import { officeFetch } from "./api-client"
 import { formatCurrency as formatMoney, roundMoney } from "@/utils/currency"
@@ -19,7 +24,8 @@ interface AdminData {
     pendingTransactions: number
   }
   recentActivity: any[]
-  currencyPairs: any[]
+  /** Completed volume by service line; `volume` is % of total; `volumeAmount` is total in base currency. */
+  serviceLinePopularity: { service: string; volume: number; volumeAmount: number; transactions: number }[]
   lastUpdated: number
 }
 
@@ -138,6 +144,9 @@ class OfficeDataStore {
       const fiveMinutes = 5 * 60 * 1000
       if (Date.now() - timestamp < fiveMinutes) {
         this.data = data
+        if (this.data && !Array.isArray(this.data.serviceLinePopularity)) {
+          this.data = { ...this.data, serviceLinePopularity: [] }
+        }
         console.log('OfficeDataStore: Loaded data from cache')
         return true
       } else {
@@ -219,7 +228,11 @@ class OfficeDataStore {
         return dateB - dateA
       })
       const recentActivity = this.processRecentActivity(sortedTransactions.slice(0, 10))
-      const currencyPairs = this.processCurrencyPairs(transactionsResult.filter((t) => t.status === "completed"))
+      const serviceLinePopularity = this.processServiceLinePopularity(
+        transactionsResult.filter((t) => t.status === "completed"),
+        baseCurrency,
+        exchangeRatesResult,
+      )
 
       // Create initial data structure with critical data - preserve existing data to prevent flickering
       const existingData = this.data
@@ -232,7 +245,7 @@ class OfficeDataStore {
         baseCurrency,
         stats: tempStats,
         recentActivity,
-        currencyPairs,
+        serviceLinePopularity,
         lastUpdated: Date.now(),
       }
 
@@ -271,7 +284,7 @@ class OfficeDataStore {
           baseCurrency,
           stats,
           recentActivity,
-          currencyPairs,
+          serviceLinePopularity,
           lastUpdated: Date.now(),
         }
 
@@ -419,10 +432,45 @@ class OfficeDataStore {
         throw sendError
       }
 
-      const allTransactions = (sendTransactions || []).map((tx: any) => ({
+      const allTransactions = (sendTransactions || []).map((tx: any) => {
+        const referralRow = tx.type === "referral_payout" || isReferralPayoutMirrorReference(tx.reference)
+        const hubRow = tx.transaction_source === "hub" || tx.type === "hub"
+        return {
         ...tx,
-        type: tx.transaction_source === "hub" ? "hub" : "send",
-      }))
+          type: referralRow ? "referral_payout" : hubRow ? "hub" : "send",
+        }
+      })
+
+      const hubProductIds = [
+        ...new Set(
+          allTransactions
+            .map((t: { hub_product_id?: string | null }) =>
+              t.hub_product_id ? String(t.hub_product_id).trim() : "",
+            )
+            .filter(Boolean),
+        ),
+      ]
+      let categoryByProductId = new Map<string, string>()
+      if (hubProductIds.length > 0) {
+        const { data: products, error: pErr } = await supabase
+          .from("hub_products")
+          .select("id, category")
+          .in("id", hubProductIds)
+        if (!pErr && products?.length) {
+          categoryByProductId = new Map(
+            products.map((p: { id: string; category?: string | null }) => [
+              String(p.id),
+              String(p.category ?? ""),
+            ]),
+          )
+        }
+      }
+      for (const tx of allTransactions) {
+        const pid = tx.hub_product_id ? String(tx.hub_product_id).trim() : ""
+        if (pid && categoryByProductId.has(pid)) {
+          tx.hub_product_category = categoryByProductId.get(pid) ?? null
+        }
+      }
 
       console.log("OfficeDataStore: Transactions loaded successfully:", {
         send: sendTransactions?.length || 0,
@@ -555,13 +603,12 @@ class OfficeDataStore {
 
   private processRecentActivity(transactions: any[]) {
     return transactions.map((tx) => {
-      const txType = tx.type || (tx.send_amount ? "send" : null)
-      const amount = this.formatCurrency(tx.send_amount || 0, tx.send_currency || "")
+      const amount = this.formatCurrency(this.totalToPaidSendAmount(tx), tx.send_currency || "")
 
       return {
         id: tx.id || tx.transaction_id,
         type: this.getActivityType(tx.status),
-        message: this.getActivityMessage(tx, txType),
+        message: this.getActivityMessage(tx),
         user: tx.user ? `${tx.user.first_name} ${tx.user.last_name}` : undefined,
         amount,
         time: this.getRelativeTime(tx.created_at),
@@ -570,77 +617,189 @@ class OfficeDataStore {
     })
   }
 
-  private processCurrencyPairs(transactions: any[]) {
-    const pairStats: { [key: string]: { volume: number; count: number } } = {}
+  private buildActiveRateMap(exchangeRates: any[]): Map<string, number> {
+    const m = new Map<string, number>()
+    for (const r of exchangeRates || []) {
+      if (!r) continue
+      if (r.status != null && r.status !== "active") continue
+      const from = r.from_currency
+      const to = r.to_currency
+      if (typeof from !== "string" || typeof to !== "string") continue
+      const rate = Number(r.rate)
+      if (!Number.isFinite(rate) || rate <= 0) continue
+      m.set(`${from}_${to}`, rate)
+    }
+    return m
+  }
 
-    transactions.forEach((tx) => {
-      const pair = `${tx.send_currency} → ${tx.receive_currency}`
-      if (!pairStats[pair]) {
-        pairStats[pair] = { volume: 0, count: 0 }
+  /**
+   * Completed volume in base currency for dashboard service-line buckets.
+   * Aligns with `sumCompletedVolumeInBaseCurrency` for send + hub, and adds referral payout rows.
+   */
+  private completedTxVolumeInBaseForServiceLine(
+    tx: any,
+    baseCurrency: string,
+    rateMap: Map<string, number>,
+  ): number {
+    if (!tx || tx.status !== "completed") return 0
+    if (isReferralPayoutMirrorReference(tx.reference)) return 0
+
+    const base = (baseCurrency || "NGN").trim() || "NGN"
+    const isHub = tx.type === "hub" || tx.transaction_source === "hub"
+    let amount = 0
+    let currency = base
+
+    if (isHub) {
+      amount = Number(tx.total_amount) || Number(tx.send_amount) || 0
+      currency = (typeof tx.send_currency === "string" && tx.send_currency.trim() ? tx.send_currency : base) as string
+    } else if (tx.type === "referral_payout") {
+      amount = Number(tx.send_amount) || Number(tx.total_amount) || 0
+      currency = (typeof tx.send_currency === "string" && tx.send_currency.trim() ? tx.send_currency : base) as string
+    } else {
+      const inferredType = tx.type || (Number(tx.send_amount) > 0 ? "send" : null)
+      if (inferredType !== "send") return 0
+      amount = Number(tx.send_amount) || 0
+      currency = (typeof tx.send_currency === "string" && tx.send_currency.trim() ? tx.send_currency : base) as string
+    }
+
+    if (amount <= 0) return 0
+    return this.convertCurrencyWithRates(amount, currency, base, rateMap)
+  }
+
+  private processServiceLinePopularity(transactions: any[], baseCurrency: string, exchangeRates: any[]) {
+    const rateMap = this.buildActiveRateMap(exchangeRates)
+    const completed = (transactions || []).filter(
+      (t) => t?.status === "completed" && !isReferralPayoutMirrorReference(t?.reference),
+    )
+
+    const buckets: Record<"Send" | "Food" | "Mart" | "Referral", any[]> = {
+      Send: [],
+      Food: [],
+      Mart: [],
+      Referral: [],
+    }
+
+    for (const tx of completed) {
+      const line = resolveTransactionListLine(
+        {
+          type: tx.type,
+          transaction_source: tx.transaction_source ?? null,
+          reference: tx.reference ?? null,
+        },
+        tx.hub_product_category ?? null,
+      )
+      const label = transactionLinePrimaryBadge(line)
+      const key: keyof typeof buckets =
+        label === "Food" ? "Food" : label === "Mart" ? "Mart" : label === "Referral" ? "Referral" : "Send"
+      buckets[key].push(tx)
+    }
+
+    const order: Array<keyof typeof buckets> = ["Send", "Food", "Mart", "Referral"]
+    const rows = order.map((service) => {
+      const list = buckets[service]
+      let baseVolume = 0
+      for (const tx of list) {
+        baseVolume += this.completedTxVolumeInBaseForServiceLine(tx, baseCurrency, rateMap)
       }
-      pairStats[pair].volume += tx.send_amount
-      pairStats[pair].count += 1
+      return { service, baseVolume, transactions: list.length }
     })
 
-    const totalVolume = Object.values(pairStats).reduce((sum, stat) => sum + stat.volume, 0)
-
-    return Object.entries(pairStats)
-      .map(([pair, stats]) => ({
-        pair,
-        volume: totalVolume > 0 ? (stats.volume / totalVolume) * 100 : 0,
-        transactions: stats.count,
-      }))
-      .sort((a, b) => b.volume - a.volume)
-      .slice(0, 4)
+    const totalBase = rows.reduce((s, r) => s + r.baseVolume, 0)
+    return rows.map((r) => ({
+      service: r.service,
+      volume: totalBase > 0 ? (r.baseVolume / totalBase) * 100 : 0,
+      volumeAmount: roundMoney(r.baseVolume),
+      transactions: r.transactions,
+    }))
   }
 
   private getActivityType(status: string) {
-    switch (status) {
+    const s = String(status || "").toLowerCase()
+    switch (s) {
       case "completed":
+      case "deposited":
         return "transaction_completed"
       case "failed":
         return "transaction_failed"
       case "cancelled":
         return "transaction_cancelled"
       case "processing":
+      case "converting":
+      case "converted":
         return "transaction_processing"
       case "pending":
+      case "confirmed":
         return "transaction_pending"
       default:
         return "transaction_pending"
     }
   }
 
-  private getActivityMessage(transaction: any, txType?: string) {
-    const typeLabel = txType === "send" ? "Send Money" : "Transaction"
+  /** Same as office `/transactions` "Total to paid (send)": `total_amount` when set, else `send_amount`. */
+  private totalToPaidSendAmount(tx: { total_amount?: number | null; send_amount?: number | null }): number {
+    const total = Number(tx.total_amount)
+    if (Number.isFinite(total) && total > 0) return total
+    return Number(tx.send_amount) || 0
+  }
 
-    switch (transaction.status) {
+  /** Service-line label for Recent Activity copy (e.g. Mart Order, Food Order, Send Money, Referral Payout). */
+  private getActivityServiceTitle(transaction: any): string {
+    if (transaction.type === "referral_payout" || isReferralPayoutMirrorReference(transaction.reference)) {
+      return "Referral Payout"
+    }
+    const line = resolveTransactionListLine(
+      {
+        type: transaction.type,
+        transaction_source: transaction.transaction_source ?? null,
+        reference: transaction.reference ?? null,
+      },
+      transaction.hub_product_category ?? null,
+    )
+    if (line.kind === "hub") {
+      return line.line === "food" ? "Food Order" : "Mart Order"
+    }
+    return "Send Money"
+  }
+
+  private getActivityMessage(transaction: any) {
+    const title = this.getActivityServiceTitle(transaction)
+    const s = String(transaction.status || "").toLowerCase()
+    switch (s) {
       case "completed":
-        return `${typeLabel} Completed`
+      case "deposited":
+        return `${title} Completed`
       case "failed":
-        return `${typeLabel} Failed`
+        return `${title} Failed`
       case "cancelled":
-        return `${typeLabel} Cancelled`
+        return `${title} Cancelled`
       case "processing":
-        return `${typeLabel} Processing`
+      case "converting":
+      case "converted":
+        return `${title} Processing`
       case "pending":
-        return `${typeLabel} Created`
+      case "confirmed":
+        return `${title} Created`
       default:
-        return `${typeLabel} is being processed`
+        return `${title} is being processed`
     }
   }
 
   private getActivityStatus(status: string) {
-    switch (status) {
+    const s = String(status || "").toLowerCase()
+    switch (s) {
       case "completed":
+      case "deposited":
         return "success"
       case "failed":
         return "error"
       case "cancelled":
         return "error"
       case "processing":
+      case "converting":
+      case "converted":
         return "warning"
       case "pending":
+      case "confirmed":
         return "warning"
       default:
         return "info"
@@ -794,7 +953,11 @@ class OfficeDataStore {
       // Use already-loaded exchange rates for volume calculation
       const stats = await this.calculateStats(this.data.users, transactionsResult, this.data.baseCurrency, this.data.exchangeRates)
       const recentActivity = this.processRecentActivity(transactionsResult.slice(0, 10))
-      const currencyPairs = this.processCurrencyPairs(transactionsResult.filter((t) => t.status === "completed"))
+      const serviceLinePopularity = this.processServiceLinePopularity(
+        transactionsResult.filter((t) => t.status === "completed"),
+        this.data.baseCurrency,
+        this.data.exchangeRates,
+      )
 
       // Create a new object reference to ensure React detects the change
       this.data = {
@@ -803,7 +966,7 @@ class OfficeDataStore {
         referralPayoutRequests: referralPayoutsResult,
         stats: stats,
         recentActivity: recentActivity,
-        currencyPairs: currencyPairs,
+        serviceLinePopularity: serviceLinePopularity,
         lastUpdated: Date.now(),
       }
       this.saveToCache()
@@ -879,11 +1042,17 @@ class OfficeDataStore {
       const statsChanged = JSON.stringify(stats) !== JSON.stringify(this.data.stats)
       
       if (exchangeRatesChanged || statsChanged) {
+        const serviceLinePopularity = this.processServiceLinePopularity(
+          this.data.transactions.filter((t) => t.status === "completed"),
+          this.data.baseCurrency,
+          exchangeRatesResult,
+        )
         // Create a new object reference to ensure React detects the change
         this.data = {
           ...this.data,
           exchangeRates: exchangeRatesResult,
           stats: stats,
+          serviceLinePopularity,
           lastUpdated: Date.now(),
         }
         this.saveToCache()
@@ -929,16 +1098,24 @@ class OfficeDataStore {
         )
         const updatedStats = await this.calculateStats(this.data.users, updatedTransactions, this.data.baseCurrency, this.data.exchangeRates)
         const updatedRecentActivity = this.processRecentActivity(updatedTransactions.slice(0, 10))
+        const updatedServiceLinePopularity = this.processServiceLinePopularity(
+          updatedTransactions.filter((t) => t.status === "completed"),
+          this.data.baseCurrency,
+          this.data.exchangeRates,
+        )
         
         // Only update if something actually changed
         const transactionsChanged = JSON.stringify(updatedTransactions) !== JSON.stringify(this.data.transactions)
         const statsChanged = JSON.stringify(updatedStats) !== JSON.stringify(this.data.stats)
         const recentActivityChanged = JSON.stringify(updatedRecentActivity) !== JSON.stringify(this.data.recentActivity)
+        const serviceLineChanged =
+          JSON.stringify(updatedServiceLinePopularity) !== JSON.stringify(this.data.serviceLinePopularity)
         
-        if (transactionsChanged || statsChanged || recentActivityChanged) {
+        if (transactionsChanged || statsChanged || recentActivityChanged || serviceLineChanged) {
           this.data.transactions = updatedTransactions
           this.data.stats = updatedStats
           this.data.recentActivity = updatedRecentActivity
+          this.data.serviceLinePopularity = updatedServiceLinePopularity
           this.data.lastUpdated = Date.now()
           this.saveToCache()
           this.notify()

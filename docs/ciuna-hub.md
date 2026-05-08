@@ -37,7 +37,7 @@ Phased delivery; product behavior is defined in §§1–15 below.
 | Combined list | [web/lib/combined-transaction-service.ts](web/lib/combined-transaction-service.ts) |
 | Checkout API | [web/app/api/hub/checkout/route.ts](web/app/api/hub/checkout/route.ts) |
 | App Hub UI | [web/app/hub/](web/app/hub/) |
-| Send detail reuse | [web/app/send/[id]/page.tsx](web/app/send/[id]/page.tsx) |
+| Send / referral / hub order detail | [web/components/transaction-order-detail-page.tsx](web/components/transaction-order-detail-page.tsx) (route: [`web/app/hub/orders/[id]/page.tsx`](web/app/hub/orders/[id]/page.tsx)) |
 | Office Hub | [office/app/hub/](office/app/hub/) |
 | Office nav | [office/components/layout/office-dashboard-layout.tsx](office/components/layout/office-dashboard-layout.tsx) |
 | Office tx data | [office/lib/office-data-store.ts](office/lib/office-data-store.ts), [office/app/transactions/page.tsx](office/app/transactions/page.tsx) |

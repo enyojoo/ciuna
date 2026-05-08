@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useLayoutEffect, useCallback, useRef } from "react"
 import { userDataStore } from "@/lib/user-data-store"
 import { useAuth } from "@/lib/auth-context"
 
@@ -13,7 +13,15 @@ export function useUserData() {
   const [error, setError] = useState<string | null>(null)
   const mountedRef = useRef(true)
 
-  // Memoize the refresh functions to prevent unnecessary re-renders
+  useLayoutEffect(() => {
+    if (authLoading || !userProfile?.id) return
+    const hydrated = userDataStore.hydrateFromLocalStorage(userProfile.id)
+    if (hydrated) {
+      setData(userDataStore.getData())
+      setLoading(false)
+    }
+  }, [authLoading, userProfile?.id])
+
   const refreshRecipients = useCallback(() => {
     if (userProfile?.id && mountedRef.current) {
       return userDataStore.refreshRecipients(userProfile.id)
@@ -52,24 +60,22 @@ export function useUserData() {
     const initializeData = async () => {
       if (!mountedRef.current) return
 
-      // Check if data is already fresh - if so, don't show loading state
       const existingData = userDataStore.getData()
       const hasData = existingData && existingData.lastUpdated > 0
       const isDataFresh = userDataStore.checkDataFreshness()
 
-      // Only show loading if we don't have fresh data
-      // This prevents flickering when navigating to the dashboard with cached data
-      if (!hasData || !isDataFresh) {
+      if (!hasData) {
         setLoading(true)
+      } else if (!isDataFresh) {
+        setLoading(false)
       }
+
       setError(null)
-      
+
       try {
-        // Initialize will return immediately if data is fresh, preventing unnecessary loading
         await userDataStore.initialize(userProfile.id)
         if (mountedRef.current) {
           const newData = userDataStore.getData()
-          // Only update if data actually changed
           setData((prevData) => {
             if (JSON.stringify(prevData) === JSON.stringify(newData)) {
               return prevData
@@ -80,7 +86,6 @@ export function useUserData() {
       } catch (err) {
         console.error("Failed to initialize user data:", err)
         if (mountedRef.current) {
-          // Only set error if we don't have existing data to fall back to
           if (!hasData) {
             setError("Failed to load data. Please try again.")
           }
@@ -97,7 +102,6 @@ export function useUserData() {
     const unsubscribe = userDataStore.subscribe(() => {
       if (mountedRef.current) {
         const newData = userDataStore.getData()
-        // Only update state if data actually changed to prevent unnecessary re-renders
         setData((prevData) => {
           if (JSON.stringify(prevData) === JSON.stringify(newData)) {
             return prevData

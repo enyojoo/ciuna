@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react"
 import Link from "next/link"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, usePathname, useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import {
   AlertCircle,
@@ -44,6 +44,8 @@ import {
   readStaleHubProductCache,
   writeHubProductCache,
 } from "@/lib/hub-client-cache"
+import { hubProductEffectivePrice, hubProductListPrice, hubProductShowListStrike } from "@/lib/hub-product-price"
+import { HubProductVendorChipLight } from "@/components/hub/hub-product-vendor-chip-light"
 import type { Currency, ExchangeRate } from "@/types"
 import { deliveryAddressService, paymentMethodService, transactionService, userService } from "@/lib/database"
 import { generateTransactionId } from "@/lib/transaction-id"
@@ -52,6 +54,7 @@ import { cn } from "@/lib/utils"
 import { accountFieldLabel } from "@/lib/account-field-i18n"
 import { formatFieldValue, getAccountTypeConfigFromCurrency } from "@/lib/currency-account-types"
 import { hubPayMatchesProductCurrency, hubSyntheticSameCurrencyRateRow } from "@/lib/hub-same-currency-rate"
+import { hubCheckoutBackHrefFromPathname } from "@/lib/hub-public-paths"
 
 type PaymentMethod = {
   id: string
@@ -119,6 +122,8 @@ function PaymentDetailRow({
 export default function HubCheckoutPage() {
   const { t } = useTranslation("app")
   const params = useParams()
+  const pathname = usePathname() || ""
+  const checkoutBackHref = hubCheckoutBackHrefFromPathname(pathname)
   const productId = params.productId as string
   const router = useRouter()
   const { user, userProfile, loading: authLoading, refreshUserProfile } = useAuth()
@@ -243,7 +248,7 @@ export default function HubCheckoutPage() {
 
   const fundedReceiveAmount = useMemo(() => {
     if (!product) return 0
-    if (product.pricing_type === "fixed") return roundMoney(Number(product.fixed_amount) || 0)
+    if (product.pricing_type === "fixed") return roundMoney(hubProductEffectivePrice(product))
     return roundMoney(Number.parseFloat(fundedInput) || 0)
   }, [product, fundedInput])
 
@@ -601,7 +606,7 @@ export default function HubCheckoutPage() {
   if (showCheckoutSkeleton) {
     return (
       <div className="min-w-0 space-y-0">
-        <AppPageHeader title={t("hub.checkout.title")} backHref="/hub" />
+        <AppPageHeader title={t("hub.checkout.title")} backHref={checkoutBackHref} />
         <div className="px-4 py-5 sm:px-6">
           <div className="mx-auto max-w-6xl animate-pulse space-y-6">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -627,12 +632,12 @@ export default function HubCheckoutPage() {
   if (!product) {
     return (
       <div className="min-w-0 space-y-0">
-        <AppPageHeader title={t("hub.checkout.title")} backHref="/hub" />
+        <AppPageHeader title={t("hub.checkout.title")} backHref={checkoutBackHref} />
         <div className="px-4 py-8 sm:px-6">
           <div className="mx-auto max-w-4xl">
             <p className="text-red-600">{t("hub.productNotFound")}</p>
             <Button asChild variant="outline" className="mt-4">
-              <Link href="/hub">{t("hub.hub")}</Link>
+              <Link href={checkoutBackHref}>{t("hub.hub")}</Link>
             </Button>
           </div>
         </div>
@@ -869,7 +874,10 @@ export default function HubCheckoutPage() {
 
   return (
     <div className="min-w-0 space-y-0">
-      <AppPageHeader title={t("hub.checkout.hubCheckoutTitle", { defaultValue: "Ciuna Hub Checkout" })} backHref="/hub" />
+      <AppPageHeader
+        title={t("hub.checkout.hubCheckoutTitle", { defaultValue: "Ciuna Hub Checkout" })}
+        backHref={checkoutBackHref}
+      />
       <div className="min-w-0 px-4 py-5 sm:px-6">
         <div className="mx-auto max-w-6xl">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
@@ -893,6 +901,11 @@ export default function HubCheckoutPage() {
                       </div>
                       {product.short_description ? (
                         <p className="mt-3 max-w-2xl text-sm/6 text-orange-50">{product.short_description}</p>
+                      ) : null}
+                      {product.vendor ? (
+                        <div className="mt-4 max-w-xl">
+                          <HubProductVendorChipLight vendor={product.vendor} tone="onGradient" />
+                        </div>
                       ) : null}
                     </div>
 
@@ -924,8 +937,17 @@ export default function HubCheckoutPage() {
                               />
                             </>
                           ) : (
-                            <div className="text-app-money-input min-w-0 w-full font-bold text-gray-900">
-                              {formatCurrency(fundedReceiveAmount, receiveCurrency)}
+                            <div className="min-w-0 w-full space-y-1">
+                              {product.pricing_type === "fixed" &&
+                              hubProductShowListStrike(product) &&
+                              hubProductListPrice(product) != null ? (
+                                <div className="text-sm font-medium text-gray-500 line-through tabular-nums">
+                                  {formatCurrency(hubProductListPrice(product)!, receiveCurrency)}
+                                </div>
+                              ) : null}
+                              <div className="text-app-money-input font-bold text-gray-900">
+                                {formatCurrency(fundedReceiveAmount, receiveCurrency)}
+                              </div>
                             </div>
                           )}
                         </div>

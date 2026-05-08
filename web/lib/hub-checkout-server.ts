@@ -3,8 +3,9 @@ import { generateTransactionId } from "@/lib/transaction-id"
 import { roundMoney } from "@/utils/currency"
 import { computeHubFeeFromReceive } from "@/lib/hub-fee"
 import { hubPayMatchesProductCurrency, hubSyntheticSameCurrencyRateRow } from "@/lib/hub-same-currency-rate"
-import type { HubTransactionSnapshot } from "@/lib/hub-types"
+import type { HubTransactionSnapshot, HubProductRow } from "@/lib/hub-types"
 import type { ExchangeRate } from "@/types"
+import { hubProductEffectivePrice } from "@/lib/hub-product-price"
 
 const HUB_IDEMPOTENCY_PREFIX = "HUB:"
 
@@ -82,10 +83,13 @@ export async function createHubCheckoutTransaction(
   if (product.fulfillment_type === "in_person" && !deliveryAddressLine?.trim()) {
     throw new Error("Delivery address required for in-person fulfillment")
   }
+  if (product.fulfillment_type === "vendor" && !(product.vendor_id != null && String(product.vendor_id).trim())) {
+    throw new Error("Vendor fulfillment requires a linked vendor")
+  }
 
   let fundedAmount: number
   if (product.pricing_type === "fixed") {
-    fundedAmount = Number(product.fixed_amount) || 0
+    fundedAmount = hubProductEffectivePrice(product as HubProductRow)
     if (fundedAmount <= 0) throw new Error("Invalid product price")
   } else {
     fundedAmount = Number(fundedInput) || 0
@@ -144,7 +148,12 @@ export async function createHubCheckoutTransaction(
     billingContext: null,
     contactName: contactName.trim(),
     contactPhone: contactPhone.trim(),
-    fulfillmentType: product.fulfillment_type === "in_person" ? "in_person" : "online",
+    fulfillmentType:
+      product.fulfillment_type === "in_person"
+        ? "in_person"
+        : product.fulfillment_type === "vendor"
+          ? "vendor"
+          : "online",
     deliveryAddressLine: deliveryAddressLine?.trim() || null,
     formAnswers,
   }

@@ -170,7 +170,7 @@ ${tEmail("common.footerCopyright", { year: new Date().getFullYear() }, lng)}
         content,
         {
           text: tEmail("send.pending.cta", {}, lng),
-          url: `${appUrl()}/send/${data.transactionId.toLowerCase()}`,
+          url: `${appUrl()}/hub/orders/${data.transactionId.toLowerCase()}`,
         },
         lng,
       )
@@ -191,7 +191,7 @@ ${formatTxEmailPlainMoneyLines(data)}
 ${tEmail("send.pending.nextHeading", {}, lng)}:
 ${tEmail("send.pending.nextBody", {}, lng)}
 
-${tEmail("send.pending.cta", {}, lng)}: ${appUrl()}/send/${data.transactionId.toLowerCase()}
+${tEmail("send.pending.cta", {}, lng)}: ${appUrl()}/hub/orders/${data.transactionId.toLowerCase()}
     `
     },
   },
@@ -221,7 +221,7 @@ ${tEmail("send.pending.cta", {}, lng)}: ${appUrl()}/send/${data.transactionId.to
         content,
         {
           text: tEmail("send.processing.cta", {}, lng),
-          url: `${appUrl()}/send/${data.transactionId.toLowerCase()}`,
+          url: `${appUrl()}/hub/orders/${data.transactionId.toLowerCase()}`,
         },
         lng,
       )
@@ -242,7 +242,7 @@ ${formatTxEmailPlainMoneyLines(data)}
 ${tEmail("send.processing.nextHeading", {}, lng)}:
 ${tEmail("send.processing.nextBody", {}, lng)}
 
-${tEmail("send.processing.cta", {}, lng)}: ${appUrl()}/send/${data.transactionId.toLowerCase()}
+${tEmail("send.processing.cta", {}, lng)}: ${appUrl()}/hub/orders/${data.transactionId.toLowerCase()}
     `
     },
   },
@@ -272,7 +272,7 @@ ${tEmail("send.processing.cta", {}, lng)}: ${appUrl()}/send/${data.transactionId
         content,
         {
           text: tEmail("send.completed.cta", {}, lng),
-          url: `${appUrl()}/send/${data.transactionId.toLowerCase()}`,
+          url: `${appUrl()}/hub/orders/${data.transactionId.toLowerCase()}`,
         },
         lng,
       )
@@ -293,7 +293,7 @@ ${formatTxEmailPlainMoneyLines(data)}
 ${tEmail("send.completed.nextHeading", {}, lng)}:
 ${tEmail("send.completed.nextBody", {}, lng)}
 
-${tEmail("send.completed.cta", {}, lng)}: ${appUrl()}/send/${data.transactionId.toLowerCase()}
+${tEmail("send.completed.cta", {}, lng)}: ${appUrl()}/hub/orders/${data.transactionId.toLowerCase()}
     `
     },
   },

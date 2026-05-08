@@ -2,8 +2,9 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
 import { requireAdmin } from "@/lib/admin-auth-utils"
 import { assertHubProductCategoryAllowed } from "@/lib/hub-product-category-validation"
-import { hubCategorySlug } from "@/lib/hub-slug"
+import { hubMarketplaceLineFromCategory } from "@/lib/hub-slug"
 import { sortHubProductRows } from "@/lib/hub-products-sort"
+import { resolveAdminHubFixedPricing } from "@/lib/hub-product-pricing-server"
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,6 +31,12 @@ export async function POST(request: NextRequest) {
     const vendorId =
       body.vendor_id != null && String(body.vendor_id).trim() !== "" ? String(body.vendor_id).trim() : null
 
+    const pricingType = body.pricing_type === "user_input" ? "user_input" : "fixed"
+    const fixedResolved = resolveAdminHubFixedPricing(pricingType, body as Record<string, unknown>, null)
+    if (fixedResolved.error) {
+      return NextResponse.json({ error: fixedResolved.error }, { status: 400 })
+    }
+
     const row = {
       title: String(body.title || "").trim() || "Untitled",
       short_description: body.short_description ?? null,
@@ -37,10 +44,17 @@ export async function POST(request: NextRequest) {
       vendor_id: vendorId,
       is_featured: Boolean(body.is_featured),
       status: body.status === "live" || body.status === "archived" ? body.status : "draft",
-      pricing_type: body.pricing_type === "user_input" ? "user_input" : "fixed",
-      fulfillment_type: body.fulfillment_type === "in_person" ? "in_person" : "online",
-      fixed_amount: body.fixed_amount != null ? Number(body.fixed_amount) : null,
-      fixed_currency: body.fixed_currency ?? null,
+      pricing_type: pricingType,
+      fulfillment_type:
+        body.fulfillment_type === "in_person"
+          ? "in_person"
+          : body.fulfillment_type === "vendor"
+            ? "vendor"
+            : "online",
+      list_price: fixedResolved.list_price,
+      sale_price: fixedResolved.sale_price,
+      fixed_amount: fixedResolved.fixed_amount,
+      fixed_currency: pricingType === "fixed" ? body.fixed_currency ?? null : null,
       default_input_currency: body.default_input_currency ?? "USD",
       fee_percent: body.fee_percent != null ? Number(body.fee_percent) : null,
       funded_min: body.funded_min != null ? Number(body.funded_min) : null,
@@ -50,19 +64,26 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString(),
     }
 
+    if (row.fulfillment_type === "vendor" && !vendorId) {
+      return NextResponse.json({ error: "Vendor fulfillment requires a vendor" }, { status: 400 })
+    }
+
     const catCheck = await assertHubProductCategoryAllowed(server, row.category)
     if (!catCheck.ok) {
       return NextResponse.json({ error: catCheck.message }, { status: 400 })
     }
+
+    const serviceLineSlug = hubMarketplaceLineFromCategory(row.category)
+    ;(row as Record<string, unknown>).service_line_slug = serviceLineSlug
 
     if (vendorId) {
       const { data: v, error: vErr } = await server.from("hub_vendors").select("id, service_line_slug").eq("id", vendorId).maybeSingle()
       if (vErr || !v) {
         return NextResponse.json({ error: "Invalid vendor_id" }, { status: 400 })
       }
-      if (v.service_line_slug !== hubCategorySlug(row.category)) {
+      if (!serviceLineSlug || v.service_line_slug !== serviceLineSlug) {
         return NextResponse.json(
-          { error: "Vendor service line must match the product category hub line (e.g. Food → food vendor)." },
+          { error: "Vendor must be a Food or Mart storefront vendor matching this product’s marketplace line." },
           { status: 400 },
         )
       }

@@ -1,20 +1,23 @@
 "use client"
 
-import { useCallback, useMemo } from "react"
+import { useCallback, useMemo, type MouseEvent } from "react"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
-import { Card, CardContent } from "@/components/ui/card"
+import { useAuth } from "@/lib/auth-context"
+import { stashRedirectAfterLogin } from "@/lib/auth-login-redirect"
+import { HubProductVendorChipLight } from "@/components/hub/hub-product-vendor-chip-light"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { HubProductRow } from "@/lib/hub-types"
 import {
   amountPrefixClass,
-  amountValueClass,
-  formatCardPrice,
+  HubCatalogFixedPrice,
   renderUserInputRangeLabel,
   sortHubCatalogProducts,
 } from "@/lib/hub-catalog-utils"
+import { hubGenericCheckoutPath, hubMarketplaceCheckoutPath, isHubMarketplaceLineSlug } from "@/lib/hub-public-paths"
 
 const ALL_CATEGORIES_VALUE = "__all__"
 
@@ -22,16 +25,37 @@ export function VendorHubCatalog({
   products,
   loading,
   vendorBasePath,
+  lineSlug,
 }: {
   products: HubProductRow[]
   loading: boolean
-  /** e.g. `/hub/food/v/acme` — category query is appended here */
+  /** e.g. `/food/v/acme` — category query is appended here */
   vendorBasePath: string
+  lineSlug: string
 }) {
   const { t } = useTranslation("app")
   const router = useRouter()
+  const pathname = usePathname() || ""
+  const { user } = useAuth()
   const searchParams = useSearchParams()
   const selectedCategory = (searchParams.get("category") || "").trim()
+  const line = String(lineSlug || "").trim().toLowerCase()
+  const productCheckoutHref = (productId: string) =>
+    isHubMarketplaceLineSlug(line) ? hubMarketplaceCheckoutPath(line, productId) : hubGenericCheckoutPath(productId)
+
+  const returnPath = useMemo(() => {
+    const q = searchParams.toString()
+    return (q ? `${pathname}?${q}` : pathname) || "/hub"
+  }, [pathname, searchParams])
+
+  const onGuestProductNav = useCallback(
+    (e: MouseEvent<HTMLAnchorElement>) => {
+      e.preventDefault()
+      stashRedirectAfterLogin(returnPath)
+      router.push("/auth/login")
+    },
+    [returnPath, router],
+  )
 
   const categoryOptions = useMemo(() => {
     const set = new Set<string>()
@@ -76,13 +100,12 @@ export function VendorHubCatalog({
 
   if (loading && products.length === 0) {
     return (
-      <div className="space-y-5 animate-pulse">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="h-7 w-28 shrink-0 rounded bg-muted" />
-          <div className="min-w-[1rem] flex-1 border-t border-dashed border-border" aria-hidden />
-          <div className="h-9 w-44 shrink-0 rounded bg-muted" />
+      <div className="space-y-6 animate-pulse">
+        <div className="flex min-w-0 flex-nowrap items-center justify-between gap-2 sm:gap-3">
+          <div className="h-7 min-w-0 flex-1 max-w-[40%] rounded bg-muted" />
+          <div className="h-10 w-44 shrink-0 rounded-md bg-muted sm:w-56" />
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="aspect-[4/3] max-h-[220px] rounded-xl bg-muted" />
           ))}
@@ -96,13 +119,14 @@ export function VendorHubCatalog({
   }
 
   return (
-    <>
-      <div className="flex min-w-0 items-center gap-3 pb-4">
-        <h3 className="shrink-0 text-lg font-semibold text-foreground">{t("hub.productsSectionTitle")}</h3>
-        <div className="min-w-[1rem] flex-1 border-t border-dashed border-border" aria-hidden />
-        <div className="w-[min(100%,12rem)] shrink-0 sm:w-56">
+    <section className="space-y-6">
+      <div className="flex min-w-0 flex-nowrap items-center justify-between gap-2 sm:gap-3">
+        <h2 className="min-w-0 flex-1 truncate text-lg font-semibold text-foreground sm:text-xl">
+          {t("hub.marketplaceProductsHeading", { defaultValue: "Products" })}
+        </h2>
+        <div className="shrink-0 basis-44 sm:basis-56 w-44 sm:w-56 min-w-0">
           <Select value={categorySelectValue} onValueChange={onCategoryFilterChange}>
-            <SelectTrigger aria-label={t("hub.categoryFilterAria")}>
+            <SelectTrigger className="max-w-full" aria-label={t("hub.categoryFilterAria")}>
               <SelectValue placeholder={t("hub.allCategories")} />
             </SelectTrigger>
             <SelectContent>
@@ -133,7 +157,8 @@ export function VendorHubCatalog({
             >
               <CardContent className="flex h-full flex-col p-0">
                 <Link
-                  href={`/hub/checkout/${p.id}`}
+                  href={user ? productCheckoutHref(p.id) : "/auth/login"}
+                  onClick={user ? undefined : onGuestProductNav}
                   className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
                 >
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
@@ -152,7 +177,11 @@ export function VendorHubCatalog({
                   </div>
                 </Link>
                 <div className="flex flex-1 flex-col gap-1 px-2.5 pb-1.5 pt-2 sm:px-3 sm:pb-2 sm:pt-2">
-                  <Link href={`/hub/checkout/${p.id}`} className="group/title block min-w-0">
+                  <Link
+                    href={user ? productCheckoutHref(p.id) : "/auth/login"}
+                    onClick={user ? undefined : onGuestProductNav}
+                    className="group/title block min-w-0"
+                  >
                     <p className="line-clamp-2 text-[13px] font-semibold leading-snug text-gray-900 transition-colors group-hover/title:text-orange-700 sm:text-sm">
                       {p.title}
                     </p>
@@ -160,6 +189,11 @@ export function VendorHubCatalog({
                       <p className="mb-2 mt-1 line-clamp-2 text-xs leading-relaxed text-gray-500 sm:text-sm">{p.short_description}</p>
                     ) : null}
                   </Link>
+                  {p.vendor ? (
+                    <div className="mb-1">
+                      <HubProductVendorChipLight vendor={p.vendor} className="max-w-full" />
+                    </div>
+                  ) : null}
                   <div className="mt-auto flex flex-col gap-1.5 pt-3">
                     {p.pricing_type === "fixed" ? (
                       <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
@@ -169,7 +203,7 @@ export function VendorHubCatalog({
                             return label === "hub.sellPrice" ? "Sell price" : label
                           })()}
                         </span>
-                        <span className={amountValueClass}>{formatCardPrice(p.fixed_amount, p.fixed_currency)}</span>
+                        <HubCatalogFixedPrice product={p} />
                       </div>
                     ) : (
                       <div className="text-gray-600">
@@ -182,7 +216,12 @@ export function VendorHubCatalog({
                       </div>
                     )}
                     <Button asChild size="sm" className="h-8 w-full rounded-xl text-xs font-semibold">
-                      <Link href={`/hub/checkout/${p.id}`}>{p.pricing_type === "fixed" ? t("hub.buy") : t("hub.order")}</Link>
+                      <Link
+                        href={user ? productCheckoutHref(p.id) : "/auth/login"}
+                        onClick={user ? undefined : onGuestProductNav}
+                      >
+                        {p.pricing_type === "fixed" ? t("hub.buy") : t("hub.order")}
+                      </Link>
                     </Button>
                   </div>
                 </div>
@@ -191,6 +230,6 @@ export function VendorHubCatalog({
           ))}
         </div>
       )}
-    </>
+    </section>
   )
 }

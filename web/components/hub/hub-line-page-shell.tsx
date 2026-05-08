@@ -2,9 +2,26 @@
 
 import type { ReactNode } from "react"
 import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
+import { BadgeCheck, MapPin, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+function HeroCloseLink({ backHref, backToHubAriaLabel }: { backHref: string; backToHubAriaLabel: string }) {
+  return (
+    <Link
+      href={backHref}
+      aria-label={backToHubAriaLabel}
+      className={cn(
+        "flex shrink-0 items-center justify-center rounded-full bg-black/15 text-white ring-1 ring-white/25 transition hover:bg-black/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80",
+        "h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 xl:h-11 xl:w-11",
+      )}
+    >
+      <X
+        className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-[1.125rem] md:w-[1.125rem] xl:h-5 xl:w-5"
+        aria-hidden
+      />
+    </Link>
+  )
+}
 
 export function HubLinePageShell({
   title,
@@ -12,41 +29,127 @@ export function HubLinePageShell({
   children,
   backToHubAriaLabel,
   className,
+  backHref = "/hub",
+  heroPhotoUrl,
+  heroLocation,
+  heroTitleVerified,
+  heroTitleVerifiedAriaLabel,
+  heroLoading,
 }: {
   title: string
   subtitle: string | null
   children: ReactNode
-  /** Accessible label for the back link to `/hub` (e.g. translated “Back to Hub”). */
+  /** Accessible label for the back link (e.g. translated “Back to Hub”). */
   backToHubAriaLabel: string
   className?: string
+  /** Destination for the header close control (default `/hub`). */
+  backHref?: string
+  /** Optional square image in the hero (e.g. vendor storefront logo). */
+  heroPhotoUrl?: string | null
+  /** Optional location line inside the hero (below the title). */
+  heroLocation?: string | null
+  /** When true, verified badge appears after the title (same order as product cards). */
+  heroTitleVerified?: boolean
+  /** `aria-label` for the verified badge (e.g. translated). */
+  heroTitleVerifiedAriaLabel?: string
+  /** Skeleton hero: no title/subtitle until vendor (or other) data is ready. */
+  heroLoading?: boolean
 }) {
+  const locationLine = (heroLocation || "").trim()
+  const photoUrl = heroPhotoUrl?.trim() || ""
+  const vendorHeroLayout = Boolean(photoUrl)
+
+  if (heroLoading) {
+    return (
+      <div className={cn("min-w-0", className)}>
+        <div className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-6 sm:py-5">
+          <div className="overflow-hidden rounded-2xl border border-border shadow-md">
+            <div className="bg-gradient-to-br from-orange-600 via-orange-500 to-amber-400 px-5 pb-8 pt-4 text-white sm:px-6 sm:pb-10 sm:pt-5">
+              <div className="flex min-w-0 animate-pulse items-start justify-between gap-3 sm:gap-4">
+                <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-4">
+                  <div className="aspect-square w-14 shrink-0 rounded-xl bg-white/20 sm:w-16 md:w-20" aria-hidden />
+                  <div className="min-w-0 flex-1 space-y-3 pr-1 pt-0.5">
+                    <div className="h-8 w-44 max-w-[85%] rounded-md bg-white/25 sm:h-9 sm:w-52" aria-hidden />
+                    <div className="h-4 w-full max-w-md rounded-md bg-white/15" aria-hidden />
+                    <div className="hidden h-4 max-w-sm rounded-md bg-white/10 sm:block sm:w-[70%]" aria-hidden />
+                  </div>
+                </div>
+                <HeroCloseLink backHref={backHref} backToHubAriaLabel={backToHubAriaLabel} />
+              </div>
+            </div>
+          </div>
+          <div className="mt-6 min-w-0 pb-8 sm:mt-8 sm:pb-10">{children}</div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={cn("min-w-0", className)}>
       <div className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-6 sm:py-5">
-        <Card className="gap-0 overflow-hidden rounded-2xl border py-0 shadow-md">
-          <CardContent className="space-y-0 p-0">
-            <div className="relative isolate">
-              <div className="rounded-t-2xl bg-gradient-to-br from-orange-600 via-orange-500 to-amber-400 px-5 pb-20 pt-4 text-white sm:px-6 sm:pb-24 sm:pt-5">
-                <div className="flex min-w-0 items-start gap-3 sm:gap-4">
-                  <Link
-                    href="/hub"
-                    aria-label={backToHubAriaLabel}
-                    className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black/15 text-white ring-1 ring-white/25 transition hover:bg-black/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80"
-                  >
-                    <ChevronLeft className="h-5 w-5" aria-hidden />
-                  </Link>
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <h1 className="text-balance text-2xl font-bold leading-tight sm:text-3xl">{title}</h1>
-                    {subtitle ? <p className="max-w-xl text-sm/6 text-orange-50 sm:text-base/7">{subtitle}</p> : null}
+        <div className="overflow-hidden rounded-2xl border border-border shadow-md">
+          <div className="bg-gradient-to-br from-orange-600 via-orange-500 to-amber-400 px-5 pb-8 pt-4 text-white sm:px-6 sm:pb-10 sm:pt-5">
+            {vendorHeroLayout ? (
+              <div className="flex min-w-0 flex-col gap-3 sm:gap-4">
+                <div className="flex min-w-0 items-start justify-between gap-3 sm:gap-4">
+                  <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-4">
+                    <div className="aspect-square w-14 shrink-0 overflow-hidden rounded-xl border border-white/30 bg-white/10 shadow-md ring-1 ring-black/10 sm:w-16 md:w-20">
+                      <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-1 pr-1">
+                      <h1 className="flex min-w-0 items-center gap-2 text-balance text-2xl font-bold leading-tight sm:gap-2.5 sm:text-3xl">
+                        <span className="min-w-0">{title}</span>
+                        {heroTitleVerified ? (
+                          <BadgeCheck
+                            className="h-4 w-4 shrink-0 text-orange-100 drop-shadow sm:h-[1.125rem] sm:w-[1.125rem]"
+                            aria-label={heroTitleVerifiedAriaLabel || "Verified vendor"}
+                          />
+                        ) : null}
+                      </h1>
+                      {locationLine ? (
+                        <p className="flex items-start gap-2 text-sm leading-snug text-orange-50/95 sm:text-base">
+                          <MapPin className="mt-0.5 h-4 w-4 shrink-0 opacity-90" aria-hidden />
+                          <span className="min-w-0">{locationLine}</span>
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
+                  <HeroCloseLink backHref={backHref} backToHubAriaLabel={backToHubAriaLabel} />
                 </div>
+                {subtitle ? (
+                  <p className="min-w-0 max-w-none text-pretty text-sm/6 text-orange-50/95 sm:text-base/7">
+                    {subtitle}
+                  </p>
+                ) : null}
               </div>
-              <div className="relative z-10 -mt-12 bg-card px-4 pb-8 pt-3 sm:-mt-[4.25rem] sm:px-6 sm:pb-10 sm:pt-4">
-                {children}
+            ) : (
+              <div className="flex min-w-0 items-start justify-between gap-3 sm:gap-4">
+                <div className="min-w-0 flex-1 space-y-1 pr-1">
+                  <h1 className="flex min-w-0 items-center gap-2 text-balance text-2xl font-bold leading-tight sm:gap-2.5 sm:text-3xl">
+                    <span className="min-w-0">{title}</span>
+                    {heroTitleVerified ? (
+                      <BadgeCheck
+                        className="h-4 w-4 shrink-0 text-orange-100 drop-shadow sm:h-[1.125rem] sm:w-[1.125rem]"
+                        aria-label={heroTitleVerifiedAriaLabel || "Verified vendor"}
+                      />
+                    ) : null}
+                  </h1>
+                  {locationLine ? (
+                    <p className="flex items-start gap-2 text-sm leading-snug text-orange-50/95 sm:text-base">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 opacity-90" aria-hidden />
+                      <span className="min-w-0">{locationLine}</span>
+                    </p>
+                  ) : null}
+                  {subtitle ? (
+                    <p className="max-w-xl pt-1 text-sm/6 text-orange-50 sm:text-base/7">{subtitle}</p>
+                  ) : null}
+                </div>
+                <HeroCloseLink backHref={backHref} backToHubAriaLabel={backToHubAriaLabel} />
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            )}
+          </div>
+        </div>
+        <div className="mt-6 min-w-0 pb-8 sm:mt-8 sm:pb-10">{children}</div>
       </div>
     </div>
   )

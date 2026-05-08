@@ -155,13 +155,15 @@ export default function OfficeReferralsPage() {
     try {
       const { data: referees } = await supabase
         .from("users")
-        .select("id, first_name, last_name, email, base_currency")
+        .select("id, first_name, last_name, email, base_currency, created_at")
         .eq("referred_by_user_id", row.id)
+        .order("created_at", { ascending: false })
 
       const { data: rewards } = await supabase
         .from("referral_rewards")
         .select("id, referee_user_id, reward_type, amount_policy_currency, policy_currency, source_transaction_id, created_at")
         .eq("referrer_user_id", row.id)
+        .order("created_at", { ascending: false })
 
       const details: RefereeDetail[] = []
       for (const ref of referees || []) {
@@ -173,7 +175,9 @@ export default function OfficeReferralsPage() {
           .order("created_at", { ascending: false })
 
         const sends = (txs || []).filter((t) => !(t.reference as string | undefined)?.startsWith(REFERRAL_PAYOUT_PREFIX))
-        const refRewards = (rewards || []).filter((r) => r.referee_user_id === ref.id)
+        const refRewards = (rewards || [])
+          .filter((r) => r.referee_user_id === ref.id)
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         const earnedPolicy = refRewards.reduce((s, r) => s + Number(r.amount_policy_currency || 0), 0)
 
         details.push({

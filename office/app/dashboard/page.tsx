@@ -207,25 +207,29 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Currency Pair Popularity */}
+          {/* Service line popularity */}
           <Card>
             <CardHeader>
-              <CardTitle>Currency Pair Popularity</CardTitle>
-              <CardDescription>Most popular trading pairs</CardDescription>
+              <CardTitle>Service line popularity</CardTitle>
+              <CardDescription>Share of completed volume by service line</CardDescription>
             </CardHeader>
             <CardContent className="max-h-80 overflow-y-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Currency Pair</TableHead>
+                    <TableHead>Services</TableHead>
+                    <TableHead className="text-right">Volume</TableHead>
                     <TableHead>Volume %</TableHead>
                     <TableHead>Transactions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data?.currencyPairs?.map((item: any, index: number) => (
+                  {(data?.serviceLinePopularity ?? []).map((item: any, index: number) => (
                     <TableRow key={index}>
-                      <TableCell className="font-medium">{item.pair}</TableCell>
+                      <TableCell className="font-medium">{item.service}</TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatMoney(item.volumeAmount ?? 0, data?.baseCurrency || "NGN")}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <div className="w-16 bg-gray-200 rounded-full h-2">
@@ -236,7 +240,7 @@ export default function AdminDashboardPage() {
                       </TableCell>
                       <TableCell>{item.transactions}</TableCell>
                     </TableRow>
-                  )) || []}
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>

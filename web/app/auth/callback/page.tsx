@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { claimReferralWithRetryForOAuthCallback } from "@/lib/referral-client"
+import { REDIRECT_AFTER_LOGIN_KEY } from "@/lib/auth-login-redirect"
 import { useTranslation } from "react-i18next"
 
 /** Read OAuth params from the live URL (query + hash). */
@@ -40,7 +41,17 @@ export default function AuthCallbackPage() {
       if (afterInit) {
         await claimReferralWithRetryForOAuthCallback()
         const isAdmin = afterInit.user?.user_metadata?.isAdmin ?? false
-        router.replace(isAdmin ? "/admin/dashboard" : "/hub")
+        if (isAdmin) {
+          router.replace("/admin/dashboard")
+          return
+        }
+        const next = typeof window !== "undefined" ? sessionStorage.getItem(REDIRECT_AFTER_LOGIN_KEY)?.trim() : ""
+        if (next?.startsWith("/") && !next.startsWith("/auth/")) {
+          sessionStorage.removeItem(REDIRECT_AFTER_LOGIN_KEY)
+          router.replace(next)
+          return
+        }
+        router.replace("/hub")
         return
       }
 
@@ -55,7 +66,17 @@ export default function AuthCallbackPage() {
           }
           await claimReferralWithRetryForOAuthCallback()
           const isAdmin = data?.user?.user_metadata?.isAdmin ?? false
-          router.replace(isAdmin ? "/admin/dashboard" : "/hub")
+          if (isAdmin) {
+            router.replace("/admin/dashboard")
+            return
+          }
+          const next = typeof window !== "undefined" ? sessionStorage.getItem(REDIRECT_AFTER_LOGIN_KEY)?.trim() : ""
+          if (next?.startsWith("/") && !next.startsWith("/auth/")) {
+            sessionStorage.removeItem(REDIRECT_AFTER_LOGIN_KEY)
+            router.replace(next)
+            return
+          }
+          router.replace("/hub")
         } catch (err: any) {
           setError(err?.message || t("auth.callbackFailedSignIn"))
           setTimeout(() => router.replace("/auth/login"), 2000)

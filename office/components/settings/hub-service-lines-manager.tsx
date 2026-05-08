@@ -346,7 +346,7 @@ export function HubServiceLinesManager({ lines, onReload, settingsBootComplete }
         <Label>route_path</Label>
         <Input
           className="font-mono text-sm"
-          placeholder="/hub/food or /send"
+          placeholder="/food/products or /send"
           value={form.route_path}
           onChange={(e) => setForm((f) => ({ ...f, route_path: e.target.value }))}
         />

@@ -1,0 +1,198 @@
+import type { KYCSubmission } from "@/lib/kyc-service"
+import { officeFetch } from "@/lib/api-client"
+
+/** Historical key; `v` must match or disk cache is discarded (payload shape changes). */
+const DISK_CACHE_KEY = "ciuna_compliance_users"
+const DISK_SCHEMA_VERSION = 2
+
+export interface OfficeComplianceKycUser {
+  userId: string
+  email?: string
+  first_name?: string
+  last_name?: string
+  phone?: string
+  identity: KYCSubmission | null
+  address: KYCSubmission | null
+}
+
+let memoryRows: OfficeComplianceKycUser[] | null = null
+let memoryLoadedAt: number | null = null
+let inflight: Promise<OfficeComplianceKycUser[]> | null = null
+
+function readDiskCache(): { rows: OfficeComplianceKycUser[]; timestamp: number | null } {
+  if (typeof window === "undefined") return { rows: [], timestamp: null }
+  try {
+    const raw = localStorage.getItem(DISK_CACHE_KEY)
+    if (!raw) return { rows: [], timestamp: null }
+    const parsed = JSON.parse(raw) as {
+      value?: OfficeComplianceKycUser[]
+      timestamp?: number
+      v?: number
+    }
+    if (parsed.v !== DISK_SCHEMA_VERSION) {
+      try {
+        localStorage.removeItem(DISK_CACHE_KEY)
+      } catch {
+        /* ignore */
+      }
+      return { rows: [], timestamp: null }
+    }
+    return { rows: parsed.value || [], timestamp: parsed.timestamp ?? null }
+  } catch {
+    return { rows: [], timestamp: null }
+  }
+}
+
+function writeDiskCache(rows: OfficeComplianceKycUser[]) {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(
+      DISK_CACHE_KEY,
+      JSON.stringify({
+        value: rows,
+        timestamp: Date.now(),
+        v: DISK_SCHEMA_VERSION,
+      }),
+    )
+  } catch {
+    /* ignore */
+  }
+}
+
+function memoryFresh(ttlMs: number): boolean {
+  return (
+    memoryRows != null &&
+    memoryRows.length > 0 &&
+    memoryLoadedAt != null &&
+    Date.now() - memoryLoadedAt < ttlMs
+  )
+}
+
+function diskFresh(ttlMs: number): { rows: OfficeComplianceKycUser[] } | null {
+  const { rows, timestamp } = readDiskCache()
+  if (rows.length === 0 || timestamp == null || Date.now() - timestamp >= ttlMs) return null
+  return { rows }
+}
+
+async function fetchComplianceRows(): Promise<OfficeComplianceKycUser[]> {
+  const response = await officeFetch("/api/admin/kyc")
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error((err as { error?: string }).error || response.statusText || "Failed to load KYC")
+  }
+
+  const { submissions: allSubmissions } = await response.json()
+  const submissions: KYCSubmission[] = allSubmissions || []
+
+  const userIds = [...new Set(submissions.map((s) => s.user_id))]
+  const userMap = new Map<string, OfficeComplianceKycUser>()
+
+  await Promise.all(
+    userIds.map(async (userId) => {
+      const subs = submissions.filter((s) => s.user_id === userId)
+      const identity = subs.find((s) => s.type === "identity") ?? null
+      const address = subs.find((s) => s.type === "address") ?? null
+
+      let email: string | undefined
+      let first_name: string | undefined
+      let last_name: string | undefined
+      let phone: string | undefined
+
+      try {
+        const userResponse = await officeFetch(`/api/admin/users/${userId}`)
+        if (userResponse.ok) {
+          const userData = await userResponse.json()
+          email = userData.email
+          first_name = userData.first_name
+          last_name = userData.last_name
+          phone = userData.phone
+        }
+      } catch {
+        /* user row optional */
+      }
+
+      userMap.set(userId, {
+        userId,
+        email,
+        first_name,
+        last_name,
+        phone,
+        identity,
+        address,
+      })
+    }),
+  )
+
+  return Array.from(userMap.values())
+}
+
+/**
+ * Loads compliance KYC rows with TTL + in-flight dedupe (matches office `/transactions` UX).
+ * Uses memory cache first, then disk (localStorage), then network.
+ */
+export function loadOfficeComplianceKycRows(
+  ttlMs: number,
+  options?: { force?: boolean },
+): Promise<OfficeComplianceKycUser[]> {
+  const force = Boolean(options?.force)
+
+  if (force) {
+    inflight = null
+    memoryRows = null
+    memoryLoadedAt = null
+  }
+
+  if (!force && memoryFresh(ttlMs) && memoryRows) {
+    return Promise.resolve(memoryRows)
+  }
+
+  if (!force) {
+    const disk = diskFresh(ttlMs)
+    if (disk) {
+      memoryRows = disk.rows
+      memoryLoadedAt = Date.now()
+      return Promise.resolve(disk.rows)
+    }
+  }
+
+  if (inflight && !force) return inflight
+
+  inflight = (async () => {
+    try {
+      const next = await fetchComplianceRows()
+      memoryRows = next
+      memoryLoadedAt = Date.now()
+      writeDiskCache(next)
+      return next
+    } finally {
+      inflight = null
+    }
+  })()
+
+  return inflight
+}
+
+export function clearOfficeComplianceKycCache() {
+  memoryRows = null
+  memoryLoadedAt = null
+  inflight = null
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.removeItem(DISK_CACHE_KEY)
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+/** Synchronous seed from disk for instant first paint (TTL checked by caller). */
+export function readOfficeComplianceKycDiskSeed(): OfficeComplianceKycUser[] {
+  const { rows, timestamp } = readDiskCache()
+  if (rows.length === 0 || timestamp == null) return []
+  return rows
+}
+
+export function isOfficeComplianceDiskCacheFresh(ttlMs: number): boolean {
+  const { rows, timestamp } = readDiskCache()
+  return rows.length > 0 && timestamp != null && Date.now() - timestamp < ttlMs
+}

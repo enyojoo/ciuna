@@ -10,6 +10,7 @@ import { hasPin, removePin, setAppLocked } from "./login-pin"
 import { emitAppLocked } from "./app-lock-bus"
 import { claimReferralWithRetry, getStoredReferralSlug } from "./referral-client"
 import { clearHubClientMemory } from "./hub-client-cache"
+import { clearExpertProfileDetailMemory } from "./expert-profile-client-cache"
 import i18n from "./i18n/config"
 
 const SUPPORTED_LOCALES = new Set(["en", "ru", "fr", "es"])
@@ -405,6 +406,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
       userDataStore.cleanup()
       clearHubClientMemory()
+      clearExpertProfileDetailMemory()
 
       // Sign out from Supabase
       const { error } = await supabase.auth.signOut()
@@ -424,6 +426,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
       userDataStore.cleanup()
       clearHubClientMemory()
+      clearExpertProfileDetailMemory()
     }
   }, [user?.id])
 

@@ -3,12 +3,13 @@
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import type { HubServiceLineRow } from "@/lib/hub-service-line-types"
+import { hubLineHomePath } from "@/lib/hub-public-paths"
 
 function lineHref(line: HubServiceLineRow): string | null {
   if (line.grid_kind === "external_url") return line.href?.trim() || null
   const p = line.route_path?.trim()
   if (p) return p
-  if (line.grid_kind === "hub_category") return `/hub/${line.slug}`
+  if (line.grid_kind === "hub_category") return hubLineHomePath(line.slug)
   return null
 }
 

@@ -1,14 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
-import { requireAuth, withErrorHandling, createErrorResponse } from "@/lib/auth-utils"
+import { withErrorHandling, createErrorResponse } from "@/lib/auth-utils"
 
-export const GET = withErrorHandling(async (request: NextRequest) => {
-  try {
-    await requireAuth(request)
-  } catch {
-    return createErrorResponse("Unauthorized", 401)
-  }
-
+export const GET = withErrorHandling(async (_request: NextRequest) => {
   const server = createServerClient()
   const { data, error } = await server
     .from("hub_service_lines")
@@ -23,6 +17,6 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   }
 
   const res = NextResponse.json({ serviceLines: data || [] })
-  res.headers.set("Cache-Control", "private, max-age=60, stale-while-revalidate=120")
+  res.headers.set("Cache-Control", "public, max-age=120, stale-while-revalidate=300")
   return res
 })

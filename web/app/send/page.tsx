@@ -14,7 +14,6 @@ import {
   Check,
   Clock,
   ArrowLeft,
-  ChevronLeft,
   Copy,
   ChevronRight,
   Plus,
@@ -694,7 +693,7 @@ export default function UserSendPage() {
         })
 
         // Redirect to transaction status page immediately (don't wait for receipt upload)
-        router.push(`/send/${transaction.transaction_id.toLowerCase()}`)
+        router.push(`/hub/orders/${transaction.transaction_id.toLowerCase()}`)
 
         // Upload receipt in the background after redirect (non-blocking)
         if (uploadedFile && uploadProgress === 100 && !isUploading) {
@@ -865,15 +864,8 @@ export default function UserSendPage() {
                   <CardContent className="space-y-0 p-0">
                     <div className="relative isolate">
                       <div className="rounded-t-2xl bg-gradient-to-br from-orange-600 via-orange-500 to-amber-400 px-5 pb-24 pt-5 text-white sm:px-6 sm:pb-28 sm:pt-6">
-                        <div className="flex min-w-0 items-start gap-3 sm:gap-4">
-                          <Link
-                            href="/hub"
-                            aria-label={t("hub.backToHub")}
-                            className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black/15 text-white ring-1 ring-white/25 transition hover:bg-black/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80"
-                          >
-                            <ChevronLeft className="h-5 w-5" aria-hidden />
-                          </Link>
-                          <div className="min-w-0 flex-1 space-y-1">
+                        <div className="flex min-w-0 items-start justify-between gap-3 sm:gap-4">
+                          <div className="min-w-0 flex-1 space-y-1 pr-1">
                             <h2 className="text-balance text-2xl font-bold leading-tight sm:text-3xl">
                               {t("send.sendMoneyHeroTitle", { defaultValue: "Send Money" })}
                             </h2>
@@ -883,6 +875,19 @@ export default function UserSendPage() {
                               })}
                             </p>
                           </div>
+                          <Link
+                            href="/hub"
+                            aria-label={t("hub.backToHub")}
+                            className={cn(
+                              "flex shrink-0 items-center justify-center rounded-full bg-black/15 text-white ring-1 ring-white/25 transition hover:bg-black/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80",
+                              "h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 xl:h-11 xl:w-11",
+                            )}
+                          >
+                            <X
+                              className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-[1.125rem] md:w-[1.125rem] xl:h-5 xl:w-5"
+                              aria-hidden
+                            />
+                          </Link>
                         </div>
                       </div>
 

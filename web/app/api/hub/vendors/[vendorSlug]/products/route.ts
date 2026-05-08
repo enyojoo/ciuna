@@ -1,17 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
-import { requireAuth, withErrorHandling, createErrorResponse } from "@/lib/auth-utils"
+import { withErrorHandling, createErrorResponse } from "@/lib/auth-utils"
 import { sortHubProductRows } from "@/lib/hub-products-sort"
+import { hubVendorDbRowToProductSummary } from "@/lib/hub-product-vendors"
+import type { HubProductRow } from "@/lib/hub-types"
 
 const ALLOWED_LINES = new Set(["food", "mart"])
 
 export const GET = withErrorHandling(async (request: NextRequest, { params }: { params: Promise<{ vendorSlug: string }> }) => {
-  try {
-    await requireAuth(request)
-  } catch {
-    return createErrorResponse("Unauthorized", 401)
-  }
-
   const { vendorSlug } = await params
   const slug = String(vendorSlug || "").trim().toLowerCase()
   if (!slug) {
@@ -28,7 +24,7 @@ export const GET = withErrorHandling(async (request: NextRequest, { params }: { 
 
   const { data: vendor, error: vErr } = await server
     .from("hub_vendors")
-    .select("id")
+    .select("*")
     .eq("service_line_slug", serviceLine)
     .eq("slug", slug)
     .eq("is_published", true)
@@ -54,7 +50,13 @@ export const GET = withErrorHandling(async (request: NextRequest, { params }: { 
     return createErrorResponse("Failed to load products", 500)
   }
 
-  const res = NextResponse.json({ products: sortHubProductRows(products || []) })
-  res.headers.set("Cache-Control", "private, max-age=60, stale-while-revalidate=120")
+  const vendorSummary = hubVendorDbRowToProductSummary(vendor as Record<string, unknown>)
+  const withVendor: HubProductRow[] = (products || []).map((p) => ({
+    ...(p as HubProductRow),
+    vendor: vendorSummary,
+  }))
+
+  const res = NextResponse.json({ products: sortHubProductRows(withVendor) })
+  res.headers.set("Cache-Control", "public, max-age=120, stale-while-revalidate=300")
   return res
 })

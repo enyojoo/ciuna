@@ -71,6 +71,20 @@ const nextConfig = {
     return [
       { source: "/orders", destination: "/transactions", permanent: true },
       { source: "/orders/", destination: "/transactions", permanent: true },
+      /** Legacy transaction detail URL; detail UI lives under `/hub/orders/[id]` only. */
+      { source: "/send/:id", destination: "/hub/orders/:id", permanent: true },
+      /** Food/Mart moved off `/hub/{slug}` to `/{slug}`. */
+      { source: "/hub/food", destination: "/food", permanent: true },
+      { source: "/hub/food/:path*", destination: "/food/:path*", permanent: true },
+      { source: "/hub/mart", destination: "/mart", permanent: true },
+      { source: "/hub/mart/:path*", destination: "/mart/:path*", permanent: true },
+      /** Expert catalog + profiles under `/experts/*` (no `/hub/experts`). */
+      { source: "/hub/experts", destination: "/experts", permanent: true },
+      { source: "/hub/experts/", destination: "/experts", permanent: true },
+      { source: "/hub/experts/checkout", destination: "/experts/checkout", permanent: true },
+      { source: "/hub/experts/:id/book", destination: "/experts/:id/book", permanent: true },
+      { source: "/hub/experts/:id", destination: "/experts/:id", permanent: true },
+      { source: "/expert/:id", destination: "/experts/:id", permanent: true },
     ]
   },
 }

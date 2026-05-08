@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useLayoutEffect, useCallback } from "react"
 import { OfficeDashboardLayout } from "@/components/layout/office-dashboard-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -33,46 +33,16 @@ import { countryService, getCountryFlag } from "@/lib/country-service"
 import { supabase } from "@/lib/supabase"
 import { officeFetch } from "@/lib/api-client"
 import { OfficeComplianceSkeleton } from "@/components/office-compliance-skeleton"
+import { useOfficeData } from "@/hooks/use-office-data"
+import {
+  loadOfficeComplianceKycRows,
+  readOfficeComplianceKycDiskSeed,
+  isOfficeComplianceDiskCacheFresh,
+  type OfficeComplianceKycUser,
+} from "@/lib/office-compliance-cache"
+import { OFFICE_UI_CACHE_TTL_MS } from "@/lib/office-ui-cache"
 
-/** Historical key; `v` must match or cache is discarded (payload shape changes). */
-const CACHE_KEY = "ciuna_compliance_users"
-const CACHE_SCHEMA_VERSION = 2
-/** Match `officeDataStore` freshness window (5m; realtime covers updates while mounted). */
-const CACHE_TTL_MS = 5 * 60 * 1000
-
-interface ComplianceKycUser {
-  userId: string
-  email?: string
-  first_name?: string
-  last_name?: string
-  phone?: string
-  identity: KYCSubmission | null
-  address: KYCSubmission | null
-}
-
-function readComplianceCache(): { rows: ComplianceKycUser[]; timestamp: number | null } {
-  if (typeof window === "undefined") return { rows: [], timestamp: null }
-  try {
-    const cached = localStorage.getItem(CACHE_KEY)
-    if (!cached) return { rows: [], timestamp: null }
-    const parsed = JSON.parse(cached) as {
-      value?: ComplianceKycUser[]
-      timestamp?: number
-      v?: number
-    }
-    if (parsed.v !== CACHE_SCHEMA_VERSION) {
-      try {
-        localStorage.removeItem(CACHE_KEY)
-      } catch {
-        /* ignore */
-      }
-      return { rows: [], timestamp: null }
-    }
-    return { rows: parsed.value || [], timestamp: parsed.timestamp ?? null }
-  } catch {
-    return { rows: [], timestamp: null }
-  }
-}
+type ComplianceKycUser = OfficeComplianceKycUser
 
 function submissionStatusActive(status?: string) {
   return status === "pending" || status === "in_review"
@@ -116,14 +86,21 @@ function rowMatchesStatusFilter(row: ComplianceKycUser, filter: string): boolean
 }
 
 export default function OfficeCompliancePage() {
-  const [rows, setRows] = useState<ComplianceKycUser[]>(() => readComplianceCache().rows)
-  const [loading, setLoading] = useState(() => readComplianceCache().rows.length === 0)
+  useOfficeData()
+  const [rows, setRows] = useState<ComplianceKycUser[]>(() =>
+    typeof window !== "undefined" ? readOfficeComplianceKycDiskSeed() : [],
+  )
+  const [loading, setLoading] = useState(() => {
+    if (typeof window === "undefined") return true
+    const seed = readOfficeComplianceKycDiskSeed()
+    if (seed.length === 0) return true
+    return !isOfficeComplianceDiskCacheFresh(OFFICE_UI_CACHE_TTL_MS)
+  })
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [selectedRow, setSelectedRow] = useState<ComplianceKycUser | null>(null)
   const [userDetailsDialogOpen, setUserDetailsDialogOpen] = useState(false)
   const [countries, setCountries] = useState<{ code: string; name: string; flag_emoji?: string }[]>([])
-  const [initialized, setInitialized] = useState(false)
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   const [noticeDialog, setNoticeDialog] = useState<{
     open: boolean
@@ -143,77 +120,19 @@ export default function OfficeCompliancePage() {
   const selectedUserIdRef = useRef<string | null>(null)
   selectedUserIdRef.current = selectedRow?.userId ?? null
 
-  const loadData = useCallback(async (showLoading: boolean = true): Promise<ComplianceKycUser[]> => {
+  const loadData = useCallback(async (opts?: { showLoading?: boolean; force?: boolean }): Promise<ComplianceKycUser[]> => {
+    const showLoading = opts?.showLoading !== false
+    const force = Boolean(opts?.force)
     try {
       if (showLoading && rowsRef.current.length === 0) {
         setLoading(true)
       }
 
-      const response = await officeFetch("/api/admin/kyc")
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}))
-        throw new Error(err.error || response.statusText || "Failed to load KYC")
-      }
-
-      const { submissions: allSubmissions } = await response.json()
-      const submissions: KYCSubmission[] = allSubmissions || []
-
-      const userIds = [...new Set(submissions.map((s) => s.user_id))]
-      const userMap = new Map<string, ComplianceKycUser>()
-
-      await Promise.all(
-        userIds.map(async (userId) => {
-          const subs = submissions.filter((s) => s.user_id === userId)
-          const identity = subs.find((s) => s.type === "identity") ?? null
-          const address = subs.find((s) => s.type === "address") ?? null
-
-          let email: string | undefined
-          let first_name: string | undefined
-          let last_name: string | undefined
-          let phone: string | undefined
-
-          try {
-            const userResponse = await officeFetch(`/api/admin/users/${userId}`)
-            if (userResponse.ok) {
-              const userData = await userResponse.json()
-              email = userData.email
-              first_name = userData.first_name
-              last_name = userData.last_name
-              phone = userData.phone
-            }
-          } catch {
-            /* user row optional */
-          }
-
-          userMap.set(userId, {
-            userId,
-            email,
-            first_name,
-            last_name,
-            phone,
-            identity,
-            address,
-          })
-        })
-      )
-
-      const nextRows = Array.from(userMap.values())
+      const nextRows = await loadOfficeComplianceKycRows(OFFICE_UI_CACHE_TTL_MS, { force })
       setRows((prev) => {
         const prevStr = JSON.stringify(prev)
         const nextStr = JSON.stringify(nextRows)
         if (prevStr === nextStr) return prev
-        try {
-          localStorage.setItem(
-            CACHE_KEY,
-            JSON.stringify({
-              value: nextRows,
-              timestamp: Date.now(),
-              v: CACHE_SCHEMA_VERSION,
-            })
-          )
-        } catch {
-          /* ignore */
-        }
         return nextRows
       })
       return nextRows
@@ -237,27 +156,21 @@ export default function OfficeCompliancePage() {
     loadCountries()
   }, [])
 
-  useEffect(() => {
-    if (initialized) return
-
-    const { rows: cachedRows, timestamp } = readComplianceCache()
-    const cacheFresh =
-      timestamp != null && Date.now() - timestamp < CACHE_TTL_MS
-
-    if (cachedRows.length > 0) {
-      setInitialized(true)
-      if (!cacheFresh) {
-        void loadData(false)
+  useLayoutEffect(() => {
+    let cancelled = false
+    void (async () => {
+      try {
+        await loadData({ showLoading: rowsRef.current.length === 0, force: false })
+      } finally {
+        if (!cancelled) setLoading(false)
       }
-      return
+    })()
+    return () => {
+      cancelled = true
     }
-
-    void loadData(true).then(() => setInitialized(true))
-  }, [initialized, loadData])
+  }, [loadData])
 
   useEffect(() => {
-    if (!initialized) return
-
     const channel = supabase
       .channel("admin-compliance-kyc-submissions")
       .on(
@@ -265,7 +178,7 @@ export default function OfficeCompliancePage() {
         { event: "*", schema: "public", table: "kyc_submissions" },
         async () => {
           try {
-            const updated = await loadData(false)
+            const updated = await loadData({ showLoading: false, force: true })
             const uid = selectedUserIdRef.current
             if (uid) {
               const next = updated.find((r) => r.userId === uid)
@@ -274,7 +187,7 @@ export default function OfficeCompliancePage() {
           } catch (e) {
             console.error("Realtime KYC refresh failed:", e)
           }
-        }
+        },
       )
       .subscribe((status) => {
         if (status === "CHANNEL_ERROR") {
@@ -289,7 +202,7 @@ export default function OfficeCompliancePage() {
         channelRef.current = null
       }
     }
-  }, [initialized, loadData])
+  }, [loadData])
 
   const loadCountries = async () => {
     try {
@@ -352,7 +265,7 @@ export default function OfficeCompliancePage() {
         }),
       })
       if (response.ok) {
-        const updated = await loadData(false)
+        const updated = await loadData({ showLoading: false, force: true })
         if (selectedRow) {
           const next = updated.find((r) => r.userId === selectedRow.userId)
           if (next) setSelectedRow(next)

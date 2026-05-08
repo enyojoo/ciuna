@@ -18,6 +18,9 @@ interface UserData {
 }
 
 class UserDataStore {
+  private static readonly SNAPSHOT_PREFIX = "ciuna_user_data_snapshot_v1_"
+  private static readonly SNAPSHOT_MAX_TX = 80
+
   private data: UserData = {
     transactions: [],
     recipients: [],
@@ -60,6 +63,72 @@ class UserDataStore {
     this.lastActivity = Date.now()
   }
 
+  private snapshotStorageKey(userId: string) {
+    return `${UserDataStore.SNAPSHOT_PREFIX}${userId}`
+  }
+
+  private readPersistedSnapshot(userId: string): UserData | null {
+    if (typeof window === "undefined" || !userId) return null
+    try {
+      const raw = localStorage.getItem(this.snapshotStorageKey(userId))
+      if (!raw) return null
+      const o = JSON.parse(raw) as Record<string, unknown>
+      if (o.userId !== userId) return null
+      if (typeof o.lastUpdated !== "number") return null
+      if (!Array.isArray(o.transactions)) return null
+      if (!Array.isArray(o.recipients)) return null
+      if (!Array.isArray(o.deliveryAddresses)) return null
+      if (!Array.isArray(o.currencies)) return null
+      if (!Array.isArray(o.exchangeRates)) return null
+      const completedVolume = typeof o.completedVolume === "number" ? o.completedVolume : 0
+      return {
+        transactions: o.transactions as any[],
+        recipients: o.recipients as any[],
+        deliveryAddresses: o.deliveryAddresses as any[],
+        currencies: o.currencies as any[],
+        exchangeRates: o.exchangeRates as any[],
+        completedVolume,
+        lastUpdated: o.lastUpdated,
+        userId: userId,
+      }
+    } catch {
+      return null
+    }
+  }
+
+  private writePersistedSnapshot() {
+    if (typeof window === "undefined" || !this.data.userId) return
+    try {
+      const tx = this.data.transactions
+      const capped = Array.isArray(tx) && tx.length > UserDataStore.SNAPSHOT_MAX_TX ? tx.slice(0, UserDataStore.SNAPSHOT_MAX_TX) : tx
+      const payload: UserData = {
+        ...this.data,
+        transactions: capped,
+      }
+      localStorage.setItem(this.snapshotStorageKey(this.data.userId), JSON.stringify(payload))
+    } catch (e) {
+      console.warn("user data snapshot persist skipped", e)
+    }
+  }
+
+  private removePersistedSnapshot(userId: string) {
+    if (typeof window === "undefined" || !userId) return
+    try {
+      localStorage.removeItem(this.snapshotStorageKey(userId))
+    } catch {}
+  }
+
+  /** Restore in-memory slice from localStorage (full page reload). Returns true if a snapshot was applied. */
+  hydrateFromLocalStorage(userId: string): boolean {
+    if (!userId) return false
+    if (this.data.userId === userId && this.data.lastUpdated > 0) return true
+    const snap = this.readPersistedSnapshot(userId)
+    if (!snap) return false
+    this.data = snap
+    this.notify()
+    return true
+  }
+
   async initialize(userId: string) {
     this.updateActivity()
 
@@ -76,6 +145,10 @@ class UserDataStore {
         userId: null,
       }
       this.currentUserId = null
+    }
+
+    if (this.data.lastUpdated === 0) {
+      this.hydrateFromLocalStorage(userId)
     }
 
     // Fresh cache for this user: skip network (SPA navigations used to clear currentUserId on unmount)
@@ -202,6 +275,8 @@ class UserDataStore {
         writeCombinedTransactionsCache(userId, this.data.transactions)
       }
 
+      this.writePersistedSnapshot()
+
       return this.data
     } catch (error) {
       console.error("Error loading user data:", error)
@@ -299,6 +374,7 @@ class UserDataStore {
       this.data.lastUpdated = Date.now()
       this.data.userId = userId
       this.notify()
+      this.writePersistedSnapshot()
     } catch (error) {
       console.error("Error refreshing recipients:", error)
     }
@@ -312,6 +388,7 @@ class UserDataStore {
       this.data.lastUpdated = Date.now()
       this.data.userId = userId
       this.notify()
+      this.writePersistedSnapshot()
     } catch (error) {
       console.error("Error refreshing delivery addresses:", error)
     }
@@ -325,6 +402,7 @@ class UserDataStore {
       this.data.currencies = currencies || []
       this.data.lastUpdated = Date.now()
       this.notify()
+      this.writePersistedSnapshot()
     } catch (error) {
       console.error("Error refreshing currencies:", error)
     }
@@ -355,6 +433,7 @@ class UserDataStore {
       this.data.userId = userId
       writeCombinedTransactionsCache(userId, this.data.transactions)
       this.notify()
+      this.writePersistedSnapshot()
     } catch (error) {
       console.error("Error refreshing transactions:", error)
     }
@@ -426,6 +505,10 @@ class UserDataStore {
 
   /** Call on sign-out only. Do not run on route unmount — that forced a refetch on every navigation. */
   cleanup() {
+    const uid = this.data.userId
+    if (uid) {
+      this.removePersistedSnapshot(uid)
+    }
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval)
       this.refreshInterval = null

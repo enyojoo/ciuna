@@ -27,8 +27,20 @@ function AdminAccessDeniedScreen() {
 
 const PROTECTED_PATHS = ["/hub", "/send", "/transactions", "/assistant", "/recipients", "/more", "/support"]
 
+/** Published expert profile at `/experts/[id]` (browse without login). */
+function isPublicExpertProfilePathname(pathname: string): boolean {
+  const m = pathname.match(/^\/experts\/([^/]+)$/)
+  if (!m) return false
+  const seg = m[1].toLowerCase()
+  if (seg === "checkout") return false
+  return true
+}
+
 function isProtectedPath(pathname: string | null): boolean {
   if (!pathname) return false
+  if (isPublicExpertProfilePathname(pathname)) return false
+  if (pathname === "/experts") return false
+  if (pathname.startsWith("/experts/")) return true
   return PROTECTED_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))
 }
 

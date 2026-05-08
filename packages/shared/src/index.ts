@@ -7,6 +7,13 @@ export {
   type CompletedVolumeExchangeRate,
   type CompletedVolumeTransaction,
 } from "./volume/completed-volume"
+export {
+  hubCategorySlugForLine,
+  categoryMatchesSlugForLine,
+  resolveTransactionListLine,
+  transactionLinePrimaryBadge,
+  type TransactionListLine,
+} from "./transaction-display"
 export { cn } from "./utils/cn"
 export { BrandLogo } from "./components/BrandLogo"
 export type { BrandLogoProps } from "./components/BrandLogo"

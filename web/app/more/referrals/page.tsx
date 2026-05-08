@@ -335,7 +335,7 @@ export default function ReferralsPage() {
       await load({ silent: true })
       const payoutTxId = j.payoutTransactionId as string | undefined
       if (payoutTxId) {
-        router.push(`/send/${String(payoutTxId).toLowerCase()}`)
+        router.push(`/hub/orders/${String(payoutTxId).toLowerCase()}`)
       }
     } catch (e: any) {
       setWithdrawError(e?.message || t("referrals.withdrawFailed"))

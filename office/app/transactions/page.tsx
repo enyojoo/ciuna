@@ -33,14 +33,19 @@ import { officeDataStore } from "@/lib/office-data-store"
 import { useOfficeData } from "@/hooks/use-office-data"
 import { officeFetch } from "@/lib/api-client"
 import { buildRateMap, convertWithRateMap } from "@/lib/referral-currency"
+import { cn } from "@/lib/utils"
+import {
+  isReferralPayoutMirrorReference,
+  resolveTransactionListLine,
+  transactionLinePrimaryBadge,
+} from "@ciuna/shared"
 
-/** Matches web `REFERRAL_PAYOUT:` — completed referral withdrawals insert a `transactions` row with this reference. */
-const REFERRAL_PAYOUT_PREFIX = "REFERRAL_PAYOUT:"
-
+/**
+ * Office only: exclude `transactions` mirror rows (`REFERRAL_PAYOUT:…`) so payouts are not
+ * duplicated when we also list rows from `referral_payout_requests`.
+ */
 function excludeReferralPayoutMirrorTransactions<T extends { reference?: string | null }>(rows: T[] | undefined) {
-  return (rows || []).filter(
-    (tx) => !(typeof tx.reference === "string" && tx.reference.startsWith(REFERRAL_PAYOUT_PREFIX)),
-  )
+  return (rows || []).filter((tx) => !isReferralPayoutMirrorReference(tx.reference))
 }
 
 interface CombinedTransaction {
@@ -90,14 +95,17 @@ interface CombinedTransaction {
   hub_snapshot?: Record<string, unknown> | null
   hub_fee_amount?: number | null
   hub_product_id?: string | null
+  hub_product_category?: string | null
   fee_amount?: number | null
   total_amount?: number | null
+  reference?: string | null
+  transaction_source?: string | null
 }
 
 /** Maps a raw send transaction from admin data into CombinedTransaction, preserving cash-delivery fields. */
 function mapSendTransaction(tx: any): CombinedTransaction {
   const rowType: CombinedTransaction["type"] =
-    tx.type === "referral_payout"
+    tx.type === "referral_payout" || isReferralPayoutMirrorReference(tx.reference)
       ? "referral_payout"
       : tx.transaction_source === "hub" || tx.type === "hub"
         ? "hub"
@@ -132,9 +140,42 @@ function mapSendTransaction(tx: any): CombinedTransaction {
     hub_snapshot: tx.hub_snapshot ?? null,
     hub_fee_amount: tx.hub_fee_amount ?? null,
     hub_product_id: tx.hub_product_id ?? null,
+    hub_product_category: tx.hub_product_category ?? null,
     fee_amount: tx.fee_amount ?? null,
     total_amount: tx.total_amount ?? null,
+    reference: tx.reference ?? null,
+    transaction_source: tx.transaction_source ?? null,
   }
+}
+
+function officeServiceLine(tx: CombinedTransaction) {
+  return resolveTransactionListLine(
+    {
+      type: tx.type,
+      transaction_source: tx.transaction_source ?? null,
+      reference: tx.reference ?? null,
+    },
+    tx.hub_product_category ?? null,
+  )
+}
+
+function officeServiceBadgeLabel(tx: CombinedTransaction): string {
+  return transactionLinePrimaryBadge(officeServiceLine(tx))
+}
+
+function officeServiceBadgeClass(tx: CombinedTransaction): string {
+  const line = officeServiceLine(tx)
+  if (line.kind === "referral_payout") return "bg-indigo-100 text-indigo-800 hover:bg-indigo-100"
+  if (line.kind === "send") return "bg-sky-100 text-sky-900 hover:bg-sky-100"
+  if (line.kind === "hub" && line.line === "food") return "bg-emerald-100 text-emerald-900 hover:bg-emerald-100"
+  return "bg-amber-100 text-amber-900 hover:bg-amber-100"
+}
+
+/** Charge in `send_currency` — matches hub order dialog "Total to paid" (`total_amount` when set). */
+function officeTotalToPaidSendAmount(tx: CombinedTransaction): number {
+  const total = Number(tx.total_amount)
+  if (Number.isFinite(total) && total > 0) return total
+  return Number(tx.send_amount) || 0
 }
 
 function buildTransactionsById(transactions: any[] | undefined): Map<string, any> {
@@ -242,7 +283,9 @@ export default function AdminTransactionsPage() {
   const [loading, setLoading] = useState(!adminData?.transactions) // Only show loading if no cached data
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [typeFilter, setTypeFilter] = useState<"all" | "send" | "hub" | "referral_payout">("all")
+  const [typeFilter, setTypeFilter] = useState<
+    "all" | "send" | "hub" | "food" | "mart" | "referral_payout"
+  >("all")
   const [currencyFilter, setCurrencyFilter] = useState("all")
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>([])
   const [selectedTransaction, setSelectedTransaction] = useState<CombinedTransaction | null>(null)
@@ -320,11 +363,17 @@ export default function AdminTransactionsPage() {
           transaction.delivery_phone?.toLowerCase()?.includes(q)))
 
     const matchesStatus = statusFilter === "all" || transaction.status === statusFilter
+    const line = officeServiceLine(transaction)
+    const lineIsHubFood = transaction.type === "hub" && line.kind === "hub" && line.line === "food"
+    const lineIsHubMart = transaction.type === "hub" && line.kind === "hub" && line.line === "mart"
+
     const matchesType =
       typeFilter === "all" ||
       (typeFilter === "referral_payout" && transaction.type === "referral_payout") ||
       (typeFilter === "send" && transaction.type === "send") ||
-      (typeFilter === "hub" && transaction.type === "hub")
+      (typeFilter === "hub" && transaction.type === "hub") ||
+      (typeFilter === "food" && lineIsHubFood) ||
+      (typeFilter === "mart" && lineIsHubMart)
 
     const matchesCurrency =
       currencyFilter === "all" ||
@@ -554,7 +603,7 @@ export default function AdminTransactionsPage() {
 
   const handleExport = () => {
     const csvContent = [
-      ["Transaction ID", "Date", "User", "From", "To", "Send Amount", "Receive Amount", "Status", "Recipient"].join(
+      ["Transaction ID", "Date", "User", "From", "To", "Total to paid (send)", "Receive Amount", "Status", "Recipient"].join(
         ",",
       ),
       ...filteredTransactions.map((t: any) =>
@@ -564,7 +613,7 @@ export default function AdminTransactionsPage() {
           `${t.user?.first_name} ${t.user?.last_name}`,
           t.send_currency,
           t.receive_currency,
-          t.send_amount,
+          officeTotalToPaidSendAmount(t),
           t.receive_amount,
           t.status,
           t.recipient?.full_name || "",
@@ -619,13 +668,15 @@ export default function AdminTransactionsPage() {
 
             {/* Type filter */}
             <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as typeof typeFilter)}>
-              <SelectTrigger className="w-[160px] bg-white">
+              <SelectTrigger className="w-[180px] bg-white">
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All types</SelectItem>
                 <SelectItem value="send">Send money</SelectItem>
-                <SelectItem value="hub">Hub</SelectItem>
+                <SelectItem value="hub">Hub (all)</SelectItem>
+                <SelectItem value="food">Food</SelectItem>
+                <SelectItem value="mart">Mart</SelectItem>
                 <SelectItem value="referral_payout">Referral</SelectItem>
               </SelectContent>
             </Select>
@@ -692,7 +743,14 @@ export default function AdminTransactionsPage() {
               <span className="text-sm text-gray-500">Active filters:</span>
               {typeFilter !== "all" && (
                 <Badge variant="secondary" className="bg-amber-50 text-amber-800 border-amber-200">
-                  Type: {typeFilter === "referral_payout" ? "Referral" : typeFilter.charAt(0).toUpperCase() + typeFilter.slice(1)}
+                  Type:{" "}
+                  {typeFilter === "referral_payout"
+                    ? "Referral"
+                    : typeFilter === "food"
+                      ? "Food"
+                      : typeFilter === "mart"
+                        ? "Mart"
+                        : typeFilter.charAt(0).toUpperCase() + typeFilter.slice(1)}
                   <button
                     onClick={() => setTypeFilter("all")}
                     className="ml-2 hover:bg-amber-100 rounded-full p-0.5"
@@ -810,47 +868,41 @@ export default function AdminTransactionsPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {transaction.type === "referral_payout" ? (
-                        <div>
-                          <Badge className="mb-0.5 bg-indigo-100 text-indigo-800 hover:bg-indigo-100 text-[10px] font-medium px-1.5 py-0 h-5 leading-none">
-                            Referral payout
-                          </Badge>
-                          <div className="font-medium">
-                            {formatCurrency(transaction.send_amount || 0, transaction.send_currency || "")}
-                          </div>
-                          {transaction.receive_currency != null &&
-                            transaction.receive_amount != null && (
-                              <div className="text-sm text-gray-500">
-                                →{" "}
-                                {formatCurrency(
-                                  transaction.receive_amount,
-                                  transaction.receive_currency,
-                                )}
-                              </div>
-                            )}
+                      <div>
+                        <Badge
+                          className={cn(
+                            "mb-0.5 text-[10px] font-medium px-1.5 py-0 h-5 leading-none",
+                            officeServiceBadgeClass(transaction),
+                          )}
+                        >
+                          {officeServiceBadgeLabel(transaction)}
+                        </Badge>
+                        <div className="font-medium">
+                          {formatCurrency(
+                            officeTotalToPaidSendAmount(transaction),
+                            transaction.send_currency || "",
+                          )}
                         </div>
-                      ) : transaction.type === "hub" ? (
-                        <div>
-                          <Badge className="mb-0.5 bg-amber-100 text-amber-900 hover:bg-amber-100 text-[10px] font-medium px-1.5 py-0 h-5 leading-none">
-                            Hub
-                          </Badge>
-                          <div className="font-medium">
-                            {formatCurrency(transaction.send_amount || 0, transaction.send_currency || "")}
+                        {transaction.type === "referral_payout" &&
+                        transaction.receive_currency != null &&
+                        transaction.receive_amount != null ? (
+                          <div className="text-sm text-gray-500">
+                            →{" "}
+                            {formatCurrency(transaction.receive_amount, transaction.receive_currency)}
                           </div>
-                          <div className="text-sm text-gray-500 truncate max-w-[200px]" title={String(transaction.hub_snapshot?.productTitle || "")}>
+                        ) : transaction.type === "hub" ? (
+                          <div
+                            className="text-sm text-gray-500 truncate max-w-[200px]"
+                            title={String(transaction.hub_snapshot?.productTitle || "")}
+                          >
                             {String(transaction.hub_snapshot?.productTitle || "Hub order")}
                           </div>
-                        </div>
-                      ) : (
-                        <div>
-                          <div className="font-medium">
-                            {formatCurrency(transaction.send_amount || 0, transaction.send_currency || "")}
-                          </div>
+                        ) : (
                           <div className="text-sm text-gray-500">
                             → {formatCurrency(transaction.receive_amount || 0, transaction.receive_currency || "")}
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>{getStatusBadge(transaction.status)}</TableCell>
                     <TableCell>
@@ -861,7 +913,7 @@ export default function AdminTransactionsPage() {
                               <Eye className="h-4 w-4" />
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+                          <DialogContent className="max-w-4xl w-[min(100vw-2rem,56rem)] max-h-[90vh] flex flex-col">
                             <DialogHeader>
                               <div className="flex items-center gap-6">
                                 <DialogTitle>
@@ -902,7 +954,9 @@ export default function AdminTransactionsPage() {
                                   </div>
                                   {transaction.type === "referral_payout" ? (
                                       <div className="col-span-2 rounded-lg border border-indigo-200 bg-indigo-50/60 p-4 space-y-2">
-                                        <Badge className="bg-indigo-100 text-indigo-800">Referral payout</Badge>
+                                        <Badge className={cn(officeServiceBadgeClass(transaction))}>
+                                          {officeServiceBadgeLabel(transaction)}
+                                        </Badge>
                                         <p className="text-sm">
                                           <span className="font-medium">Withdrawal: </span>
                                           {formatCurrency(
@@ -927,7 +981,9 @@ export default function AdminTransactionsPage() {
                                       </div>
                                   ) : transaction.type === "hub" ? (
                                       <div className="col-span-2 rounded-lg border border-amber-200 bg-amber-50/60 p-4 space-y-4">
-                                        <Badge className="bg-amber-100 text-amber-800">Hub</Badge>
+                                        <Badge className={cn(officeServiceBadgeClass(transaction))}>
+                                          {officeServiceBadgeLabel(transaction)}
+                                        </Badge>
                                         {(() => {
                                           const snap = transaction.hub_snapshot as
                                             | {
@@ -994,7 +1050,7 @@ export default function AdminTransactionsPage() {
                                                 </span>
                                               </div>
                                               <div className="flex min-w-0 items-start justify-between gap-2 border-t border-amber-200/80 pt-2">
-                                                <span className="min-w-0 text-gray-600">Total to paid</span>
+                                                <span className="min-w-0 text-gray-600">Total paid</span>
                                                 <span className="shrink-0 text-right font-semibold tabular-nums">
                                                   {formatCurrency(
                                                     Number(transaction.total_amount) || 0,

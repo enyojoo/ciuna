@@ -51,7 +51,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
     if (body.photo_url !== undefined) row.photo_url = body.photo_url != null ? String(body.photo_url).trim() || null : null
     if (body.short_bio !== undefined) row.short_bio = body.short_bio != null ? String(body.short_bio).trim() || null : null
+    if (body.location !== undefined) row.location = body.location != null ? String(body.location).trim() || null : null
     if (body.is_published !== undefined) row.is_published = Boolean(body.is_published)
+    if (body.is_verified !== undefined) row.is_verified = Boolean(body.is_verified)
     if (body.service_line_slug != null) row.service_line_slug = service_line_slug
 
     const { data, error } = await server.from("hub_vendors").update(row).eq("id", id).select().maybeSingle()
