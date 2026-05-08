@@ -36,14 +36,14 @@ create trigger hub_service_lines_set_updated_at
 
 insert into public.hub_service_lines (slug, title, short_description, sort_order, is_enabled, grid_kind, route_path, href)
 values
-  ('send', 'Send Money', 'Send money home and across borders.', 10, true, 'app_link', '/send', null),
-  ('assistant', 'Assistant', 'Send packages, documents, and beyond.', 20, true, 'app_link', '/assistant', null),
-  ('experts', 'Experts', 'Book professional services.', 30, true, 'hub_category', '/hub/experts', null),
-  ('connectivity', 'Connectivity', 'SIMs, data, and connectivity.', 100, true, 'hub_category', '/hub/connectivity', null),
-  ('card-payment', 'Card Payment', 'Card and payment products.', 110, true, 'hub_category', '/hub/card-payment', null),
-  ('ai-tools', 'AI Tools', 'AI tools and subscriptions.', 120, true, 'hub_category', '/hub/ai-tools', null),
-  ('entertainment', 'Entertainment', 'Streaming and entertainment.', 130, true, 'hub_category', '/hub/entertainment', null),
-  ('other', 'Other', 'More marketplace offers.', 900, true, 'hub_category', '/hub/other', null)
+  ('food', 'Food', 'Have all your cravings delivered to your doorstep.', 10, true, 'hub_category', '/hub/food', null),
+  ('mart', 'Mart', 'Find everything you need - groceries and more.', 20, true, 'hub_category', '/hub/mart', null),
+  ('assistant', 'Assistant', 'Send packages, documents, and beyond.', 30, true, 'app_link', '/assistant', null),
+  ('send', 'Send Money', 'Cross-border money transfer.', 40, true, 'app_link', '/send', null),
+  ('experts', 'Experts', 'Trusted professionals for all your home and beauty needs.', 50, true, 'hub_category', '/hub/experts', null),
+  ('insurance', 'Insurance', 'Get everyday protection with accessible insurance.', 60, true, 'hub_category', '/hub/insurance', null),
+  ('experiences', 'Experiences', 'Find your next adventure, tours and events in Russia.', 70, true, 'hub_category', '/hub/experiences', null),
+  ('gift-packs', 'Gift Packs', 'Send a fun yet practical gift card to someone today.', 80, true, 'hub_category', '/hub/gift-packs', null)
 on conflict (slug) do nothing;
 
 -- Assistant errand / courier requests (customer app + Office queue)

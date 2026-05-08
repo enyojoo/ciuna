@@ -2,6 +2,7 @@ import { transactionService, recipientService, currencyService, deliveryAddressS
 import { dataCache, CACHE_KEYS } from "./cache"
 import { fetchWithAuth } from "./fetch-with-auth"
 import { supabase } from "./supabase"
+import { writeCombinedTransactionsCache } from "./transactions-combined-cache"
 
 interface UserData {
   transactions: any[]
@@ -121,17 +122,17 @@ class UserDataStore {
       // Fetch user send transactions from API
       const transactionsPromise = (async () => {
         try {
-          const res = await fetchWithAuth(`/api/transactions?type=all&limit=20`)
+          const res = await fetchWithAuth(`/api/transactions?type=all&limit=100`)
           if (res.ok) {
             const data = await res.json()
             return data.transactions || []
           }
           // Fallback to old method if API fails
-          return await transactionService.getByUserId(userId, 20)
+          return await transactionService.getByUserId(userId, 100)
         } catch (error) {
           console.error("Error fetching combined transactions, falling back to send only:", error)
           // Fallback to old method if fetch fails
-          return await transactionService.getByUserId(userId, 20)
+          return await transactionService.getByUserId(userId, 100)
         }
       })()
 
@@ -195,6 +196,10 @@ class UserDataStore {
         this.data.lastUpdated = Date.now()
         this.data.userId = userId
         this.data.completedVolume = completedVolume
+      }
+
+      if (userId && results[2].status === "fulfilled") {
+        writeCombinedTransactionsCache(userId, this.data.transactions)
       }
 
       return this.data
@@ -329,7 +334,7 @@ class UserDataStore {
     try {
       this.updateActivity()
       const [txRes, volRes] = await Promise.all([
-        fetchWithAuth(`/api/transactions?type=all&limit=20`),
+        fetchWithAuth(`/api/transactions?type=all&limit=100`),
         fetchWithAuth("/api/user/completed-volume"),
       ])
 
@@ -337,7 +342,7 @@ class UserDataStore {
         const data = await txRes.json()
         this.data.transactions = data.transactions || []
       } else {
-        const transactions = await transactionService.getByUserId(userId, 20)
+        const transactions = await transactionService.getByUserId(userId, 100)
         this.data.transactions = transactions || []
       }
 
@@ -348,6 +353,7 @@ class UserDataStore {
 
       this.data.lastUpdated = Date.now()
       this.data.userId = userId
+      writeCombinedTransactionsCache(userId, this.data.transactions)
       this.notify()
     } catch (error) {
       console.error("Error refreshing transactions:", error)

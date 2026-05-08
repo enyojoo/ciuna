@@ -210,7 +210,7 @@ export default function ReferralsPage() {
     [userProfile?.id, fetchReferralsMe, t],
   )
 
-  // Seed from localStorage before paint; align loading with cache (same pattern as /orders)
+  // Seed from localStorage before paint; align loading with cache (same pattern as /transactions)
   useLayoutEffect(() => {
     if (authLoading || !user || !userProfile?.id) return
 

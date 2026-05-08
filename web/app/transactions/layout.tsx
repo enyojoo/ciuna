@@ -3,8 +3,8 @@ import type { Metadata } from "next"
 import { SEO_PAGE_DESCRIPTIONS, SEO_PAGE_TITLES } from "@/lib/seo"
 
 export const metadata: Metadata = {
-  title: SEO_PAGE_TITLES.orders,
-  description: SEO_PAGE_DESCRIPTIONS.orders,
+  title: SEO_PAGE_TITLES.transactions,
+  description: SEO_PAGE_DESCRIPTIONS.transactions,
   robots: {
     index: false,
     noindex: true,
@@ -13,6 +13,6 @@ export const metadata: Metadata = {
   },
 }
 
-export default function OrdersLayout({ children }: { children: React.ReactNode }) {
+export default function TransactionsLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }

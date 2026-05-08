@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAuth } from "@/lib/auth-context"
@@ -8,36 +8,81 @@ import { fetchWithAuth } from "@/lib/fetch-with-auth"
 import { HubShellHeader } from "@/components/hub/hub-shell-header"
 import { HubServiceLineTiles } from "@/components/hub/hub-service-line-tiles"
 import type { HubServiceLineRow } from "@/lib/hub-service-line-types"
+import {
+  readStaleHubServiceLinesCache,
+  writeHubServiceLinesCache,
+} from "@/lib/hub-client-cache"
 
 export default function HubHomePage() {
-  const { t } = useTranslation("app")
+  const { t, i18n } = useTranslation("app")
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
   const [lines, setLines] = useState<HubServiceLineRow[]>([])
   const [loading, setLoading] = useState(true)
+
+  const lng = i18n.resolvedLanguage ?? i18n.language ?? "en"
+  const useEnHubHero = lng === "en" || lng.startsWith("en-")
+  const hubHeroTitle = useEnHubHero
+    ? "One App, All you Need"
+    : t("hub.heroTitle")
+  const hubHeroBody = useEnHubHero
+    ? "Shop foodstuffs, book services, send money home and handle life abroad on Ciuna."
+    : t("hub.heroBody")
+
+  useLayoutEffect(() => {
+    if (authLoading || !user?.id) return
+    const stale = readStaleHubServiceLinesCache(user.id)
+    setLines(stale ?? [])
+    setLoading(stale === null)
+  }, [user?.id, authLoading])
 
   useEffect(() => {
     if (!user) {
       if (!authLoading) router.push("/auth/login")
       return
     }
-    let cancelled = false
-    ;(async () => {
+    if (!user.id) return
+
+    const load = async (silent: boolean) => {
       try {
         const res = await fetchWithAuth("/api/hub/service-lines", { cache: "no-store" })
         if (!res.ok) throw new Error("load")
         const data = await res.json()
-        if (!cancelled) setLines((data.serviceLines || []) as HubServiceLineRow[])
+        const next = (data.serviceLines || []) as HubServiceLineRow[]
+        setLines(next)
+        writeHubServiceLinesCache(user.id, next)
       } catch {
-        if (!cancelled) setLines([])
+        if (!silent) setLines([])
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!silent) setLoading(false)
       }
-    })()
-    return () => {
-      cancelled = true
     }
+
+    const stale = readStaleHubServiceLinesCache(user.id)
+    void load(stale !== null)
   }, [user, authLoading, router])
+
+  useEffect(() => {
+    if (!user?.id) return
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        void (async () => {
+          try {
+            const res = await fetchWithAuth("/api/hub/service-lines", { cache: "no-store" })
+            if (!res.ok) return
+            const data = await res.json()
+            const next = (data.serviceLines || []) as HubServiceLineRow[]
+            setLines(next)
+            writeHubServiceLinesCache(user.id, next)
+          } catch {
+            /* keep cached rows */
+          }
+        })()
+      }
+    }
+    document.addEventListener("visibilitychange", onVisible)
+    return () => document.removeEventListener("visibilitychange", onVisible)
+  }, [user?.id])
 
   if (!user) {
     return (
@@ -45,9 +90,9 @@ export default function HubHomePage() {
         <div className="mx-auto max-w-5xl space-y-4 animate-pulse">
           <div className="h-12 rounded-lg bg-muted" />
           <div className="h-32 rounded-2xl bg-muted" />
-          <div className="grid grid-cols-2 gap-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-24 rounded-xl bg-muted" />
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-[6.75rem] rounded-lg bg-muted sm:h-[8.5rem] sm:rounded-xl" />
             ))}
           </div>
         </div>
@@ -57,33 +102,33 @@ export default function HubHomePage() {
 
   return (
     <div className="min-w-0">
-      <div className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-6 sm:py-5 space-y-6">
+      <div className="mx-auto w-full max-w-5xl space-y-6 pb-5 sm:pb-6 sm:pt-5">
         <HubShellHeader />
 
-        <section
-          className="rounded-2xl px-5 py-7 sm:px-7 sm:py-8 text-white shadow-sm"
-          style={{
-            background: "linear-gradient(135deg, var(--surface-hero-from, #ea580c) 0%, var(--surface-hero-via, #f97316) 45%, var(--surface-hero-to, #fb923c) 100%)",
-          }}
-        >
-          <h1 className="text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{t("hub.heroTitle")}</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/90 sm:text-base">{t("hub.heroBody")}</p>
-        </section>
-
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-gray-900">{t("hub.servicesTitle")}</h2>
-          {loading ? (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 animate-pulse">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-24 rounded-xl bg-muted" />
-              ))}
+        <div className="space-y-6 px-4 sm:px-6">
+          <section className="rounded-2xl bg-gradient-to-br from-orange-600 via-orange-500 to-amber-400 p-5 text-white shadow-sm sm:p-6">
+            <div className="space-y-1.5 sm:space-y-2">
+              <h1 className="text-balance text-2xl font-bold leading-tight sm:text-3xl md:text-4xl">
+                {hubHeroTitle}
+              </h1>
+              <p className="max-w-2xl text-sm/6 text-orange-50 sm:text-base/7">{hubHeroBody}</p>
             </div>
-          ) : lines.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("hub.serviceUnavailable")}</p>
-          ) : (
-            <HubServiceLineTiles lines={lines} />
-          )}
-        </section>
+          </section>
+
+          <section>
+            {loading ? (
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 animate-pulse">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="h-[6.75rem] rounded-lg bg-muted sm:h-[8.5rem] sm:rounded-xl" />
+                ))}
+              </div>
+            ) : lines.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t("hub.serviceUnavailable")}</p>
+            ) : (
+              <HubServiceLineTiles lines={lines} />
+            )}
+          </section>
+        </div>
       </div>
     </div>
   )

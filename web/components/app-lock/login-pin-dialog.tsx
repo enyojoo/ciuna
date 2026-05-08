@@ -119,7 +119,7 @@ function LoginPinCreateKeypad({
     <div className="space-y-2 py-2">
       <p className="text-center text-sm font-medium text-foreground">{stepLabel}</p>
       {step === "enter" ? (
-        <p className="text-center text-[11px] text-muted-foreground">{t("pinSetup.benefitLine")}</p>
+        <p className="text-center text-xs text-muted-foreground sm:text-sm">{t("pinSetup.benefitLine")}</p>
       ) : null}
 
       <div className="mx-auto flex max-w-xs flex-col items-center">

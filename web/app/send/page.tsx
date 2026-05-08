@@ -14,6 +14,7 @@ import {
   Check,
   Clock,
   ArrowLeft,
+  ChevronLeft,
   Copy,
   ChevronRight,
   Plus,
@@ -28,6 +29,7 @@ import {
 import { QRCodeSVG } from "qrcode.react"
 import { transactionService, paymentMethodService, recipientService, deliveryAddressService } from "@/lib/database"
 import { computeLogisticsFee, resolveFulfillment } from "@/lib/send-fulfillment"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth } from "@/lib/auth-context"
@@ -859,21 +861,32 @@ export default function UserSendPage() {
             <div className="min-w-0 lg:col-span-2">
               {/* Step 1: Send Money */}
               {currentStep === 1 && (
-                <Card className="py-4">
-                  <CardContent className="space-y-6 pt-0">
-                    <div className="rounded-2xl bg-gradient-to-br from-orange-600 via-orange-500 to-amber-400 p-5 text-white">
-                      <div className="space-y-1">
-                        <h2 className="text-2xl font-bold leading-tight">
-                          {t("send.sendMoneyHeroTitle", { defaultValue: "Send Money" })}
-                        </h2>
-                        <p className="text-sm/6 text-orange-50">
-                          {t("send.sendMoneyHeroSubtitle", {
-                            defaultValue: "Choose amount and currencies to start your transfer.",
-                          })}
-                        </p>
+                <Card className="gap-0 overflow-hidden rounded-2xl border py-0 shadow-md">
+                  <CardContent className="space-y-0 p-0">
+                    <div className="relative isolate">
+                      <div className="rounded-t-2xl bg-gradient-to-br from-orange-600 via-orange-500 to-amber-400 px-5 pb-24 pt-5 text-white sm:px-6 sm:pb-28 sm:pt-6">
+                        <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+                          <Link
+                            href="/hub"
+                            aria-label={t("hub.backToHub")}
+                            className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black/15 text-white ring-1 ring-white/25 transition hover:bg-black/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80"
+                          >
+                            <ChevronLeft className="h-5 w-5" aria-hidden />
+                          </Link>
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <h2 className="text-balance text-2xl font-bold leading-tight sm:text-3xl">
+                              {t("send.sendMoneyHeroTitle", { defaultValue: "Send Money" })}
+                            </h2>
+                            <p className="max-w-xl text-sm/6 text-orange-50 sm:text-base/7">
+                              {t("send.sendMoneyHeroSubtitle", {
+                                defaultValue: "Choose amount and currencies to begin",
+                              })}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                    </div>
 
+                      <div className="relative z-10 -mt-14 mx-3 space-y-5 rounded-2xl border border-border/70 bg-card p-4 shadow-lg sm:-mt-[4.25rem] sm:mx-4 sm:space-y-6 sm:p-5">
                     {/* You Send Section */}
                     <div className="space-y-4">
                       <h3 className="text-sm font-medium text-gray-700">{t("send.youSend")}</h3>
@@ -1058,7 +1071,10 @@ export default function UserSendPage() {
                       </div>
                     )}
 
-                    <div className="sticky bottom-0 z-10 -mx-6 mt-2 border-t border-border bg-background/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm supports-[backdrop-filter]:bg-background/80 lg:static lg:z-auto lg:mx-0 lg:mt-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+                    </div>
+                    </div>
+
+                    <div className="sticky bottom-0 z-20 mt-3 border-t border-border bg-background/95 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm supports-[backdrop-filter]:bg-background/80 sm:px-6 lg:static lg:z-auto lg:mt-4 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
                       <Button
                         onClick={handleContinue}
                         className="min-h-12 w-full rounded-xl bg-primary text-base font-semibold hover:bg-primary/90"

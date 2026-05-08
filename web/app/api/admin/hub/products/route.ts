@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
 import { requireAdmin } from "@/lib/admin-auth-utils"
 import { assertHubProductCategoryAllowed } from "@/lib/hub-product-category-validation"
+import { hubCategorySlug } from "@/lib/hub-slug"
 import { sortHubProductRows } from "@/lib/hub-products-sort"
 
 export async function GET(request: NextRequest) {
@@ -26,10 +27,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const server = createServerClient()
 
+    const vendorId =
+      body.vendor_id != null && String(body.vendor_id).trim() !== "" ? String(body.vendor_id).trim() : null
+
     const row = {
       title: String(body.title || "").trim() || "Untitled",
       short_description: body.short_description ?? null,
       category: String(body.category || "Other"),
+      vendor_id: vendorId,
       is_featured: Boolean(body.is_featured),
       status: body.status === "live" || body.status === "archived" ? body.status : "draft",
       pricing_type: body.pricing_type === "user_input" ? "user_input" : "fixed",
@@ -48,6 +53,19 @@ export async function POST(request: NextRequest) {
     const catCheck = await assertHubProductCategoryAllowed(server, row.category)
     if (!catCheck.ok) {
       return NextResponse.json({ error: catCheck.message }, { status: 400 })
+    }
+
+    if (vendorId) {
+      const { data: v, error: vErr } = await server.from("hub_vendors").select("id, service_line_slug").eq("id", vendorId).maybeSingle()
+      if (vErr || !v) {
+        return NextResponse.json({ error: "Invalid vendor_id" }, { status: 400 })
+      }
+      if (v.service_line_slug !== hubCategorySlug(row.category)) {
+        return NextResponse.json(
+          { error: "Vendor service line must match the product category hub line (e.g. Food → food vendor)." },
+          { status: 400 },
+        )
+      }
     }
 
     const { data, error } = await server.from("hub_products").insert(row).select().single()

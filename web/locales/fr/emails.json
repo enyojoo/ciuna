@@ -111,7 +111,7 @@
         "inPerson": "Nous livrerons {{contactName}} à {{deliveryAddressLine}}. Notre coursier appellera au {{contactPhone}} à l'arrivée."
       },
       "nextHeading": "Et maintenant",
-      "nextBody": "Nous préparons votre commande et vous préviendrons dès qu'elle passera en traitement. Vous pouvez suivre son état dans vos commandes.",
+      "nextBody": "Nous préparons votre commande et vous préviendrons dès qu’elle est traitée. Vous pouvez suivre l’avancement à tout moment dans Transactions.",
       "cta": "Voir la commande"
     },
     "processing": {

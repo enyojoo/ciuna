@@ -2,7 +2,7 @@ import { type NextRequest } from "next/server"
 
 const ALLOWED_ORIGINS = [
   process.env.NEXT_PUBLIC_OFFICE_URL || "https://bk.ciuna.com",
-  "http://localhost:3002",
+  "http://localhost:3001",
 ]
 
 export function getOfficeCorsHeaders(request: NextRequest): Record<string, string> {

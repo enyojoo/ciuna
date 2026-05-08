@@ -67,10 +67,10 @@ const nextConfig = {
     }
     return config
   },
-  async rewrites() {
+  async redirects() {
     return [
-      { source: "/transactions", destination: "/orders" },
-      { source: "/transactions/:path*", destination: "/orders/:path*" },
+      { source: "/orders", destination: "/transactions", permanent: true },
+      { source: "/orders/", destination: "/transactions", permanent: true },
     ]
   },
 }

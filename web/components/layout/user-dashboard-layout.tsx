@@ -4,12 +4,13 @@ import type React from "react"
 import { useMemo, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, LayoutDashboard, Send, History, LogOut, X } from "lucide-react"
+import { Home, LayoutDashboard, History, LogOut, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { BrandLogo } from "@/components/brand/brand-logo"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
 import { AppLockProvider } from "@/components/app-lock/app-lock-provider"
+import { HubReferSupportActions } from "@/components/hub/hub-refer-support-actions"
 
 interface UserDashboardLayoutProps {
   children: React.ReactNode
@@ -22,11 +23,12 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { signOut } = useAuth()
 
+  const isHubRoute = pathname === "/hub" || Boolean(pathname?.startsWith("/hub/"))
+
   const baseNavigation = useMemo(
     () => [
       { name: t("nav.home"), href: "/hub", icon: Home },
-      { name: t("nav.sendMoney"), href: "/send", icon: Send },
-      { name: t("nav.orders"), href: "/orders", icon: History },
+      { name: t("nav.transactions"), href: "/transactions", icon: History },
       { name: t("nav.more"), href: "/more", icon: LayoutDashboard },
     ],
     [t],
@@ -35,8 +37,7 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
   const bottomNavItems = useMemo(
     () => [
       { name: t("nav.home"), href: "/hub", icon: Home },
-      { name: t("nav.send"), href: "/send", icon: Send },
-      { name: t("nav.orders"), href: "/orders", icon: History },
+      { name: t("nav.transactions"), href: "/transactions", icon: History },
       { name: t("nav.more"), href: "/more", icon: LayoutDashboard },
     ],
     [t],
@@ -74,19 +75,17 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
           <nav className="flex-1 px-3 py-6 space-y-1">
             {baseNavigation.map((item) => {
               const isActive =
-                item.href === "/send"
-                  ? pathname === "/send" || Boolean(pathname?.startsWith("/send/"))
-                  : item.href === "/hub"
-                    ? pathname === "/hub" || Boolean(pathname?.startsWith("/hub/"))
-                    : item.href === "/orders"
-                      ? pathname === "/orders" || Boolean(pathname?.startsWith("/orders/"))
-                      : pathname === item.href
+                item.href === "/hub"
+                  ? pathname === "/hub" || Boolean(pathname?.startsWith("/hub/"))
+                  : item.href === "/transactions"
+                    ? pathname === "/transactions" || Boolean(pathname?.startsWith("/transactions/"))
+                    : pathname === item.href
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   prefetch={true}
-                  className={`flex items-center w-full px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 ${
+                  className={`flex items-center w-full px-3 py-3 text-sm font-medium md:text-[0.9375rem] rounded-md transition-all duration-200 ${
                     isActive
                       ? "bg-accent text-accent-foreground"
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -116,28 +115,28 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
 
       {/* Main content area - ml-56 for desktop; max-width column on wide screens for app-like density */}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:ml-56">
-        {/* Top bar - Desktop only, matches sidebar header line (h-16, border-sidebar-border) */}
-        <div className="bg-background border-b border-sidebar-border px-4 h-16 items-center sm:px-6 lg:px-8 hidden lg:flex" />
+        {/* Top bar - Desktop only: Hub routes show refer + support (logo is in sidebar). */}
+        <div className="hidden h-16 w-full shrink-0 items-center justify-end gap-2 border-b border-sidebar-border bg-background px-4 sm:px-6 lg:px-8 lg:flex">
+          {isHubRoute ? <HubReferSupportActions /> : null}
+        </div>
 
         {/* Page content */}
-        <main className="mx-auto min-h-0 min-w-0 w-full max-w-3xl flex-1 overflow-x-clip overflow-y-auto pb-app-main-mobile lg:mx-0 lg:max-w-none lg:pb-0">
+        <main className="mx-auto min-h-0 min-w-0 w-full max-w-3xl flex-1 overflow-x-clip overflow-y-auto pb-app-main-mobile md:max-w-4xl lg:mx-0 lg:max-w-none lg:pb-0 xl:px-3 2xl:px-8">
           {children}
         </main>
 
         {/* Bottom Navigation - Mobile/Tablet only */}
         <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border lg:hidden z-40 pb-safe">
-          <div className="flex justify-around items-center py-2 px-1 sm:px-2 max-w-3xl mx-auto">
+          <div className="flex w-full items-center justify-around px-2 py-2 sm:px-4 sm:py-2.5">
             {bottomNavItems.map((item) => {
               const isActive =
-                item.href === "/send"
-                  ? pathname === "/send" || Boolean(pathname?.startsWith("/send/"))
-                  : item.href === "/hub"
-                    ? pathname === "/hub" || Boolean(pathname?.startsWith("/hub/"))
-                    : item.href === "/orders"
-                      ? pathname === "/orders" || Boolean(pathname?.startsWith("/orders/"))
-                      : item.href === "/more"
-                        ? pathname === "/more" || Boolean(pathname?.startsWith("/more/"))
-                        : pathname === item.href
+                item.href === "/hub"
+                  ? pathname === "/hub" || Boolean(pathname?.startsWith("/hub/"))
+                  : item.href === "/transactions"
+                    ? pathname === "/transactions" || Boolean(pathname?.startsWith("/transactions/"))
+                    : item.href === "/more"
+                      ? pathname === "/more" || Boolean(pathname?.startsWith("/more/"))
+                      : pathname === item.href
 
               return (
                 <Link
@@ -148,7 +147,7 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
                 >
                   <item.icon className={`h-5 w-5 ${isActive ? "text-primary" : "text-gray-600"}`} />
                   <span
-                    className={`mt-1 max-w-[4.5rem] truncate text-center text-[10px] leading-tight sm:max-w-none sm:text-xs ${isActive ? "text-primary" : "text-gray-600"}`}
+                    className={`mt-1 max-w-[5.25rem] truncate text-center text-xs leading-tight sm:max-w-none sm:text-[0.8125rem] ${isActive ? "text-primary" : "text-gray-600"}`}
                   >
                     {item.name}
                   </span>

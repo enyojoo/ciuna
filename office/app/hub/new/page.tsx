@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { officeFetch } from "@/lib/api-client"
 import { useOfficeData } from "@/hooks/use-office-data"
-import { supabase } from "@/lib/supabase"
+import { uploadHubProductImage } from "@/lib/upload-hub-assets"
 
 const CATEGORIES = [
   "Logistics",
@@ -57,28 +57,6 @@ export default function OfficeHubNewProductPage() {
     sort_order: "0",
     image_url: "",
   })
-
-  const uploadProductImage = async (file: File): Promise<string> => {
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"]
-    if (!allowedTypes.includes(file.type)) {
-      throw new Error("Only JPG, PNG, or WEBP files are allowed.")
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      throw new Error("Image must be 5MB or less.")
-    }
-
-    const ext = file.name.split(".").pop() || "png"
-    const path = `hub-products/hub_${Date.now()}.${ext}`
-    const { error } = await supabase.storage.from("payment-qr-codes").upload(path, file, {
-      cacheControl: "3600",
-      upsert: false,
-    })
-    if (error) throw error
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from("payment-qr-codes").getPublicUrl(path)
-    return publicUrl
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -170,13 +148,13 @@ export default function OfficeHubNewProductPage() {
                 <Input
                   id="image"
                   type="file"
-                  accept="image/png,image/jpeg,image/webp"
+                  accept="image/png,image/jpeg,image/webp,image/svg+xml,.svg"
                   onChange={async (e) => {
                     const file = e.target.files?.[0]
                     if (!file) return
                     try {
                       setUploadingImage(true)
-                      const url = await uploadProductImage(file)
+                      const url = await uploadHubProductImage(file)
                       setForm((prev) => ({ ...prev, image_url: url }))
                     } catch (err) {
                       alert(err instanceof Error ? err.message : "Image upload failed")

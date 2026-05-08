@@ -3,37 +3,31 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
-/** List rows only — use under AppPageHeader + search so the shell never flashes away */
+/** Transactions list: grouped card + compact rows — use below standalone page header + search */
 export function TransactionsListSkeleton() {
   return (
-    <div className="space-y-4 sm:space-y-5">
-      {[1, 2, 3].map((index) => (
-        <Card key={index}>
-          <CardContent className="p-4 sm:p-5">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-6 w-20 rounded-full" />
-            </div>
-            <div className="mb-4 sm:mb-5">
-              <Skeleton className="h-3 w-8 mb-2" />
-              <Skeleton className="h-5 w-48" />
-            </div>
-            <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-5">
-              <div className="flex items-center justify-between">
-                <Skeleton className="h-3 w-24" />
-                <Skeleton className="h-5 w-28" />
-              </div>
-              <div className="flex items-center justify-between">
-                <Skeleton className="h-3 w-28" />
-                <Skeleton className="h-5 w-28" />
-              </div>
-            </div>
-            <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-gray-100">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-5 w-5" />
-            </div>
-          </CardContent>
-        </Card>
+    <div className="space-y-5 sm:space-y-6">
+      {[1, 2].map((group) => (
+        <div key={group}>
+          <div className="mb-2.5 h-3 w-24 rounded bg-muted sm:h-3.5" />
+          <Card className="overflow-hidden border-border/80 shadow-md">
+            <CardContent className="flex flex-col divide-y divide-border p-0">
+              {[1, 2, 3].map((row) => (
+                <div key={row} className="flex items-center gap-3 px-4 py-3.5 sm:px-5">
+                  <Skeleton className="h-10 w-10 shrink-0 rounded-full sm:h-11 sm:w-11" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-4 w-[min(100%,14rem)]" />
+                    <Skeleton className="h-3 w-40" />
+                  </div>
+                  <div className="shrink-0 space-y-2 text-right">
+                    <Skeleton className="ml-auto h-4 w-20" />
+                    <Skeleton className="ml-auto h-3 w-16" />
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
       ))}
     </div>
   )
@@ -50,7 +44,7 @@ export function TransactionsSkeleton() {
 
       {/* Search Bar Skeleton */}
       <div className="p-5 sm:p-6 pb-3 sm:pb-4">
-        <Skeleton className="h-12 w-full rounded-md" />
+        <Skeleton className="h-11 w-full rounded-full" />
       </div>
 
       {/* Transactions List Skeleton */}

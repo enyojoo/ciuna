@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowUpRight, ChevronRight } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import type { HubServiceLineRow } from "@/lib/hub-service-line-types"
 
@@ -15,26 +14,27 @@ function lineHref(line: HubServiceLineRow): string | null {
 
 export function HubServiceLineTiles({ lines }: { lines: HubServiceLineRow[] }) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
       {lines.map((line) => {
         const href = lineHref(line)
-        const external = line.grid_kind === "external_url"
         const inner = (
-          <Card className="h-full overflow-hidden border border-gray-200 bg-white shadow-sm transition-colors hover:border-primary/40 hover:shadow-md">
-            <CardContent className="flex items-start gap-3 p-4 sm:p-5">
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-semibold text-gray-900">{line.title}</h3>
-                  {external ? (
-                    <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
-                  )}
-                </div>
-                {line.short_description ? (
-                  <p className="text-sm leading-relaxed text-muted-foreground">{line.short_description}</p>
-                ) : null}
-              </div>
+          <Card className="h-full border border-gray-200 bg-white shadow-sm transition-colors hover:border-primary/40 hover:shadow-md">
+            <CardContent className="flex min-h-[6.75rem] flex-col items-center justify-center gap-1.5 px-3 py-3 text-center sm:min-h-[8.5rem] sm:gap-2 sm:px-4 sm:py-4 md:min-h-[9.5rem] md:gap-2 md:px-5 md:py-5">
+              {line.icon_url ? (
+                <img
+                  src={line.icon_url}
+                  alt=""
+                  className="h-12 w-12 shrink-0 object-contain sm:h-14 sm:w-14 md:h-16 md:w-16"
+                />
+              ) : null}
+              <h3 className="line-clamp-2 w-full text-xs font-semibold leading-tight text-gray-900 sm:text-sm sm:leading-snug md:text-base">
+                {line.title}
+              </h3>
+              {line.short_description ? (
+                <p className="line-clamp-2 w-full text-xs leading-snug text-muted-foreground sm:line-clamp-3 sm:text-sm sm:leading-relaxed md:line-clamp-4">
+                  {line.short_description}
+                </p>
+              ) : null}
             </CardContent>
           </Card>
         )
@@ -43,7 +43,7 @@ export function HubServiceLineTiles({ lines }: { lines: HubServiceLineRow[] }) {
           return <div key={line.id}>{inner}</div>
         }
 
-        if (external) {
+        if (line.grid_kind === "external_url") {
           return (
             <a key={line.id} href={href} target="_blank" rel="noopener noreferrer" className="block min-h-[44px]">
               {inner}

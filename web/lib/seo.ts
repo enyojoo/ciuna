@@ -71,7 +71,6 @@ export const SEO_PAGE_TITLES = {
   hub: `Hub${PAGE_TITLE_SUFFIX}`,
   assistant: `Assistant${PAGE_TITLE_SUFFIX}`,
   transactions: `Transactions${PAGE_TITLE_SUFFIX}`,
-  orders: `Orders${PAGE_TITLE_SUFFIX}`,
   recipients: `Recipients${PAGE_TITLE_SUFFIX}`,
   support: `Support${PAGE_TITLE_SUFFIX}`,
   auth: `Sign in${PAGE_TITLE_SUFFIX}`,
@@ -91,8 +90,8 @@ export const SEO_PAGE_DESCRIPTIONS = {
   hub: "Browse and order Hub services in Ciuna, with transparent pricing and tracked payment status.",
   assistant:
     "Request pickups, shopping, and errands with Ciuna Assistant—clear instructions, quote after review, and tracked status.",
-  transactions: "Review transfer history, statuses, and details for every payment you’ve sent with Ciuna.",
-  orders: "View completed volume, order count, and your full transfer and Hub order history in one place.",
+  transactions:
+    "Transfers, Hub purchases, referral payouts, and more—see completed volume, counts, and your full money history in one place.",
   recipients: "Save and manage recipients for faster, repeatable international transfers.",
   support: "Get help with transfers, verification, and your Ciuna account.",
   auth: "Sign in to Ciuna to send money globally with transparent pricing and secure authentication.",

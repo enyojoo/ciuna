@@ -43,7 +43,7 @@ export function InstallAppBanner() {
                       type="button"
                       variant="default"
                       size="sm"
-                      className="h-6 shrink-0 rounded-full px-2.5 text-[11px] font-semibold shadow-none sm:h-7 sm:px-3 sm:text-xs"
+                      className="h-6 shrink-0 rounded-full px-2.5 text-xs font-semibold shadow-none sm:h-7 sm:px-3 sm:text-sm"
                       onClick={() => void runInstall()}
                     >
                       {t("pwa.install")}

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { OfficeDashboardLayout } from "@/components/layout/office-dashboard-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,15 +16,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Plus, Pencil, Loader2, ImagePlus } from "lucide-react"
 import { officeFetch } from "@/lib/api-client"
-import { categoryMatchesSlug } from "@/lib/hub-slug"
+import { categoryMatchesSlug, hubCategorySlug } from "@/lib/hub-slug"
 import { useOfficeData } from "@/hooks/use-office-data"
-import { supabase } from "@/lib/supabase"
+import { uploadHubProductImage } from "@/lib/upload-hub-assets"
 
 type HubProduct = {
   id: string
   title: string
   image_url?: string | null
   category: string
+  vendor_id?: string | null
   status: string
   pricing_type: string
   fulfillment_type?: "online" | "in_person"
@@ -98,10 +100,12 @@ export default function OfficeHubProductsPage() {
   const [saving, setSaving] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
   const [slaTimer, setSlaTimer] = useState({ hours: 1, minutes: 0, seconds: 0 })
+  const [hubVendors, setHubVendors] = useState<{ id: string; name: string; service_line_slug: string }[]>([])
   const [form, setForm] = useState({
     title: "",
     short_description: "",
     category: "Other",
+    vendor_id: "",
     status: "draft",
     pricing_type: "fixed",
     fulfillment_type: "online",
@@ -157,11 +161,27 @@ export default function OfficeHubProductsPage() {
     return CATEGORIES.filter((c) => c.toLowerCase().includes(q))
   }, [form.category])
 
+  useEffect(() => {
+    let cancelled = false
+    void officeFetch("/api/admin/hub/vendors")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("vendors"))))
+      .then((j: { vendors?: { id: string; name: string; service_line_slug: string }[] }) => {
+        if (!cancelled) setHubVendors(j.vendors || [])
+      })
+      .catch(() => {
+        if (!cancelled) setHubVendors([])
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const resetForm = () => {
     setForm({
       title: "",
       short_description: "",
       category: "Other",
+      vendor_id: "",
       status: "draft",
       pricing_type: "fixed",
       fulfillment_type: "online",
@@ -204,23 +224,6 @@ export default function OfficeHubProductsPage() {
     }
   }, [])
 
-  const uploadProductImage = async (file: File): Promise<string> => {
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"]
-    if (!allowedTypes.includes(file.type)) throw new Error("Only JPG, PNG, or WEBP files are allowed.")
-    if (file.size > 5 * 1024 * 1024) throw new Error("Image must be 5MB or less.")
-    const ext = file.name.split(".").pop() || "png"
-    const path = `hub-products/hub_${Date.now()}.${ext}`
-    const { error } = await supabase.storage.from("payment-qr-codes").upload(path, file, {
-      cacheControl: "3600",
-      upsert: false,
-    })
-    if (error) throw error
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from("payment-qr-codes").getPublicUrl(path)
-    return publicUrl
-  }
-
   const openCreate = () => {
     setEditingId(null)
     resetForm()
@@ -237,6 +240,7 @@ export default function OfficeHubProductsPage() {
         title: product.title || "",
         short_description: product.short_description || "",
         category: product.category || "Other",
+        vendor_id: product.vendor_id ? String(product.vendor_id) : "",
         status: product.status || "draft",
         pricing_type: product.pricing_type || "fixed",
         fulfillment_type: product.fulfillment_type === "in_person" ? "in_person" : "online",
@@ -278,6 +282,8 @@ export default function OfficeHubProductsPage() {
         image_url: form.image_url || null,
         is_featured: form.is_featured,
       }
+      const lineSlug = hubCategorySlug(form.category)
+      body.vendor_id = lineSlug === "food" || lineSlug === "mart" ? (form.vendor_id || null) : null
 
       const path = editingId ? `/api/admin/hub/products/${editingId}` : "/api/admin/hub/products"
       const method = editingId ? "PATCH" : "POST"
@@ -368,13 +374,13 @@ export default function OfficeHubProductsPage() {
                     id="image"
                     type="file"
                     className="hidden"
-                    accept="image/png,image/jpeg,image/webp"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml,.svg"
                     onChange={async (e) => {
                       const file = e.target.files?.[0]
                       if (!file) return
                       try {
                         setUploadingImage(true)
-                        const url = await uploadProductImage(file)
+                        const url = await uploadHubProductImage(file)
                         setForm((prev) => ({ ...prev, image_url: url }))
                       } catch (err) {
                         alert(err instanceof Error ? err.message : "Image upload failed")
@@ -470,6 +476,40 @@ export default function OfficeHubProductsPage() {
                     </Select>
                   </div>
                 </div>
+                {(hubCategorySlug(form.category) === "food" || hubCategorySlug(form.category) === "mart") && (
+                  <div className="space-y-2">
+                    <Label>Vendor (storefront)</Label>
+                    <Select
+                      value={form.vendor_id || "__none__"}
+                      onValueChange={(v) => setForm({ ...form, vendor_id: v === "__none__" ? "" : v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Optional" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">None</SelectItem>
+                        {hubVendors
+                          .filter((v) => v.service_line_slug === hubCategorySlug(form.category))
+                          .map((v) => (
+                            <SelectItem key={v.id} value={v.id}>
+                              {v.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <Button variant="link" className="h-auto p-0 text-sm" asChild type="button">
+                      <Link
+                        href={
+                          serviceLineSlug === "food" || serviceLineSlug === "mart"
+                            ? `/hub/vendors?line=${encodeURIComponent(serviceLineSlug)}`
+                            : "/hub/vendors"
+                        }
+                      >
+                        Manage vendors
+                      </Link>
+                    </Button>
+                  </div>
+                )}
                 <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
                   <Checkbox
                     id="hub-featured"

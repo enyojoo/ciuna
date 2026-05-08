@@ -27,6 +27,8 @@ export interface HubTransactionSnapshot {
 
 export interface HubProductRow {
   id: string
+  /** When set, product belongs to a Food/Mart vendor storefront. */
+  vendor_id?: string | null
   title: string
   short_description: string | null
   category: string

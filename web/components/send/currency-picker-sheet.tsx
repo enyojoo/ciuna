@@ -53,7 +53,7 @@ export function CurrencyFlagIcon({
   }
 
   return (
-    <span className={cn("font-medium", size === "compact" ? "text-[11px] leading-none" : "text-xs")}>
+    <span className={cn("font-medium", size === "compact" ? "text-xs leading-none" : "text-sm")}>
       {currency.code}
     </span>
   )

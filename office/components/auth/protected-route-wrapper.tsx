@@ -15,6 +15,7 @@ const PROTECTED_PATHS = [
   "/users",
   "/settings",
   "/transactions",
+  "/orders",
   "/referrals",
 ]
 

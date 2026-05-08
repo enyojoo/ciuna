@@ -25,7 +25,7 @@ export function formatCardPrice(amount: number | null, currency: string | null):
 }
 
 export const amountValueClass = "text-base sm:text-xl font-bold tabular-nums tracking-tight text-gray-900"
-export const amountPrefixClass = "text-[10px] sm:text-[11px] font-medium text-gray-500"
+export const amountPrefixClass = "text-xs font-medium text-gray-500 sm:text-sm"
 
 export function renderUserInputRangeLabel(
   min: number | null,

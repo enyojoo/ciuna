@@ -137,6 +137,8 @@ html[data-pwa-standalone="true"] body {
 
   body {
     @apply bg-background text-foreground;
+    /* Fluid default copy: ~15px phones → ~17px large desktop; explicit Tailwind text-* still use rem from html */
+    font-size: clamp(0.9375rem, 0.28vw + 0.84rem, 1.0625rem);
     transition: background-color 0.2s ease, color 0.2s ease;
   }
 

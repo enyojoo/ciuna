@@ -111,7 +111,7 @@
         "inPerson": "Entregaremos a {{contactName}} en {{deliveryAddressLine}}. Nuestro repartidor llamará al {{contactPhone}} al llegar."
       },
       "nextHeading": "Qué sigue",
-      "nextBody": "Estamos preparando tu pedido y te avisaremos cuando pase a procesamiento. Puedes seguir el progreso en tus pedidos.",
+      "nextBody": "Estamos preparando tu pedido y te avisaremos cuando esté listo. Puedes seguir el progreso en cualquier momento en Transacciones.",
       "cta": "Ver pedido"
     },
     "processing": {

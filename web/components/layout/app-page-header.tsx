@@ -60,7 +60,7 @@ export function AppPageHeader({
       ) : (
         <div className="w-11 shrink-0" aria-hidden />
       )}
-      <h1 className="min-w-0 flex-1 line-clamp-2 break-words text-lg font-semibold leading-tight text-balance">
+      <h1 className="min-w-0 flex-1 line-clamp-2 break-words text-base font-semibold leading-tight text-balance sm:text-lg md:text-xl">
         {title}
       </h1>
       {trailing ? <div className="shrink-0">{trailing}</div> : <div className="w-11 shrink-0 sm:w-0" aria-hidden />}

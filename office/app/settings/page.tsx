@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { OfficeDashboardLayout } from "@/components/layout/office-dashboard-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -26,6 +26,7 @@ import {
   Gift,
   Info,
   Coins,
+  Smartphone,
   Store,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -35,7 +36,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { supabase } from "@/lib/supabase"
-import { HubServiceLinesManager } from "@/components/settings/hub-service-lines-manager"
+import { officeFetch } from "@/lib/api-client"
+import { HubServiceLinesManager, type HubServiceLine } from "@/components/settings/hub-service-lines-manager"
 
 const REFERRAL_HELP_POLICY_CURRENCY =
   "Thresholds and fixed rewards are interpreted in this currency (FX uses your exchange rates)."
@@ -202,6 +204,9 @@ export default function AdminSettingsPage() {
     accountLockoutDuration: 15,
   })
 
+  const [hubServiceLines, setHubServiceLines] = useState<HubServiceLine[]>([])
+  const [initialSettingsLoadComplete, setInitialSettingsLoadComplete] = useState(false)
+
   const [referralProgram, setReferralProgram] = useState({
     program_active: true,
     mode: "threshold" as "threshold" | "percent" | "tier",
@@ -217,15 +222,25 @@ export default function AdminSettingsPage() {
     loadAllData()
   }, [])
 
+  const loadHubServiceLines = useCallback(async () => {
+    try {
+      const res = await officeFetch("/api/admin/hub/service-lines")
+      if (!res.ok) throw new Error("Failed to load hub service lines")
+      const j = await res.json()
+      setHubServiceLines((j.serviceLines || []) as HubServiceLine[])
+    } catch (error) {
+      console.error("Error loading hub service lines:", error)
+      setHubServiceLines([])
+    }
+  }, [])
+
   const loadAllData = async () => {
     try {
-      await Promise.all([
-        loadSystemSettings(),
-        loadCurrencies(),
-        loadPaymentMethods(),
-      ])
+      await Promise.all([loadSystemSettings(), loadCurrencies(), loadPaymentMethods(), loadHubServiceLines()])
     } catch (error) {
       console.error("Error loading data:", error)
+    } finally {
+      setInitialSettingsLoadComplete(true)
     }
   }
 
@@ -755,7 +770,7 @@ export default function AdminSettingsPage() {
             </TabsTrigger>
             <TabsTrigger value="hubServices" className="flex items-center gap-2">
               <Store className="h-4 w-4" />
-              Hub services
+              Hub Services
             </TabsTrigger>
           </TabsList>
 
@@ -2514,7 +2529,11 @@ export default function AdminSettingsPage() {
           </TabsContent>
 
           <TabsContent value="hubServices">
-            <HubServiceLinesManager />
+            <HubServiceLinesManager
+              lines={hubServiceLines}
+              onReload={loadHubServiceLines}
+              settingsBootComplete={initialSettingsLoadComplete}
+            />
           </TabsContent>
         </Tabs>
       </div>

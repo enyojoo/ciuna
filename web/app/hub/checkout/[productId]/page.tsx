@@ -983,7 +983,7 @@ export default function HubCheckoutPage() {
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex min-w-0 items-center gap-2">
                               <div className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-100 text-orange-700">
-                                <span className="text-[10px] font-semibold">+</span>
+                                <span className="text-xs font-semibold sm:text-sm">+</span>
                               </div>
                               <span className="text-sm text-gray-600">{t("hub.checkout.hubFee")}</span>
                             </div>
@@ -995,7 +995,7 @@ export default function HubCheckoutPage() {
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex min-w-0 items-center gap-2">
                               <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary">
-                                <span className="text-[10px] font-semibold">%</span>
+                                <span className="text-xs font-semibold sm:text-sm">%</span>
                               </div>
                               <span className="text-sm text-gray-600">{t("send.rate")}</span>
                             </div>

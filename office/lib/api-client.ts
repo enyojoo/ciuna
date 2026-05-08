@@ -2,8 +2,8 @@ import { supabase } from "./supabase"
 
 const API_URL =
   typeof window !== "undefined"
-    ? process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
-    : process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
+    ? process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+    : process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
 
 /** Join base URL (may end with `/`) and path (should start with `/`) without `//` before the path. */
 function joinApiUrl(path: string): string {

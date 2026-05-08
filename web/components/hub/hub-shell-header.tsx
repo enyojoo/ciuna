@@ -1,32 +1,22 @@
 "use client"
 
 import Link from "next/link"
-import { Gift, MessageCircle } from "lucide-react"
-import { useTranslation } from "react-i18next"
 import { BrandLogo } from "@/components/brand/brand-logo"
-import { Button } from "@/components/ui/button"
+import { HubReferSupportActions } from "@/components/hub/hub-refer-support-actions"
 
+/**
+ * Mobile / tablet only (`lg:hidden`): legacy dashboard strip with logo + actions.
+ * On `lg+`, logo lives in the sidebar and actions sit in `UserDashboardLayout` top bar.
+ */
 export function HubShellHeader() {
-  const { t } = useTranslation("app")
-
   return (
-    <header className="flex items-center justify-between gap-3 border-b border-border/80 bg-background/95 py-3 sm:py-3.5">
-      <BrandLogo size="lg" className="shrink-0" />
-      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-        <Button variant="outline" size="sm" className="h-9 rounded-full px-3 text-xs sm:text-sm" asChild>
-          <Link href="/more/referrals" className="inline-flex items-center gap-1.5">
-            <Gift className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-            <span className="hidden sm:inline">{t("hub.referEarn")}</span>
-            <span className="sm:hidden">{t("hub.referEarnShort")}</span>
-          </Link>
-        </Button>
-        <Button variant="default" size="sm" className="h-9 rounded-full px-3 text-xs sm:text-sm" asChild>
-          <Link href="/support" className="inline-flex items-center gap-1.5">
-            <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            {t("hub.chatSupport")}
-          </Link>
-        </Button>
+    <div className="mb-5 bg-card px-4 py-4 sm:mb-6 sm:p-6 lg:hidden">
+      <div className="flex min-w-0 items-center justify-between gap-2 sm:gap-3">
+        <Link href="/hub" className="inline-flex shrink-0 items-center" aria-label="Ciuna">
+          <BrandLogo size="sm" className="h-7 sm:h-8" />
+        </Link>
+        <HubReferSupportActions className="min-w-0 flex-1" />
       </div>
-    </header>
+    </div>
   )
 }

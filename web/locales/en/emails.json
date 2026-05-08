@@ -111,7 +111,7 @@
         "inPerson": "We'll deliver to {{contactName}} at {{deliveryAddressLine}}. Our rider will call {{contactPhone}} on arrival."
       },
       "nextHeading": "What's Next",
-      "nextBody": "We're preparing your order and will notify you as soon as it's processed. You can track the progress in your orders.",
+      "nextBody": "We're preparing your order and will notify you as soon as it's processed. You can track the progress anytime in Transactions.",
       "cta": "View order"
     },
     "processing": {
