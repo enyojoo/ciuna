@@ -3,6 +3,7 @@ import { createServerClient } from "@/lib/supabase"
 import { requireAuth, withErrorHandling, createErrorResponse } from "@/lib/auth-utils"
 import { sortHubProductRows } from "@/lib/hub-products-sort"
 import { enrichHubProductsWithVendors } from "@/lib/hub-product-vendors"
+import { hubProductBelongsToServiceLine } from "@/lib/hub-slug"
 import type { HubProductRow } from "@/lib/hub-types"
 
 export const GET = withErrorHandling(async (request: NextRequest) => {
@@ -20,10 +21,11 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   }
 
   let q = server.from("hub_products").select("*").eq("status", "live").order("updated_at", { ascending: false })
-  // Marketplace lines use explicit service_line_slug assignment — no category fallback.
-  // Products must have service_line_slug = 'food' or 'mart' to appear on those pages.
+  // Include products with an explicit service_line_slug match OR products without a slug
+  // (legacy rows where the slug is derived from category). Server-side filter below
+  // enforces which ones actually belong to this line.
   if (serviceLine === "food" || serviceLine === "mart") {
-    q = q.eq("service_line_slug", serviceLine)
+    q = q.or(`service_line_slug.eq.${serviceLine},service_line_slug.is.null`)
   }
 
   const { data, error } = await q
@@ -33,7 +35,12 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     return createErrorResponse("Failed to load products", 500)
   }
 
-  const rows = (data || []) as HubProductRow[]
+  let rows = (data || []) as HubProductRow[]
+  // Remove any row that does not actually belong to this line (e.g. null-slug products
+  // whose category doesn't match, or products tagged for the other marketplace line).
+  if (serviceLine === "food" || serviceLine === "mart") {
+    rows = rows.filter((p) => hubProductBelongsToServiceLine(p, serviceLine))
+  }
 
   const enriched = await enrichHubProductsWithVendors(server, rows)
 

@@ -57,7 +57,7 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
   const router = useRouter()
   const { user, userProfile, loading: authLoading } = useAuth()
   const [products, setProducts] = useState<HubProductRow[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [lines, setLines] = useState<HubServiceLineRow[]>([])
   const [linesLoaded, setLinesLoaded] = useState(false)
   const [vendors, setVendors] = useState<HubVendorRow[]>([])
@@ -112,9 +112,9 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
     setProducts(rows)
     const hasRows = rows.length > 0
     const cacheFresh = isHubCatalogCacheFresh(marketplaceCatalogUserId, hubCatalogCacheScope)
-    if (!cacheFresh && !hasRows) {
-      setLoading(true)
-    } else {
+    // Only turn OFF the loading skeleton when we have valid stale data to show.
+    // If there's no stale data, keep loading=true so the skeleton shows until the fetch resolves.
+    if (hasRows || cacheFresh) {
       setLoading(false)
     }
   }, [marketplaceCatalogUserId, hubCatalogCacheScope, isMarketplaceLine, slug])
@@ -207,9 +207,6 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
     if (!isMarketplaceLine && isHubCatalogCacheFresh(marketplaceCatalogUserId, hubCatalogCacheScope)) return
 
     let cancelled = false
-    // Only show skeleton when there's no stale data to display while fetching.
-    const hasStaleProducts = (readStaleHubCatalogCache(marketplaceCatalogUserId, hubCatalogCacheScope)?.length ?? 0) > 0
-    if (!hasStaleProducts) setLoading(true)
 
     ;(async () => {
       try {
