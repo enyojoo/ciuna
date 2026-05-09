@@ -520,7 +520,7 @@ export function ExpertSessionCheckoutPanel({
                       {t("experts.bookingWizard.heroBookService", { title: svc.title })}
                     </p>
                     <div className="mt-4 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                      <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-orange-100/95">
+                      <span className="shrink-0 text-[11px] font-medium sm:text-xs text-orange-100/95">
                         {t("experts.bookingWizard.providedBy")}
                       </span>
                       <div className="min-w-0 [&_a]:text-orange-50 [&_a:hover]:text-white [&_span]:text-orange-50 [&_span:hover]:text-white">
