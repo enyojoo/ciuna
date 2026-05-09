@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useEffect } from "react"
+import { useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { fetchWithAuth } from "@/lib/fetch-with-auth"
@@ -54,11 +54,5 @@ function ExpertsCheckoutRedirect() {
 }
 
 export default function ExpertsCheckoutPage() {
-  return (
-    <Suspense
-      fallback={<ExpertsRouteLoadingSkeleton />}
-    >
-      <ExpertsCheckoutRedirect />
-    </Suspense>
-  )
+  return <ExpertsCheckoutRedirect />
 }

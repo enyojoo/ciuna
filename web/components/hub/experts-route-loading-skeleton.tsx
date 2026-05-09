@@ -1,4 +1,4 @@
-/** Shared pulse for experts layout Suspense, checkout redirects, and book fallback — consistent entry motion. */
+/** Pulse shell for expert checkout redirects while resolving slot → book URL. */
 export function ExpertsRouteLoadingSkeleton() {
   return (
     <div className="min-w-0 px-4 py-5 sm:px-6">

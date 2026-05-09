@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useEffect } from "react"
+import { useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { fetchWithAuth } from "@/lib/fetch-with-auth"
@@ -53,9 +53,5 @@ function RedirectInner() {
 }
 
 export default function LegacyExpertSlotCheckoutRedirectPage() {
-  return (
-    <Suspense fallback={<ExpertsRouteLoadingSkeleton />}>
-      <RedirectInner />
-    </Suspense>
-  )
+  return <RedirectInner />
 }

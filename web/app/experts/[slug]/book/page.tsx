@@ -1,6 +1,4 @@
-import { Suspense } from "react"
 import { redirect } from "next/navigation"
-import { BookFallback } from "./book-fallback"
 import { BookWizardEntry } from "./book-wizard-entry"
 
 type PageProps = {
@@ -20,9 +18,5 @@ export default async function ExpertsBookPage(props: PageProps) {
     redirect(`/experts/${encodeURIComponent(params.slug)}/book/${encodeURIComponent(svc)}${q ? `?${q}` : ""}`)
   }
 
-  return (
-    <Suspense fallback={<BookFallback />}>
-      <BookWizardEntry />
-    </Suspense>
-  )
+  return <BookWizardEntry />
 }

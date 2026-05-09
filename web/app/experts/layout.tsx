@@ -17,9 +17,9 @@ export const metadata: Metadata = {
 }
 
 /**
- * No layout-level Suspense — `/experts/*` pages that use `useSearchParams` already wrap
- * their own trees in Suspense. A layout fallback here duplicated that and caused a blink
- * when navigating from `/hub`.
+ * No layout-level Suspense — avoids a duplicate fallback blink. Individual
+ * routes add `<Suspense fallback={null}>` only where Next.js requires it for
+ * `useSearchParams` during prerender (e.g. `/auth/login`).
  */
 export default function ExpertsLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>

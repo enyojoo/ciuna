@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
@@ -40,35 +40,6 @@ type ExpertProfile = ExpertCatalogProfile & {
   bio: string | null
   category?: string | null
   created_at?: string
-}
-
-function ExpertsDiscoveryFallback() {
-  const { t } = useTranslation("app")
-  return (
-    <HubLinePageShell title={t("hub.expertsTitle")} subtitle={null} backToHubAriaLabel={t("hub.backToHub")} backHref="/hub">
-      <div className="space-y-12 animate-pulse sm:space-y-14">
-        <div className="space-y-4">
-          <div className="h-7 max-w-[40%] rounded-md bg-muted" />
-          <div className="flex gap-3 overflow-hidden pb-1">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-36 w-28 shrink-0 rounded-2xl bg-muted sm:h-40 sm:w-32" />
-            ))}
-          </div>
-        </div>
-        <div className="space-y-4">
-          <div className="flex justify-between gap-3">
-            <div className="h-7 max-w-[35%] rounded-md bg-muted" />
-            <div className="h-10 w-44 rounded-md bg-muted sm:w-56" />
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-44 min-h-[11rem] rounded-2xl bg-muted sm:h-48" />
-            ))}
-          </div>
-        </div>
-      </div>
-    </HubLinePageShell>
-  )
 }
 
 function ExpertsDiscoveryInner() {
@@ -369,9 +340,5 @@ function ExpertsDiscoveryInner() {
 }
 
 export default function ExpertsDiscoveryPage() {
-  return (
-    <Suspense fallback={<ExpertsDiscoveryFallback />}>
-      <ExpertsDiscoveryInner />
-    </Suspense>
-  )
+  return <ExpertsDiscoveryInner />
 }

@@ -155,9 +155,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense
-      fallback={null}
-    >
+    <Suspense fallback={null}>
       <ResetPasswordForm />
     </Suspense>
   )

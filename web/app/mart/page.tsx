@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useEffect, useLayoutEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { HubProductRow } from "@/lib/hub-types"
 import type { HubVendorRow } from "@/lib/hub-vendor-types"
@@ -155,30 +155,6 @@ function MartLinePageInner() {
   )
 }
 
-function MartLinePageFallback() {
-  return (
-    <div className="min-w-0 px-4 py-5 sm:px-6">
-      <div className="mx-auto max-w-5xl space-y-4 animate-pulse">
-        <div className="h-10 rounded-lg bg-muted" />
-        <div className="flex gap-3 overflow-hidden">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-36 w-28 shrink-0 rounded-2xl bg-muted sm:h-40 sm:w-32" />
-          ))}
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="aspect-[4/3] max-h-[220px] rounded-xl bg-muted" />
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function MartLinePage() {
-  return (
-    <Suspense fallback={<MartLinePageFallback />}>
-      <MartLinePageInner />
-    </Suspense>
-  )
+  return <MartLinePageInner />
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useEffect, useLayoutEffect, useMemo, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useState } from "react"
 import { useParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAuth } from "@/lib/auth-context"
@@ -214,26 +214,7 @@ function FoodVendorStorefrontInner({ vendorSlug }: VendorPageProps) {
   )
 }
 
-function FoodVendorStorefrontFallback() {
-  return (
-    <div className="min-w-0 px-4 py-5 sm:px-6">
-      <div className="mx-auto max-w-5xl space-y-4 animate-pulse">
-        <div className="h-32 rounded-2xl bg-muted" />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="aspect-[4/3] max-h-[220px] rounded-xl bg-muted" />
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function FoodVendorStorefrontPage() {
   const vendorSlug = String(useParams()?.vendorSlug || "").trim().toLowerCase()
-  return (
-    <Suspense fallback={<FoodVendorStorefrontFallback />}>
-      <FoodVendorStorefrontInner key={vendorSlug || "_"} vendorSlug={vendorSlug} />
-    </Suspense>
-  )
+  return <FoodVendorStorefrontInner key={vendorSlug || "_"} vendorSlug={vendorSlug} />
 }
