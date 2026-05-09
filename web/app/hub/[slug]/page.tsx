@@ -1,13 +1,20 @@
 "use client"
 
-import { useParams } from "next/navigation"
-import { HubMarketplaceLinePage } from "@/components/hub/hub-marketplace-line-page"
+import { useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
 import { HubServiceCatalogPage } from "@/components/hub/hub-service-catalog-page"
 
 export default function HubServiceCatalogRoutePage() {
   const slug = String(useParams()?.slug || "").trim().toLowerCase()
-  if (slug === "food" || slug === "mart") {
-    return <HubMarketplaceLinePage key={slug} lineSlug={slug} />
-  }
+  const router = useRouter()
+
+  /** Marketplaces have their own dedicated /food and /mart pages — keep /hub/[slug] for other lines. */
+  useEffect(() => {
+    if (slug === "food") router.replace("/food")
+    else if (slug === "mart") router.replace("/mart")
+  }, [slug, router])
+
+  if (slug === "food" || slug === "mart") return null
+
   return <HubServiceCatalogPage key={slug} slug={slug} />
 }

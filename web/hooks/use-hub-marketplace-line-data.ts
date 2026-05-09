@@ -1,7 +1,6 @@
 "use client"
 
-import { Suspense, useEffect, useLayoutEffect, useMemo, useState } from "react"
-import { useTranslation } from "react-i18next"
+import { useEffect, useLayoutEffect, useMemo, useState } from "react"
 import type { HubProductRow } from "@/lib/hub-types"
 import type { HubVendorRow } from "@/lib/hub-vendor-types"
 import type { HubServiceLineRow } from "@/lib/hub-service-line-types"
@@ -20,19 +19,27 @@ import {
   writeHubVendorListCache,
 } from "@/lib/hub-client-cache"
 import { sortHubCatalogProducts } from "@/lib/hub-catalog-utils"
-import { HubLinePageShell } from "@/components/hub/hub-line-page-shell"
-import { HubMarketplaceLineHome } from "@/components/hub/hub-marketplace-line-home"
 
 const SERVICE_LINES_CACHE_USER = hubPublicHubJsonCacheUserId()
 
-/**
- * Dedicated marketplace line page (Food / Mart) modeled on `/experts`:
- * one mounted instance per route, route-locked `lineSlug`, separate cache buckets,
- * minimal effects, no cross-line state to bleed.
- */
-function HubMarketplaceLinePageInner({ lineSlug }: { lineSlug: "food" | "mart" }) {
-  const { t } = useTranslation("app")
+export interface HubMarketplaceLineDataResult {
+  line: HubServiceLineRow | null
+  linesLoaded: boolean
+  products: HubProductRow[]
+  vendors: HubVendorRow[]
+  loadingProducts: boolean
+  loadingVendors: boolean
+}
 
+/**
+ * Self-contained data layer for a single marketplace line page (food or mart).
+ * Each call site supplies a literal slug — there is no slug-prop tracking, no shared
+ * state with other lines, no cross-line filters, no fetch-generation accounting.
+ *
+ * Cache buckets are isolated per line via `hubMarketplaceSliceCacheUserId`, so two
+ * different routes calling this hook can never see each other's data.
+ */
+export function useHubMarketplaceLineData(lineSlug: "food" | "mart"): HubMarketplaceLineDataResult {
   const catalogCacheUser = hubMarketplaceSliceCacheUserId(lineSlug)
 
   const [lines, setLines] = useState<HubServiceLineRow[]>([])
@@ -44,7 +51,7 @@ function HubMarketplaceLinePageInner({ lineSlug }: { lineSlug: "food" | "mart" }
 
   const line = useMemo(() => lines.find((l) => l.slug === lineSlug) ?? null, [lines, lineSlug])
 
-  /** Hydrate service lines from cache for the page hero before the network fetch lands. */
+  /** Hydrate service lines from the public cache for the page hero before the network fetch lands. */
   useLayoutEffect(() => {
     const stale = readStaleHubServiceLinesCache(SERVICE_LINES_CACHE_USER)
     if (stale !== null) {
@@ -57,9 +64,7 @@ function HubMarketplaceLinePageInner({ lineSlug }: { lineSlug: "food" | "mart" }
   useLayoutEffect(() => {
     const stale = readStaleHubCatalogCache(catalogCacheUser, "all")
     const hasRows = (stale?.length ?? 0) > 0
-    if (hasRows) {
-      setProducts(sortHubCatalogProducts(stale!))
-    }
+    if (hasRows) setProducts(sortHubCatalogProducts(stale!))
     if (hasRows || isHubCatalogCacheFresh(catalogCacheUser, "all")) {
       setLoadingProducts(false)
     }
@@ -112,7 +117,7 @@ function HubMarketplaceLinePageInner({ lineSlug }: { lineSlug: "food" | "mart" }
     }
   }, [])
 
-  /** Fetch products for THIS line. Always re-fetch on mount (stale-while-revalidate). */
+  /** Fetch THIS line's products. Always re-fetches on mount (stale-while-revalidate). */
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -138,7 +143,7 @@ function HubMarketplaceLinePageInner({ lineSlug }: { lineSlug: "food" | "mart" }
     }
   }, [catalogCacheUser, lineSlug])
 
-  /** Fetch vendors for THIS line. Always re-fetch on mount (stale-while-revalidate). */
+  /** Fetch THIS line's vendors. Always re-fetches on mount (stale-while-revalidate). */
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -164,58 +169,5 @@ function HubMarketplaceLinePageInner({ lineSlug }: { lineSlug: "food" | "mart" }
     }
   }, [catalogCacheUser, lineSlug])
 
-  const title = line?.title || t("hub.hub")
-  const subtitle = line?.short_description || null
-
-  if (linesLoaded && line && !line.is_enabled) {
-    return (
-      <HubLinePageShell
-        title={t("hub.unavailableTitle")}
-        subtitle={null}
-        backToHubAriaLabel={t("hub.backToHub")}
-      >
-        <p className="text-center text-sm text-muted-foreground">{t("hub.serviceUnavailable")}</p>
-      </HubLinePageShell>
-    )
-  }
-
-  return (
-    <HubLinePageShell title={title} subtitle={subtitle} backToHubAriaLabel={t("hub.backToHub")}>
-      <HubMarketplaceLineHome
-        lineSlug={lineSlug}
-        vendors={vendors}
-        allProducts={products}
-        loadingVendors={loadingVendors}
-        loadingProducts={loadingProducts}
-      />
-    </HubLinePageShell>
-  )
-}
-
-function HubMarketplaceLineFallback() {
-  return (
-    <div className="min-w-0 px-4 py-5 sm:px-6">
-      <div className="mx-auto max-w-5xl space-y-4 animate-pulse">
-        <div className="h-10 rounded-lg bg-muted" />
-        <div className="flex gap-3 overflow-hidden">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-36 w-28 shrink-0 rounded-2xl bg-muted sm:h-40 sm:w-32" />
-          ))}
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="aspect-[4/3] max-h-[220px] rounded-xl bg-muted" />
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export function HubMarketplaceLinePage({ lineSlug }: { lineSlug: "food" | "mart" }) {
-  return (
-    <Suspense fallback={<HubMarketplaceLineFallback />}>
-      <HubMarketplaceLinePageInner lineSlug={lineSlug} />
-    </Suspense>
-  )
+  return { line, linesLoaded, products, vendors, loadingProducts, loadingVendors }
 }
