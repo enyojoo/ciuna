@@ -1,7 +1,7 @@
 "use client"
 
-import { HubServiceCatalogPage } from "@/components/hub/hub-service-catalog-page"
+import { HubMarketplaceLinePage } from "@/components/hub/hub-marketplace-line-page"
 
 export default function MartLinePage() {
-  return <HubServiceCatalogPage key="mart" slug="mart" />
+  return <HubMarketplaceLinePage lineSlug="mart" />
 }
