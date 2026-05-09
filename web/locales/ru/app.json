@@ -34,8 +34,8 @@
     "heroTitle": "Одно приложение — всё, что нужно",
     "heroBody": "Покупайте продукты, заказывайте услуги, отправляйте деньги домой и решайте бытовые вопросы за рубежом в Ciuna.",
     "serviceLineTiles": {
-      "food": { "title": "Food", "shortDescription": "Всё, на что захотите" },
-      "mart": { "title": "Mart", "shortDescription": "Продукты и многое другое" },
+      "food": { "title": "Еда", "shortDescription": "Всё, на что захотите" },
+      "mart": { "title": "Товары", "shortDescription": "Продукты и многое другое" },
       "assistant": { "title": "Ассистент", "shortDescription": "Посылки и документы" },
       "send": { "title": "Переводы", "shortDescription": "Денежные переводы за рубеж" },
       "experts": { "title": "Эксперты", "shortDescription": "Проверенные специалисты" },
