@@ -61,7 +61,7 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
   const [lines, setLines] = useState<HubServiceLineRow[]>([])
   const [linesLoaded, setLinesLoaded] = useState(false)
   const [vendors, setVendors] = useState<HubVendorRow[]>([])
-  const [loadingVendors, setLoadingVendors] = useState(false)
+  const [loadingVendors, setLoadingVendors] = useState(true)
   const cacheUserId = hubClientCacheUserId(user?.id, userProfile?.id)
   const publicHubJsonCacheId = hubPublicHubJsonCacheUserId()
   const isMarketplaceLine = MARKETPLACE_SLUGS.has(slug)
@@ -202,22 +202,15 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
   useEffect(() => {
     if (!marketplaceCatalogUserId) return
     if (!isMarketplaceLine && !user) return
-    const staleCatalog = readStaleHubCatalogCache(marketplaceCatalogUserId, hubCatalogCacheScope)
-    const catalogRowsOk =
-      !isMarketplaceLine ||
-      !staleCatalog?.length ||
-      hubCachedProductsMatchServiceLine(staleCatalog, slug)
-    if (
-      isHubCatalogCacheFresh(marketplaceCatalogUserId, hubCatalogCacheScope) &&
-      isMarketplaceLine &&
-      catalogRowsOk &&
-      (staleCatalog?.length ?? 0) > 0
-    ) {
-      return
-    }
+    // Marketplace lines: always re-fetch (stale-while-revalidate) — guarantees correct line data.
+    // Non-marketplace hub lines: skip if cache is fresh (auth-gated, no cross-line risk).
     if (!isMarketplaceLine && isHubCatalogCacheFresh(marketplaceCatalogUserId, hubCatalogCacheScope)) return
 
     let cancelled = false
+    // Only show skeleton when there's no stale data to display while fetching.
+    const hasStaleProducts = (readStaleHubCatalogCache(marketplaceCatalogUserId, hubCatalogCacheScope)?.length ?? 0) > 0
+    if (!hasStaleProducts) setLoading(true)
+
     ;(async () => {
       try {
         const qs = isMarketplaceLine ? `?service_line=${encodeURIComponent(slug)}` : ""
@@ -244,18 +237,12 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
 
   useEffect(() => {
     if (!isMarketplaceLine) return
+    // Always re-fetch vendor list (stale-while-revalidate): show stale cache while fresh data loads.
+    // The early-return optimization was removed to guarantee cross-line stale data is never kept.
     const staleVendors = readStaleHubVendorListCache(marketplaceCatalogUserId, slug)
-    const vendorsRowsOk = !staleVendors?.length || hubCachedVendorsMatchServiceLine(staleVendors, slug)
-    if (
-      isHubVendorListCacheFresh(marketplaceCatalogUserId, slug) &&
-      (staleVendors?.length ?? 0) > 0 &&
-      vendorsRowsOk
-    ) {
-      return
-    }
+    const hasRows = (staleVendors?.length ?? 0) > 0
 
     let cancelled = false
-    const hasRows = (staleVendors?.length ?? 0) > 0
     if (!hasRows) setLoadingVendors(true)
 
     ;(async () => {

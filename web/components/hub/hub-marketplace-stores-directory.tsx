@@ -40,6 +40,11 @@ export function HubMarketplaceStoresDirectory({ lineSlug: slugProp }: { lineSlug
 
   const line = useMemo(() => lines.find((l) => l.slug === slug) ?? null, [lines, slug])
   const lineHome = hubLineHomePath(slug)
+  /** Guard against cross-line stale cache — only render vendors that belong to this line. */
+  const lineVendors = useMemo(
+    () => vendors.filter((v) => String(v.service_line_slug || "").trim().toLowerCase() === slug),
+    [vendors, slug],
+  )
 
   const prevSlugRef = useRef<string | null>(null)
   useLayoutEffect(() => {
@@ -126,19 +131,11 @@ export function HubMarketplaceStoresDirectory({ lineSlug: slugProp }: { lineSlug
 
   useEffect(() => {
     if (!MARKETPLACE.has(slug)) return
-    const staleVendors = readStaleHubVendorListCache(vendorListCacheUserId, slug)
-    const vendorsRowsOk = !staleVendors?.length || hubCachedVendorsMatchServiceLine(staleVendors, slug)
-    if (
-      isHubVendorListCacheFresh(vendorListCacheUserId, slug) &&
-      (staleVendors?.length ?? 0) > 0 &&
-      vendorsRowsOk
-    ) {
-      return
-    }
-
-    let cancelled = false
+    // Always re-fetch vendor list (stale-while-revalidate).
     const staleRows = readStaleHubVendorListCache(vendorListCacheUserId, slug)
     const hasRows = (staleRows?.length ?? 0) > 0
+
+    let cancelled = false
     if (!hasRows) setLoading(true)
 
     ;(async () => {
@@ -199,19 +196,19 @@ export function HubMarketplaceStoresDirectory({ lineSlug: slugProp }: { lineSlug
       backToHubAriaLabel={t("hub.backToLine", { defaultValue: "Back to line" })}
       backHref={lineHome}
     >
-      {loading && vendors.length === 0 ? (
+      {loading && lineVendors.length === 0 ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="aspect-square rounded-2xl bg-muted" />
           ))}
         </div>
-      ) : vendors.length === 0 ? (
+      ) : lineVendors.length === 0 ? (
         <p className="py-10 text-center text-sm text-muted-foreground">
           {t("hub.marketplaceNoVendors", { defaultValue: "No stores yet — check back soon." })}
         </p>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 sm:gap-4">
-          {vendors.map((v) => (
+          {lineVendors.map((v) => (
             <Link
               key={v.id}
               href={hubMarketplaceVendorPath(slug, v.slug)}

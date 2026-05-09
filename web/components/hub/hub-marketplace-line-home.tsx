@@ -162,7 +162,12 @@ export function HubMarketplaceLineHome({
     [router, lineBase],
   )
 
-  const previewVendors = useMemo(() => vendors.slice(0, STORES_PREVIEW_COUNT), [vendors])
+  /** Guard against stale cross-line cache: only show vendors that belong to this line. */
+  const lineVendors = useMemo(
+    () => vendors.filter((v) => String(v.service_line_slug || "").trim().toLowerCase() === lineSlug),
+    [vendors, lineSlug],
+  )
+  const previewVendors = useMemo(() => lineVendors.slice(0, STORES_PREVIEW_COUNT), [lineVendors])
   const loading = loadingVendors || loadingProducts
 
   return (
@@ -174,7 +179,7 @@ export function HubMarketplaceLineHome({
               {t("hub.marketplaceStoresHeading", { defaultValue: "Stores" })}
             </h2>
           </div>
-          {vendors.length > 0 ? (
+          {lineVendors.length > 0 ? (
             <Link
               href={storesHref}
               prefetch
@@ -186,13 +191,13 @@ export function HubMarketplaceLineHome({
           ) : null}
         </div>
 
-        {loading && vendors.length === 0 ? (
+        {(loading || loadingVendors) && lineVendors.length === 0 ? (
           <div className="flex gap-3 overflow-hidden pb-1">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="h-36 w-28 shrink-0 rounded-2xl bg-muted sm:h-40 sm:w-32" />
             ))}
           </div>
-        ) : vendors.length === 0 ? (
+        ) : lineVendors.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             {t("hub.marketplaceNoVendors", { defaultValue: "No stores yet — check back soon." })}
           </p>
