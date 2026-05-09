@@ -28,7 +28,7 @@ export default function HubHomePage() {
   const lng = i18n.resolvedLanguage ?? i18n.language ?? "en"
   const useEnHubHero = lng === "en" || lng.startsWith("en-")
   const hubHeroTitle = useEnHubHero
-    ? "One App, All you Need"
+    ? "One App, All Your Needs"
     : t("hub.heroTitle")
   const hubHeroBody = useEnHubHero
     ? "Shop foodstuffs, book services, send money home and handle life abroad on Ciuna."
