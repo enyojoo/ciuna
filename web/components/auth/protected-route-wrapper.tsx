@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useRouteProtection } from "@/hooks/use-route-protection"
@@ -7,6 +8,7 @@ import { useMediaQueryMinLg } from "@/hooks/use-media-query"
 import { AuthLoadingSkeleton } from "@/components/auth-loading-skeleton"
 import { UserDashboardLayout } from "@/components/layout/user-dashboard-layout"
 import { useAuth } from "@/lib/auth-context"
+import { readLastKnownUserId } from "@/lib/last-user-id"
 
 /** Keeps `useTranslation` off public routes (e.g. `/[referralSlug]`) so SSR/build does not warn NO_I18NEXT_INSTANCE. */
 function AdminAccessDeniedScreen() {
@@ -106,12 +108,25 @@ export function ProtectedRouteWrapper({ children }: { children: React.ReactNode 
   const { isChecking, isAdmin } = useRouteProtection({
     requireAuth: requiresProtectedAuth(pathname),
   })
+  /**
+   * Captured once on mount so a returning device (we've seen a session here
+   * before) skips the full-screen `AuthLoadingSkeleton` while the auth
+   * provider re-bootstraps via `supabase.auth.getSession()` + the users-table
+   * fetch. Without this the cached page UI we paint in `useLayoutEffect`
+   * (transactions detail, food/mart, etc.) is masked by a spinner on every
+   * navigation, producing the visible blink.
+   *
+   * If the route turns out to require auth and the session genuinely no
+   * longer exists, `useRouteProtection` will redirect to `/auth/login` from
+   * its effect; the brief cached paint is from this device's own storage.
+   */
+  const [hasReturningSession] = useState(() => readLastKnownUserId() != null)
 
   if (!usesUserDashboardLayout(pathname, { user, isLg })) {
     return <>{children}</>
   }
 
-  if (isChecking) {
+  if (isChecking && !hasReturningSession) {
     return <AuthLoadingSkeleton />
   }
 
