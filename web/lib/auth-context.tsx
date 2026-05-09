@@ -11,6 +11,7 @@ import { emitAppLocked } from "./app-lock-bus"
 import { claimReferralWithRetry, getStoredReferralSlug } from "./referral-client"
 import { clearHubClientMemory } from "./hub-client-cache"
 import { clearExpertProfileDetailMemory } from "./expert-profile-client-cache"
+import { writeLastKnownUserId, clearLastKnownUserId } from "./last-user-id"
 import i18n from "./i18n/config"
 
 const SUPPORTED_LOCALES = new Set(["en", "ru", "fr", "es"])
@@ -246,6 +247,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } = await supabase.auth.getSession()
 
         if (mounted && session?.user) {
+          writeLastKnownUserId(session.user.id)
           await fetchUserProfile(session.user.id, session.user)
         }
       } catch (error) {
@@ -269,6 +271,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           // Set user immediately to prevent loading issues
           setUser(session.user)
+          writeLastKnownUserId(session.user.id)
           setLastActivity(Date.now()) // Reset activity timer on login
           // Then fetch profile asynchronously
           fetchUserProfile(session.user.id, session.user).catch(error => {
@@ -277,6 +280,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           setUser(null)
           setUserProfile(null)
+          clearLastKnownUserId()
           setIsAdmin(false)
         }
       } catch (error) {
@@ -407,6 +411,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       userDataStore.cleanup()
       clearHubClientMemory()
       clearExpertProfileDetailMemory()
+      clearLastKnownUserId()
 
       // Sign out from Supabase
       const { error } = await supabase.auth.signOut()
@@ -427,6 +432,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       userDataStore.cleanup()
       clearHubClientMemory()
       clearExpertProfileDetailMemory()
+      clearLastKnownUserId()
     }
   }, [user?.id])
 

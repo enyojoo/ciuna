@@ -19,6 +19,7 @@ import { REFERRAL_PAYOUT_PREFIX } from "@/lib/referral-reward-service"
 import { formatLocaleDateTimeLine } from "@/lib/format-date-locale"
 import { formatCurrency, roundMoney } from "@/utils/currency"
 import { cn } from "@/lib/utils"
+import { readLastKnownUserId } from "@/lib/last-user-id"
 
 const HUB_ORDER_TIMER_SECONDS = 3600
 
@@ -46,6 +47,15 @@ function readTxDetailFromCache(userId: string, rawTxId: string): Transaction | n
     return tx
   } catch {
     return null
+  }
+}
+
+function clearTxDetailFromCache(userId: string, rawTxId: string) {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.removeItem(txDetailStorageKey(userId, rawTxId))
+  } catch {
+    /* ignore */
   }
 }
 
@@ -101,14 +111,33 @@ function TransactionOrderDetailPage() {
     return () => clearInterval(timer)
   }, [])
 
+  /**
+   * Hydrate from cache *before* auth resolves so the very first paint is the
+   * cached UI — never the skeleton placeholder. We use the last-known user id
+   * stash because `user.id` from `useAuth` isn't ready until after the async
+   * `getSession()` + profile fetch completes; relying on it here is what made
+   * every visit blink on the way in. Once auth resolves we re-validate that
+   * the cached transaction belongs to the actual user and drop it otherwise.
+   */
   useLayoutEffect(() => {
-    if (authLoading || !user?.id || !transactionId) return
-    const cached = readTxDetailFromCache(user.id, transactionId)
+    if (!transactionId) return
+    const knownId = user?.id || readLastKnownUserId()
+    if (!knownId) return
+    const cached = readTxDetailFromCache(knownId, transactionId)
     if (cached) {
       setTransaction(cached)
       setError(null)
     }
-  }, [authLoading, user?.id, transactionId])
+  }, [user?.id, transactionId])
+
+  useEffect(() => {
+    if (authLoading) return
+    if (!transaction) return
+    if (!user?.id) return
+    if (transaction.user_id === user.id) return
+    clearTxDetailFromCache(transaction.user_id, transaction.transaction_id)
+    setTransaction(null)
+  }, [authLoading, transaction, user?.id])
 
   // Load transaction data from Supabase (revalidate; cache hydrates layout first)
   useEffect(() => {
@@ -664,7 +693,7 @@ function TransactionOrderDetailPage() {
     )
   }
 
-  if (authLoading || (!hasAttemptedLoad && !transaction)) {
+  if (!transaction && (authLoading || !hasAttemptedLoad)) {
     return (
       <div className="min-w-0 space-y-0">
         <AppPageHeader title={t("txDetail.transaction")} backHref="/transactions" />
