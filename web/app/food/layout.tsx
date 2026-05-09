@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import { Suspense } from "react"
 
 import { SEO_PAGE_DESCRIPTIONS, SEO_PAGE_TITLES } from "@/lib/seo"
 
@@ -14,6 +13,7 @@ export const metadata: Metadata = {
   },
 }
 
+/** No layout-level Suspense — avoids empty fallback blink when navigating from `/hub` (matches `/send`, `/transactions`). */
 export default function FoodHubLayout({ children }: { children: React.ReactNode }) {
-  return <Suspense fallback={<div className="min-h-[40vh]" aria-hidden />}>{children}</Suspense>
+  return <>{children}</>
 }
