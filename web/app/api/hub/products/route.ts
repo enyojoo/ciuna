@@ -6,6 +6,9 @@ import { enrichHubProductsWithVendors } from "@/lib/hub-product-vendors"
 import { hubProductBelongsToServiceLine } from "@/lib/hub-slug"
 import type { HubProductRow } from "@/lib/hub-types"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export const GET = withErrorHandling(async (request: NextRequest) => {
   const server = createServerClient()
   const { searchParams } = new URL(request.url)
@@ -45,8 +48,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   const enriched = await enrichHubProductsWithVendors(server, rows)
 
   const res = NextResponse.json({ products: sortHubProductRows(enriched) })
-  if (publicMarketplaceSlice) {
-    res.headers.set("Cache-Control", "public, max-age=120, stale-while-revalidate=300")
-  }
+  // Always serve fresh data from the DB; no shared / browser cache between food / mart navigations.
+  res.headers.set("Cache-Control", "no-store, no-cache, must-revalidate")
   return res
 })

@@ -1,17 +1,89 @@
 "use client"
 
-import { Suspense } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import type { HubProductRow } from "@/lib/hub-types"
+import type { HubVendorRow } from "@/lib/hub-vendor-types"
+import type { HubServiceLineRow } from "@/lib/hub-service-line-types"
+import { sortHubCatalogProducts } from "@/lib/hub-catalog-utils"
 import { HubLinePageShell } from "@/components/hub/hub-line-page-shell"
 import { HubMarketplaceLineHome } from "@/components/hub/hub-marketplace-line-home"
-import { useHubMarketplaceLineData } from "@/hooks/use-hub-marketplace-line-data"
 
 const LINE_SLUG = "food" as const
 
 function FoodLinePageInner() {
   const { t } = useTranslation("app")
-  const { line, linesLoaded, products, vendors, loadingProducts, loadingVendors } =
-    useHubMarketplaceLineData(LINE_SLUG)
+
+  const [line, setLine] = useState<HubServiceLineRow | null>(null)
+  const [linesLoaded, setLinesLoaded] = useState(false)
+  const [products, setProducts] = useState<HubProductRow[]>([])
+  const [vendors, setVendors] = useState<HubVendorRow[]>([])
+  const [loadingProducts, setLoadingProducts] = useState(true)
+  const [loadingVendors, setLoadingVendors] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch("/api/hub/service-lines", { cache: "no-store" })
+        if (!res.ok) throw new Error("lines")
+        const data = await res.json()
+        const list = (data.serviceLines || []) as HubServiceLineRow[]
+        if (cancelled) return
+        const found = list.find((l) => l.slug === LINE_SLUG) ?? null
+        setLine(found)
+      } catch {
+        if (!cancelled) setLine(null)
+      } finally {
+        if (!cancelled) setLinesLoaded(true)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    setLoadingProducts(true)
+    ;(async () => {
+      try {
+        const res = await fetch(`/api/hub/products?service_line=${LINE_SLUG}`, { cache: "no-store" })
+        if (!res.ok) throw new Error("products")
+        const data = await res.json()
+        const list = sortHubCatalogProducts((data.products || []) as HubProductRow[])
+        if (!cancelled) setProducts(list)
+      } catch {
+        if (!cancelled) setProducts([])
+      } finally {
+        if (!cancelled) setLoadingProducts(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    setLoadingVendors(true)
+    ;(async () => {
+      try {
+        const res = await fetch(`/api/hub/vendors?service_line=${LINE_SLUG}`, { cache: "no-store" })
+        if (!res.ok) throw new Error("vendors")
+        const data = await res.json()
+        const next = (data.vendors || []) as HubVendorRow[]
+        if (!cancelled) setVendors(next)
+      } catch {
+        if (!cancelled) setVendors([])
+      } finally {
+        if (!cancelled) setLoadingVendors(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const title = line?.title || t("hub.hub")
   const subtitle = line?.short_description || null
