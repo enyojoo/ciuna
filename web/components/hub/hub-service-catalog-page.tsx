@@ -73,6 +73,10 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
   const line = useMemo(() => lines.find((l) => l.slug === slug) ?? null, [lines, slug])
   const lineHome = hubLineHomePath(slug)
 
+  /** Latest slug for async guards (ignore completions after client navigation). */
+  const slugRef = useRef(slug)
+  slugRef.current = slug
+
   /** Marketplace catalogs use `hubMarketplaceSliceCacheUserId`; signed-in hub lines use per-user `all`. */
   const hubCatalogCacheScope: HubCatalogCacheScope = "all"
 
@@ -207,24 +211,25 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
     if (!isMarketplaceLine && isHubCatalogCacheFresh(marketplaceCatalogUserId, hubCatalogCacheScope)) return
 
     let cancelled = false
+    const requestSlug = slug
 
     ;(async () => {
       try {
-        const qs = isMarketplaceLine ? `?service_line=${encodeURIComponent(slug)}` : ""
+        const qs = isMarketplaceLine ? `?service_line=${encodeURIComponent(requestSlug)}` : ""
         const res = isMarketplaceLine
           ? await fetch(`/api/hub/products${qs}`, { cache: "no-store" })
           : await fetchWithAuth(`/api/hub/products${qs}`, { cache: "no-store" })
         if (!res.ok) throw new Error("load")
         const data = await res.json()
         const list = sortHubCatalogProducts((data.products || []) as HubProductRow[])
-        if (!cancelled) {
-          setProducts(list)
-          writeHubCatalogCache(marketplaceCatalogUserId, list, hubCatalogCacheScope)
-        }
+        if (cancelled || slugRef.current !== requestSlug) return
+        setProducts(list)
+        writeHubCatalogCache(marketplaceCatalogUserId, list, hubCatalogCacheScope)
       } catch {
-        if (!cancelled) setProducts([])
+        if (cancelled || slugRef.current !== requestSlug) return
+        setProducts([])
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled && slugRef.current === requestSlug) setLoading(false)
       }
     })()
     return () => {
@@ -242,20 +247,25 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
     let cancelled = false
     if (!hasRows) setLoadingVendors(true)
 
+    const requestSlug = slug
+
     ;(async () => {
       try {
-        const res = await fetch(`/api/hub/vendors?service_line=${encodeURIComponent(slug)}`, { cache: "no-store" })
+        const res = await fetch(
+          `/api/hub/vendors?service_line=${encodeURIComponent(requestSlug)}`,
+          { cache: "no-store" },
+        )
         if (!res.ok) throw new Error("vendors")
         const data = await res.json()
         const next = (data.vendors || []) as HubVendorRow[]
-        if (!cancelled) {
-          setVendors(next)
-          writeHubVendorListCache(marketplaceCatalogUserId, slug, next)
-        }
+        if (cancelled || slugRef.current !== requestSlug) return
+        setVendors(next)
+        writeHubVendorListCache(marketplaceCatalogUserId, requestSlug, next)
       } catch {
-        if (!cancelled) setVendors([])
+        if (cancelled || slugRef.current !== requestSlug) return
+        setVendors([])
       } finally {
-        if (!cancelled) setLoadingVendors(false)
+        if (!cancelled && slugRef.current === requestSlug) setLoadingVendors(false)
       }
     })()
     return () => {
@@ -270,6 +280,27 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
     }
     return sortHubCatalogProducts(products).filter((p) => categoryMatchesSlug(p.category || "", slug))
   }, [products, slug])
+
+  /** Rows that actually belong to this marketplace line (matches HubMarketplaceLineHome). */
+  const lineScopedProductCount = useMemo(() => {
+    if (!isMarketplaceLine || !slug) return 0
+    return products.filter((p) => hubProductBelongsToServiceLine(p, slug)).length
+  }, [isMarketplaceLine, products, slug])
+
+  const lineScopedVendorCount = useMemo(() => {
+    if (!isMarketplaceLine || !slug) return 0
+    return vendors.filter((v) => String(v.service_line_slug || "").trim().toLowerCase() === slug).length
+  }, [isMarketplaceLine, vendors, slug])
+
+  /**
+   * `loading && products.length === 0` is wrong for marketplaces: stale/wrong-line rows make `products`
+   * non-empty while `lineProducts` is empty, so the home UI flashes "No products" and skips the skeleton.
+   * Treat "have rows but none for this line" as still loading until the in-flight fetch replaces them.
+   */
+  const marketplaceLoadingProducts =
+    lineScopedProductCount === 0 && (loading || products.length > 0)
+  const marketplaceLoadingVendors =
+    lineScopedVendorCount === 0 && (loadingVendors || vendors.length > 0)
 
   const unavailable = linesLoaded && (!line || !line.is_enabled)
 
@@ -358,8 +389,8 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
           lineSlug={slug}
           vendors={vendors}
           allProducts={products}
-          loadingVendors={loadingVendors}
-          loadingProducts={loading && products.length === 0}
+          loadingVendors={marketplaceLoadingVendors}
+          loadingProducts={marketplaceLoadingProducts}
         />
       </HubLinePageShell>
     )
