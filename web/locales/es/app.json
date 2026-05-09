@@ -39,9 +39,19 @@
     "servicesTitle": "Servicios",
     "serviceUnavailable": "Este servicio no está disponible.",
     "unavailableTitle": "No disponible",
+    "redirecting": "Redirigiendo…",
     "openingExternal": "Abriendo enlace…",
     "catalogSubtitle": "Un mercado para pedir los servicios y productos que necesitas pagando con tu moneda local.",
     "productsSectionTitle": "Productos",
+    "marketplaceProductsHeading": "Productos",
+    "marketplaceStoresHeading": "Tiendas",
+    "storesDirectorySubtitle": "Elige una tienda para ver sus productos.",
+    "marketplaceSeeAllStores": "Ver todo",
+    "marketplaceNoVendors": "Aún no hay tiendas — vuelve pronto.",
+    "verifiedVendor": "Vendedor verificado",
+    "backToLine": "Volver al servicio",
+    "vendorStoreNotFound": "Tienda no encontrada",
+    "vendorStoreNotFoundBody": "Esta tienda no está disponible o el enlace puede ser incorrecto.",
     "categoryFilterAria": "Filtrar por categoría",
     "noProductsInCategory": "No hay productos en esta categoría.",
     "showingCategory": "Mostrando categoría:",
@@ -56,6 +66,16 @@
     "backToHub": "Volver al Centro",
     "expertsTitle": "Expertos",
     "expertsSubtitle": "Profesionales de confianza para el hogar y la belleza.",
+    "expertsFeaturedHeading": "Destacados",
+    "expertsSeeAll": "Ver todo",
+    "expertsServicesHeading": "Servicios",
+    "expertsFeaturedEmpty": "Aún no hay expertos — vuelve pronto.",
+    "expertsDirectoryTitle": "Todos los expertos",
+    "expertsDirectorySubtitle": "Explora todos los expertos en Ciuna.",
+    "backToExperts": "Volver a expertos",
+    "expertVerified": "Experto verificado",
+    "expertsServicesEmpty": "Aún no hay servicios listados.",
+    "expertsServicesNoneInCategory": "No hay servicios en esta categoría.",
     "expertsAll": "Todos los expertos",
     "expertNotFound": "Experto no encontrado",
     "noProductImage": "Sin imagen del producto",
@@ -128,6 +148,55 @@
     "payUpTo": "Paga hasta",
     "toRange": "a",
     "sellPrice": "Precio de venta"
+  },
+  "assistant": {
+    "title": "Asistente",
+    "intro": "Cuéntanos qué necesitas — el Asistente Ciuna coordina recogidas, compras y encargos.",
+    "help": "Ayuda",
+    "section": {
+      "serviceType": "Tipo de servicio",
+      "details": "Direcciones e instrucciones"
+    },
+    "kind": {
+      "pickupTitle": "Recoger un pedido",
+      "pickupDesc": "Recogemos algo que ya pediste o que está pendiente de recogida.",
+      "buyTitle": "Comprar algo",
+      "buyDesc": "Compramos por ti en una tienda o con un vendedor.",
+      "errandTitle": "Hacer encargos",
+      "errandDesc": "Documentos, paquetes y tareas rápidas por la ciudad."
+    },
+    "field": {
+      "whatToBuy": "¿Qué debemos comprar?",
+      "pickupInstructions": "Recogida e instrucciones",
+      "courier": "Preferencia de mensajero",
+      "vehicle": "Vehículo",
+      "dropoff": "Entrega"
+    },
+    "placeholder": {
+      "pickup": "Dónde recoger, códigos, contacto en el lugar…",
+      "buy": "Nombre de la tienda, lista de productos, tallas, alternativas…",
+      "vehicle": "Bici, coche, furgoneta — o déjalo en blanco para cualquiera",
+      "dropoff": "Dirección completa de entrega y notas de acceso"
+    },
+    "cta": {
+      "pickKind": "Elige un tipo de servicio",
+      "pickupDetails": "Añade detalles de recogida",
+      "buyDetails": "Añade detalles de compra",
+      "dropoff": "Añade entrega",
+      "vehicle": "Añade preferencia de vehículo",
+      "submit": "Enviar solicitud"
+    },
+    "pill": {
+      "howItWorks": "Cómo funciona",
+      "restrictions": "Restricciones"
+    },
+    "footer": {
+      "total": "Total",
+      "fromQuote": "Según cotización (tras revisión)",
+      "payment": "Pago tras cotización"
+    },
+    "submitting": "Enviando…",
+    "submitFailed": "No se pudo enviar. Inténtalo de nuevo."
   },
   "transactions": {
     "title": "Transacciones",
@@ -469,12 +538,16 @@
     "commissionRulesHint": "¡Cuantos más amigos refieras y completen operaciones, mayor será tu tasa de comisión!",
     "commissionRulesExample": "Ejemplo: una transacción completada de $100 al 0.5% te da $0.50.",
     "tierLine_one": "<bold>{{count}}</bold> referido calificado este trimestre",
+    "tierLine_few": "<bold>{{count}}</bold> referidos calificados este trimestre",
+    "tierLine_many": "<bold>{{count}}</bold> referidos calificados este trimestre",
     "tierLine_other": "<bold>{{count}}</bold> referidos calificados este trimestre",
     "availableWithdraw": "Disponible",
     "lifetimeEarned": "Total ganado (incl. pagado): {{amount}}",
     "myReferrals": "Referidos",
     "noReferrals": "Aún no tienes referidos",
     "completedTxCount_one": "{{count}} transacción completada",
+    "completedTxCount_few": "{{count}} transacciones completadas",
+    "completedTxCount_many": "{{count}} transacciones completadas",
     "completedTxCount_other": "{{count}} transacciones completadas",
     "rewardWindowEnds": "La ventana de recompensa termina el {{date}}",
     "shareLink": "Compartir",

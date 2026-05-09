@@ -19,20 +19,14 @@ import {
 const SERVICE_LINES_CACHE_USER = hubPublicHubJsonCacheUserId()
 
 export default function HubHomePage() {
-  const { t, i18n } = useTranslation("app")
+  const { t } = useTranslation("app")
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
   const [lines, setLines] = useState<HubServiceLineRow[]>([])
   const [loading, setLoading] = useState(true)
 
-  const lng = i18n.resolvedLanguage ?? i18n.language ?? "en"
-  const useEnHubHero = lng === "en" || lng.startsWith("en-")
-  const hubHeroTitle = useEnHubHero
-    ? "One App, All Your Needs"
-    : t("hub.heroTitle")
-  const hubHeroBody = useEnHubHero
-    ? "Shop foodstuffs, book services, send money home and handle life abroad on Ciuna."
-    : t("hub.heroBody")
+  const hubHeroTitle = t("hub.heroTitle")
+  const hubHeroBody = t("hub.heroBody")
 
   useLayoutEffect(() => {
     const stale = readStaleHubServiceLinesCache(SERVICE_LINES_CACHE_USER)

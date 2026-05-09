@@ -39,9 +39,19 @@
     "servicesTitle": "Services",
     "serviceUnavailable": "Ce service n’est pas disponible.",
     "unavailableTitle": "Indisponible",
+    "redirecting": "Redirection…",
     "openingExternal": "Ouverture du lien…",
     "catalogSubtitle": "Une marketplace pour commander les services et produits dont vous avez besoin en payant dans votre devise locale.",
     "productsSectionTitle": "Produits",
+    "marketplaceProductsHeading": "Produits",
+    "marketplaceStoresHeading": "Magasins",
+    "storesDirectorySubtitle": "Choisissez un magasin pour voir ses produits.",
+    "marketplaceSeeAllStores": "Tout voir",
+    "marketplaceNoVendors": "Pas encore de magasins — revenez bientôt.",
+    "verifiedVendor": "Vendeur vérifié",
+    "backToLine": "Retour au service",
+    "vendorStoreNotFound": "Magasin introuvable",
+    "vendorStoreNotFoundBody": "Ce magasin est indisponible ou le lien est peut-être incorrect.",
     "categoryFilterAria": "Filtrer par catégorie",
     "noProductsInCategory": "Aucun produit dans cette catégorie.",
     "showingCategory": "Catégorie affichée :",
@@ -56,6 +66,16 @@
     "backToHub": "Retour au centre Ciuna",
     "expertsTitle": "Experts",
     "expertsSubtitle": "Des professionnels de confiance pour vos besoins à domicile et en beauté.",
+    "expertsFeaturedHeading": "En vedette",
+    "expertsSeeAll": "Tout voir",
+    "expertsServicesHeading": "Services",
+    "expertsFeaturedEmpty": "Aucun expert pour le moment — revenez bientôt.",
+    "expertsDirectoryTitle": "Tous les experts",
+    "expertsDirectorySubtitle": "Parcourez tous les experts sur Ciuna.",
+    "backToExperts": "Retour aux experts",
+    "expertVerified": "Expert vérifié",
+    "expertsServicesEmpty": "Aucun service répertorié pour le moment.",
+    "expertsServicesNoneInCategory": "Aucun service dans cette catégorie.",
     "expertsAll": "Tous les experts",
     "expertNotFound": "Expert introuvable",
     "noProductImage": "Aucune image du produit",
@@ -128,6 +148,55 @@
     "payUpTo": "Payer jusqu'à",
     "toRange": "à",
     "sellPrice": "Prix de vente"
+  },
+  "assistant": {
+    "title": "Assistant",
+    "intro": "Dites-nous ce dont vous avez besoin — l’assistant Ciuna coordonne les enlèvements, courses et petites tâches.",
+    "help": "Aide",
+    "section": {
+      "serviceType": "Type de service",
+      "details": "Adresses et consignes"
+    },
+    "kind": {
+      "pickupTitle": "Récupérer une commande",
+      "pickupDesc": "Nous récupérons une commande déjà passée ou en attente de retrait.",
+      "buyTitle": "Faire des achats",
+      "buyDesc": "Nous achetons pour vous en magasin ou chez un vendeur.",
+      "errandTitle": "Courses et démarches",
+      "errandDesc": "Documents, colis et petites missions en ville."
+    },
+    "field": {
+      "whatToBuy": "Que devons-nous acheter ?",
+      "pickupInstructions": "Retrait et consignes",
+      "courier": "Préférence pour le coursier",
+      "vehicle": "Véhicule",
+      "dropoff": "Livraison"
+    },
+    "placeholder": {
+      "pickup": "Lieu de retrait, codes, contact sur place…",
+      "buy": "Nom du magasin, liste de produits, tailles, alternatives…",
+      "vehicle": "Vélo, voiture, camionnette — ou laissez vide pour indifférent",
+      "dropoff": "Adresse complète de livraison et accès"
+    },
+    "cta": {
+      "pickKind": "Choisir un type de service",
+      "pickupDetails": "Ajouter les détails de retrait",
+      "buyDetails": "Ajouter les détails des achats",
+      "dropoff": "Ajouter la livraison",
+      "vehicle": "Ajouter une préférence de véhicule",
+      "submit": "Envoyer la demande"
+    },
+    "pill": {
+      "howItWorks": "Comment ça marche",
+      "restrictions": "Restrictions"
+    },
+    "footer": {
+      "total": "Total",
+      "fromQuote": "Selon devis (après examen)",
+      "payment": "Paiement après devis"
+    },
+    "submitting": "Envoi…",
+    "submitFailed": "Impossible d’envoyer. Réessayez."
   },
   "transactions": {
     "title": "Liste des opérations",
@@ -469,12 +538,16 @@
     "commissionRulesHint": "Plus vous parrainez d’amis qui effectuent des transactions, plus votre taux de commission augmente !",
     "commissionRulesExample": "Exemple : une transaction terminée de $100 à 0.5 % vous rapporte $0.50.",
     "tierLine_one": "<bold>{{count}}</bold> filleul qualifié ce trimestre",
+    "tierLine_few": "<bold>{{count}}</bold> filleuls qualifiés ce trimestre",
+    "tierLine_many": "<bold>{{count}}</bold> filleuls qualifiés ce trimestre",
     "tierLine_other": "<bold>{{count}}</bold> filleuls qualifiés ce trimestre",
     "availableWithdraw": "Disponible",
     "lifetimeEarned": "Total gagné (dont payé) : {{amount}}",
     "myReferrals": "Filleuls",
     "noReferrals": "Vous n’avez pas encore de filleuls",
     "completedTxCount_one": "{{count}} transaction terminée",
+    "completedTxCount_few": "{{count}} transactions terminées",
+    "completedTxCount_many": "{{count}} transactions terminées",
     "completedTxCount_other": "{{count}} transactions terminées",
     "rewardWindowEnds": "La période de récompense se termine le {{date}}",
     "shareLink": "Partager",

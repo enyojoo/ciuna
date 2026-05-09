@@ -39,9 +39,19 @@
     "servicesTitle": "Сервисы",
     "serviceUnavailable": "Сервис временно недоступен.",
     "unavailableTitle": "Недоступно",
+    "redirecting": "Переход…",
     "openingExternal": "Открываем ссылку…",
     "catalogSubtitle": "Маркетплейс, где вы можете заказать нужные вам услуги и товары, оплачивая в местной валюте.",
     "productsSectionTitle": "Продукты",
+    "marketplaceProductsHeading": "Товары",
+    "marketplaceStoresHeading": "Магазины",
+    "storesDirectorySubtitle": "Выберите магазин, чтобы посмотреть товары.",
+    "marketplaceSeeAllStores": "Все",
+    "marketplaceNoVendors": "Магазинов пока нет — загляните позже.",
+    "verifiedVendor": "Проверенный продавец",
+    "backToLine": "Назад к разделу",
+    "vendorStoreNotFound": "Магазин не найден",
+    "vendorStoreNotFoundBody": "Магазин недоступен или ссылка указана неверно.",
     "categoryFilterAria": "Фильтр по категории",
     "noProductsInCategory": "В этой категории нет продуктов.",
     "showingCategory": "Показана категория:",
@@ -56,6 +66,16 @@
     "backToHub": "Назад в Хаб",
     "expertsTitle": "Эксперты",
     "expertsSubtitle": "Проверенные специалисты для дома и красоты.",
+    "expertsFeaturedHeading": "Избранное",
+    "expertsSeeAll": "Все",
+    "expertsServicesHeading": "Услуги",
+    "expertsFeaturedEmpty": "Экспертов пока нет — загляните позже.",
+    "expertsDirectoryTitle": "Все эксперты",
+    "expertsDirectorySubtitle": "Просмотрите всех экспертов Ciuna.",
+    "backToExperts": "Назад к экспертам",
+    "expertVerified": "Проверенный эксперт",
+    "expertsServicesEmpty": "Услуг пока нет.",
+    "expertsServicesNoneInCategory": "В этой категории нет услуг.",
     "expertsAll": "Все эксперты",
     "expertNotFound": "Эксперт не найден",
     "noProductImage": "Нет изображения товара",
@@ -128,6 +148,55 @@
     "payUpTo": "Оплатить до",
     "toRange": "до",
     "sellPrice": "Цена продажи"
+  },
+  "assistant": {
+    "title": "Ассистент",
+    "intro": "Опишите задачу — Ассистент Ciuna организует забор, покупки и поручения.",
+    "help": "Помощь",
+    "section": {
+      "serviceType": "Тип услуги",
+      "details": "Адреса и указания"
+    },
+    "kind": {
+      "pickupTitle": "Забрать заказ",
+      "pickupDesc": "Забираем уже оформленный заказ или то, что ждёт выдачи.",
+      "buyTitle": "Купить что-то",
+      "buyDesc": "Покупаем за вас в магазине или у продавца.",
+      "errandTitle": "Поручения",
+      "errandDesc": "Документы, посылки и мелкие дела по городу."
+    },
+    "field": {
+      "whatToBuy": "Что купить?",
+      "pickupInstructions": "Забор и указания",
+      "courier": "Предпочтение по курьеру",
+      "vehicle": "Транспорт",
+      "dropoff": "Доставка"
+    },
+    "placeholder": {
+      "pickup": "Где забрать, коды, контакт на месте…",
+      "buy": "Магазин, список товаров, размеры, замены…",
+      "vehicle": "Велик, авто, фургон — или оставьте пустым",
+      "dropoff": "Полный адрес доставки и как пройти"
+    },
+    "cta": {
+      "pickKind": "Выберите тип услуги",
+      "pickupDetails": "Добавьте детали забора",
+      "buyDetails": "Добавьте детали покупки",
+      "dropoff": "Добавьте адрес доставки",
+      "vehicle": "Добавьте предпочтение по транспорту",
+      "submit": "Отправить запрос"
+    },
+    "pill": {
+      "howItWorks": "Как это работает",
+      "restrictions": "Ограничения"
+    },
+    "footer": {
+      "total": "Итого",
+      "fromQuote": "По смете (после проверки)",
+      "payment": "Оплата после сметы"
+    },
+    "submitting": "Отправка…",
+    "submitFailed": "Не удалось отправить. Попробуйте снова."
   },
   "transactions": {
     "title": "Операции",

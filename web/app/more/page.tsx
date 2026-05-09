@@ -180,8 +180,7 @@ export default function MorePage() {
     <div className="space-y-0">
         {/* Header - Mobile Style */}
         <div className="bg-white p-5 sm:p-6 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">{t("more.title")}</h1>
-          <p className="text-base text-gray-600">{t("more.subtitle")}</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t("more.title")}</h1>
         </div>
 
         {/* Content */}
