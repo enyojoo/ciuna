@@ -33,6 +33,16 @@
     "hub": "Hub",
     "heroTitle": "One App, All Your Needs",
     "heroBody": "Shop foodstuffs, book services, send money home and handle life abroad on Ciuna.",
+    "serviceLineTiles": {
+      "food": { "title": "Food", "shortDescription": "Have all your cravings" },
+      "mart": { "title": "Mart", "shortDescription": "Find foodstuffs and more" },
+      "assistant": { "title": "Assistant", "shortDescription": "Send packages and docs" },
+      "send": { "title": "Send Money", "shortDescription": "Cross-border money transfer" },
+      "experts": { "title": "Experts", "shortDescription": "Hire trusted experts" },
+      "insurance": { "title": "Insurance", "shortDescription": "Get everyday protection" },
+      "experiences": { "title": "Experiences", "shortDescription": "Find your next adventure" },
+      "gift-packs": { "title": "Gift Packs", "shortDescription": "Send gifts to someone" }
+    },
     "referEarn": "Refer & earn",
     "referEarnShort": "Earn",
     "chatSupport": "Support",

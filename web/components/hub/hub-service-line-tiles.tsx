@@ -1,8 +1,10 @@
 "use client"
 
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 import { Card, CardContent } from "@/components/ui/card"
 import type { HubServiceLineRow } from "@/lib/hub-service-line-types"
+import { hubServiceLineTileCopy } from "@/lib/hub-service-line-i18n"
 import { hubLineHomePath } from "@/lib/hub-public-paths"
 
 function lineHref(line: HubServiceLineRow): string | null {
@@ -14,10 +16,13 @@ function lineHref(line: HubServiceLineRow): string | null {
 }
 
 export function HubServiceLineTiles({ lines }: { lines: HubServiceLineRow[] }) {
+  const { t } = useTranslation("app")
+
   return (
     <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
       {lines.map((line) => {
         const href = lineHref(line)
+        const { title, shortDescription } = hubServiceLineTileCopy(line, t)
         const inner = (
           <Card className="h-full border border-gray-200 bg-white shadow-sm transition-colors hover:border-primary/40 hover:shadow-md">
             <CardContent className="flex min-h-[6.75rem] flex-col items-center justify-center gap-1.5 px-3 py-3 text-center sm:min-h-[8.5rem] sm:gap-2 sm:px-4 sm:py-4 md:min-h-[9.5rem] md:gap-2 md:px-5 md:py-5">
@@ -29,11 +34,11 @@ export function HubServiceLineTiles({ lines }: { lines: HubServiceLineRow[] }) {
                 />
               ) : null}
               <h3 className="line-clamp-2 w-full text-xs font-semibold leading-tight text-gray-900 sm:text-sm sm:leading-snug md:text-base">
-                {line.title}
+                {title}
               </h3>
-              {line.short_description ? (
+              {shortDescription ? (
                 <p className="line-clamp-2 w-full text-xs leading-snug text-muted-foreground sm:line-clamp-3 sm:text-sm sm:leading-relaxed md:line-clamp-4">
-                  {line.short_description}
+                  {shortDescription}
                 </p>
               ) : null}
             </CardContent>

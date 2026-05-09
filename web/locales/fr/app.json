@@ -33,6 +33,16 @@
     "hub": "Centre",
     "heroTitle": "Une app, tout ce dont vous avez besoin",
     "heroBody": "Faites vos courses, réservez des services, envoyez de l’argent au pays et gérez votre vie à l’étranger sur Ciuna.",
+    "serviceLineTiles": {
+      "food": { "title": "Food", "shortDescription": "Toutes vos envies, sans compromis" },
+      "mart": { "title": "Mart", "shortDescription": "Produits alimentaires et bien plus encore" },
+      "assistant": { "title": "Assistant", "shortDescription": "Envoi de colis et de documents" },
+      "send": { "title": "Envoi d’argent", "shortDescription": "Transfert d’argent à l’international" },
+      "experts": { "title": "Experts", "shortDescription": "Faites appel à des experts de confiance" },
+      "insurance": { "title": "Assurance", "shortDescription": "Une protection au quotidien" },
+      "experiences": { "title": "Expériences", "shortDescription": "Votre prochaine aventure vous attend" },
+      "gift-packs": { "title": "Coffrets cadeaux", "shortDescription": "Offrez des cadeaux à vos proches" }
+    },
     "referEarn": "Parrainer et gagner",
     "referEarnShort": "Gagner",
     "chatSupport": "Support",
