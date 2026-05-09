@@ -35,7 +35,7 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
 
   const baseNavigation = useMemo(
     () => [
-      { name: t("nav.home"), href: "/hub", icon: Home },
+      { name: t("nav.hub"), href: "/hub", icon: Home },
       { name: t("nav.transactions"), href: "/transactions", icon: History },
       { name: t("nav.more"), href: "/more", icon: LayoutDashboard },
     ],
@@ -44,7 +44,7 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
 
   const bottomNavItems = useMemo(
     () => [
-      { name: t("nav.home"), href: "/hub", icon: Home },
+      { name: t("nav.hub"), href: "/hub", icon: Home },
       { name: t("nav.transactions"), href: "/transactions", icon: History },
       { name: t("nav.more"), href: "/more", icon: LayoutDashboard },
     ],
