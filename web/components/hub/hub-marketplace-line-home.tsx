@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next"
 import { ChevronRight } from "lucide-react"
 import type { HubProductRow } from "@/lib/hub-types"
 import type { HubVendorRow } from "@/lib/hub-vendor-types"
-import { hubProductBelongsToServiceLine } from "@/lib/hub-slug"
+import { hubProductBelongsToServiceLine, hubVendorBelongsToServiceLine } from "@/lib/hub-slug"
 import {
   amountPrefixClass,
   HubCatalogFixedPrice,
@@ -164,7 +164,7 @@ export function HubMarketplaceLineHome({
 
   /** Guard against stale cross-line cache: only show vendors that belong to this line. */
   const lineVendors = useMemo(
-    () => vendors.filter((v) => String(v.service_line_slug || "").trim().toLowerCase() === lineSlug),
+    () => vendors.filter((v) => hubVendorBelongsToServiceLine(v, lineSlug)),
     [vendors, lineSlug],
   )
   const previewVendors = useMemo(() => lineVendors.slice(0, STORES_PREVIEW_COUNT), [lineVendors])

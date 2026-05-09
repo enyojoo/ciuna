@@ -52,12 +52,17 @@ function catalogTtlForUser(userId: string): number {
 /** Scope for hub catalog list cache (`all` = full catalog; `food` / `mart` = marketplace slice). */
 export type HubCatalogCacheScope = "all" | "food" | "mart"
 
+/** Isolated food/mart buckets (`__ciuna_public__::market::food`); bump suffix to invalidate bad legacy localStorage. */
+function marketplaceHubCacheKeySuffix(userId: string): string {
+  return userId.includes("::market::") ? "_v2" : ""
+}
+
 function catalogKey(userId: string, scope: HubCatalogCacheScope = "all") {
-  return `ciuna_hub_products_${userId}_${scope}`
+  return `ciuna_hub_products_${userId}_${scope}${marketplaceHubCacheKeySuffix(userId)}`
 }
 
 function catalogMemoryKey(userId: string, scope: HubCatalogCacheScope) {
-  return `${userId}::${scope}`
+  return `${userId}::${scope}${marketplaceHubCacheKeySuffix(userId)}`
 }
 
 function serviceLinesKey(userId: string) {
@@ -69,11 +74,11 @@ function productKey(userId: string, productId: string) {
 }
 
 function vendorCatalogStorageKey(userId: string, lineSlug: string, vendorSlug: string) {
-  return `ciuna_hub_vendor_products_${userId}_${lineSlug}_${vendorSlug}`
+  return `ciuna_hub_vendor_products_${userId}_${lineSlug}_${vendorSlug}${marketplaceHubCacheKeySuffix(userId)}`
 }
 
 function vendorCatalogMemoryKey(userId: string, lineSlug: string, vendorSlug: string) {
-  return `${userId}::${lineSlug}::${vendorSlug}`
+  return `${userId}::${lineSlug}::${vendorSlug}${marketplaceHubCacheKeySuffix(userId)}`
 }
 
 function productMemoryKey(userId: string, productId: string) {
@@ -82,11 +87,11 @@ function productMemoryKey(userId: string, productId: string) {
 
 /** Marketplace vendor directory (`GET /api/hub/vendors?service_line=`) — food / mart only. */
 function vendorListStorageKey(userId: string, lineSlug: string) {
-  return `ciuna_hub_vendor_list_${userId}_${lineSlug}`
+  return `ciuna_hub_vendor_list_${userId}_${lineSlug}${marketplaceHubCacheKeySuffix(userId)}`
 }
 
 function vendorListMemoryKey(userId: string, lineSlug: string) {
-  return `${userId}::vendorList::${lineSlug}`
+  return `${userId}::vendorList::${lineSlug}${marketplaceHubCacheKeySuffix(userId)}`
 }
 
 /** In-memory mirror so repeat client navigations skip network without re-reading LS each time. */
@@ -457,11 +462,11 @@ export function writeHubVendorCatalogCache(userId: string, lineSlug: string, ven
 
 /** Single vendor row for storefront hero (`GET /api/hub/vendors/[slug]?service_line=`). */
 function vendorMetaStorageKey(userId: string, lineSlug: string, vendorSlug: string) {
-  return `ciuna_hub_vendor_meta_${userId}_${lineSlug}_${vendorSlug}`
+  return `ciuna_hub_vendor_meta_${userId}_${lineSlug}_${vendorSlug}${marketplaceHubCacheKeySuffix(userId)}`
 }
 
 function vendorMetaMemoryKey(userId: string, lineSlug: string, vendorSlug: string) {
-  return `${userId}::meta::${lineSlug}::${vendorSlug}`
+  return `${userId}::meta::${lineSlug}::${vendorSlug}${marketplaceHubCacheKeySuffix(userId)}`
 }
 
 type HubVendorMetaCacheEntry = { vendor: HubVendorRow | null; notFound: boolean; timestamp: number }

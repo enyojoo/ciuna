@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import type { HubVendorRow } from "@/lib/hub-vendor-types"
 import type { HubServiceLineRow } from "@/lib/hub-service-line-types"
-import { hubCachedVendorsMatchServiceLine } from "@/lib/hub-slug"
+import { hubCachedVendorsMatchServiceLine, hubVendorBelongsToServiceLine } from "@/lib/hub-slug"
 import {
   clearHubVendorListCache,
   hubMarketplaceSliceCacheUserId,
@@ -42,7 +42,7 @@ export function HubMarketplaceStoresDirectory({ lineSlug: slugProp }: { lineSlug
   const lineHome = hubLineHomePath(slug)
   /** Guard against cross-line stale cache — only render vendors that belong to this line. */
   const lineVendors = useMemo(
-    () => vendors.filter((v) => String(v.service_line_slug || "").trim().toLowerCase() === slug),
+    () => vendors.filter((v) => hubVendorBelongsToServiceLine(v, slug)),
     [vendors, slug],
   )
 

@@ -42,6 +42,23 @@ export function hubCachedProductsMatchServiceLine(
   return products.every((p) => hubProductBelongsToServiceLine(p, line))
 }
 
+/**
+ * Whether a vendor row belongs to a marketplace line (`food` / `mart`).
+ * Rows without `service_line_slug` are treated as belonging to the current line — they come from
+ * this line's API/cache bucket (legacy JSON omitted the field; strict equality would hide every row).
+ */
+export function hubVendorBelongsToServiceLine(
+  v: { service_line_slug?: string | null },
+  lineSlug: string,
+): boolean {
+  const line = String(lineSlug || "").trim().toLowerCase()
+  if (line !== "food" && line !== "mart") return false
+  const raw = v.service_line_slug
+  const stored = raw != null && String(raw).trim() !== "" ? String(raw).trim().toLowerCase() : ""
+  if (stored === "food" || stored === "mart") return stored === line
+  return true
+}
+
 /** Validates vendor directory cache rows match `lineSlug`. */
 export function hubCachedVendorsMatchServiceLine(
   vendors: { service_line_slug?: string | null }[],
@@ -50,5 +67,5 @@ export function hubCachedVendorsMatchServiceLine(
   if (vendors.length === 0) return true
   const line = String(lineSlug || "").trim().toLowerCase()
   if (!line) return false
-  return vendors.every((v) => String(v.service_line_slug || "").trim().toLowerCase() === line)
+  return vendors.every((v) => hubVendorBelongsToServiceLine(v, line))
 }

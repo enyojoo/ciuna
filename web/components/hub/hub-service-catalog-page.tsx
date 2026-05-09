@@ -17,6 +17,7 @@ import {
   hubCachedProductsMatchServiceLine,
   hubCachedVendorsMatchServiceLine,
   hubProductBelongsToServiceLine,
+  hubVendorBelongsToServiceLine,
 } from "@/lib/hub-slug"
 import {
   clearHubCatalogCache,
@@ -73,9 +74,9 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
   const line = useMemo(() => lines.find((l) => l.slug === slug) ?? null, [lines, slug])
   const lineHome = hubLineHomePath(slug)
 
-  /** Latest slug for async guards (ignore completions after client navigation). */
-  const slugRef = useRef(slug)
-  slugRef.current = slug
+  /** Monotonic generation per mount so only the latest catalog / vendor fetch clears loading & applies state. */
+  const catalogFetchGenRef = useRef(0)
+  const vendorFetchGenRef = useRef(0)
 
   /** Marketplace catalogs use `hubMarketplaceSliceCacheUserId`; signed-in hub lines use per-user `all`. */
   const hubCatalogCacheScope: HubCatalogCacheScope = "all"
@@ -210,30 +211,38 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
     // Non-marketplace hub lines: skip if cache is fresh (auth-gated, no cross-line risk).
     if (!isMarketplaceLine && isHubCatalogCacheFresh(marketplaceCatalogUserId, hubCatalogCacheScope)) return
 
+    const gen = ++catalogFetchGenRef.current
     let cancelled = false
-    const requestSlug = slug
+    const ac = new AbortController()
 
     ;(async () => {
       try {
-        const qs = isMarketplaceLine ? `?service_line=${encodeURIComponent(requestSlug)}` : ""
+        const qs = isMarketplaceLine ? `?service_line=${encodeURIComponent(slug)}` : ""
         const res = isMarketplaceLine
-          ? await fetch(`/api/hub/products${qs}`, { cache: "no-store" })
-          : await fetchWithAuth(`/api/hub/products${qs}`, { cache: "no-store" })
+          ? await fetch(`/api/hub/products${qs}`, { cache: "no-store", signal: ac.signal })
+          : await fetchWithAuth(`/api/hub/products${qs}`, { cache: "no-store", signal: ac.signal })
         if (!res.ok) throw new Error("load")
         const data = await res.json()
         const list = sortHubCatalogProducts((data.products || []) as HubProductRow[])
-        if (cancelled || slugRef.current !== requestSlug) return
+        if (cancelled || gen !== catalogFetchGenRef.current) return
         setProducts(list)
         writeHubCatalogCache(marketplaceCatalogUserId, list, hubCatalogCacheScope)
-      } catch {
-        if (cancelled || slugRef.current !== requestSlug) return
+      } catch (e) {
+        if (cancelled || gen !== catalogFetchGenRef.current) return
+        const aborted =
+          e &&
+          typeof e === "object" &&
+          "name" in e &&
+          (e as { name: string }).name === "AbortError"
+        if (aborted) return
         setProducts([])
       } finally {
-        if (!cancelled && slugRef.current === requestSlug) setLoading(false)
+        if (!cancelled && gen === catalogFetchGenRef.current) setLoading(false)
       }
     })()
     return () => {
       cancelled = true
+      ac.abort()
     }
   }, [user, marketplaceCatalogUserId, hubCatalogCacheScope, isMarketplaceLine, slug])
 
@@ -243,33 +252,40 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
     // The early-return optimization was removed to guarantee cross-line stale data is never kept.
     const staleVendors = readStaleHubVendorListCache(marketplaceCatalogUserId, slug)
     const hasRows = (staleVendors?.length ?? 0) > 0
-
-    let cancelled = false
     if (!hasRows) setLoadingVendors(true)
 
-    const requestSlug = slug
+    const gen = ++vendorFetchGenRef.current
+    let cancelled = false
+    const ac = new AbortController()
 
     ;(async () => {
       try {
-        const res = await fetch(
-          `/api/hub/vendors?service_line=${encodeURIComponent(requestSlug)}`,
-          { cache: "no-store" },
-        )
+        const res = await fetch(`/api/hub/vendors?service_line=${encodeURIComponent(slug)}`, {
+          cache: "no-store",
+          signal: ac.signal,
+        })
         if (!res.ok) throw new Error("vendors")
         const data = await res.json()
         const next = (data.vendors || []) as HubVendorRow[]
-        if (cancelled || slugRef.current !== requestSlug) return
+        if (cancelled || gen !== vendorFetchGenRef.current) return
         setVendors(next)
-        writeHubVendorListCache(marketplaceCatalogUserId, requestSlug, next)
-      } catch {
-        if (cancelled || slugRef.current !== requestSlug) return
+        writeHubVendorListCache(marketplaceCatalogUserId, slug, next)
+      } catch (e) {
+        if (cancelled || gen !== vendorFetchGenRef.current) return
+        const aborted =
+          e &&
+          typeof e === "object" &&
+          "name" in e &&
+          (e as { name: string }).name === "AbortError"
+        if (aborted) return
         setVendors([])
       } finally {
-        if (!cancelled && slugRef.current === requestSlug) setLoadingVendors(false)
+        if (!cancelled && gen === vendorFetchGenRef.current) setLoadingVendors(false)
       }
     })()
     return () => {
       cancelled = true
+      ac.abort()
     }
   }, [marketplaceCatalogUserId, slug, isMarketplaceLine])
 
@@ -289,7 +305,7 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
 
   const lineScopedVendorCount = useMemo(() => {
     if (!isMarketplaceLine || !slug) return 0
-    return vendors.filter((v) => String(v.service_line_slug || "").trim().toLowerCase() === slug).length
+    return vendors.filter((v) => hubVendorBelongsToServiceLine(v, slug)).length
   }, [isMarketplaceLine, vendors, slug])
 
   /**
