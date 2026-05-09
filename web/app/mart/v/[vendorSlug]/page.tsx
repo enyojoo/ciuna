@@ -208,6 +208,7 @@ function MartVendorStorefrontInner({ vendorSlug }: VendorPageProps) {
         loading={loadingProducts}
         vendorBasePath={vendorBasePath}
         lineSlug={LINE_SLUG}
+        showVendorChip={false}
       />
     </HubLinePageShell>
   )

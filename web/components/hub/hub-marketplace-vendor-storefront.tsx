@@ -135,7 +135,15 @@ function VendorCatalogInner({
     }
   }, [cacheUserId, lineSlug, vendorSlug])
 
-  return <VendorHubCatalog products={products} loading={loading} vendorBasePath={vendorBasePath} lineSlug={lineSlug} />
+  return (
+    <VendorHubCatalog
+      products={products}
+      loading={loading}
+      vendorBasePath={vendorBasePath}
+      lineSlug={lineSlug}
+      showVendorChip={false}
+    />
+  )
 }
 
 export function HubMarketplaceVendorStorefront({ lineSlug: lineProp, vendorSlug: vendorProp }: { lineSlug: string; vendorSlug: string }) {

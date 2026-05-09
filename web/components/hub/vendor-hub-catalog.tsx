@@ -26,12 +26,15 @@ export function VendorHubCatalog({
   loading,
   vendorBasePath,
   lineSlug,
+  showVendorChip = true,
 }: {
   products: HubProductRow[]
   loading: boolean
   /** e.g. `/food/v/acme` — category query is appended here */
   vendorBasePath: string
   lineSlug: string
+  /** When false (single-vendor storefront), hide redundant vendor row on each card. */
+  showVendorChip?: boolean
 }) {
   const { t } = useTranslation("app")
   const router = useRouter()
@@ -191,7 +194,7 @@ export function VendorHubCatalog({
                       <p className="mb-2 mt-1 line-clamp-2 text-xs leading-relaxed text-gray-500 sm:text-sm">{p.short_description}</p>
                     ) : null}
                   </Link>
-                  {p.vendor ? (
+                  {showVendorChip && p.vendor ? (
                     <div className="mb-1">
                       <HubProductVendorChipLight vendor={p.vendor} className="max-w-full" />
                     </div>

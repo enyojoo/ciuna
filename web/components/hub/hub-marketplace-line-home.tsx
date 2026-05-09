@@ -20,6 +20,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { HubVendorCardNameRow } from "@/components/hub/hub-vendor-card-name-row"
 import { hubLineHomePath, hubMarketplaceCheckoutPath, hubMarketplaceStoresPath, hubMarketplaceVendorPath } from "@/lib/hub-public-paths"
+import { hubVendorRowToProductSummary } from "@/lib/hub-vendor-types"
 
 const ALL_CATEGORIES_VALUE = "__all__"
 const STORES_PREVIEW_COUNT = 8
@@ -167,6 +168,20 @@ export function HubMarketplaceLineHome({
     () => vendors.filter((v) => hubVendorBelongsToServiceLine(v, lineSlug)),
     [vendors, lineSlug],
   )
+
+  /** Marketplace home: show vendor on each card (join from `lineVendors` when API/cache omitted `product.vendor`). */
+  const filteredProductsWithVendor = useMemo(() => {
+    const byId = new Map(lineVendors.map((v) => [v.id, v]))
+    return filteredProducts.map((p) => {
+      if (p.vendor) return p
+      const vid = p.vendor_id != null ? String(p.vendor_id).trim() : ""
+      if (!vid) return p
+      const row = byId.get(vid)
+      if (!row) return p
+      return { ...p, vendor: hubVendorRowToProductSummary(row, lineSlug) }
+    })
+  }, [filteredProducts, lineVendors, lineSlug])
+
   const previewVendors = useMemo(() => lineVendors.slice(0, STORES_PREVIEW_COUNT), [lineVendors])
   const loading = loadingVendors || loadingProducts
 
@@ -266,7 +281,7 @@ export function HubMarketplaceLineHome({
           <p className="py-8 text-center text-sm text-muted-foreground">
             {t("hub.noProducts", { defaultValue: "No products yet." })}
           </p>
-        ) : filteredProducts.length === 0 ? (
+        ) : filteredProductsWithVendor.length === 0 ? (
           <div className="space-y-3 py-10 text-center text-sm text-muted-foreground">
             <p>{t("hub.noProductsInCategory")}</p>
             <Button type="button" variant="outline" size="sm" onClick={() => onCategoryFilterChange(ALL_CATEGORIES_VALUE)}>
@@ -275,7 +290,7 @@ export function HubMarketplaceLineHome({
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-            {sortHubCatalogProducts(filteredProducts).map((p) => (
+            {sortHubCatalogProducts(filteredProductsWithVendor).map((p) => (
               <MarketplaceProductCard key={p.id} product={p} t={t} lineSlug={lineSlug} />
             ))}
           </div>
