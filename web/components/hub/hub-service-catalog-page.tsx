@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useMemo, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
@@ -22,6 +22,7 @@ import {
   clearHubCatalogCache,
   clearHubVendorListCache,
   hubClientCacheUserId,
+  hubMarketplaceSliceCacheUserId,
   hubPublicHubJsonCacheUserId,
   isHubCatalogCacheFresh,
   isHubServiceLinesCacheFresh,
@@ -62,16 +63,34 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
   const [vendors, setVendors] = useState<HubVendorRow[]>([])
   const [loadingVendors, setLoadingVendors] = useState(false)
   const cacheUserId = hubClientCacheUserId(user?.id, userProfile?.id)
-  const marketplaceJsonCacheId = hubPublicHubJsonCacheUserId()
+  const publicHubJsonCacheId = hubPublicHubJsonCacheUserId()
   const isMarketplaceLine = MARKETPLACE_SLUGS.has(slug)
   /** Service lines list is the same for every user; avoids refetch when auth session hydrates. */
-  const linesCacheUserId = marketplaceJsonCacheId
-  const marketplaceCatalogUserId = isMarketplaceLine ? marketplaceJsonCacheId : cacheUserId
+  const linesCacheUserId = publicHubJsonCacheId
+  /** Food vs Mart each get an isolated cache bucket (catalog + vendors). */
+  const marketplaceCatalogUserId = isMarketplaceLine ? hubMarketplaceSliceCacheUserId(slug as "food" | "mart") : cacheUserId
 
   const line = useMemo(() => lines.find((l) => l.slug === slug) ?? null, [lines, slug])
   const lineHome = hubLineHomePath(slug)
 
-  const catalogScope: HubCatalogCacheScope = isMarketplaceLine ? (slug as "food" | "mart") : "all"
+  /** Marketplace catalogs use `hubMarketplaceSliceCacheUserId`; signed-in hub lines use per-user `all`. */
+  const hubCatalogCacheScope: HubCatalogCacheScope = "all"
+
+  const prevMarketplaceSlugRef = useRef<string | null>(null)
+  useLayoutEffect(() => {
+    if (!isMarketplaceLine) {
+      prevMarketplaceSlugRef.current = null
+      return
+    }
+    const prev = prevMarketplaceSlugRef.current
+    prevMarketplaceSlugRef.current = slug
+    if (prev !== null && prev !== slug) {
+      setProducts([])
+      setVendors([])
+      setLoading(true)
+      setLoadingVendors(true)
+    }
+  }, [slug, isMarketplaceLine])
 
   useLayoutEffect(() => {
     if (!linesCacheUserId) return
@@ -84,39 +103,39 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
 
   useLayoutEffect(() => {
     if (!marketplaceCatalogUserId) return
-    const stale = readStaleHubCatalogCache(marketplaceCatalogUserId, catalogScope)
+    const stale = readStaleHubCatalogCache(marketplaceCatalogUserId, hubCatalogCacheScope)
     let rows = stale && stale.length > 0 ? sortHubCatalogProducts(stale) : []
     if (isMarketplaceLine && stale && stale.length > 0 && !hubCachedProductsMatchServiceLine(stale, slug)) {
-      clearHubCatalogCache(marketplaceCatalogUserId, catalogScope)
+      clearHubCatalogCache(marketplaceCatalogUserId, hubCatalogCacheScope)
       rows = []
     }
     setProducts(rows)
     const hasRows = rows.length > 0
-    const cacheFresh = isHubCatalogCacheFresh(marketplaceCatalogUserId, catalogScope)
+    const cacheFresh = isHubCatalogCacheFresh(marketplaceCatalogUserId, hubCatalogCacheScope)
     if (!cacheFresh && !hasRows) {
       setLoading(true)
     } else {
       setLoading(false)
     }
-  }, [marketplaceCatalogUserId, catalogScope, isMarketplaceLine, slug])
+  }, [marketplaceCatalogUserId, hubCatalogCacheScope, isMarketplaceLine, slug])
 
   useLayoutEffect(() => {
     if (!isMarketplaceLine) return
-    const stale = readStaleHubVendorListCache(marketplaceJsonCacheId, slug)
+    const stale = readStaleHubVendorListCache(marketplaceCatalogUserId, slug)
     let list = stale ?? []
     if (list.length > 0 && !hubCachedVendorsMatchServiceLine(list, slug)) {
-      clearHubVendorListCache(marketplaceJsonCacheId, slug)
+      clearHubVendorListCache(marketplaceCatalogUserId, slug)
       list = []
     }
     setVendors(list)
     const hasRows = list.length > 0
-    const vendorListFresh = isHubVendorListCacheFresh(marketplaceJsonCacheId, slug)
+    const vendorListFresh = isHubVendorListCacheFresh(marketplaceCatalogUserId, slug)
     if (!vendorListFresh && !hasRows) {
       setLoadingVendors(true)
     } else {
       setLoadingVendors(false)
     }
-  }, [marketplaceJsonCacheId, slug, isMarketplaceLine])
+  }, [marketplaceCatalogUserId, slug, isMarketplaceLine])
 
   useEffect(() => {
     if (!isMarketplaceLine && !authLoading && !user) {
@@ -183,25 +202,25 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
   useEffect(() => {
     if (!marketplaceCatalogUserId) return
     if (!isMarketplaceLine && !user) return
-    const staleCatalog = readStaleHubCatalogCache(marketplaceCatalogUserId, catalogScope)
+    const staleCatalog = readStaleHubCatalogCache(marketplaceCatalogUserId, hubCatalogCacheScope)
     const catalogRowsOk =
       !isMarketplaceLine ||
       !staleCatalog?.length ||
       hubCachedProductsMatchServiceLine(staleCatalog, slug)
     if (
-      isHubCatalogCacheFresh(marketplaceCatalogUserId, catalogScope) &&
+      isHubCatalogCacheFresh(marketplaceCatalogUserId, hubCatalogCacheScope) &&
       isMarketplaceLine &&
       catalogRowsOk &&
       (staleCatalog?.length ?? 0) > 0
     ) {
       return
     }
-    if (!isMarketplaceLine && isHubCatalogCacheFresh(marketplaceCatalogUserId, catalogScope)) return
+    if (!isMarketplaceLine && isHubCatalogCacheFresh(marketplaceCatalogUserId, hubCatalogCacheScope)) return
 
     let cancelled = false
     ;(async () => {
       try {
-        const qs = catalogScope !== "all" ? `?service_line=${encodeURIComponent(catalogScope)}` : ""
+        const qs = isMarketplaceLine ? `?service_line=${encodeURIComponent(slug)}` : ""
         const res = isMarketplaceLine
           ? await fetch(`/api/hub/products${qs}`, { cache: "no-store" })
           : await fetchWithAuth(`/api/hub/products${qs}`, { cache: "no-store" })
@@ -210,7 +229,7 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
         const list = sortHubCatalogProducts((data.products || []) as HubProductRow[])
         if (!cancelled) {
           setProducts(list)
-          writeHubCatalogCache(marketplaceCatalogUserId, list, catalogScope)
+          writeHubCatalogCache(marketplaceCatalogUserId, list, hubCatalogCacheScope)
         }
       } catch {
         if (!cancelled) setProducts([])
@@ -221,14 +240,14 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
     return () => {
       cancelled = true
     }
-  }, [user, marketplaceCatalogUserId, catalogScope, isMarketplaceLine, slug])
+  }, [user, marketplaceCatalogUserId, hubCatalogCacheScope, isMarketplaceLine, slug])
 
   useEffect(() => {
     if (!isMarketplaceLine) return
-    const staleVendors = readStaleHubVendorListCache(marketplaceJsonCacheId, slug)
+    const staleVendors = readStaleHubVendorListCache(marketplaceCatalogUserId, slug)
     const vendorsRowsOk = !staleVendors?.length || hubCachedVendorsMatchServiceLine(staleVendors, slug)
     if (
-      isHubVendorListCacheFresh(marketplaceJsonCacheId, slug) &&
+      isHubVendorListCacheFresh(marketplaceCatalogUserId, slug) &&
       (staleVendors?.length ?? 0) > 0 &&
       vendorsRowsOk
     ) {
@@ -247,7 +266,7 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
         const next = (data.vendors || []) as HubVendorRow[]
         if (!cancelled) {
           setVendors(next)
-          writeHubVendorListCache(marketplaceJsonCacheId, slug, next)
+          writeHubVendorListCache(marketplaceCatalogUserId, slug, next)
         }
       } catch {
         if (!cancelled) setVendors([])
@@ -258,7 +277,7 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
     return () => {
       cancelled = true
     }
-  }, [marketplaceJsonCacheId, slug, isMarketplaceLine])
+  }, [marketplaceCatalogUserId, slug, isMarketplaceLine])
 
   const visibleProducts = useMemo(() => {
     if (!slug) return []

@@ -5,5 +5,5 @@ import { HubServiceCatalogPage } from "@/components/hub/hub-service-catalog-page
 
 export default function HubServiceCatalogRoutePage() {
   const slug = String(useParams()?.slug || "").trim().toLowerCase()
-  return <HubServiceCatalogPage slug={slug} />
+  return <HubServiceCatalogPage key={slug} slug={slug} />
 }

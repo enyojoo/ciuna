@@ -5,5 +5,5 @@ import { HubMarketplaceStoresDirectory } from "@/components/hub/hub-marketplace-
 
 export default function HubLineStoresDirectoryRoutePage() {
   const slug = String(useParams()?.slug || "").trim().toLowerCase()
-  return <HubMarketplaceStoresDirectory lineSlug={slug} />
+  return <HubMarketplaceStoresDirectory key={slug} lineSlug={slug} />
 }

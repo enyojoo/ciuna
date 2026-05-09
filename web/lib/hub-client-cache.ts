@@ -24,16 +24,29 @@ export function hubPublicHubJsonCacheUserId(): string {
   return HUB_PUBLIC_HUB_CACHE_USER_ID
 }
 
+/**
+ * Dedicated cache bucket per marketplace line so Food and Mart never share catalog / vendor list / storefront JSON
+ * in memory or localStorage (even if a caller mixes up scope arguments).
+ */
+export function hubMarketplaceSliceCacheUserId(lineSlug: "food" | "mart"): string {
+  return `${HUB_PUBLIC_HUB_CACHE_USER_ID}::market::${lineSlug}`
+}
+
+/** Public hub slices use the shorter TTL; per-line marketplace buckets inherit the same behavior. */
+function usesPublicHubSliceTtl(userId: string): boolean {
+  return userId === HUB_PUBLIC_HUB_CACHE_USER_ID || userId.startsWith(`${HUB_PUBLIC_HUB_CACHE_USER_ID}::`)
+}
+
 function serviceLinesTtlForUser(userId: string): number {
-  return userId === HUB_PUBLIC_HUB_CACHE_USER_ID ? PUBLIC_HUB_SLICE_TTL_MS : SERVICE_LINES_TTL_MS
+  return usesPublicHubSliceTtl(userId) ? PUBLIC_HUB_SLICE_TTL_MS : SERVICE_LINES_TTL_MS
 }
 
 function vendorCatalogTtlForUser(userId: string): number {
-  return userId === HUB_PUBLIC_HUB_CACHE_USER_ID ? PUBLIC_HUB_SLICE_TTL_MS : CATALOG_TTL_MS
+  return usesPublicHubSliceTtl(userId) ? PUBLIC_HUB_SLICE_TTL_MS : CATALOG_TTL_MS
 }
 
 function catalogTtlForUser(userId: string): number {
-  return userId === HUB_PUBLIC_HUB_CACHE_USER_ID ? PUBLIC_HUB_SLICE_TTL_MS : CATALOG_TTL_MS
+  return usesPublicHubSliceTtl(userId) ? PUBLIC_HUB_SLICE_TTL_MS : CATALOG_TTL_MS
 }
 
 /** Scope for hub catalog list cache (`all` = full catalog; `food` / `mart` = marketplace slice). */

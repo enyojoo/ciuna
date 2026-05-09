@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useMemo, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
@@ -9,6 +9,7 @@ import type { HubServiceLineRow } from "@/lib/hub-service-line-types"
 import { hubCachedVendorsMatchServiceLine } from "@/lib/hub-slug"
 import {
   clearHubVendorListCache,
+  hubMarketplaceSliceCacheUserId,
   hubPublicHubJsonCacheUserId,
   isHubServiceLinesCacheFresh,
   isHubVendorListCacheFresh,
@@ -24,11 +25,12 @@ import { hubLineHomePath, hubMarketplaceVendorPath } from "@/lib/hub-public-path
 
 const MARKETPLACE = new Set(["food", "mart"])
 
-/** Public hub JSON shared across users (service lines + vendor directory). */
-const JSON_CACHE_USER = hubPublicHubJsonCacheUserId()
+/** Public service-lines JSON only (shared across lines). Vendor directory uses `hubMarketplaceSliceCacheUserId`. */
+const SERVICE_LINES_CACHE_USER = hubPublicHubJsonCacheUserId()
 
 export function HubMarketplaceStoresDirectory({ lineSlug: slugProp }: { lineSlug: string }) {
   const slug = String(slugProp || "").trim().toLowerCase()
+  const vendorListCacheUserId = MARKETPLACE.has(slug) ? hubMarketplaceSliceCacheUserId(slug as "food" | "mart") : SERVICE_LINES_CACHE_USER
   const router = useRouter()
   const { t } = useTranslation("app")
   const [lines, setLines] = useState<HubServiceLineRow[]>([])
@@ -39,9 +41,20 @@ export function HubMarketplaceStoresDirectory({ lineSlug: slugProp }: { lineSlug
   const line = useMemo(() => lines.find((l) => l.slug === slug) ?? null, [lines, slug])
   const lineHome = hubLineHomePath(slug)
 
+  const prevSlugRef = useRef<string | null>(null)
   useLayoutEffect(() => {
     if (!MARKETPLACE.has(slug)) return
-    const stale = readStaleHubServiceLinesCache(JSON_CACHE_USER)
+    const prev = prevSlugRef.current
+    prevSlugRef.current = slug
+    if (prev !== null && prev !== slug) {
+      setVendors([])
+      setLoading(true)
+    }
+  }, [slug])
+
+  useLayoutEffect(() => {
+    if (!MARKETPLACE.has(slug)) return
+    const stale = readStaleHubServiceLinesCache(SERVICE_LINES_CACHE_USER)
     if (stale !== null) {
       setLines(stale)
       setLinesLoaded(true)
@@ -50,21 +63,21 @@ export function HubMarketplaceStoresDirectory({ lineSlug: slugProp }: { lineSlug
 
   useLayoutEffect(() => {
     if (!MARKETPLACE.has(slug)) return
-    const stale = readStaleHubVendorListCache(JSON_CACHE_USER, slug)
+    const stale = readStaleHubVendorListCache(vendorListCacheUserId, slug)
     let list = stale ?? []
     if (list.length > 0 && !hubCachedVendorsMatchServiceLine(list, slug)) {
-      clearHubVendorListCache(JSON_CACHE_USER, slug)
+      clearHubVendorListCache(vendorListCacheUserId, slug)
       list = []
     }
     setVendors(list)
     const hasRows = list.length > 0
-    const vendorListFresh = isHubVendorListCacheFresh(JSON_CACHE_USER, slug)
+    const vendorListFresh = isHubVendorListCacheFresh(vendorListCacheUserId, slug)
     if (!vendorListFresh && !hasRows) {
       setLoading(true)
     } else {
       setLoading(false)
     }
-  }, [slug])
+  }, [slug, vendorListCacheUserId])
 
   useEffect(() => {
     if (!MARKETPLACE.has(slug)) {
@@ -75,11 +88,11 @@ export function HubMarketplaceStoresDirectory({ lineSlug: slugProp }: { lineSlug
 
   useEffect(() => {
     if (!MARKETPLACE.has(slug)) return
-    if (isHubServiceLinesCacheFresh(JSON_CACHE_USER)) {
-      const s = readStaleHubServiceLinesCache(JSON_CACHE_USER)
+    if (isHubServiceLinesCacheFresh(SERVICE_LINES_CACHE_USER)) {
+      const s = readStaleHubServiceLinesCache(SERVICE_LINES_CACHE_USER)
       if (s) setLines(s)
       setLinesLoaded(true)
-      scheduleHubServiceLinesStaleWhileRevalidate(JSON_CACHE_USER, async () => {
+      scheduleHubServiceLinesStaleWhileRevalidate(SERVICE_LINES_CACHE_USER, async () => {
         const res = await fetch("/api/hub/service-lines", { cache: "no-store" })
         if (!res.ok) return null
         const data = await res.json()
@@ -89,7 +102,7 @@ export function HubMarketplaceStoresDirectory({ lineSlug: slugProp }: { lineSlug
     }
 
     let cancelled = false
-    const silent = readStaleHubServiceLinesCache(JSON_CACHE_USER) !== null
+    const silent = readStaleHubServiceLinesCache(SERVICE_LINES_CACHE_USER) !== null
     ;(async () => {
       try {
         const res = await fetch("/api/hub/service-lines", { cache: "no-store" })
@@ -98,7 +111,7 @@ export function HubMarketplaceStoresDirectory({ lineSlug: slugProp }: { lineSlug
         const next = (data.serviceLines || []) as HubServiceLineRow[]
         if (!cancelled) {
           setLines(next)
-          writeHubServiceLinesCache(JSON_CACHE_USER, next)
+          writeHubServiceLinesCache(SERVICE_LINES_CACHE_USER, next)
         }
       } catch {
         if (!cancelled && !silent) setLines([])
@@ -113,10 +126,10 @@ export function HubMarketplaceStoresDirectory({ lineSlug: slugProp }: { lineSlug
 
   useEffect(() => {
     if (!MARKETPLACE.has(slug)) return
-    const staleVendors = readStaleHubVendorListCache(JSON_CACHE_USER, slug)
+    const staleVendors = readStaleHubVendorListCache(vendorListCacheUserId, slug)
     const vendorsRowsOk = !staleVendors?.length || hubCachedVendorsMatchServiceLine(staleVendors, slug)
     if (
-      isHubVendorListCacheFresh(JSON_CACHE_USER, slug) &&
+      isHubVendorListCacheFresh(vendorListCacheUserId, slug) &&
       (staleVendors?.length ?? 0) > 0 &&
       vendorsRowsOk
     ) {
@@ -124,7 +137,7 @@ export function HubMarketplaceStoresDirectory({ lineSlug: slugProp }: { lineSlug
     }
 
     let cancelled = false
-    const staleRows = readStaleHubVendorListCache(JSON_CACHE_USER, slug)
+    const staleRows = readStaleHubVendorListCache(vendorListCacheUserId, slug)
     const hasRows = (staleRows?.length ?? 0) > 0
     if (!hasRows) setLoading(true)
 
@@ -136,7 +149,7 @@ export function HubMarketplaceStoresDirectory({ lineSlug: slugProp }: { lineSlug
         const next = (data.vendors || []) as HubVendorRow[]
         if (!cancelled) {
           setVendors(next)
-          writeHubVendorListCache(JSON_CACHE_USER, slug, next)
+          writeHubVendorListCache(vendorListCacheUserId, slug, next)
         }
       } catch {
         if (!cancelled) setVendors([])
@@ -147,7 +160,7 @@ export function HubMarketplaceStoresDirectory({ lineSlug: slugProp }: { lineSlug
     return () => {
       cancelled = true
     }
-  }, [slug])
+  }, [slug, vendorListCacheUserId])
 
   const title = line?.title
     ? `${t("hub.marketplaceStoresHeading", { defaultValue: "Stores" })} · ${line.title}`

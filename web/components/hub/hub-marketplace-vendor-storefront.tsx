@@ -10,6 +10,7 @@ import type { HubServiceLineRow } from "@/lib/hub-service-line-types"
 import { hubCachedProductsMatchServiceLine } from "@/lib/hub-slug"
 import {
   clearHubVendorCatalogCache,
+  hubMarketplaceSliceCacheUserId,
   hubPublicHubJsonCacheUserId,
   isHubServiceLinesCacheFresh,
   isHubVendorCatalogCacheFresh,
@@ -29,7 +30,7 @@ import { hubLineHomePath, hubMarketplaceVendorPath } from "@/lib/hub-public-path
 
 const MARKETPLACE = new Set(["food", "mart"])
 
-const JSON_CACHE_USER = hubPublicHubJsonCacheUserId()
+const SERVICE_LINES_CACHE_USER = hubPublicHubJsonCacheUserId()
 
 function vendorSummaryToHubRow(summary: HubProductVendorSummary, lineSlug: string): HubVendorRow {
   return {
@@ -140,6 +141,9 @@ function VendorCatalogInner({
 export function HubMarketplaceVendorStorefront({ lineSlug: lineProp, vendorSlug: vendorProp }: { lineSlug: string; vendorSlug: string }) {
   const lineSlug = String(lineProp || "").trim().toLowerCase()
   const vendorSlug = String(vendorProp || "").trim().toLowerCase()
+  const sliceVendorCacheUserId = MARKETPLACE.has(lineSlug)
+    ? hubMarketplaceSliceCacheUserId(lineSlug as "food" | "mart")
+    : SERVICE_LINES_CACHE_USER
   const router = useRouter()
   const { t } = useTranslation("app")
   const { user } = useAuth()
@@ -163,7 +167,7 @@ export function HubMarketplaceVendorStorefront({ lineSlug: lineProp, vendorSlug:
   useLayoutEffect(() => {
     if (!MARKETPLACE.has(lineSlug) || !vendorSlug) return
 
-    const meta = readStaleHubVendorMetaCache(JSON_CACHE_USER, lineSlug, vendorSlug)
+    const meta = readStaleHubVendorMetaCache(sliceVendorCacheUserId, lineSlug, vendorSlug)
     if (meta.kind === "found") {
       setVendorFromMeta(meta.vendor)
       setVendorFromCatalog(null)
@@ -178,14 +182,14 @@ export function HubMarketplaceVendorStorefront({ lineSlug: lineProp, vendorSlug:
     }
 
     setVendorFromMeta(null)
-    const list = readStaleHubVendorCatalogCache(JSON_CACHE_USER, lineSlug, vendorSlug)
+    const list = readStaleHubVendorCatalogCache(sliceVendorCacheUserId, lineSlug, vendorSlug)
     const preview = deriveVendorRowFromCatalogProducts(list, vendorSlug, lineSlug)
     setVendorFromCatalog(preview)
     setMetaTerminal(false)
-  }, [lineSlug, vendorSlug])
+  }, [lineSlug, vendorSlug, sliceVendorCacheUserId])
 
   useLayoutEffect(() => {
-    const stale = readStaleHubServiceLinesCache(JSON_CACHE_USER)
+    const stale = readStaleHubServiceLinesCache(SERVICE_LINES_CACHE_USER)
     if (stale !== null) {
       setLines(stale)
       setLinesLoaded(true)
@@ -193,11 +197,11 @@ export function HubMarketplaceVendorStorefront({ lineSlug: lineProp, vendorSlug:
   }, [])
 
   useEffect(() => {
-    if (isHubServiceLinesCacheFresh(JSON_CACHE_USER)) {
-      const s = readStaleHubServiceLinesCache(JSON_CACHE_USER)
+    if (isHubServiceLinesCacheFresh(SERVICE_LINES_CACHE_USER)) {
+      const s = readStaleHubServiceLinesCache(SERVICE_LINES_CACHE_USER)
       if (s) setLines(s)
       setLinesLoaded(true)
-      scheduleHubServiceLinesStaleWhileRevalidate(JSON_CACHE_USER, async () => {
+      scheduleHubServiceLinesStaleWhileRevalidate(SERVICE_LINES_CACHE_USER, async () => {
         const res = await fetch("/api/hub/service-lines", { cache: "no-store" })
         if (!res.ok) return null
         const data = await res.json()
@@ -207,7 +211,7 @@ export function HubMarketplaceVendorStorefront({ lineSlug: lineProp, vendorSlug:
     }
 
     let cancelled = false
-    const silent = readStaleHubServiceLinesCache(JSON_CACHE_USER) !== null
+    const silent = readStaleHubServiceLinesCache(SERVICE_LINES_CACHE_USER) !== null
     ;(async () => {
       try {
         const res = await fetch("/api/hub/service-lines", { cache: "no-store" })
@@ -216,7 +220,7 @@ export function HubMarketplaceVendorStorefront({ lineSlug: lineProp, vendorSlug:
         const next = (data.serviceLines || []) as HubServiceLineRow[]
         if (!cancelled) {
           setLines(next)
-          writeHubServiceLinesCache(JSON_CACHE_USER, next)
+          writeHubServiceLinesCache(SERVICE_LINES_CACHE_USER, next)
         }
       } catch {
         if (!cancelled && !silent) setLines([])
@@ -231,7 +235,7 @@ export function HubMarketplaceVendorStorefront({ lineSlug: lineProp, vendorSlug:
 
   useEffect(() => {
     if (!MARKETPLACE.has(lineSlug) || !vendorSlug) return
-    if (isHubVendorMetaCacheFresh(JSON_CACHE_USER, lineSlug, vendorSlug)) return
+    if (isHubVendorMetaCacheFresh(sliceVendorCacheUserId, lineSlug, vendorSlug)) return
 
     let cancelled = false
     ;(async () => {
@@ -244,7 +248,7 @@ export function HubMarketplaceVendorStorefront({ lineSlug: lineProp, vendorSlug:
           if (!cancelled) {
             setVendorFromMeta(null)
             setVendorFromCatalog(null)
-            writeHubVendorMetaCache(JSON_CACHE_USER, lineSlug, vendorSlug, null)
+            writeHubVendorMetaCache(sliceVendorCacheUserId, lineSlug, vendorSlug, null)
           }
           return
         }
@@ -254,7 +258,7 @@ export function HubMarketplaceVendorStorefront({ lineSlug: lineProp, vendorSlug:
         if (!cancelled) {
           setVendorFromMeta(v)
           setVendorFromCatalog(null)
-          writeHubVendorMetaCache(JSON_CACHE_USER, lineSlug, vendorSlug, v)
+          writeHubVendorMetaCache(sliceVendorCacheUserId, lineSlug, vendorSlug, v)
         }
       } catch {
         if (!cancelled) setVendorFromMeta(null)
@@ -265,7 +269,7 @@ export function HubMarketplaceVendorStorefront({ lineSlug: lineProp, vendorSlug:
     return () => {
       cancelled = true
     }
-  }, [lineSlug, vendorSlug])
+  }, [lineSlug, vendorSlug, sliceVendorCacheUserId])
 
   useEffect(() => {
     if (lineSlug && !MARKETPLACE.has(lineSlug)) {
@@ -332,7 +336,7 @@ export function HubMarketplaceVendorStorefront({ lineSlug: lineProp, vendorSlug:
       heroLoading={false}
       showHeroClose={showHeroClose}
     >
-      <VendorCatalogInner lineSlug={lineSlug} vendorSlug={vendorSlug} cacheUserId={JSON_CACHE_USER} />
+      <VendorCatalogInner lineSlug={lineSlug} vendorSlug={vendorSlug} cacheUserId={sliceVendorCacheUserId} />
     </HubLinePageShell>
   )
 }
