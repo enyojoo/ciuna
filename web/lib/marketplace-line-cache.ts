@@ -31,6 +31,12 @@ const mem: MemoryCache = {
   martVendors: null,
 }
 
+/** Per-vendor, per-line in-memory mirrors so repeat opens of the same storefront skip localStorage too. */
+const memFoodVendor = new Map<string, Entry<HubVendorRow | null>>()
+const memMartVendor = new Map<string, Entry<HubVendorRow | null>>()
+const memFoodVendorProducts = new Map<string, Entry<HubProductRow[]>>()
+const memMartVendorProducts = new Map<string, Entry<HubProductRow[]>>()
+
 function readEntry<T>(storageKey: string): Entry<T> | null {
   if (typeof window === "undefined") return null
   try {
@@ -98,3 +104,127 @@ export const readMartVendorsCache = (): CacheRead<HubVendorRow[]> | null =>
   read<HubVendorRow[]>(MART_VENDORS_KEY, "martVendors")
 export const writeMartVendorsCache = (value: HubVendorRow[]): void =>
   write(MART_VENDORS_KEY, "martVendors", value)
+
+/* -------------------------------------------------------------------------- */
+/* Vendor storefront caches (per line × per vendor slug).                     */
+/*                                                                            */
+/* Each helper is hardcoded to its line. Food readers / writers cannot touch  */
+/* mart entries and vice versa.                                               */
+/* -------------------------------------------------------------------------- */
+
+const FOOD_VENDOR_KEY = (slug: string) => `ciuna_food_vendor_${slug}_v3`
+const FOOD_VENDOR_PRODUCTS_KEY = (slug: string) => `ciuna_food_vendor_${slug}_products_v3`
+const MART_VENDOR_KEY = (slug: string) => `ciuna_mart_vendor_${slug}_v3`
+const MART_VENDOR_PRODUCTS_KEY = (slug: string) => `ciuna_mart_vendor_${slug}_products_v3`
+
+interface VendorMetaStored {
+  vendor: HubVendorRow | null
+  notFound: boolean
+}
+
+export interface VendorCacheRead {
+  vendor: HubVendorRow | null
+  notFound: boolean
+  fresh: boolean
+}
+
+function readVendorEntry(
+  storageKey: string,
+  memMap: Map<string, Entry<HubVendorRow | null>>,
+  memKey: string,
+): VendorCacheRead | null {
+  const fromMem = memMap.get(memKey)
+  if (fromMem) {
+    return { vendor: fromMem.value, notFound: fromMem.value === null, fresh: Date.now() - fromMem.t < TTL_MS }
+  }
+  if (typeof window === "undefined") return null
+  try {
+    const raw = localStorage.getItem(storageKey)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as { value?: VendorMetaStored; t?: unknown }
+    if (!parsed.value || typeof parsed.t !== "number") return null
+    const v = parsed.value.vendor
+    const isVendor =
+      v && typeof v === "object" && typeof (v as HubVendorRow).id === "string" && typeof (v as HubVendorRow).slug === "string"
+    if (!parsed.value.notFound && !isVendor) return null
+    const vendor = parsed.value.notFound ? null : (v as HubVendorRow)
+    memMap.set(memKey, { value: vendor, t: parsed.t })
+    return { vendor, notFound: parsed.value.notFound, fresh: Date.now() - parsed.t < TTL_MS }
+  } catch {
+    return null
+  }
+}
+
+function writeVendorEntry(
+  storageKey: string,
+  memMap: Map<string, Entry<HubVendorRow | null>>,
+  memKey: string,
+  vendor: HubVendorRow | null,
+): void {
+  const stored: VendorMetaStored = { vendor, notFound: vendor === null }
+  const entry: Entry<HubVendorRow | null> = { value: vendor, t: Date.now() }
+  memMap.set(memKey, entry)
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(storageKey, JSON.stringify({ value: stored, t: entry.t }))
+  } catch {
+    /* ignore */
+  }
+}
+
+function readVendorProductsEntry(
+  storageKey: string,
+  memMap: Map<string, Entry<HubProductRow[]>>,
+  memKey: string,
+): CacheRead<HubProductRow[]> | null {
+  const fromMem = memMap.get(memKey)
+  if (fromMem) return { value: fromMem.value, fresh: Date.now() - fromMem.t < TTL_MS }
+  if (typeof window === "undefined") return null
+  try {
+    const raw = localStorage.getItem(storageKey)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as { value?: unknown; t?: unknown }
+    if (!Array.isArray(parsed.value) || typeof parsed.t !== "number") return null
+    const list = parsed.value as HubProductRow[]
+    memMap.set(memKey, { value: list, t: parsed.t })
+    return { value: list, fresh: Date.now() - parsed.t < TTL_MS }
+  } catch {
+    return null
+  }
+}
+
+function writeVendorProductsEntry(
+  storageKey: string,
+  memMap: Map<string, Entry<HubProductRow[]>>,
+  memKey: string,
+  list: HubProductRow[],
+): void {
+  const entry: Entry<HubProductRow[]> = { value: list, t: Date.now() }
+  memMap.set(memKey, entry)
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(storageKey, JSON.stringify({ value: list, t: entry.t }))
+  } catch {
+    /* ignore */
+  }
+}
+
+export const readFoodVendorCache = (vendorSlug: string): VendorCacheRead | null =>
+  readVendorEntry(FOOD_VENDOR_KEY(vendorSlug), memFoodVendor, vendorSlug)
+export const writeFoodVendorCache = (vendorSlug: string, vendor: HubVendorRow | null): void =>
+  writeVendorEntry(FOOD_VENDOR_KEY(vendorSlug), memFoodVendor, vendorSlug, vendor)
+
+export const readMartVendorCache = (vendorSlug: string): VendorCacheRead | null =>
+  readVendorEntry(MART_VENDOR_KEY(vendorSlug), memMartVendor, vendorSlug)
+export const writeMartVendorCache = (vendorSlug: string, vendor: HubVendorRow | null): void =>
+  writeVendorEntry(MART_VENDOR_KEY(vendorSlug), memMartVendor, vendorSlug, vendor)
+
+export const readFoodVendorProductsCache = (vendorSlug: string): CacheRead<HubProductRow[]> | null =>
+  readVendorProductsEntry(FOOD_VENDOR_PRODUCTS_KEY(vendorSlug), memFoodVendorProducts, vendorSlug)
+export const writeFoodVendorProductsCache = (vendorSlug: string, list: HubProductRow[]): void =>
+  writeVendorProductsEntry(FOOD_VENDOR_PRODUCTS_KEY(vendorSlug), memFoodVendorProducts, vendorSlug, list)
+
+export const readMartVendorProductsCache = (vendorSlug: string): CacheRead<HubProductRow[]> | null =>
+  readVendorProductsEntry(MART_VENDOR_PRODUCTS_KEY(vendorSlug), memMartVendorProducts, vendorSlug)
+export const writeMartVendorProductsCache = (vendorSlug: string, list: HubProductRow[]): void =>
+  writeVendorProductsEntry(MART_VENDOR_PRODUCTS_KEY(vendorSlug), memMartVendorProducts, vendorSlug, list)

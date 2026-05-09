@@ -5,6 +5,9 @@ import { getPublishedHubVendorForLine } from "@/lib/hub-vendor-resolve"
 
 const ALLOWED_LINES = new Set(["food", "mart"])
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export const GET = withErrorHandling(async (request: NextRequest, context?: { params?: Promise<{ vendorSlug: string }> }) => {
   const params = context?.params ? await context.params : { vendorSlug: "" }
   const vendorSlug = params.vendorSlug
@@ -45,6 +48,6 @@ export const GET = withErrorHandling(async (request: NextRequest, context?: { pa
       updated_at: String(vendor.updated_at || ""),
     },
   })
-  res.headers.set("Cache-Control", "public, max-age=120, stale-while-revalidate=300")
+  res.headers.set("Cache-Control", "no-store, no-cache, must-revalidate")
   return res
 })
