@@ -10,11 +10,15 @@ import {
   hubPublicHubJsonCacheUserId,
   isHubServiceLinesCacheFresh,
   readStaleHubServiceLinesCache,
+  scheduleHubServiceLinesStaleWhileRevalidate,
   writeHubServiceLinesCache,
 } from "@/lib/hub-client-cache"
 import {
+  isExpertCatalogServicesListCacheFresh,
   isExpertProfilesListCacheFresh,
+  readStaleExpertCatalogServicesListCache,
   readStaleExpertProfilesListCache,
+  writeExpertCatalogServicesListCache,
   writeExpertProfilesListCache,
 } from "@/lib/expert-profile-client-cache"
 import {
@@ -91,6 +95,17 @@ function ExpertsDiscoveryInner() {
     else setLoadingProfiles(false)
   }, [])
 
+  useLayoutEffect(() => {
+    const stale = readStaleExpertCatalogServicesListCache()
+    if (stale && stale.length > 0) {
+      setCatalogServices(stale)
+    }
+    const hasRows = (stale?.length ?? 0) > 0
+    const fresh = isExpertCatalogServicesListCacheFresh()
+    if (!fresh && !hasRows) setLoadingCatalog(true)
+    else setLoadingCatalog(false)
+  }, [])
+
   const expertsLine = useMemo(() => lines.find((l) => l.slug === "experts") ?? null, [lines])
 
   useLayoutEffect(() => {
@@ -106,6 +121,12 @@ function ExpertsDiscoveryInner() {
       const s = readStaleHubServiceLinesCache(SERVICE_LINES_CACHE_USER)
       if (s) setLines(s)
       setLinesLoaded(true)
+      scheduleHubServiceLinesStaleWhileRevalidate(SERVICE_LINES_CACHE_USER, async () => {
+        const res = await fetch("/api/hub/service-lines", { cache: "no-store" })
+        if (!res.ok) return null
+        const data = await res.json()
+        return (data.serviceLines || []) as HubServiceLineRow[]
+      }, setLines)
       return
     }
 
@@ -161,14 +182,22 @@ function ExpertsDiscoveryInner() {
   }, [])
 
   useEffect(() => {
+    if (isExpertCatalogServicesListCacheFresh()) return
+
     let cancelled = false
+    const silent = (readStaleExpertCatalogServicesListCache()?.length ?? 0) > 0
+    if (!silent) setLoadingCatalog(true)
+
     ;(async () => {
       try {
         const res = await fetch("/api/expert/catalog-services", { cache: "no-store" })
         if (!res.ok) throw new Error("catalog")
         const data = await res.json()
         const list = (data.services || []) as ExpertCatalogService[]
-        if (!cancelled) setCatalogServices(list)
+        if (!cancelled) {
+          setCatalogServices(list)
+          writeExpertCatalogServicesListCache(list)
+        }
       } catch {
         if (!cancelled) setCatalogServices([])
       } finally {
@@ -257,6 +286,7 @@ function ExpertsDiscoveryInner() {
             {profiles.length > 0 ? (
               <Link
                 href={EXPERTS_BROWSE_PATH}
+                prefetch
                 className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-orange-600 transition hover:text-orange-700"
               >
                 {t("hub.expertsSeeAll", { defaultValue: "See all" })}

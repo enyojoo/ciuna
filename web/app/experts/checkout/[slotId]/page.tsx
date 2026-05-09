@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context"
 import { fetchWithAuth } from "@/lib/fetch-with-auth"
 import { stashRedirectAfterLogin } from "@/lib/auth-login-redirect"
 import { expertsBookServicePath, EXPERTS_CATALOG_PATH } from "@/lib/experts-public-paths"
+import { ExpertsRouteLoadingSkeleton } from "@/components/hub/experts-route-loading-skeleton"
 
 function RedirectInner() {
   const router = useRouter()
@@ -48,28 +49,12 @@ function RedirectInner() {
     }
   }, [user, authLoading, router, slotId])
 
-  return (
-    <div className="min-w-0 px-4 py-6">
-      <div className="mx-auto max-w-lg animate-pulse space-y-4">
-        <div className="h-12 rounded-lg bg-muted" />
-        <div className="h-48 rounded-2xl bg-muted" />
-      </div>
-    </div>
-  )
+  return <ExpertsRouteLoadingSkeleton />
 }
 
 export default function LegacyExpertSlotCheckoutRedirectPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-w-0 px-4 py-6">
-          <div className="mx-auto max-w-lg animate-pulse space-y-4">
-            <div className="h-12 rounded-lg bg-muted" />
-            <div className="h-48 rounded-2xl bg-muted" />
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<ExpertsRouteLoadingSkeleton />}>
       <RedirectInner />
     </Suspense>
   )

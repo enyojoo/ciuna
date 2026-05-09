@@ -68,7 +68,7 @@ export function HubExpertServiceCatalogCard({ service: s }: { service: ExpertCat
     <Card className={cn(serviceCardClass, "h-full")}>
       <CardContent className="flex min-h-[11rem] flex-1 flex-col gap-2.5 p-3 sm:min-h-[12rem] sm:gap-3 sm:p-5">
         <div className="min-w-0 flex-1 space-y-1.5 sm:space-y-2">
-          <Link href={profileHref} className="block min-w-0">
+          <Link href={profileHref} prefetch className="block min-w-0">
             <p className="break-words text-base font-semibold leading-snug tracking-tight text-gray-900 transition-colors hover:text-orange-700 dark:text-foreground dark:hover:text-orange-300 sm:text-lg">
               {s.title}
             </p>
@@ -87,7 +87,7 @@ export function HubExpertServiceCatalogCard({ service: s }: { service: ExpertCat
         <p className="text-sm font-semibold tabular-nums text-orange-700 dark:text-orange-300 sm:text-base">{priceLine(s, t)}</p>
         <div className="mt-auto flex flex-col gap-2 pt-0.5">
           <Button asChild size="sm" className="h-9 w-full rounded-xl text-xs font-semibold sm:h-10 sm:text-sm">
-            <Link href={user ? bookHref : "/auth/login"} onClick={user ? undefined : onGuestBookNav}>
+            <Link href={user ? bookHref : "/auth/login"} prefetch={Boolean(user)} onClick={user ? undefined : onGuestBookNav}>
               {t("experts.profile.bookSession")}
             </Link>
           </Button>

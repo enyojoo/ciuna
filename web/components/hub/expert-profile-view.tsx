@@ -196,7 +196,7 @@ export function ExpertProfileView({ slugOrId }: { slugOrId: string }) {
         showHeroClose={Boolean(user)}
       >
         <Button asChild variant="outline">
-          <Link href={EXPERTS_CATALOG_PATH}>{t("hub.expertsAll")}</Link>
+          <Link href={EXPERTS_CATALOG_PATH} prefetch>{t("hub.expertsAll")}</Link>
         </Button>
       </HubLinePageShell>
     )
@@ -279,6 +279,7 @@ export function ExpertProfileView({ slugOrId }: { slugOrId: string }) {
                                 ? appendExpertsBookEntryFrom(expertsBookServicePath(p, s.id), true)
                                 : "/auth/login"
                             }
+                            prefetch={Boolean(user)}
                             onClick={
                               user
                                 ? undefined

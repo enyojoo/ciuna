@@ -597,7 +597,7 @@ export default function HubCheckoutPage() {
           <div className="mx-auto max-w-4xl">
             <p className="text-red-600">{t("hub.productNotFound")}</p>
             <Button asChild variant="outline" className="mt-4">
-              <Link href={checkoutBackHref}>{t("hub.hub")}</Link>
+              <Link href={checkoutBackHref} prefetch>{t("hub.hub")}</Link>
             </Button>
           </div>
         </div>

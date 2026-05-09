@@ -9,9 +9,14 @@ import { HubShellHeader } from "@/components/hub/hub-shell-header"
 import { HubServiceLineTiles } from "@/components/hub/hub-service-line-tiles"
 import type { HubServiceLineRow } from "@/lib/hub-service-line-types"
 import {
+  hubPublicHubJsonCacheUserId,
+  isHubServiceLinesCacheFresh,
   readStaleHubServiceLinesCache,
+  scheduleHubServiceLinesStaleWhileRevalidate,
   writeHubServiceLinesCache,
 } from "@/lib/hub-client-cache"
+
+const SERVICE_LINES_CACHE_USER = hubPublicHubJsonCacheUserId()
 
 export default function HubHomePage() {
   const { t, i18n } = useTranslation("app")
@@ -30,11 +35,10 @@ export default function HubHomePage() {
     : t("hub.heroBody")
 
   useLayoutEffect(() => {
-    if (authLoading || !user?.id) return
-    const stale = readStaleHubServiceLinesCache(user.id)
+    const stale = readStaleHubServiceLinesCache(SERVICE_LINES_CACHE_USER)
     setLines(stale ?? [])
     setLoading(stale === null)
-  }, [user?.id, authLoading])
+  }, [])
 
   useEffect(() => {
     if (!user) {
@@ -43,6 +47,19 @@ export default function HubHomePage() {
     }
     if (!user.id) return
 
+    if (isHubServiceLinesCacheFresh(SERVICE_LINES_CACHE_USER)) {
+      const s = readStaleHubServiceLinesCache(SERVICE_LINES_CACHE_USER)
+      if (s) setLines(s)
+      setLoading(false)
+      scheduleHubServiceLinesStaleWhileRevalidate(SERVICE_LINES_CACHE_USER, async () => {
+        const res = await fetchWithAuth("/api/hub/service-lines", { cache: "no-store" })
+        if (!res.ok) return null
+        const data = await res.json()
+        return (data.serviceLines || []) as HubServiceLineRow[]
+      }, setLines)
+      return
+    }
+
     const load = async (silent: boolean) => {
       try {
         const res = await fetchWithAuth("/api/hub/service-lines", { cache: "no-store" })
@@ -50,7 +67,7 @@ export default function HubHomePage() {
         const data = await res.json()
         const next = (data.serviceLines || []) as HubServiceLineRow[]
         setLines(next)
-        writeHubServiceLinesCache(user.id, next)
+        writeHubServiceLinesCache(SERVICE_LINES_CACHE_USER, next)
       } catch {
         if (!silent) setLines([])
       } finally {
@@ -58,7 +75,7 @@ export default function HubHomePage() {
       }
     }
 
-    const stale = readStaleHubServiceLinesCache(user.id)
+    const stale = readStaleHubServiceLinesCache(SERVICE_LINES_CACHE_USER)
     void load(stale !== null)
   }, [user, authLoading, router])
 
@@ -73,7 +90,7 @@ export default function HubHomePage() {
             const data = await res.json()
             const next = (data.serviceLines || []) as HubServiceLineRow[]
             setLines(next)
-            writeHubServiceLinesCache(user.id, next)
+            writeHubServiceLinesCache(SERVICE_LINES_CACHE_USER, next)
           } catch {
             /* keep cached rows */
           }

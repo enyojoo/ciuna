@@ -7,6 +7,8 @@ import { fetchWithAuth } from "@/lib/fetch-with-auth"
 import { stashRedirectAfterLogin } from "@/lib/auth-login-redirect"
 import { expertsBookServicePath, EXPERTS_CATALOG_PATH } from "@/lib/experts-public-paths"
 
+import { ExpertsRouteLoadingSkeleton } from "@/components/hub/experts-route-loading-skeleton"
+
 function ExpertsCheckoutRedirect() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -48,25 +50,13 @@ function ExpertsCheckoutRedirect() {
     }
   }, [user, authLoading, router, slotId])
 
-  return (
-    <div className="min-w-0 px-4 py-5 sm:px-6">
-      <div className="mx-auto max-w-5xl animate-pulse space-y-4">
-        <div className="h-40 rounded-2xl bg-muted" />
-      </div>
-    </div>
-  )
+  return <ExpertsRouteLoadingSkeleton />
 }
 
 export default function ExpertsCheckoutPage() {
   return (
     <Suspense
-      fallback={
-        <div className="min-w-0 px-4 py-5 sm:px-6">
-          <div className="mx-auto max-w-5xl animate-pulse space-y-4">
-            <div className="h-40 rounded-2xl bg-muted" />
-          </div>
-        </div>
-      }
+      fallback={<ExpertsRouteLoadingSkeleton />}
     >
       <ExpertsCheckoutRedirect />
     </Suspense>

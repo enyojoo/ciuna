@@ -7,6 +7,7 @@ import {
   hubPublicHubJsonCacheUserId,
   isHubServiceLinesCacheFresh,
   readStaleHubServiceLinesCache,
+  scheduleHubServiceLinesStaleWhileRevalidate,
   writeHubServiceLinesCache,
 } from "@/lib/hub-client-cache"
 import {
@@ -58,6 +59,12 @@ export default function ExpertsBrowsePage() {
       const s = readStaleHubServiceLinesCache(SERVICE_LINES_CACHE_USER)
       if (s) setLines(s)
       setLinesLoaded(true)
+      scheduleHubServiceLinesStaleWhileRevalidate(SERVICE_LINES_CACHE_USER, async () => {
+        const res = await fetch("/api/hub/service-lines", { cache: "no-store" })
+        if (!res.ok) return null
+        const data = await res.json()
+        return (data.serviceLines || []) as HubServiceLineRow[]
+      }, setLines)
       return
     }
 

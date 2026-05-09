@@ -158,6 +158,7 @@ export function VendorHubCatalog({
               <CardContent className="flex h-full flex-col p-0">
                 <Link
                   href={user ? productCheckoutHref(p.id) : "/auth/login"}
+                  prefetch={Boolean(user)}
                   onClick={user ? undefined : onGuestProductNav}
                   className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
                 >
@@ -179,6 +180,7 @@ export function VendorHubCatalog({
                 <div className="flex flex-1 flex-col gap-1 px-2.5 pb-1.5 pt-2 sm:px-3 sm:pb-2 sm:pt-2">
                   <Link
                     href={user ? productCheckoutHref(p.id) : "/auth/login"}
+                    prefetch={Boolean(user)}
                     onClick={user ? undefined : onGuestProductNav}
                     className="group/title block min-w-0"
                   >
@@ -218,6 +220,7 @@ export function VendorHubCatalog({
                     <Button asChild size="sm" className="h-8 w-full rounded-xl text-xs font-semibold">
                       <Link
                         href={user ? productCheckoutHref(p.id) : "/auth/login"}
+                        prefetch={Boolean(user)}
                         onClick={user ? undefined : onGuestProductNav}
                       >
                         {p.pricing_type === "fixed" ? t("hub.buy") : t("hub.order")}

@@ -25,7 +25,7 @@ export function HubExpertCatalogCard({
   className?: string
 }) {
   return (
-    <Link href={expertsProfilePath(ex)} className={cn("block min-w-0", className)}>
+    <Link href={expertsProfilePath(ex)} prefetch className={cn("block min-w-0", className)}>
       <Card className={cn(cardClass, "h-full")}>
         <CardContent className="flex h-full flex-col p-0">
           <div className="relative aspect-square w-full overflow-hidden bg-gray-100 dark:bg-muted">
@@ -64,6 +64,7 @@ export function HubExpertCatalogFeaturedChip({ expert: ex }: { expert: ExpertCat
   return (
     <Link
       href={expertsProfilePath(ex)}
+      prefetch
       className="w-[7.5rem] shrink-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:border-orange-300/70 hover:shadow-md sm:w-[8.5rem]"
     >
       <div className="relative aspect-square w-full bg-muted">

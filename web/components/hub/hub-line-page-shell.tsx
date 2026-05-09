@@ -43,7 +43,7 @@ function HeroCloseLink({
     )
   }
   return (
-    <Link href={backHref} aria-label={backToHubAriaLabel} className={heroCloseClassName}>
+    <Link href={backHref} prefetch aria-label={backToHubAriaLabel} className={heroCloseClassName}>
       <X
         className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-[1.125rem] md:w-[1.125rem] xl:h-5 xl:w-5"
         aria-hidden

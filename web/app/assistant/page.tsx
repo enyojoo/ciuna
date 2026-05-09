@@ -8,7 +8,15 @@ import { useTranslation } from "react-i18next"
 import { useAuth } from "@/lib/auth-context"
 import { fetchWithAuth } from "@/lib/fetch-with-auth"
 import type { HubServiceLineRow } from "@/lib/hub-service-line-types"
-import { readStaleHubServiceLinesCache, writeHubServiceLinesCache } from "@/lib/hub-client-cache"
+import {
+  hubPublicHubJsonCacheUserId,
+  isHubServiceLinesCacheFresh,
+  readStaleHubServiceLinesCache,
+  scheduleHubServiceLinesStaleWhileRevalidate,
+  writeHubServiceLinesCache,
+} from "@/lib/hub-client-cache"
+
+const SERVICE_LINES_CACHE_USER = hubPublicHubJsonCacheUserId()
 import { HubLinePageShell } from "@/components/hub/hub-line-page-shell"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -27,8 +35,7 @@ const KINDS: { id: AssistantKind; titleKey: string; descKey: string }[] = [
 export default function AssistantPage() {
   const { t } = useTranslation("app")
   const router = useRouter()
-  const { user, userProfile, loading: authLoading } = useAuth()
-  const cacheUserId = user?.id ?? userProfile?.id ?? ""
+  const { user, loading: authLoading } = useAuth()
   const [lines, setLines] = useState<HubServiceLineRow[]>([])
   const [linesLoaded, setLinesLoaded] = useState(false)
   const [kind, setKind] = useState<AssistantKind | null>(null)
@@ -41,22 +48,34 @@ export default function AssistantPage() {
   const assistantLine = useMemo(() => lines.find((l) => l.slug === "assistant") ?? null, [lines])
 
   useLayoutEffect(() => {
-    if (!cacheUserId) return
-    const stale = readStaleHubServiceLinesCache(cacheUserId)
+    const stale = readStaleHubServiceLinesCache(SERVICE_LINES_CACHE_USER)
     if (stale !== null) {
       setLines(stale)
       setLinesLoaded(true)
     }
-  }, [cacheUserId])
+  }, [])
 
   useEffect(() => {
     if (!user) {
       if (!authLoading) router.push("/auth/login")
       return
     }
-    const userId = user.id
+
+    if (isHubServiceLinesCacheFresh(SERVICE_LINES_CACHE_USER)) {
+      const s = readStaleHubServiceLinesCache(SERVICE_LINES_CACHE_USER)
+      if (s) setLines(s)
+      setLinesLoaded(true)
+      scheduleHubServiceLinesStaleWhileRevalidate(SERVICE_LINES_CACHE_USER, async () => {
+        const res = await fetchWithAuth("/api/hub/service-lines", { cache: "no-store" })
+        if (!res.ok) return null
+        const data = await res.json()
+        return (data.serviceLines || []) as HubServiceLineRow[]
+      }, setLines)
+      return
+    }
+
     let cancelled = false
-    const silent = readStaleHubServiceLinesCache(userId) !== null
+    const silent = readStaleHubServiceLinesCache(SERVICE_LINES_CACHE_USER) !== null
     ;(async () => {
       try {
         const res = await fetchWithAuth("/api/hub/service-lines", { cache: "no-store" })
@@ -65,7 +84,7 @@ export default function AssistantPage() {
         const next = (data.serviceLines || []) as HubServiceLineRow[]
         if (!cancelled) {
           setLines(next)
-          writeHubServiceLinesCache(userId, next)
+          writeHubServiceLinesCache(SERVICE_LINES_CACHE_USER, next)
         }
       } catch {
         if (!cancelled && !silent) setLines([])

@@ -3,6 +3,8 @@ import { Suspense } from "react"
 
 import { SEO_PAGE_DESCRIPTIONS, SEO_PAGE_TITLES } from "@/lib/seo"
 
+import { ExpertsRouteLoadingSkeleton } from "@/components/hub/experts-route-loading-skeleton"
+
 /** Discovery + booking depend on live slots and session; do not statically cache route output. */
 export const dynamic = "force-dynamic"
 
@@ -18,5 +20,7 @@ export const metadata: Metadata = {
 }
 
 export default function ExpertsLayout({ children }: { children: React.ReactNode }) {
-  return <Suspense fallback={<div className="min-h-[40vh]" aria-hidden />}>{children}</Suspense>
+  return (
+    <Suspense fallback={<ExpertsRouteLoadingSkeleton />}>{children}</Suspense>
+  )
 }

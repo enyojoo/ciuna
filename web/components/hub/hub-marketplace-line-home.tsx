@@ -39,6 +39,7 @@ function MarketplaceProductCard({
       <CardContent className="flex h-full flex-col p-0">
         <Link
           href={checkoutHref}
+          prefetch
           className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
         >
           <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
@@ -52,7 +53,7 @@ function MarketplaceProductCard({
           </div>
         </Link>
         <div className="flex flex-1 flex-col gap-1 px-2.5 pb-1.5 pt-2 sm:px-3 sm:pb-2 sm:pt-2">
-          <Link href={checkoutHref} className="group/title block min-w-0">
+          <Link href={checkoutHref} prefetch className="group/title block min-w-0">
             <p className="line-clamp-2 text-[13px] font-semibold leading-snug text-gray-900 transition-colors group-hover/title:text-orange-700 sm:text-sm">
               {p.title}
             </p>
@@ -87,7 +88,7 @@ function MarketplaceProductCard({
               </div>
             )}
             <Button asChild size="sm" className="h-8 w-full rounded-xl text-xs font-semibold">
-              <Link href={checkoutHref}>{p.pricing_type === "fixed" ? t("hub.buy") : t("hub.order")}</Link>
+              <Link href={checkoutHref} prefetch>{p.pricing_type === "fixed" ? t("hub.buy") : t("hub.order")}</Link>
             </Button>
           </div>
         </div>
@@ -176,6 +177,7 @@ export function HubMarketplaceLineHome({
           {vendors.length > 0 ? (
             <Link
               href={storesHref}
+              prefetch
               className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-orange-600 transition hover:text-orange-700"
             >
               {t("hub.marketplaceSeeAllStores", { defaultValue: "See all" })}
@@ -200,6 +202,7 @@ export function HubMarketplaceLineHome({
               <Link
                 key={v.id}
                 href={hubMarketplaceVendorPath(lineSlug, v.slug)}
+                prefetch
                 className="w-[7.5rem] shrink-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:border-orange-300/70 hover:shadow-md sm:w-[8.5rem]"
               >
                 <div className="relative aspect-square w-full bg-muted">

@@ -18,6 +18,11 @@ import {
   EXPERTS_BOOK_FROM_QUERY,
   EXPERTS_CATALOG_PATH,
 } from "@/lib/experts-public-paths"
+import {
+  isExpertProfileDetailCacheFresh,
+  readStaleExpertProfileDetailCache,
+  writeExpertProfileDetailCache,
+} from "@/lib/expert-profile-client-cache"
 import { AppPageHeader } from "@/components/layout/app-page-header"
 import { HubExpertChipLight } from "@/components/hub/hub-expert-chip-light"
 import { ExpertSessionCheckoutPanel } from "@/components/hub/expert-session-checkout-panel"
@@ -87,7 +92,7 @@ export function ExpertBookingWizard() {
 
   const resolvedServiceId = serviceIdFromPath || serviceFromQuery
 
-  const { user, userProfile, loading: authLoading } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(() => (serviceIdFromPath ? 2 : 1))
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<ExpertProfile | null>(null)
@@ -129,25 +134,27 @@ export function ExpertBookingWizard() {
     setWizardStep(2)
   }, [resolvedServiceId, services])
 
-  const loadProfile = useCallback(async () => {
-    if (!slugOrId) return
-    setLoading(true)
-    try {
-      const res = await fetchWithAuth(`/api/expert/profiles/${encodeURIComponent(slugOrId)}`, { cache: "no-store" })
-      if (!res.ok) {
-        setProfile(null)
-        setServices([])
-        return
-      }
-      const data = await res.json()
-      setProfile((data.profile || null) as ExpertProfile | null)
-      setServices((data.services || []) as ExpertService[])
-    } catch {
+  useLayoutEffect(() => {
+    if (!slugOrId) {
+      setLoading(false)
+      return
+    }
+    const stale = readStaleExpertProfileDetailCache(slugOrId)
+    if (!stale) {
       setProfile(null)
       setServices([])
-    } finally {
-      setLoading(false)
+      setLoading(true)
+      return
     }
+    if (stale.notFound) {
+      setProfile(null)
+      setServices([])
+      setLoading(false)
+      return
+    }
+    setProfile((stale.profile || null) as ExpertProfile | null)
+    setServices((stale.services || []) as ExpertService[])
+    setLoading(false)
   }, [slugOrId])
 
   useEffect(() => {
@@ -158,9 +165,47 @@ export function ExpertBookingWizard() {
   }, [user, authLoading, router])
 
   useEffect(() => {
-    if (!user || authLoading) return
-    void loadProfile()
-  }, [user, authLoading, loadProfile])
+    if (!slugOrId || !user || authLoading) return
+    if (isExpertProfileDetailCacheFresh(slugOrId)) return
+
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetchWithAuth(`/api/expert/profiles/${encodeURIComponent(slugOrId)}`, { cache: "no-store" })
+        if (res.status === 404) {
+          writeExpertProfileDetailCache(slugOrId, { profile: null, services: [], notFound: true })
+          if (!cancelled) {
+            setProfile(null)
+            setServices([])
+          }
+          return
+        }
+        if (!res.ok) throw new Error("load")
+        const data = await res.json()
+        const profile = (data.profile || null) as ExpertProfile | null
+        const services = (data.services || []) as ExpertService[]
+        writeExpertProfileDetailCache(slugOrId, {
+          profile: profile as unknown as Record<string, unknown>,
+          services: services as unknown as Record<string, unknown>[],
+          notFound: false,
+        })
+        if (!cancelled) {
+          setProfile(profile)
+          setServices(services)
+        }
+      } catch {
+        if (!cancelled) {
+          setProfile(null)
+          setServices([])
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [slugOrId, user, authLoading])
 
   /** Deep link `?slot=` → load confirmation payload and open checkout on same route (send-style). */
   useEffect(() => {
@@ -267,11 +312,18 @@ export function ExpertBookingWizard() {
 
   if (!user && authLoading) {
     return (
-      <div className="min-w-0 px-4 py-5 sm:px-6">
-        <div className="mx-auto max-w-5xl animate-pulse space-y-4">
-          <div className="h-40 rounded-2xl bg-muted" />
+      <HubLinePageShell
+        title={t("experts.bookingWizard.loadingTitle", { defaultValue: "Booking" })}
+        subtitle={null}
+        backToHubAriaLabel={t("hub.backToExperts")}
+        backHref={EXPERTS_CATALOG_PATH}
+        heroLoading
+        showHeroClose={false}
+      >
+        <div className="animate-pulse space-y-4">
+          <div className="h-36 max-w-3xl rounded-2xl bg-muted" />
         </div>
-      </div>
+      </HubLinePageShell>
     )
   }
 
@@ -285,42 +337,59 @@ export function ExpertBookingWizard() {
 
   if (loading || deepLinkPending) {
     return (
-      <div className="min-w-0 px-4 py-5 sm:px-6">
-        <div className="mx-auto max-w-5xl animate-pulse space-y-4">
-          <div className="h-40 rounded-2xl bg-muted" />
+      <HubLinePageShell
+        title={t("experts.bookingWizard.loadingTitle", { defaultValue: "Booking" })}
+        subtitle={null}
+        backToHubAriaLabel={t("hub.backToExperts")}
+        backHref={EXPERTS_CATALOG_PATH}
+        heroLoading
+        showHeroClose
+      >
+        <div className="animate-pulse space-y-4">
+          <div className="h-36 max-w-3xl rounded-2xl bg-muted" />
         </div>
-      </div>
+      </HubLinePageShell>
     )
   }
 
   if (deepLinkError) {
     return (
-      <div className="min-w-0 px-4 pb-10 pt-2 sm:px-6">
-        <AppPageHeader title={t("experts.bookingWizard.slotUnavailable")} backHref={EXPERTS_CATALOG_PATH} />
-        <div className="mx-auto mt-6 flex max-w-lg flex-col gap-3 sm:flex-row">
+      <HubLinePageShell
+        title={t("experts.bookingWizard.slotUnavailable")}
+        subtitle={null}
+        backToHubAriaLabel={t("hub.backToExperts")}
+        backHref={EXPERTS_CATALOG_PATH}
+        showHeroClose
+      >
+        <div className="mx-auto flex max-w-lg flex-col gap-3 sm:flex-row">
           {profile ? (
             <Button asChild variant="default" className="rounded-xl">
-              <Link href={expertsBookPath(profile)}>{t("experts.bookingWizard.tryAgain")}</Link>
+              <Link href={expertsBookPath(profile)} prefetch>{t("experts.bookingWizard.tryAgain")}</Link>
             </Button>
           ) : null}
           <Button asChild variant="outline" className="rounded-xl">
-            <Link href={EXPERTS_CATALOG_PATH}>{t("hub.expertsAll")}</Link>
+            <Link href={EXPERTS_CATALOG_PATH} prefetch>{t("hub.expertsAll")}</Link>
           </Button>
         </div>
-      </div>
+      </HubLinePageShell>
     )
   }
 
   if (!profile) {
     return (
-      <div className="min-w-0 px-4 pb-10 pt-2 sm:px-6">
-        <AppPageHeader title={t("hub.expertNotFound")} backHref={EXPERTS_CATALOG_PATH} />
-        <div className="mx-auto mt-6 max-w-lg">
+      <HubLinePageShell
+        title={t("hub.expertNotFound")}
+        subtitle={null}
+        backToHubAriaLabel={t("hub.backToExperts")}
+        backHref={EXPERTS_CATALOG_PATH}
+        showHeroClose
+      >
+        <div className="mx-auto max-w-lg">
           <Button asChild variant="outline">
-            <Link href={EXPERTS_CATALOG_PATH}>{t("hub.expertsAll")}</Link>
+            <Link href={EXPERTS_CATALOG_PATH} prefetch>{t("hub.expertsAll")}</Link>
           </Button>
         </div>
-      </div>
+      </HubLinePageShell>
     )
   }
 
@@ -380,10 +449,10 @@ export function ExpertBookingWizard() {
           </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Button asChild className="rounded-xl">
-              <Link href={expertsProfilePath(ep)}>{t("experts.bookingWizard.bookAnother")}</Link>
+              <Link href={expertsProfilePath(ep)} prefetch>{t("experts.bookingWizard.bookAnother")}</Link>
             </Button>
             <Button variant="outline" asChild className="rounded-xl">
-              <Link href={EXPERTS_CATALOG_PATH}>{t("hub.expertsAll")}</Link>
+              <Link href={EXPERTS_CATALOG_PATH} prefetch>{t("hub.expertsAll")}</Link>
             </Button>
           </div>
         </div>

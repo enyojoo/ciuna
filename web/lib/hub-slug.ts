@@ -30,3 +30,25 @@ export function hubMarketplaceLineFromCategory(category: string): "food" | "mart
   if (s === "food" || s === "mart") return s
   return null
 }
+
+/** Validates marketplace product cache rows belong to `lineSlug` (food vs mart mix-ups). */
+export function hubCachedProductsMatchServiceLine(
+  products: { category?: string | null; service_line_slug?: string | null }[],
+  lineSlug: string,
+): boolean {
+  if (products.length === 0) return true
+  const line = String(lineSlug || "").trim().toLowerCase()
+  if (!line) return false
+  return products.every((p) => hubProductBelongsToServiceLine(p, line))
+}
+
+/** Validates vendor directory cache rows match `lineSlug`. */
+export function hubCachedVendorsMatchServiceLine(
+  vendors: { service_line_slug?: string | null }[],
+  lineSlug: string,
+): boolean {
+  if (vendors.length === 0) return true
+  const line = String(lineSlug || "").trim().toLowerCase()
+  if (!line) return false
+  return vendors.every((v) => String(v.service_line_slug || "").trim().toLowerCase() === line)
+}

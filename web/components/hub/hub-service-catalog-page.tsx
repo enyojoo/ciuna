@@ -12,8 +12,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { HubProductRow } from "@/lib/hub-types"
 import type { HubVendorRow } from "@/lib/hub-vendor-types"
 import type { HubServiceLineRow } from "@/lib/hub-service-line-types"
-import { categoryMatchesSlug, hubProductBelongsToServiceLine } from "@/lib/hub-slug"
 import {
+  categoryMatchesSlug,
+  hubCachedProductsMatchServiceLine,
+  hubCachedVendorsMatchServiceLine,
+  hubProductBelongsToServiceLine,
+} from "@/lib/hub-slug"
+import {
+  clearHubCatalogCache,
+  clearHubVendorListCache,
   hubClientCacheUserId,
   hubPublicHubJsonCacheUserId,
   isHubCatalogCacheFresh,
@@ -22,6 +29,7 @@ import {
   readStaleHubCatalogCache,
   readStaleHubServiceLinesCache,
   readStaleHubVendorListCache,
+  scheduleHubServiceLinesStaleWhileRevalidate,
   writeHubCatalogCache,
   writeHubServiceLinesCache,
   writeHubVendorListCache,
@@ -77,21 +85,31 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
   useLayoutEffect(() => {
     if (!marketplaceCatalogUserId) return
     const stale = readStaleHubCatalogCache(marketplaceCatalogUserId, catalogScope)
-    setProducts(stale && stale.length > 0 ? sortHubCatalogProducts(stale) : [])
-    const hasRows = (stale?.length ?? 0) > 0
+    let rows = stale && stale.length > 0 ? sortHubCatalogProducts(stale) : []
+    if (isMarketplaceLine && stale && stale.length > 0 && !hubCachedProductsMatchServiceLine(stale, slug)) {
+      clearHubCatalogCache(marketplaceCatalogUserId, catalogScope)
+      rows = []
+    }
+    setProducts(rows)
+    const hasRows = rows.length > 0
     const cacheFresh = isHubCatalogCacheFresh(marketplaceCatalogUserId, catalogScope)
     if (!cacheFresh && !hasRows) {
       setLoading(true)
     } else {
       setLoading(false)
     }
-  }, [marketplaceCatalogUserId, catalogScope])
+  }, [marketplaceCatalogUserId, catalogScope, isMarketplaceLine, slug])
 
   useLayoutEffect(() => {
     if (!isMarketplaceLine) return
     const stale = readStaleHubVendorListCache(marketplaceJsonCacheId, slug)
-    setVendors(stale ?? [])
-    const hasRows = (stale?.length ?? 0) > 0
+    let list = stale ?? []
+    if (list.length > 0 && !hubCachedVendorsMatchServiceLine(list, slug)) {
+      clearHubVendorListCache(marketplaceJsonCacheId, slug)
+      list = []
+    }
+    setVendors(list)
+    const hasRows = list.length > 0
     const vendorListFresh = isHubVendorListCacheFresh(marketplaceJsonCacheId, slug)
     if (!vendorListFresh && !hasRows) {
       setLoadingVendors(true)
@@ -114,6 +132,14 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
       const s = readStaleHubServiceLinesCache(linesCacheUserId)
       if (s) setLines(s)
       setLinesLoaded(true)
+      scheduleHubServiceLinesStaleWhileRevalidate(linesCacheUserId, async () => {
+        const res = isMarketplaceLine
+          ? await fetch("/api/hub/service-lines", { cache: "no-store" })
+          : await fetchWithAuth("/api/hub/service-lines", { cache: "no-store" })
+        if (!res.ok) return null
+        const data = await res.json()
+        return (data.serviceLines || []) as HubServiceLineRow[]
+      }, setLines)
       return
     }
 
@@ -121,7 +147,9 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
     const silent = readStaleHubServiceLinesCache(linesCacheUserId) !== null
     ;(async () => {
       try {
-        const res = await fetch("/api/hub/service-lines", { cache: "no-store" })
+        const res = isMarketplaceLine
+          ? await fetch("/api/hub/service-lines", { cache: "no-store" })
+          : await fetchWithAuth("/api/hub/service-lines", { cache: "no-store" })
         if (!res.ok) throw new Error("lines")
         const data = await res.json()
         const next = (data.serviceLines || []) as HubServiceLineRow[]
@@ -156,9 +184,14 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
     if (!marketplaceCatalogUserId) return
     if (!isMarketplaceLine && !user) return
     const staleCatalog = readStaleHubCatalogCache(marketplaceCatalogUserId, catalogScope)
+    const catalogRowsOk =
+      !isMarketplaceLine ||
+      !staleCatalog?.length ||
+      hubCachedProductsMatchServiceLine(staleCatalog, slug)
     if (
       isHubCatalogCacheFresh(marketplaceCatalogUserId, catalogScope) &&
       isMarketplaceLine &&
+      catalogRowsOk &&
       (staleCatalog?.length ?? 0) > 0
     ) {
       return
@@ -188,12 +221,19 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
     return () => {
       cancelled = true
     }
-  }, [user, marketplaceCatalogUserId, catalogScope, isMarketplaceLine])
+  }, [user, marketplaceCatalogUserId, catalogScope, isMarketplaceLine, slug])
 
   useEffect(() => {
     if (!isMarketplaceLine) return
     const staleVendors = readStaleHubVendorListCache(marketplaceJsonCacheId, slug)
-    if (isHubVendorListCacheFresh(marketplaceJsonCacheId, slug) && (staleVendors?.length ?? 0) > 0) return
+    const vendorsRowsOk = !staleVendors?.length || hubCachedVendorsMatchServiceLine(staleVendors, slug)
+    if (
+      isHubVendorListCacheFresh(marketplaceJsonCacheId, slug) &&
+      (staleVendors?.length ?? 0) > 0 &&
+      vendorsRowsOk
+    ) {
+      return
+    }
 
     let cancelled = false
     const hasRows = (staleVendors?.length ?? 0) > 0
@@ -336,7 +376,7 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
         <div className="space-y-3 py-12 text-center text-sm text-muted-foreground">
           <p>{t("hub.noProductsInCategory")}</p>
           <Button asChild variant="outline" size="sm">
-            <Link href="/hub">{t("hub.backToHub")}</Link>
+            <Link href="/hub" prefetch>{t("hub.backToHub")}</Link>
           </Button>
         </div>
       ) : (
@@ -379,6 +419,7 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
                   <CardContent className="p-0 h-full flex flex-col">
                     <Link
                       href={checkoutHref(p.id)}
+                      prefetch
                       className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
                     >
                       <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
@@ -397,7 +438,7 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
                       </div>
                     </Link>
                     <div className="flex flex-1 flex-col gap-1 px-2.5 pb-1.5 pt-2 sm:px-3 sm:pt-2 sm:pb-2">
-                      <Link href={checkoutHref(p.id)} className="block min-w-0 group/title">
+                      <Link href={checkoutHref(p.id)} prefetch className="block min-w-0 group/title">
                         <p className="line-clamp-2 text-[13px] sm:text-sm font-semibold leading-snug text-gray-900 group-hover/title:text-orange-700 transition-colors">
                           {p.title}
                         </p>
@@ -434,7 +475,7 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
                           </div>
                         )}
                         <Button asChild size="sm" className="w-full h-8 text-xs font-semibold rounded-xl">
-                          <Link href={checkoutHref(p.id)}>{p.pricing_type === "fixed" ? t("hub.buy") : t("hub.order")}</Link>
+                          <Link href={checkoutHref(p.id)} prefetch>{p.pricing_type === "fixed" ? t("hub.buy") : t("hub.order")}</Link>
                         </Button>
                       </div>
                     </div>

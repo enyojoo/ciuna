@@ -30,6 +30,7 @@ export function HubProductVendorChipLight({
   return (
     <Link
       href={href}
+      prefetch
       onClick={(e) => e.stopPropagation()}
       className={cn(
         "group inline-flex max-w-full items-center gap-1.5 rounded-sm py-0.5 transition",

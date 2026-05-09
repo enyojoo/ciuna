@@ -7,7 +7,9 @@ import { useAuth } from "@/lib/auth-context"
 import type { HubProductRow, HubProductVendorSummary } from "@/lib/hub-types"
 import type { HubVendorRow } from "@/lib/hub-vendor-types"
 import type { HubServiceLineRow } from "@/lib/hub-service-line-types"
+import { hubCachedProductsMatchServiceLine } from "@/lib/hub-slug"
 import {
+  clearHubVendorCatalogCache,
   hubPublicHubJsonCacheUserId,
   isHubServiceLinesCacheFresh,
   isHubVendorCatalogCacheFresh,
@@ -15,6 +17,7 @@ import {
   readStaleHubServiceLinesCache,
   readStaleHubVendorCatalogCache,
   readStaleHubVendorMetaCache,
+  scheduleHubServiceLinesStaleWhileRevalidate,
   writeHubServiceLinesCache,
   writeHubVendorCatalogCache,
   writeHubVendorMetaCache,
@@ -81,8 +84,13 @@ function VendorCatalogInner({
   useLayoutEffect(() => {
     if (!cacheUserId) return
     const stale = readStaleHubVendorCatalogCache(cacheUserId, lineSlug, vendorSlug)
-    setProducts(stale && stale.length > 0 ? sortHubCatalogProducts(stale) : [])
-    const hasRows = (stale?.length ?? 0) > 0
+    let rows = stale && stale.length > 0 ? sortHubCatalogProducts(stale) : []
+    if (stale && stale.length > 0 && !hubCachedProductsMatchServiceLine(stale, lineSlug)) {
+      clearHubVendorCatalogCache(cacheUserId, lineSlug, vendorSlug)
+      rows = []
+    }
+    setProducts(rows)
+    const hasRows = rows.length > 0
     const fresh = isHubVendorCatalogCacheFresh(cacheUserId, lineSlug, vendorSlug)
     if (!fresh && !hasRows) setLoading(true)
     else setLoading(false)
@@ -91,7 +99,15 @@ function VendorCatalogInner({
   useEffect(() => {
     if (!cacheUserId || !MARKETPLACE.has(lineSlug)) return
     const staleCatalog = readStaleHubVendorCatalogCache(cacheUserId, lineSlug, vendorSlug)
-    if (isHubVendorCatalogCacheFresh(cacheUserId, lineSlug, vendorSlug) && (staleCatalog?.length ?? 0) > 0) return
+    const rowsOk =
+      !staleCatalog?.length || hubCachedProductsMatchServiceLine(staleCatalog, lineSlug)
+    if (
+      isHubVendorCatalogCacheFresh(cacheUserId, lineSlug, vendorSlug) &&
+      (staleCatalog?.length ?? 0) > 0 &&
+      rowsOk
+    ) {
+      return
+    }
 
     let cancelled = false
     ;(async () => {
@@ -181,6 +197,12 @@ export function HubMarketplaceVendorStorefront({ lineSlug: lineProp, vendorSlug:
       const s = readStaleHubServiceLinesCache(JSON_CACHE_USER)
       if (s) setLines(s)
       setLinesLoaded(true)
+      scheduleHubServiceLinesStaleWhileRevalidate(JSON_CACHE_USER, async () => {
+        const res = await fetch("/api/hub/service-lines", { cache: "no-store" })
+        if (!res.ok) return null
+        const data = await res.json()
+        return (data.serviceLines || []) as HubServiceLineRow[]
+      }, setLines)
       return
     }
 

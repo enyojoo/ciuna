@@ -142,6 +142,45 @@ export function writeHubServiceLinesCache(userId: string, lines: HubServiceLineR
   } catch {}
 }
 
+function hubServiceLinesJsonStable(lines: HubServiceLineRow[] | null): string {
+  return JSON.stringify(lines ?? [])
+}
+
+/**
+ * When service-lines cache is still within TTL, refetch in the background and update cache + UI if the payload changed.
+ */
+export function scheduleHubServiceLinesStaleWhileRevalidate(
+  userId: string,
+  fetchLines: () => Promise<HubServiceLineRow[] | null>,
+  onUpdated?: (lines: HubServiceLineRow[]) => void,
+): void {
+  if (typeof window === "undefined" || !userId) return
+  if (!isHubServiceLinesCacheFresh(userId)) return
+
+  const run = () => {
+    void (async () => {
+      try {
+        const next = await fetchLines()
+        if (!next || !Array.isArray(next)) return
+        const stale = readStaleHubServiceLinesCache(userId)
+        if (hubServiceLinesJsonStable(next) !== hubServiceLinesJsonStable(stale)) {
+          writeHubServiceLinesCache(userId, next)
+          onUpdated?.(next)
+        }
+      } catch {
+        /* ignore */
+      }
+    })()
+  }
+
+  const ric = window.requestIdleCallback
+  if (typeof ric === "function") {
+    ric(() => run(), { timeout: 2500 })
+  } else {
+    setTimeout(run, 0)
+  }
+}
+
 function readCatalogEntryFromStorage(
   userId: string,
   scope: HubCatalogCacheScope = "all",
@@ -210,6 +249,36 @@ export function writeHubCatalogCache(userId: string, products: HubProductRow[], 
   memoryCatalogByUser.set(mkey, entry)
   try {
     localStorage.setItem(catalogKey(userId, scope), JSON.stringify(entry))
+  } catch {}
+}
+
+export function clearHubCatalogCache(userId: string, scope: HubCatalogCacheScope) {
+  if (!userId) return
+  const mkey = catalogMemoryKey(userId, scope)
+  memoryCatalogByUser.delete(mkey)
+  if (typeof window === "undefined") return
+  try {
+    localStorage.removeItem(catalogKey(userId, scope))
+  } catch {}
+}
+
+export function clearHubVendorListCache(userId: string, lineSlug: string) {
+  if (!userId || !lineSlug) return
+  const mkey = vendorListMemoryKey(userId, lineSlug)
+  memoryVendorListByKey.delete(mkey)
+  if (typeof window === "undefined") return
+  try {
+    localStorage.removeItem(vendorListStorageKey(userId, lineSlug))
+  } catch {}
+}
+
+export function clearHubVendorCatalogCache(userId: string, lineSlug: string, vendorSlug: string) {
+  if (!userId || !lineSlug || !vendorSlug) return
+  const mkey = vendorCatalogMemoryKey(userId, lineSlug, vendorSlug)
+  memoryVendorCatalogByKey.delete(mkey)
+  if (typeof window === "undefined") return
+  try {
+    localStorage.removeItem(vendorCatalogStorageKey(userId, lineSlug, vendorSlug))
   } catch {}
 }
 
