@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { HubProductRow } from "@/lib/hub-types"
 import type { HubVendorRow } from "@/lib/hub-vendor-types"
@@ -14,6 +14,7 @@ import {
   readStaleHubServiceLinesCache,
   writeHubServiceLinesCache,
 } from "@/lib/hub-client-cache"
+import { hubServiceLineShellLabels } from "@/lib/hub-service-line-i18n"
 import {
   readFoodProductsCache,
   readFoodVendorsCache,
@@ -127,8 +128,10 @@ function FoodLinePageInner() {
     }
   }, [])
 
-  const title = line?.title || t("hub.hub")
-  const subtitle = line?.short_description || null
+  const { title, subtitle } = useMemo(
+    () => hubServiceLineShellLabels(LINE_SLUG, line, t, t("hub.hub")),
+    [line, t],
+  )
 
   if (linesLoaded && line && !line.is_enabled) {
     return (

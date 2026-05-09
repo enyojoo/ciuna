@@ -30,6 +30,7 @@ import { HubLinePageShell } from "@/components/hub/hub-line-page-shell"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EXPERTS_BROWSE_PATH } from "@/lib/experts-public-paths"
+import { hubServiceLineShellLabels } from "@/lib/hub-service-line-i18n"
 
 const ALL_CATEGORIES_VALUE = "__all__"
 const FEATURED_PREVIEW_COUNT = 8
@@ -228,10 +229,12 @@ function ExpertsDiscoveryInner() {
     [router],
   )
 
-  const title = t("hub.expertsTitle")
-  const subtitle =
-    expertsLine?.short_description?.trim() ||
-    t("hub.expertsSubtitle")
+  const { title: shellTitle, subtitle: shellSubtitle } = useMemo(
+    () => hubServiceLineShellLabels("experts", expertsLine, t, t("hub.expertsTitle")),
+    [expertsLine, t],
+  )
+  const title = shellTitle
+  const subtitle = shellSubtitle ?? t("hub.expertsSubtitle")
 
   if (linesLoaded && expertsLine && !expertsLine.is_enabled) {
     return (

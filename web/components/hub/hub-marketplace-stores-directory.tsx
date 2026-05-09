@@ -22,6 +22,7 @@ import {
 import { HubVendorCardNameRow } from "@/components/hub/hub-vendor-card-name-row"
 import { HubLinePageShell } from "@/components/hub/hub-line-page-shell"
 import { hubLineHomePath, hubMarketplaceVendorPath } from "@/lib/hub-public-paths"
+import { hubServiceLineShellLabels } from "@/lib/hub-service-line-i18n"
 
 const MARKETPLACE = new Set(["food", "mart"])
 
@@ -159,10 +160,10 @@ export function HubMarketplaceStoresDirectory({ lineSlug: slugProp }: { lineSlug
     }
   }, [slug, vendorListCacheUserId])
 
-  const title = line?.title
-    ? `${t("hub.marketplaceStoresHeading", { defaultValue: "Stores" })} · ${line.title}`
-    : t("hub.marketplaceStoresHeading", { defaultValue: "Stores" })
-  const subtitle = t("hub.storesDirectorySubtitle", { defaultValue: "Choose a store to see its products." })
+  const lineShell = useMemo(() => hubServiceLineShellLabels(slug, line, t, t("hub.hub")), [slug, line, t])
+  const storesLabel = t("hub.marketplaceStoresHeading")
+  const title = `${storesLabel} · ${lineShell.title}`
+  const subtitle = t("hub.storesDirectorySubtitle")
 
   if (!MARKETPLACE.has(slug)) {
     return (

@@ -15,6 +15,7 @@ import {
   scheduleHubServiceLinesStaleWhileRevalidate,
   writeHubServiceLinesCache,
 } from "@/lib/hub-client-cache"
+import { hubServiceLineShellLabels } from "@/lib/hub-service-line-i18n"
 
 const SERVICE_LINES_CACHE_USER = hubPublicHubJsonCacheUserId()
 import { HubLinePageShell } from "@/components/hub/hub-line-page-shell"
@@ -97,8 +98,10 @@ export default function AssistantPage() {
     }
   }, [user, authLoading, router])
 
-  const heroTitle = assistantLine?.title?.trim() || t("assistant.title")
-  const heroSubtitle = assistantLine?.short_description?.trim() || t("assistant.intro")
+  const { title: heroTitle, subtitle: heroSubtitle } = useMemo(
+    () => hubServiceLineShellLabels("assistant", assistantLine, t, t("assistant.title")),
+    [assistantLine, t],
+  )
 
   const nextLabel = useMemo(() => {
     if (!kind) return t("assistant.cta.pickKind")
@@ -170,7 +173,7 @@ export default function AssistantPage() {
 
   return (
     <div className="min-w-0 pb-28">
-      <HubLinePageShell title={heroTitle} subtitle={heroSubtitle} backToHubAriaLabel={t("hub.backToHub")}>
+      <HubLinePageShell title={heroTitle} subtitle={heroSubtitle ?? t("assistant.intro")} backToHubAriaLabel={t("hub.backToHub")}>
         <div className="mx-auto w-full max-w-lg space-y-6">
           <section className="space-y-3">
             <div className="flex items-center justify-between">

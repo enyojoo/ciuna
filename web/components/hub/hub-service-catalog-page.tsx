@@ -47,6 +47,7 @@ import { HubLinePageShell } from "@/components/hub/hub-line-page-shell"
 import { HubProductVendorChipLight } from "@/components/hub/hub-product-vendor-chip-light"
 import { HubMarketplaceLineHome } from "@/components/hub/hub-marketplace-line-home"
 import { hubGenericCheckoutPath, hubLineHomePath, hubMarketplaceCheckoutPath } from "@/lib/hub-public-paths"
+import { hubServiceLineShellLabels } from "@/lib/hub-service-line-i18n"
 
 const ALL_CATEGORIES_VALUE = "__all__"
 
@@ -320,8 +321,10 @@ export function HubServiceCatalogPage({ slug: slugProp }: { slug: string }) {
 
   const unavailable = linesLoaded && (!line || !line.is_enabled)
 
-  const title = line?.title || slug || t("hub.hub")
-  const subtitle = line?.short_description || null
+  const { title, subtitle } = useMemo(
+    () => hubServiceLineShellLabels(slug, line, t, t("hub.hub")),
+    [slug, line, t],
+  )
 
   const searchParams = useSearchParams()
   const selectedCategory = (searchParams.get("category") || "").trim()

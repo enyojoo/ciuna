@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 import { BrandLogo } from "@/components/brand/brand-logo"
 import { HubReferSupportActions } from "@/components/hub/hub-refer-support-actions"
 
@@ -9,10 +10,12 @@ import { HubReferSupportActions } from "@/components/hub/hub-refer-support-actio
  * On `lg+`, logo lives in the sidebar and actions sit in `UserDashboardLayout` top bar.
  */
 export function HubShellHeader() {
+  const { t } = useTranslation("app")
+
   return (
     <div className="mb-5 bg-card px-4 py-4 sm:mb-6 sm:p-6 lg:hidden">
       <div className="flex min-w-0 items-center justify-between gap-2 sm:gap-3">
-        <Link href="/hub" prefetch className="inline-flex shrink-0 items-center" aria-label="Ciuna">
+        <Link href="/hub" prefetch className="inline-flex shrink-0 items-center" aria-label={t("hub.logoAria")}>
           <BrandLogo size="sm" className="h-7 sm:h-8" />
         </Link>
         <HubReferSupportActions className="min-w-0 flex-1" />
