@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import { Suspense } from "react"
 
 import { SEO_PAGE_DESCRIPTIONS, SEO_PAGE_TITLES } from "@/lib/seo"
 
@@ -12,6 +11,7 @@ export const metadata: Metadata = {
   },
 }
 
+/** Same pattern as `/send` and `/transactions`: no `Suspense` wrapper — avoids an empty fallback flash on every `/hub/*` navigation (e.g. order detail). */
 export default function HubLayout({ children }: { children: React.ReactNode }) {
-  return <Suspense fallback={<div className="min-h-[40vh]" aria-hidden />}>{children}</Suspense>
+  return <>{children}</>
 }
