@@ -631,10 +631,7 @@ export default function HubCheckoutPage() {
                   <CardContent className="space-y-6 pt-0">
                     <div className="rounded-2xl bg-gradient-to-br from-orange-600 via-orange-500 to-amber-400 p-5 text-white">
                       <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-1">
-                          <p className="text-sm/6 text-orange-100">{product.category}</p>
-                          <h2 className="text-2xl font-bold leading-tight">{product.title}</h2>
-                        </div>
+                        <h2 className="text-2xl font-bold leading-tight">{product.title}</h2>
                       </div>
                       {product.short_description ? (
                         <p className="mt-3 max-w-2xl text-sm/6 text-orange-50">{product.short_description}</p>
