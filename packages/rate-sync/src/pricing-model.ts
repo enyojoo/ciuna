@@ -18,44 +18,46 @@ export interface TierParams {
 /** Step B: symmetric ~10% retail skew on each side vs B′/S′ (`ciuna_buy_raw = B′×1.10`, `ciuna_sell_raw = S′×0.90`). */
 const STEP_B = { buyMult: 1.1, sellMult: 0.9 }
 
+/**
+ * Step D caps (vs `mid_c`): must be large enough that they do NOT erase Step B after a ~10% skew.
+ * Previously ~1–0.6% caps dominated the pipeline and collapsed published rates toward mid_c.
+ */
+const CAP_WIDE = { cap_buy: 0.12, cap_sell: 0.12 }
+
 export function tierForCurrency(ccy: string): TierParams {
   if (ccy === "RUB") {
     return {
       b: 0,
       m: 0.01,
-      cap_buy: 0.0125,
-      cap_sell: 0.0175,
       name: "A",
       ...STEP_B,
+      ...CAP_WIDE,
     }
   }
   if (ccy === "NGN" || ccy === "KES" || ccy === "GHS") {
     return {
       b: 0,
       m: 0.0075,
-      cap_buy: 0.015,
-      cap_sell: 0.02,
       name: "B",
       ...STEP_B,
+      ...CAP_WIDE,
     }
   }
   if (ccy === "USD" || ccy === "EUR") {
     return {
-      b: 0.0025,
+      b: 0,
       m: 0.002,
-      cap_buy: 0.004,
-      cap_sell: 0.006,
       name: "C",
       ...STEP_B,
+      ...CAP_WIDE,
     }
   }
   return {
-    b: 0.015,
+    b: 0,
     m: 0.005,
-    cap_buy: 0.015,
-    cap_sell: 0.02,
     name: "B-other",
     ...STEP_B,
+    ...CAP_WIDE,
   }
 }
 

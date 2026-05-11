@@ -63,6 +63,8 @@ S'(X) = mid(X) + clamp(SELL(X) - mid(X), -b × mid(X), +b × mid(X))
 
 `clamp(x, lo, hi) = min(max(x, lo), hi)`.
 
+**Current implementation:** **`b = 0`** for **all** currencies — **B′ = BUY** and **S′ = SELL** (no pull toward mid; p2p.army / supplier legs used directly before Step B).
+
 ---
 
 ## 5. Step B — Ciuna USDT bridge (margin)
@@ -111,7 +113,7 @@ Define:
 mid_c(X) = (ciuna_buy(X) + ciuna_sell(X)) / 2
 ```
 
-Apply **asymmetric caps** from the tier table (`cap_buy`, `cap_sell`):
+Apply **caps** from the tier table (`cap_buy`, `cap_sell`). **Important:** caps must not be tighter than your Step B margin, or they **pull published rates back toward `mid_c`** and erase the retail skew. Current policy uses **~12%** each side so a **10%** Step B is not collapsed by Step D on normal books.
 
 ```text
 ciuna_buy(X)  = min(ciuna_buy(X),  mid_c(X) × (1 + cap_buy))
@@ -128,18 +130,18 @@ Adjust after live stats (conversion, depth, complaints). Priority corridors: **R
 
 | Tier | Currencies | Pull **b** (pre-margin) | Min wedge **m** (post Step B) | Step B (buy / sell) | **cap_buy** | **cap_sell** |
 |------|------------|-------------------------|-------------------------------|---------------------|-------------|--------------|
-| **A – Russia rail** | **RUB** | **0** (raw BUY/SELL) | **1.00%** | **×1.10 / ×0.90** | **1.25%** | **1.75%** |
-| **B – African retail** | **NGN, KES, GHS** | **0** (raw BUY/SELL) | **0.75%** | **×1.10 / ×0.90** | **1.50%** | **2.00%** |
-| **C – Global legs** | **USD, EUR** | **0.25%** | **0.20%** | **×1.10 / ×0.90** | **0.40%** | **0.60%** |
-| **B-other** | *other fiats* | **1.5%** | **0.50%** | **×1.10 / ×0.90** | **1.50%** | **2.00%** |
+| **A – Russia rail** | **RUB** | **0** | **1.00%** | **×1.10 / ×0.90** | **12%** | **12%** |
+| **B – African retail** | **NGN, KES, GHS** | **0** | **0.75%** | **×1.10 / ×0.90** | **12%** | **12%** |
+| **C – Global legs** | **USD, EUR** | **0** | **0.20%** | **×1.10 / ×0.90** | **12%** | **12%** |
+| **B-other** | *other fiats* | **0** | **0.50%** | **×1.10 / ×0.90** | **12%** | **12%** |
 
-**Corridor:** **RUB** and **NGN/KES/GHS** use **`b = 0`**, so **B′ = BUY** and **S′ = SELL** from p2p.army (no compression toward mid). **Tier-specific `m`** (min wedge after Step B) stays as in the table.
+**Caps (Step D):** **`cap_buy = cap_sell = 12%`** vs `mid_c` so tight **1–2%** caps no longer **override** a **10%** Step B. Tighten only if you intentionally want to clamp quotes toward internal mid after margin.
 
 **Debug / measurement:** set env **`RATE_SYNC_DEBUG=1`** on the sync process (CLI: `npm run sync:debug -w @ciuna/rate-sync`). Each currency logs one JSON line to stderr with supplier inputs, **B′/S′**, tier knobs, and final legs.
 
-**Other fiats:** default to **Tier B-other** unless liquidity is clearly spot-like (use **Tier C**) or a dedicated rail policy exists.
+**Other fiats:** default to **Tier B-other** unless you promote to **Tier C** for spot-like liquidity.
 
-**USD note:** If you use **USDTUSD** spot as the USD leg instead of p2p.army, keep **Tier C** caps; document the chosen `BUY`/`SELL` convention (often both ≈ spot with tiny spread).
+**USD note:** **USDTUSD** spot leg uses **Tier C** **`m`**; **BUY**/**SELL** are both the last price before Step B.
 
 ---
 
