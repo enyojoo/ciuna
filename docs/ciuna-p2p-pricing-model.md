@@ -69,24 +69,26 @@ S'(X) = mid(X) + clamp(SELL(X) - mid(X), -b × mid(X), +b × mid(X))
 
 ## 5. Step B — Ciuna USDT bridge (margin)
 
-**Tier C (USD, EUR):** **`buyMult = sellMult = 1`** — pass through **B′/S′** (no Step B). Legs are **~USDT-pegged**; full margin on both sides of a bridge would **compound** (~6% vs naive mid). USD/EUR act as a clean bridge.
+**Single knob (code):** **`CIUNA_BRIDGE_MARGIN`** in `packages/rate-sync/src/pricing-model.ts` — default **4.5%** (`0.045`). Change **only this constant** to widen or tighten EM retail vs naive mid; **√** multipliers and **Step D** caps derive from it (**`cap_* = CIUNA_BRIDGE_MARGIN + CAP_BUFFER`**, default **`CAP_BUFFER = 0`** → **4.5%** caps).
 
-**Tiers A, B, B-other (all other fiats):** apply **half** the target skew **per leg**:
+**Tier A (USD only):** **`buyMult = sellMult = 1`** — pass through **B′/S′** (no Step B on the dollar leg). **USDT** is dollar-denominated; **USD** is the anchor leg so margin is not double-stacked on both sides of the bridge vs naive mid.
+
+**Tier B (all non-USD fiats — RUB, EUR, NGN, …):** apply **half** the target skew **per leg** (let bridge margin **s** = **`CIUNA_BRIDGE_MARGIN`**):
 
 | | `ciuna_buy_raw` | `ciuna_sell_raw` |
 |--|-----------------|------------------|
-| Formula | B′ × **√1.03** | S′ × **√0.97** |
-| ≈ | B′ × **1.014889** | S′ × **0.984886** |
+| Formula | B′ × **√(1 + s)** | S′ × **√(1 − s)** |
+| at **s = 4.5%** | B′ × **1.022252** | S′ × **0.977241** |
 
-So for a cross **A → B** with both in A/B/B-other:
+So for a cross **X → Y** with **both** legs in tier **B** (all **√**):
 
 ```text
-rate ∝ (√0.97 · S'(B)) / (√1.03 · B'(A))
+rate ∝ (√(1−s) · S'(Y)) / (√(1+s) · B'(X))
 ```
 
-which is **one** effective **~3%** retail layer vs a naive USDT mid on the bridge (**√0.97/√1.03 ≈ 0.9707**), not **two** (**0.97/1.03 ≈ 0.9417**).
+which is **one** effective **~s** retail layer vs a naive USDT mid on the bridge (e.g. **√0.955/√1.045 ≈ 0.9560** at **s = 4.5%**), not **two** (**0.955/1.045 ≈ 0.9139** from stacking **(1+s)/(1−s)** on **both** legs).
 
-For **USD/EUR → EM**, only the EM leg uses **√** multipliers; the bridge leg stays at **1**.
+For **USD (tier A) → B**, only the **B** leg uses **√** multipliers; the **USD** leg stays at **1**. **EUR ↔ RUB**, **EUR ↔ NGN**, etc. are **B ↔ B** — both legs use **√**.
 
 ```text
 ciuna_buy_raw(X)  = B'(X) × buyMult
@@ -126,7 +128,7 @@ Define:
 mid_c(X) = (ciuna_buy(X) + ciuna_sell(X)) / 2
 ```
 
-Apply **caps** from the tier table (`cap_buy`, `cap_sell`). **Important:** caps must not be tighter than your **effective** Step B skew, or they **pull published rates back toward `mid_c`** and erase the retail skew. Current policy uses **3.5%** each side (EM tiers use **√** multipliers per leg, so per-leg departure from **B′/S′** is ~**1.5%** before wedge/caps).
+Apply **caps** from the tier table (`cap_buy`, `cap_sell`). **Important:** caps must not be tighter than your **effective** Step B skew, or they **pull published rates back toward `mid_c`** and erase the retail skew. **Implementation:** **`cap_buy = cap_sell = CIUNA_BRIDGE_MARGIN + CAP_BUFFER`** (default **`CAP_BUFFER = 0`** → **4.5%** each side at default **4.5%** margin). **Tier B** uses **√** multipliers per leg, so per-leg departure from **B′/S′** is ~**half** the one-leg skew before wedge/caps.
 
 ```text
 ciuna_buy(X)  = min(ciuna_buy(X),  mid_c(X) × (1 + cap_buy))
@@ -135,7 +137,7 @@ ciuna_sell(X) = max(ciuna_sell(X), mid_c(X) × (1 - cap_sell))
 
 If a cap binds, re-check Step C if needed (in practice, rare if parameters are consistent).
 
-**Lowering `cap_buy` / `cap_sell` (e.g. at or below 3%):** Step D then **pulls final legs back toward `mid_c`** when limits bind — **worse for Ciuna’s spread**, often **better for the customer**. Avoid caps **well below** your Step B skew (e.g. **0.5%**) or margin collapses again. At **3.5%** with **3%** Step B, expect caps to **bind more** than at **5%**, especially on **RUB-style** wide spreads.
+**Lowering `cap_buy` / `cap_sell` (e.g. below `CIUNA_BRIDGE_MARGIN`):** Step D then **pulls final legs back toward `mid_c`** when limits bind — **worse for Ciuna’s spread**, often **better for the customer**. Avoid caps **well below** your Step B skew (e.g. **0.5%**) or margin collapses again. **Default:** caps **equal** **`CIUNA_BRIDGE_MARGIN`** (no buffer), so they sit **at** the target skew — caps may bind **more often** than with a positive buffer.
 
 ---
 
@@ -143,20 +145,20 @@ If a cap binds, re-check Step C if needed (in practice, rare if parameters are c
 
 Adjust after live stats (conversion, depth, complaints). Priority corridors: **RUB** (always) and **NGN, USD, EUR, KES, GHS**.
 
-| Tier | Currencies | Pull **b** (pre-margin) | Min wedge **m** (post Step B) | Step B (buy / sell) | **cap_buy** | **cap_sell** |
-|------|------------|-------------------------|-------------------------------|---------------------|-------------|--------------|
-| **A – Russia rail** | **RUB** | **0** | **0.80%** | **√1.03 / √0.97** | **3.5%** | **3.5%** |
-| **B – African retail** | **NGN, KES, GHS** | **0** | **0.50%** | **√1.03 / √0.97** | **3.5%** | **3.5%** |
-| **C – Global legs** | **USD, EUR** | **0** | **0.20%** | **×1 / ×1** (no Step B) | **3.5%** | **3.5%** |
-| **B-other** | *other fiats* | **0** | **0.50%** | **√1.03 / √0.97** | **3.5%** | **3.5%** |
+| Tier | Currencies | Pull **b** (pre-margin) | Min wedge **m** (post Step B; §6) | Step B (buy / sell) | **cap_buy** | **cap_sell** |
+|------|------------|-------------------------|-----------------------------------|---------------------|-------------|--------------|
+| **A – USD anchor** | **USD** | **0** | **0.20%** | **×1 / ×1** (no skew on leg) | **4.5%** | **4.5%** |
+| **B – All other fiats** | **RUB, EUR, NGN, …** (every code except **USD**) | **0** | **0.50%** | **√(1+s) / √(1−s)** with **s** = **`CIUNA_BRIDGE_MARGIN`** | same | same |
 
-**Caps (Step D):** **`cap_buy = cap_sell = 3.5%`** vs `mid_c` — see §7. Tighten only if you intentionally clamp quotes toward internal mid after margin (see note below).
+**Codes:** **`TierName`** in code is only **`"A"`** | **`"B"`** — **USD → A**, **everything else → B** (sanity naming: one anchor, one broad market bucket).
+
+**Tuning:** change **`CIUNA_BRIDGE_MARGIN`** only; **√** Step B (tier **B**) and **shared caps** follow automatically. **Min wedge `m`** (§6) and **pull `b`** stay per tier until you promote them to config.
+
+**Caps (Step D):** **`cap_buy = cap_sell = CIUNA_BRIDGE_MARGIN + CAP_BUFFER`** vs `mid_c` — see §7. Default **`CAP_BUFFER = 0`** ( **4.5%** ). Add slack with a positive **`CAP_BUFFER`** in `pricing-model.ts` if caps should sit above margin.
 
 **Debug / measurement:** set env **`RATE_SYNC_DEBUG=1`** on the sync process (CLI: `npm run sync:debug -w @ciuna/rate-sync`). Each currency logs one JSON line to stderr with supplier inputs, **B′/S′**, tier knobs, and final legs.
 
-**Other fiats:** default to **Tier B-other** unless you promote to **Tier C** for spot-like liquidity.
-
-**USD / EUR note:** Supplier **B′/S′** feed straight through Step B; **Tier C** **`m`** and **caps** still apply after that.
+**USD (tier A):** **B′/S′** pass through Step B (**×1**); **`m`** and **caps** still apply in Steps C/D.
 
 ---
 
@@ -177,8 +179,8 @@ Adjust after live stats (conversion, depth, complaints). Priority corridors: **R
 
 | Signal | Likely action |
 |--------|----------------|
-| Quotes vs competitors consistently **too generous** | Tighten **`b`** or **`cap_*`** slightly. |
-| **Conversion** drops / quotes “too wide” | Loosen **`b`** a little, or relax **`cap_buy`** on the suffering leg. |
+| Quotes vs competitors consistently **too generous** | Lower **`CIUNA_BRIDGE_MARGIN`** slightly (caps follow). Or tighten **`b`** / **`m`** per tier. |
+| **Conversion** drops / quotes “too wide” | Raise **`CIUNA_BRIDGE_MARGIN`**, or relax **`cap_*`** by increasing **`CAP_BUFFER`**. |
 | Rare currencies still “inverted” after Step C | Raise **`m`** only for those currencies. |
 
 ---

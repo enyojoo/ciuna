@@ -31,7 +31,7 @@ async function main() {
         ciuna_model_NGN_per_USD: ciunaCross,
         pct_below_naive_mid: ((1 - ciunaCross / naiveMidCross) * 100).toFixed(3) + "% (positive → customer gets fewer NGN vs naive mid)",
         note:
-          "USD/EUR use Step B ×1. EM tiers use √1.03/√0.97 per leg so EM↔EM crosses get ~one ~3% layer vs naive mid. USD→NGN uses √ only on the NGN leg.",
+          "Tier A = USD (Step B ×1). Tier B = all other fiats (√ per leg). USD→NGN uses √ only on the NGN leg.",
       },
       null,
       2,

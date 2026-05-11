@@ -1,6 +1,7 @@
 /** Aligned with docs/ciuna-p2p-pricing-model.md */
 
-export type TierName = "A" | "B" | "C" | "B-other"
+/** **A** = USD anchor (pass-through Step B). **B** = every other fiat (EM-style **√** stack). */
+export type TierName = "A" | "B"
 
 export interface TierParams {
   /** Step A: pull band as fraction of mid; `0` = use raw p2p BUY/SELL as B′/S′ (no compression). */
@@ -15,55 +16,44 @@ export interface TierParams {
   sellMult: number
 }
 
-/** Target one-leg Step B factors (full skew if applied on a single leg only). */
-const STEP_B_FULL_BUY = 1.03
-const STEP_B_FULL_SELL = 0.97
-
 /**
- * Non-bridge tiers (A, B, B-other): apply **half** the Step B on **each** leg (√1.03 / √0.97).
- * For a cross A→B, `ciuna_sell(B)/ciuna_buy(A)` then has margin **once** (~3% vs naive USDT mid),
- * not **twice** (~6%) from ×1.03 and ×0.97 on **both** legs.
+ * **Single ops knob** — symmetric retail spread around the USDT bridge (before Step C/D).
+ *
+ * - **Tier B** fiats: each leg uses **√(1 + s)** / **√(1 − s)** so a two-leg cross has roughly **one**
+ *   effective layer vs naive mid (~**s**), where **s** = **`CIUNA_BRIDGE_MARGIN`**.
+ * - **Tier A (USD only):** Step B **×1 / ×1** (USDT is dollar-denominated); margin sits on the other leg.
+ * - **Step D caps** are **`CIUNA_BRIDGE_MARGIN + CAP_BUFFER`** (default **`CAP_BUFFER = 0`** → **4.5%** at default margin).
+ *
+ * Raise → wider vs market; lower → closer (do not go ≤ 0).
+ *
+ * Value is a **decimal fraction** (e.g. **4.5% → `4.5 / 100`**).
  */
+export const CIUNA_BRIDGE_MARGIN = 4.5 / 100
+
+const STEP_B_FULL_BUY = 1 + CIUNA_BRIDGE_MARGIN
+const STEP_B_FULL_SELL = 1 - CIUNA_BRIDGE_MARGIN
+
 const STEP_B_EM = {
   buyMult: Math.sqrt(STEP_B_FULL_BUY),
   sellMult: Math.sqrt(STEP_B_FULL_SELL),
 }
 
-/**
- * Tier C (USD, EUR): no Step B skew — ~USDT-pegged bridge legs; EM leg carries the √-split margin above.
- */
+/** Tier A (USD): no Step B stack on the ~USDT peg. */
 const STEP_B_BRIDGE_CCY = { buyMult: 1, sellMult: 1 }
 
-/**
- * Step D caps (vs `mid_c`): must be large enough that they do NOT erase Step B after the configured skew.
- * Previously ~1–0.6% caps dominated the pipeline and collapsed published rates toward mid_c.
- */
-const CAP_WIDE = { cap_buy: 0.035, cap_sell: 0.035 }
+/** Step D caps vs `mid_c` — `CIUNA_BRIDGE_MARGIN + CAP_BUFFER` (buffer **0** → caps match margin, **4.5%** at default). */
+const CAP_BUFFER = 0
+const CAP_WIDE = {
+  cap_buy: CIUNA_BRIDGE_MARGIN + CAP_BUFFER,
+  cap_sell: CIUNA_BRIDGE_MARGIN + CAP_BUFFER,
+}
 
 export function tierForCurrency(ccy: string): TierParams {
-  if (ccy === "RUB") {
-    return {
-      b: 0,
-      m: 0.008,
-      name: "A",
-      ...STEP_B_EM,
-      ...CAP_WIDE,
-    }
-  }
-  if (ccy === "NGN" || ccy === "KES" || ccy === "GHS") {
-    return {
-      b: 0,
-      m: 0.005,
-      name: "B",
-      ...STEP_B_EM,
-      ...CAP_WIDE,
-    }
-  }
-  if (ccy === "USD" || ccy === "EUR") {
+  if (ccy === "USD") {
     return {
       b: 0,
       m: 0.002,
-      name: "C",
+      name: "A",
       ...STEP_B_BRIDGE_CCY,
       ...CAP_WIDE,
     }
@@ -71,7 +61,7 @@ export function tierForCurrency(ccy: string): TierParams {
   return {
     b: 0,
     m: 0.005,
-    name: "B-other",
+    name: "B",
     ...STEP_B_EM,
     ...CAP_WIDE,
   }
