@@ -15,12 +15,22 @@ export interface TierParams {
   sellMult: number
 }
 
-/** Step B: symmetric ~3% retail skew on each side vs B′/S′ (`ciuna_buy_raw = B′×1.03`, `ciuna_sell_raw = S′×0.97`). */
-const STEP_B = { buyMult: 1.03, sellMult: 0.97 }
+/** Target one-leg Step B factors (full skew if applied on a single leg only). */
+const STEP_B_FULL_BUY = 1.03
+const STEP_B_FULL_SELL = 0.97
 
 /**
- * Tier C (USD, EUR): no Step B skew — ~USDT-pegged bridge legs; retail margin applies on the other fiat in the pair.
- * Prevents ~6% compounded gap vs naive USDT mid on USD→NGN-style crosses (was 3% × 3% on both legs).
+ * Non-bridge tiers (A, B, B-other): apply **half** the Step B on **each** leg (√1.03 / √0.97).
+ * For a cross A→B, `ciuna_sell(B)/ciuna_buy(A)` then has margin **once** (~3% vs naive USDT mid),
+ * not **twice** (~6%) from ×1.03 and ×0.97 on **both** legs.
+ */
+const STEP_B_EM = {
+  buyMult: Math.sqrt(STEP_B_FULL_BUY),
+  sellMult: Math.sqrt(STEP_B_FULL_SELL),
+}
+
+/**
+ * Tier C (USD, EUR): no Step B skew — ~USDT-pegged bridge legs; EM leg carries the √-split margin above.
  */
 const STEP_B_BRIDGE_CCY = { buyMult: 1, sellMult: 1 }
 
@@ -36,7 +46,7 @@ export function tierForCurrency(ccy: string): TierParams {
       b: 0,
       m: 0.008,
       name: "A",
-      ...STEP_B,
+      ...STEP_B_EM,
       ...CAP_WIDE,
     }
   }
@@ -45,7 +55,7 @@ export function tierForCurrency(ccy: string): TierParams {
       b: 0,
       m: 0.005,
       name: "B",
-      ...STEP_B,
+      ...STEP_B_EM,
       ...CAP_WIDE,
     }
   }
@@ -62,7 +72,7 @@ export function tierForCurrency(ccy: string): TierParams {
     b: 0,
     m: 0.005,
     name: "B-other",
-    ...STEP_B,
+    ...STEP_B_EM,
     ...CAP_WIDE,
   }
 }
