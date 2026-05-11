@@ -36,8 +36,7 @@ import { OfficeComplianceSkeleton } from "@/components/office-compliance-skeleto
 import { useOfficeData } from "@/hooks/use-office-data"
 import {
   loadOfficeComplianceKycRows,
-  readOfficeComplianceKycDiskSeed,
-  isOfficeComplianceDiskCacheFresh,
+  getOfficeComplianceKycClientBootstrap,
   type OfficeComplianceKycUser,
 } from "@/lib/office-compliance-cache"
 import { OFFICE_UI_CACHE_TTL_MS } from "@/lib/office-ui-cache"
@@ -87,15 +86,9 @@ function rowMatchesStatusFilter(row: ComplianceKycUser, filter: string): boolean
 
 export default function OfficeCompliancePage() {
   useOfficeData()
-  const [rows, setRows] = useState<ComplianceKycUser[]>(() =>
-    typeof window !== "undefined" ? readOfficeComplianceKycDiskSeed() : [],
-  )
-  const [loading, setLoading] = useState(() => {
-    if (typeof window === "undefined") return true
-    const seed = readOfficeComplianceKycDiskSeed()
-    if (seed.length === 0) return true
-    return !isOfficeComplianceDiskCacheFresh(OFFICE_UI_CACHE_TTL_MS)
-  })
+  const [bootstrapped, setBootstrapped] = useState(false)
+  const [rows, setRows] = useState<ComplianceKycUser[]>([])
+  const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [selectedRow, setSelectedRow] = useState<ComplianceKycUser | null>(null)
@@ -158,9 +151,14 @@ export default function OfficeCompliancePage() {
 
   useLayoutEffect(() => {
     let cancelled = false
+    const { rows: bootRows, hasSnapshot } = getOfficeComplianceKycClientBootstrap()
+    setRows(bootRows)
+    const block = bootRows.length === 0 && !hasSnapshot
+    setLoading(block)
+    setBootstrapped(true)
     void (async () => {
       try {
-        await loadData({ showLoading: rowsRef.current.length === 0, force: false })
+        await loadData({ showLoading: block, force: false })
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -325,7 +323,7 @@ export default function OfficeCompliancePage() {
     )
   })
 
-  if (loading && !rows.length) {
+  if (bootstrapped && loading && rows.length === 0) {
     return (
       <OfficeDashboardLayout>
         <OfficeComplianceSkeleton />

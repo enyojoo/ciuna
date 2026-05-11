@@ -62,7 +62,6 @@ function writeDiskCache(rows: OfficeComplianceKycUser[]) {
 function memoryFresh(ttlMs: number): boolean {
   return (
     memoryRows != null &&
-    memoryRows.length > 0 &&
     memoryLoadedAt != null &&
     Date.now() - memoryLoadedAt < ttlMs
   )
@@ -70,7 +69,7 @@ function memoryFresh(ttlMs: number): boolean {
 
 function diskFresh(ttlMs: number): { rows: OfficeComplianceKycUser[] } | null {
   const { rows, timestamp } = readDiskCache()
-  if (rows.length === 0 || timestamp == null || Date.now() - timestamp >= ttlMs) return null
+  if (timestamp == null || Date.now() - timestamp >= ttlMs) return null
   return { rows }
 }
 
@@ -185,14 +184,32 @@ export function clearOfficeComplianceKycCache() {
   }
 }
 
-/** Synchronous seed from disk for instant first paint (TTL checked by caller). */
+/** Synchronous seed from disk for instant first paint (any cached snapshot, including empty). */
 export function readOfficeComplianceKycDiskSeed(): OfficeComplianceKycUser[] {
   const { rows, timestamp } = readDiskCache()
-  if (rows.length === 0 || timestamp == null) return []
+  if (timestamp == null) return []
   return rows
 }
 
-export function isOfficeComplianceDiskCacheFresh(ttlMs: number): boolean {
+/** Memory or disk snapshot for first client paint (avoids skeleton on revisits). */
+export function getOfficeComplianceKycClientBootstrap(): {
+  rows: OfficeComplianceKycUser[]
+  hasSnapshot: boolean
+} {
+  if (typeof window === "undefined") {
+    return { rows: [], hasSnapshot: false }
+  }
+  if (memoryRows != null) {
+    return { rows: memoryRows, hasSnapshot: true }
+  }
   const { rows, timestamp } = readDiskCache()
-  return rows.length > 0 && timestamp != null && Date.now() - timestamp < ttlMs
+  if (timestamp == null) {
+    return { rows: [], hasSnapshot: false }
+  }
+  return { rows, hasSnapshot: true }
+}
+
+export function isOfficeComplianceDiskCacheFresh(ttlMs: number): boolean {
+  const { timestamp } = readDiskCache()
+  return timestamp != null && Date.now() - timestamp < ttlMs
 }
