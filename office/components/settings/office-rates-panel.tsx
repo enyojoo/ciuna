@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useMemo, useState } from "react"
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -59,6 +59,18 @@ export function OfficeRatesPanel({ settingsBootComplete }: OfficeRatesPanelProps
 
   const currencies = data?.currencies ?? []
   const exchangeRates = data?.exchangeRates ?? []
+
+  /** Latest row touch on `exchange_rates` (cron rate-sync / office edits) — matches pre–settings-UX subtitle behavior. */
+  const lastRatesUpdateAt = useMemo(() => {
+    let maxMs = 0
+    for (const r of exchangeRates) {
+      const raw = r.updated_at ?? r.created_at
+      if (raw == null) continue
+      const t = new Date(raw as string).getTime()
+      if (Number.isFinite(t) && t > maxMs) maxMs = t
+    }
+    return maxMs > 0 ? new Date(maxMs) : null
+  }, [exchangeRates])
 
   const showSkeleton = !settingsBootComplete || (loading && !data)
 
@@ -269,6 +281,19 @@ export function OfficeRatesPanel({ settingsBootComplete }: OfficeRatesPanelProps
     <Card>
       <CardHeader>
         <CardTitle>{'Currencies & exchange rates'}</CardTitle>
+        <CardDescription>
+          <span className="block text-xs tabular-nums text-gray-500">
+            Last update:{" "}
+            <span className="font-medium text-gray-900">
+              {lastRatesUpdateAt
+                ? lastRatesUpdateAt.toLocaleString(undefined, {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })
+                : "—"}
+            </span>
+          </span>
+        </CardDescription>
         <CardAction>
           <Dialog open={isAddingCurrency} onOpenChange={setIsAddingCurrency}>
             <DialogTrigger asChild>
