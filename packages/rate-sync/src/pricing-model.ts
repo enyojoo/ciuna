@@ -20,15 +20,15 @@ const STEP_B = { buyMult: 1.03, sellMult: 0.97 }
 
 /**
  * Step D caps (vs `mid_c`): must be large enough that they do NOT erase Step B after the configured skew.
- * Tight vs Step B (3%): expect Step D to bind often — published legs clamp toward mid_c.
+ * Previously ~1–0.6% caps dominated the pipeline and collapsed published rates toward mid_c.
  */
-const CAP_WIDE = { cap_buy: 0.01, cap_sell: 0.01 }
+const CAP_WIDE = { cap_buy: 0.035, cap_sell: 0.035 }
 
 export function tierForCurrency(ccy: string): TierParams {
   if (ccy === "RUB") {
     return {
       b: 0,
-      m: 0.01,
+      m: 0.008,
       name: "A",
       ...STEP_B,
       ...CAP_WIDE,
