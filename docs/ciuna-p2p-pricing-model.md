@@ -52,24 +52,24 @@ All “near midmarket” rules below are defined relative to `mid(X)` unless sta
 
 ---
 
-## 4. Step A — Pre-margin legs (raw supplier quotes)
+## 4. Step A — Pull legs toward mid (pre-margin)
 
-**Current implementation:** Use aggregated p2p.army legs directly—**no pull toward mid** (no outlier compression before margin).
+Controls outliers while staying **near** aggregated mid. Let **`b`** be the **pull band** from the tier table (§8).
 
 ```text
-B'(X) = BUY(X)
-S'(X) = SELL(X)
+B'(X) = mid(X) + clamp(BUY(X)  - mid(X), -b × mid(X), +b × mid(X))
+S'(X) = mid(X) + clamp(SELL(X) - mid(X), -b × mid(X), +b × mid(X))
 ```
 
-*(Historical option: pull each leg toward `mid(X)` within ±`b`×`mid` was removed from the live sync pipeline after product review.)*
+`clamp(x, lo, hi) = min(max(x, lo), hi)`.
 
 ---
 
-## 5. Step B — Ciuna strict 3% USDT bridge (margin)
+## 5. Step B — Ciuna strict 5% USDT bridge (margin)
 
 ```text
-ciuna_buy_raw(X)  = B'(X) × 1.03
-ciuna_sell_raw(X) = S'(X) × 0.97
+ciuna_buy_raw(X)  = B'(X) × 1.05
+ciuna_sell_raw(X) = S'(X) × 0.95
 ```
 
 - **User buys USDT** with `X`: priced off **`ciuna_buy`**.
@@ -79,7 +79,7 @@ ciuna_sell_raw(X) = S'(X) × 0.97
 
 ## 6. Step C — Minimum post-margin wedge (no inverted retail book)
 
-Aggregates + ±3% can yield **`ciuna_buy_raw < ciuna_sell_raw`**, which is awkward for a broker-like quote. Enforce a minimum relative wedge **`m`** (tier table §8).
+Aggregates + ±5% can yield **`ciuna_buy_raw < ciuna_sell_raw`**, which is awkward for a broker-like quote. Enforce a minimum relative wedge **`m`** (tier table §8).
 
 If `ciuna_buy_raw(X) < ciuna_sell_raw(X) × (1 + m)` then:
 
@@ -120,11 +120,11 @@ If a cap binds, re-check Step C if needed (in practice, rare if parameters are c
 
 Adjust after live stats (conversion, depth, complaints). Priority corridors: **RUB** (always) and **NGN, USD, EUR, KES, GHS**.
 
-| Tier | Currencies | Min wedge **m** (post ±3%) | **cap_buy** (vs `mid_c`) | **cap_sell** (vs `mid_c`) |
-|------|------------|----------------------------|---------------------------|----------------------------|
-| **A – Russia rail** | **RUB** | **0.75%** | **1.25%** | **1.75%** |
-| **B – African retail** | **NGN, KES, GHS** | **0.50%** | **1.50%** | **2.00%** |
-| **C – Global legs** | **USD, EUR** | **0.20%** | **0.40%** | **0.60%** |
+| Tier | Currencies | Pull band **b** (± vs mid, pre-margin) | Min wedge **m** (post ±5%) | **cap_buy** (vs `mid_c`) | **cap_sell** (vs `mid_c`) |
+|------|------------|----------------------------------------|-----------------------------|---------------------------|----------------------------|
+| **A – Russia rail** | **RUB** | **1.0%** | **0.75%** | **1.25%** | **1.75%** |
+| **B – African retail** | **NGN, KES, GHS** | **1.5%** | **0.50%** | **1.50%** | **2.00%** |
+| **C – Global legs** | **USD, EUR** | **0.25%** | **0.20%** | **0.40%** | **0.60%** |
 
 **Other fiats:** default to **Tier B** unless liquidity is clearly spot-like (use **Tier C**) or a dedicated rail policy exists.
 
@@ -136,8 +136,8 @@ Adjust after live stats (conversion, depth, complaints). Priority corridors: **R
 
 1. Open `https://p2p.army/en/p2p/fiats/[CURRENCY]` (or your approved primary feed if USD is spot).
 2. Record **`BUY`** and **`SELL`** for **USDT** with consistent rounding policy.
-3. Compute **`mid`** (reference only); **Step A** sets `B' = BUY`, `S' = SELL`.
-4. Apply **Step B** (×1.03 / ×0.97).
+3. Compute **`mid`**, apply **Step A** (`B'`, `S'`) with tier **`b`**.
+4. Apply **Step B** (×1.05 / ×0.95).
 5. Apply **Step C** (minimum wedge **`m`**).
 6. Apply **Step D** (**`cap_buy` / `cap_sell`**).
 7. For every active pair, compute **`rate(X→Y) = ciuna_sell(Y) / ciuna_buy(X)`**.
@@ -149,8 +149,8 @@ Adjust after live stats (conversion, depth, complaints). Priority corridors: **R
 
 | Signal | Likely action |
 |--------|----------------|
-| Quotes vs competitors consistently **too generous** | Tighten **`cap_*`** or revisit the ±3% spread. |
-| **Conversion** drops / quotes “too wide” | Relax **`cap_buy`** on the suffering leg or widen margin policy. |
+| Quotes vs competitors consistently **too generous** | Tighten **`b`** or **`cap_*`** slightly. |
+| **Conversion** drops / quotes “too wide” | Loosen **`b`** a little, or relax **`cap_buy`** on the suffering leg. |
 | Rare currencies still “inverted” after Step C | Raise **`m`** only for those currencies. |
 
 ---
@@ -161,8 +161,8 @@ Adjust after live stats (conversion, depth, complaints). Priority corridors: **R
 |--------|--------|
 | `BUY`, `SELL` | p2p.army visitor legs (fiat per 1 USDT). |
 | `mid` | \((BUY + SELL) / 2\). |
-| `B'`, `S'` | Pre-margin legs (= raw `BUY` / `SELL` in current implementation). |
-| `ciuna_buy_raw`, `ciuna_sell_raw` | After ±3%, before wedge/caps. |
+| `B'`, `S'` | BUY/SELL after pull toward mid. |
+| `ciuna_buy_raw`, `ciuna_sell_raw` | After ±5%, before wedge/caps. |
 | `ciuna_buy`, `ciuna_sell` | Final published legs. |
 | `mid_c` | Mid of final Ciuna legs (for caps). |
 
