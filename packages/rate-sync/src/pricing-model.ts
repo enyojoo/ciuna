@@ -19,6 +19,12 @@ export interface TierParams {
 const STEP_B = { buyMult: 1.03, sellMult: 0.97 }
 
 /**
+ * Tier C (USD, EUR): no Step B skew — ~USDT-pegged bridge legs; retail margin applies on the other fiat in the pair.
+ * Prevents ~6% compounded gap vs naive USDT mid on USD→NGN-style crosses (was 3% × 3% on both legs).
+ */
+const STEP_B_BRIDGE_CCY = { buyMult: 1, sellMult: 1 }
+
+/**
  * Step D caps (vs `mid_c`): must be large enough that they do NOT erase Step B after the configured skew.
  * Previously ~1–0.6% caps dominated the pipeline and collapsed published rates toward mid_c.
  */
@@ -48,7 +54,7 @@ export function tierForCurrency(ccy: string): TierParams {
       b: 0,
       m: 0.002,
       name: "C",
-      ...STEP_B,
+      ...STEP_B_BRIDGE_CCY,
       ...CAP_WIDE,
     }
   }

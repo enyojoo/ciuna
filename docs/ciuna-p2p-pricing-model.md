@@ -69,15 +69,17 @@ S'(X) = mid(X) + clamp(SELL(X) - mid(X), -b × mid(X), +b × mid(X))
 
 ## 5. Step B — Ciuna USDT bridge (margin)
 
-**All tiers:** **3%** symmetric skew on **B′** / **S′** (after Step A):
+**Default (A, B, B-other):** **3%** symmetric skew on **B′** / **S′** (after Step A):
 
 | `ciuna_buy_raw` | `ciuna_sell_raw` |
 |-----------------|------------------|
 | B′ × **1.03** | S′ × **0.97** |
 
+**Tier C (USD, EUR):** **no Step B multiplier** — **`buyMult = sellMult = 1`** (pass through **B′/S′** before Step C/D). These legs are **~USDT-pegged**; applying **3% on both sides of a bridge** (e.g. USD→NGN) **compounds** to ~**6%** vs a naive USDT mid. Margin is intended on the **non-bridge** fiat (e.g. NGN, RUB).
+
 ```text
-ciuna_buy_raw(X)  = B'(X) × buyMult   (1.03)
-ciuna_sell_raw(X) = S'(X) × sellMult  (0.97)
+ciuna_buy_raw(X)  = B'(X) × buyMult
+ciuna_sell_raw(X) = S'(X) × sellMult
 ```
 
 - **User buys USDT** with `X`: priced off **`ciuna_buy`**.
@@ -134,7 +136,7 @@ Adjust after live stats (conversion, depth, complaints). Priority corridors: **R
 |------|------------|-------------------------|-------------------------------|---------------------|-------------|--------------|
 | **A – Russia rail** | **RUB** | **0** | **0.80%** | **×1.03 / ×0.97** | **3.5%** | **3.5%** |
 | **B – African retail** | **NGN, KES, GHS** | **0** | **0.50%** | **×1.03 / ×0.97** | **3.5%** | **3.5%** |
-| **C – Global legs** | **USD, EUR** | **0** | **0.20%** | **×1.03 / ×0.97** | **3.5%** | **3.5%** |
+| **C – Global legs** | **USD, EUR** | **0** | **0.20%** | **×1 / ×1** (no Step B) | **3.5%** | **3.5%** |
 | **B-other** | *other fiats* | **0** | **0.50%** | **×1.03 / ×0.97** | **3.5%** | **3.5%** |
 
 **Caps (Step D):** **`cap_buy = cap_sell = 3.5%`** vs `mid_c` — see §7. Tighten only if you intentionally clamp quotes toward internal mid after margin (see note below).
@@ -143,7 +145,7 @@ Adjust after live stats (conversion, depth, complaints). Priority corridors: **R
 
 **Other fiats:** default to **Tier B-other** unless you promote to **Tier C** for spot-like liquidity.
 
-**USD note:** **USDTUSD** spot leg uses **Tier C** **`m`**; **BUY**/**SELL** are both the last price before Step B.
+**USD / EUR note:** Supplier **B′/S′** feed straight through Step B; **Tier C** **`m`** and **caps** still apply after that.
 
 ---
 
