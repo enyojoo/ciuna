@@ -208,8 +208,13 @@ class AdminDataStore {
       const exchangeRatesResult = criticalResults[2].status === "fulfilled" ? criticalResults[2].value || [] : (this.data?.exchangeRates || [])
       const baseCurrency = criticalResults[3].status === "fulfilled" ? criticalResults[3].value || "NGN" : (this.data?.baseCurrency || "NGN")
 
+      const existingData = this.data
+
       // Calculate stats from transactions (we'll update with user count later)
       const tempStats = await this.calculateStatsFromTransactions(transactionsResult, baseCurrency, exchangeRatesResult)
+      const previousUsers = existingData?.users ?? []
+      const statsForCriticalNotify =
+        previousUsers.length > 0 ? { ...tempStats, ...this.userCountStatsFromUsers(previousUsers) } : tempStats
       // Sort transactions by created_at (most recent first) before processing recent activity
       const sortedTransactions = [...transactionsResult].sort((a, b) => {
         const dateA = new Date(a.created_at || 0).getTime()
@@ -220,14 +225,13 @@ class AdminDataStore {
       const currencyPairs = this.processCurrencyPairs(transactionsResult.filter((t) => t.status === "completed"))
 
       // Create initial data structure with critical data - preserve existing data to prevent flickering
-      const existingData = this.data
       this.data = {
         users: existingData?.users || [], // Keep existing users or empty array
         transactions: transactionsResult,
         currencies: currenciesResult,
         exchangeRates: exchangeRatesResult,
         baseCurrency,
-        stats: tempStats,
+        stats: statsForCriticalNotify,
         recentActivity,
         currencyPairs,
         lastUpdated: Date.now(),
@@ -361,7 +365,7 @@ class AdminDataStore {
       return usersWithStats
     } catch (error) {
       console.error("Error loading users:", error)
-      return [] // Return empty array on error to prevent crashes
+      throw error
     }
   }
 
@@ -452,13 +456,17 @@ class AdminDataStore {
     }
   }
 
+  /** User-only stats; shared with transaction-based stats merge so stale refreshes do not flash zeros. */
+  private userCountStatsFromUsers(users: any[]) {
+    return {
+      totalUsers: users.length,
+      activeUsers: users.filter((u) => u.status === "active").length,
+      verifiedUsers: users.filter((u) => u.kyc_status === "approved" || u.email_confirmed_at).length,
+    }
+  }
+
   private async calculateStats(users: any[], transactions: any[], baseCurrency: string, exchangeRates: any[] = []) {
-    const totalUsers = users.length
-    const activeUsers = users.filter((u) => u.status === "active").length
-    // Count users with approved KYC or email verified
-    const verifiedUsers = users.filter((u) => 
-      u.kyc_status === "approved" || u.email_confirmed_at
-    ).length
+    const { totalUsers, activeUsers, verifiedUsers } = this.userCountStatsFromUsers(users)
 
     const totalTransactions = transactions.length
     const pendingTransactions = transactions.filter((t) => t.status === "pending" || t.status === "processing").length
