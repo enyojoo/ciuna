@@ -15,8 +15,8 @@ export interface TierParams {
   sellMult: number
 }
 
-/** Step B: symmetric ~5% retail skew on each side vs B′/S′ (`ciuna_buy_raw = B′×1.05`, `ciuna_sell_raw = S′×0.95`). */
-const STEP_B = { buyMult: 1.05, sellMult: 0.95 }
+/** Step B: symmetric ~4% retail skew on each side vs B′/S′ (`ciuna_buy_raw = B′×1.04`, `ciuna_sell_raw = S′×0.96`). */
+const STEP_B = { buyMult: 1.04, sellMult: 0.96 }
 
 /**
  * Step D caps (vs `mid_c`): must be large enough that they do NOT erase Step B after the configured skew.
