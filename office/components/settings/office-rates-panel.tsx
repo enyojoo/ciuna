@@ -74,15 +74,6 @@ export function OfficeRatesPanel({ settingsBootComplete }: OfficeRatesPanelProps
 
   const showSkeleton = !settingsBootComplete || (loading && !data)
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const month = date.toLocaleString("en-US", { month: "short" })
-    const day = date.getDate().toString().padStart(2, "0")
-    const year = date.getFullYear()
-    // Format: "Nov 07, 2025"
-    return `${month} ${day}, ${year}`
-  }
-
   const handleAddCurrency = async () => {
     try {
       setSaving(true)
@@ -396,7 +387,6 @@ export function OfficeRatesPanel({ settingsBootComplete }: OfficeRatesPanelProps
                   <TableHead>Code</TableHead>
                   <TableHead>Symbol</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
                   <TableHead className="w-[50px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -420,7 +410,6 @@ export function OfficeRatesPanel({ settingsBootComplete }: OfficeRatesPanelProps
                         {currency.status === "active" ? "Active" : "Suspended"}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatDate(currency.created_at)}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
