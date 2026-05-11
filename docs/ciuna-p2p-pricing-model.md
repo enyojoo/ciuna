@@ -113,7 +113,7 @@ Define:
 mid_c(X) = (ciuna_buy(X) + ciuna_sell(X)) / 2
 ```
 
-Apply **caps** from the tier table (`cap_buy`, `cap_sell`). **Important:** caps must not be tighter than your Step B margin, or they **pull published rates back toward `mid_c`** and erase the retail skew. Current policy uses **~12%** each side so a **3%** Step B is not collapsed by Step D on normal books.
+Apply **caps** from the tier table (`cap_buy`, `cap_sell`). **Important:** caps must not be tighter than your Step B margin, or they **pull published rates back toward `mid_c`** and erase the retail skew. Current policy uses **10%** each side so a **3%** Step B is not collapsed by Step D on normal books.
 
 ```text
 ciuna_buy(X)  = min(ciuna_buy(X),  mid_c(X) × (1 + cap_buy))
@@ -122,7 +122,7 @@ ciuna_sell(X) = max(ciuna_sell(X), mid_c(X) × (1 - cap_sell))
 
 If a cap binds, re-check Step C if needed (in practice, rare if parameters are consistent).
 
-**Lowering `cap_buy` / `cap_sell` (e.g. below 12%):** Step D then **pulls final legs back toward `mid_c`** when those limits bind — **worse for Ciuna’s spread**, often **better for the customer**, in stressed or asymmetric books. Do **not** set caps **below** your Step B skew (e.g. with **3%** Step B, avoid caps like **0.5%** or the pipeline will erase margin again). Anything **above ~5–6%** per side usually **won’t bind** after a symmetric 3% Step B on typical rails; **12%** is wide headroom so caps rarely fire.
+**Lowering `cap_buy` / `cap_sell` (e.g. below 10%):** Step D then **pulls final legs back toward `mid_c`** when those limits bind — **worse for Ciuna’s spread**, often **better for the customer**, in stressed or asymmetric books. Do **not** set caps **below** your Step B skew (e.g. with **3%** Step B, avoid caps like **0.5%** or the pipeline will erase margin again). Anything **above ~5–6%** per side usually **won’t bind** after a symmetric 3% Step B on typical rails; **10%** leaves headroom so caps rarely fire on normal books.
 
 ---
 
@@ -132,12 +132,12 @@ Adjust after live stats (conversion, depth, complaints). Priority corridors: **R
 
 | Tier | Currencies | Pull **b** (pre-margin) | Min wedge **m** (post Step B) | Step B (buy / sell) | **cap_buy** | **cap_sell** |
 |------|------------|-------------------------|-------------------------------|---------------------|-------------|--------------|
-| **A – Russia rail** | **RUB** | **0** | **1.00%** | **×1.03 / ×0.97** | **12%** | **12%** |
-| **B – African retail** | **NGN, KES, GHS** | **0** | **0.75%** | **×1.03 / ×0.97** | **12%** | **12%** |
-| **C – Global legs** | **USD, EUR** | **0** | **0.20%** | **×1.03 / ×0.97** | **12%** | **12%** |
-| **B-other** | *other fiats* | **0** | **0.50%** | **×1.03 / ×0.97** | **12%** | **12%** |
+| **A – Russia rail** | **RUB** | **0** | **1.00%** | **×1.03 / ×0.97** | **10%** | **10%** |
+| **B – African retail** | **NGN, KES, GHS** | **0** | **0.75%** | **×1.03 / ×0.97** | **10%** | **10%** |
+| **C – Global legs** | **USD, EUR** | **0** | **0.20%** | **×1.03 / ×0.97** | **10%** | **10%** |
+| **B-other** | *other fiats* | **0** | **0.50%** | **×1.03 / ×0.97** | **10%** | **10%** |
 
-**Caps (Step D):** **`cap_buy = cap_sell = 12%`** vs `mid_c` — see §7. Tighten only if you intentionally clamp quotes toward internal mid after margin (see note below).
+**Caps (Step D):** **`cap_buy = cap_sell = 10%`** vs `mid_c` — see §7. Tighten only if you intentionally clamp quotes toward internal mid after margin (see note below).
 
 **Debug / measurement:** set env **`RATE_SYNC_DEBUG=1`** on the sync process (CLI: `npm run sync:debug -w @ciuna/rate-sync`). Each currency logs one JSON line to stderr with supplier inputs, **B′/S′**, tier knobs, and final legs.
 
