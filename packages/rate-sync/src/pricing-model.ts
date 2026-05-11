@@ -3,6 +3,8 @@
 export type TierName = "A" | "B" | "C" | "B-other"
 
 export interface TierParams {
+  /** When true, Step A is skipped: B′ = BUY, S′ = SELL (full p2p.army leg before margin). */
+  skipPullToMid: boolean
   b: number
   m: number
   cap_buy: number
@@ -12,15 +14,43 @@ export interface TierParams {
 
 export function tierForCurrency(ccy: string): TierParams {
   if (ccy === "RUB") {
-    return { b: 0.01, m: 0.0075, cap_buy: 0.0125, cap_sell: 0.0175, name: "A" }
+    return {
+      skipPullToMid: true,
+      b: 0.01,
+      m: 0.0075,
+      cap_buy: 0.0125,
+      cap_sell: 0.0175,
+      name: "A",
+    }
   }
   if (ccy === "NGN" || ccy === "KES" || ccy === "GHS") {
-    return { b: 0.015, m: 0.005, cap_buy: 0.015, cap_sell: 0.02, name: "B" }
+    return {
+      skipPullToMid: true,
+      b: 0.015,
+      m: 0.005,
+      cap_buy: 0.015,
+      cap_sell: 0.02,
+      name: "B",
+    }
   }
   if (ccy === "USD" || ccy === "EUR") {
-    return { b: 0.0025, m: 0.002, cap_buy: 0.004, cap_sell: 0.006, name: "C" }
+    return {
+      skipPullToMid: false,
+      b: 0.0025,
+      m: 0.002,
+      cap_buy: 0.004,
+      cap_sell: 0.006,
+      name: "C",
+    }
   }
-  return { b: 0.015, m: 0.005, cap_buy: 0.015, cap_sell: 0.02, name: "B-other" }
+  return {
+    skipPullToMid: false,
+    b: 0.015,
+    m: 0.005,
+    cap_buy: 0.015,
+    cap_sell: 0.02,
+    name: "B-other",
+  }
 }
 
 function clamp(x: number, lo: number, hi: number): number {
@@ -40,10 +70,8 @@ export interface CiunaLegs {
 
 export function pipeline(buy: number, sell: number, t: TierParams): CiunaLegs {
   const mid = (buy + sell) / 2
-  const bandLo = -t.b * mid
-  const bandHi = t.b * mid
-  const Bp = mid + clamp(buy - mid, bandLo, bandHi)
-  const Sp = mid + clamp(sell - mid, bandLo, bandHi)
+  const Bp = t.skipPullToMid ? buy : mid + clamp(buy - mid, -t.b * mid, t.b * mid)
+  const Sp = t.skipPullToMid ? sell : mid + clamp(sell - mid, -t.b * mid, t.b * mid)
   let cbr = Bp * 1.05
   let csr = Sp * 0.95
   if (cbr < csr * (1 + t.m)) {

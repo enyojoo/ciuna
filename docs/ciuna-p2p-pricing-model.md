@@ -63,6 +63,8 @@ S'(X) = mid(X) + clamp(SELL(X) - mid(X), -b × mid(X), +b × mid(X))
 
 `clamp(x, lo, hi) = min(max(x, lo), hi)`.
 
+**Russia + priority bridge fiats (Tier A / B):** Step A can be **disabled** so **`B' = BUY`** and **`S' = SELL`** exactly—p2p.army means stay the input to margin with **no mid compression**. Use this when corridors like **RUB↔NGN** need full supplier spread before the 5% bridge. Other tiers may keep Step A to damp bad prints.
+
 ---
 
 ## 5. Step B — Ciuna strict 5% USDT bridge (margin)
@@ -122,8 +124,8 @@ Adjust after live stats (conversion, depth, complaints). Priority corridors: **R
 
 | Tier | Currencies | Pull band **b** (± vs mid, pre-margin) | Min wedge **m** (post ±5%) | **cap_buy** (vs `mid_c`) | **cap_sell** (vs `mid_c`) |
 |------|------------|----------------------------------------|-----------------------------|---------------------------|----------------------------|
-| **A – Russia rail** | **RUB** | **1.0%** | **0.75%** | **1.25%** | **1.75%** |
-| **B – African retail** | **NGN, KES, GHS** | **1.5%** | **0.50%** | **1.50%** | **2.00%** |
+| **A – Russia rail** | **RUB** | **1.0%** (unused if Step A off) | **0.75%** | **1.25%** | **1.75%** |
+| **B – African retail** | **NGN, KES, GHS** | **1.5%** (unused if Step A off) | **0.50%** | **1.50%** | **2.00%** |
 | **C – Global legs** | **USD, EUR** | **0.25%** | **0.20%** | **0.40%** | **0.60%** |
 
 **Other fiats:** default to **Tier B** unless liquidity is clearly spot-like (use **Tier C**) or a dedicated rail policy exists.
@@ -136,7 +138,7 @@ Adjust after live stats (conversion, depth, complaints). Priority corridors: **R
 
 1. Open `https://p2p.army/en/p2p/fiats/[CURRENCY]` (or your approved primary feed if USD is spot).
 2. Record **`BUY`** and **`SELL`** for **USDT** with consistent rounding policy.
-3. Compute **`mid`**, apply **Step A** (`B'`, `S'`) with tier **`b`**.
+3. Compute **`mid`**, apply **Step A** (`B'`, `S'`) with tier **`b`** — **or** use raw **`B'=BUY`, `S'=SELL`** when Step A is off for that currency (Tier A/B in production sync).
 4. Apply **Step B** (×1.05 / ×0.95).
 5. Apply **Step C** (minimum wedge **`m`**).
 6. Apply **Step D** (**`cap_buy` / `cap_sell`**).
