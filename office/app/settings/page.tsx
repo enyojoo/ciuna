@@ -11,8 +11,6 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
-  Settings,
-  Shield,
   Save,
   Edit,
   Plus,
@@ -23,13 +21,9 @@ import {
   MoreHorizontal,
   X,
   Upload,
-  Gift,
   Info,
   Coins,
   Smartphone,
-  Store,
-  TrendingUp,
-  UserCog,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -42,7 +36,7 @@ import { officeDataStore } from "@/lib/office-data-store"
 import { officeFetch } from "@/lib/api-client"
 import { HubServiceLinesManager, type HubServiceLine } from "@/components/settings/hub-service-lines-manager"
 import { OfficeRatesPanel } from "@/components/settings/office-rates-panel"
-import { OfficeAdminUsersPanel } from "@/components/settings/office-admin-users-panel"
+import { OfficeAdminUsersPanel, type AdminUserRow } from "@/components/settings/office-admin-users-panel"
 
 const REFERRAL_HELP_POLICY_CURRENCY =
   "Thresholds and fixed rewards are interpreted in this currency (FX uses your exchange rates)."
@@ -228,6 +222,7 @@ export default function AdminSettingsPage() {
   })
 
   const [hubServiceLines, setHubServiceLines] = useState<HubServiceLine[]>([])
+  const [adminUsers, setAdminUsers] = useState<AdminUserRow[]>([])
   const [initialSettingsLoadComplete, setInitialSettingsLoadComplete] = useState(false)
 
   const [referralProgram, setReferralProgram] = useState({
@@ -263,9 +258,31 @@ export default function AdminSettingsPage() {
     }
   }, [])
 
+  const loadAdminUsers = useCallback(async () => {
+    try {
+      const res = await officeFetch("/api/admin/admin-users")
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        console.error("Error loading admin users:", j?.error || res.statusText)
+        setAdminUsers([])
+        return
+      }
+      setAdminUsers((j.adminUsers || []) as AdminUserRow[])
+    } catch (error) {
+      console.error("Error loading admin users:", error)
+      setAdminUsers([])
+    }
+  }, [])
+
   const loadAllData = async () => {
     try {
-      await Promise.all([loadSystemSettings(), loadCurrencies(), loadPaymentMethods(), loadHubServiceLines()])
+      await Promise.all([
+        loadSystemSettings(),
+        loadCurrencies(),
+        loadPaymentMethods(),
+        loadHubServiceLines(),
+        loadAdminUsers(),
+      ])
     } catch (error) {
       console.error("Error loading data:", error)
     } finally {
@@ -780,40 +797,18 @@ export default function AdminSettingsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
-            <p className="text-gray-600">Configure platform settings and system parameters</p>
           </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={handleSettingsTabChange} className="space-y-6">
           <TabsList className="grid h-auto w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
-            <TabsTrigger value="platform" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Platform
-            </TabsTrigger>
-            <TabsTrigger value="payment" className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              Payment Methods
-            </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Security
-            </TabsTrigger>
-            <TabsTrigger value="referrals" className="flex items-center gap-2">
-              <Gift className="h-4 w-4" />
-              Referrals
-            </TabsTrigger>
-            <TabsTrigger value="hubServices" className="flex items-center gap-2">
-              <Store className="h-4 w-4" />
-              Hub Services
-            </TabsTrigger>
-            <TabsTrigger value="rates" className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Rates
-            </TabsTrigger>
-            <TabsTrigger value="admin" className="flex items-center gap-2">
-              <UserCog className="h-4 w-4" />
-              Admin
-            </TabsTrigger>
+            <TabsTrigger value="platform">Platform</TabsTrigger>
+            <TabsTrigger value="payment">Payment Methods</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsTrigger value="referrals">Referrals</TabsTrigger>
+            <TabsTrigger value="hubServices">Hub Services</TabsTrigger>
+            <TabsTrigger value="rates">Rates</TabsTrigger>
+            <TabsTrigger value="admin">Admin</TabsTrigger>
           </TabsList>
 
           {/* Platform Configuration */}
@@ -897,12 +892,7 @@ export default function AdminSettingsPage() {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Payment Methods</CardTitle>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Configure payment methods that users will see when sending money
-                    </p>
-                  </div>
+                  <CardTitle>Payment Methods</CardTitle>
                   <Dialog open={isAddPaymentMethodOpen} onOpenChange={setIsAddPaymentMethodOpen}>
                     <DialogTrigger asChild>
                       <Button className="bg-primary hover:bg-primary/90">
@@ -2211,10 +2201,6 @@ export default function AdminSettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Referral program</CardTitle>
-                <p className="text-sm text-gray-600 mt-1">
-                  Rewards are based on referees&apos; completed sends (total amount sent), converted to the policy
-                  currency below—not money received on the other side.
-                </p>
               </CardHeader>
               <TooltipProvider delayDuration={200}>
                 <CardContent className="space-y-6">
@@ -2583,7 +2569,11 @@ export default function AdminSettingsPage() {
           </TabsContent>
 
           <TabsContent value="admin">
-            <OfficeAdminUsersPanel settingsBootComplete={initialSettingsLoadComplete} />
+            <OfficeAdminUsersPanel
+              settingsBootComplete={initialSettingsLoadComplete}
+              adminUsers={adminUsers}
+              onReloadAdminUsers={loadAdminUsers}
+            />
           </TabsContent>
         </Tabs>
       </div>

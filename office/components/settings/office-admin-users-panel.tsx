@@ -1,7 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react"
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,18 +15,36 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Trash2, Loader2, UserCog } from "lucide-react"
+import { Plus, Trash2, Loader2 } from "lucide-react"
 import { officeFetch } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
 import { SUPER_ADMIN_ROLE } from "@/lib/admin-role"
 
-type AdminRow = {
+export type AdminUserRow = {
   id: string
   email: string
   name: string | null
   role: string
   status: string | null
   created_at: string | null
+}
+
+function formatAdminRole(role: string): string {
+  if (role === SUPER_ADMIN_ROLE) return "Super admin"
+  if (role === "admin") return "Admin"
+  return role
+    .split("_")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ")
+}
+
+function formatAdminStatus(status: string | null): string {
+  if (status == null || status === "") return "—"
+  const s = status.toLowerCase()
+  if (s === "active") return "Active"
+  if (s === "inactive") return "Inactive"
+  return status.charAt(0).toUpperCase() + status.slice(1)
 }
 
 function AdminUsersTableSkeleton() {
@@ -36,13 +54,13 @@ function AdminUsersTableSkeleton() {
         <TableHeader>
           <TableRow>
             <TableHead>
-              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-36" />
             </TableHead>
             <TableHead>
-              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-44" />
             </TableHead>
             <TableHead>
-              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-20" />
             </TableHead>
             <TableHead>
               <Skeleton className="h-4 w-16" />
@@ -56,13 +74,13 @@ function AdminUsersTableSkeleton() {
           {Array.from({ length: 6 }).map((_, i) => (
             <TableRow key={i}>
               <TableCell>
+                <Skeleton className="h-4 w-32" />
+              </TableCell>
+              <TableCell>
                 <Skeleton className="h-4 w-48" />
               </TableCell>
               <TableCell>
-                <Skeleton className="h-4 w-28" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-5 w-20 rounded-full" />
+                <Skeleton className="h-5 w-24 rounded-full" />
               </TableCell>
               <TableCell>
                 <Skeleton className="h-5 w-16 rounded-full" />
@@ -79,43 +97,25 @@ function AdminUsersTableSkeleton() {
 }
 
 export type OfficeAdminUsersPanelProps = {
-  /** False until the first settings `loadAllData` run finishes (same as Hub Services tab). */
   settingsBootComplete: boolean
+  adminUsers: AdminUserRow[]
+  onReloadAdminUsers: () => Promise<void>
 }
 
-export function OfficeAdminUsersPanel({ settingsBootComplete }: OfficeAdminUsersPanelProps) {
+export function OfficeAdminUsersPanel({
+  settingsBootComplete,
+  adminUsers,
+  onReloadAdminUsers,
+}: OfficeAdminUsersPanelProps) {
   const { user } = useAuth()
-  const [rows, setRows] = useState<AdminRow[]>([])
-  const [listFetchState, setListFetchState] = useState<"idle" | "loading" | "done">("idle")
   const [actionSaving, setActionSaving] = useState(false)
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState("")
   const [name, setName] = useState("")
 
-  const load = useCallback(async () => {
-    setListFetchState("loading")
-    try {
-      const res = await officeFetch("/api/admin/admin-users")
-      const j = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        console.error("admin-users list:", j?.error || res.statusText)
-        setRows([])
-        return
-      }
-      setRows((j.adminUsers || []) as AdminRow[])
-    } finally {
-      setListFetchState("done")
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!settingsBootComplete) return
-    void load()
-  }, [settingsBootComplete, load])
-
-  const showSkeleton = !settingsBootComplete || listFetchState !== "done"
-  const showEmpty = settingsBootComplete && listFetchState === "done" && rows.length === 0
-  const showTable = settingsBootComplete && listFetchState === "done" && rows.length > 0
+  const showSkeleton = !settingsBootComplete
+  const showEmpty = settingsBootComplete && adminUsers.length === 0
+  const showTable = settingsBootComplete && adminUsers.length > 0
 
   const handleCreate = async () => {
     setActionSaving(true)
@@ -132,7 +132,7 @@ export function OfficeAdminUsersPanel({ settingsBootComplete }: OfficeAdminUsers
       setOpen(false)
       setEmail("")
       setName("")
-      await load()
+      await onReloadAdminUsers()
     } finally {
       setActionSaving(false)
     }
@@ -148,7 +148,7 @@ export function OfficeAdminUsersPanel({ settingsBootComplete }: OfficeAdminUsers
         alert(j?.error || "Failed to deactivate")
         return
       }
-      await load()
+      await onReloadAdminUsers()
     } finally {
       setActionSaving(false)
     }
@@ -158,9 +158,6 @@ export function OfficeAdminUsersPanel({ settingsBootComplete }: OfficeAdminUsers
     <Card>
       <CardHeader>
         <CardTitle>Office administrators</CardTitle>
-        <CardDescription>
-          Each invite creates an admin user with a sign-in link. Super admins cannot be created from this dialog.
-        </CardDescription>
         <CardAction>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -215,20 +212,24 @@ export function OfficeAdminUsersPanel({ settingsBootComplete }: OfficeAdminUsers
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Email</TableHead>
                   <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="w-[100px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((r) => (
+                {adminUsers.map((r) => {
+                  const displayName = r.name?.trim() || "—"
+                  return (
                   <TableRow key={r.id}>
-                    <TableCell className="font-medium">{r.email}</TableCell>
-                    <TableCell>{r.name || "—"}</TableCell>
+                    <TableCell className="font-medium">{displayName}</TableCell>
+                    <TableCell className="text-muted-foreground">{r.email}</TableCell>
                     <TableCell>
-                      <Badge variant={r.role === SUPER_ADMIN_ROLE ? "default" : "secondary"}>{r.role}</Badge>
+                      <Badge variant={r.role === SUPER_ADMIN_ROLE ? "default" : "secondary"}>
+                        {formatAdminRole(r.role)}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -238,7 +239,7 @@ export function OfficeAdminUsersPanel({ settingsBootComplete }: OfficeAdminUsers
                             : "bg-muted text-muted-foreground"
                         }
                       >
-                        {r.status || "—"}
+                        {formatAdminStatus(r.status)}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -256,7 +257,8 @@ export function OfficeAdminUsersPanel({ settingsBootComplete }: OfficeAdminUsers
                       ) : null}
                     </TableCell>
                   </TableRow>
-                ))}
+                  )
+                })}
               </TableBody>
             </Table>
           </div>
@@ -264,7 +266,6 @@ export function OfficeAdminUsersPanel({ settingsBootComplete }: OfficeAdminUsers
 
         {showEmpty ? (
           <div className="py-8 text-center text-gray-500">
-            <UserCog className="mx-auto mb-4 h-12 w-12 text-gray-300" />
             <p>No admin users yet</p>
             <p className="mt-1 text-sm text-gray-400">Invite someone to grant Office access.</p>
           </div>

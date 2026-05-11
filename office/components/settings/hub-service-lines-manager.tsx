@@ -371,9 +371,6 @@ export function HubServiceLinesManager({ lines, onReload, settingsBootComplete }
     <Card>
       <CardHeader>
         <CardTitle>Hub Services</CardTitle>
-        <p className="text-sm text-gray-600 mt-1">
-          Configure hub home tiles—titles, descriptions, icons, and where each tile links for customers.
-        </p>
         <CardAction>
           <Button
             type="button"
