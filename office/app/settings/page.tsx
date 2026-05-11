@@ -38,6 +38,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { supabase } from "@/lib/supabase"
+import { officeDataStore } from "@/lib/office-data-store"
 import { officeFetch } from "@/lib/api-client"
 import { HubServiceLinesManager, type HubServiceLine } from "@/components/settings/hub-service-lines-manager"
 import { OfficeRatesPanel } from "@/components/settings/office-rates-panel"
@@ -268,6 +269,11 @@ export default function AdminSettingsPage() {
     } catch (error) {
       console.error("Error loading data:", error)
     } finally {
+      try {
+        await officeDataStore.refreshAllData()
+      } catch (e) {
+        console.error("Office data refresh after settings load:", e)
+      }
       setInitialSettingsLoadComplete(true)
     }
   }
@@ -2573,11 +2579,11 @@ export default function AdminSettingsPage() {
           </TabsContent>
 
           <TabsContent value="rates">
-            <OfficeRatesPanel />
+            <OfficeRatesPanel settingsBootComplete={initialSettingsLoadComplete} />
           </TabsContent>
 
           <TabsContent value="admin">
-            <OfficeAdminUsersPanel />
+            <OfficeAdminUsersPanel settingsBootComplete={initialSettingsLoadComplete} />
           </TabsContent>
         </Tabs>
       </div>

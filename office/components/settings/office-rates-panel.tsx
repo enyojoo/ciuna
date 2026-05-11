@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,12 +10,17 @@ import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTr
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Plus, MoreHorizontal, Edit, Pause, Trash2, Loader2, X } from "lucide-react"
+import { Plus, MoreHorizontal, Edit, Pause, Trash2, Loader2, X, TrendingUp } from "lucide-react"
 import { useOfficeData } from "@/hooks/use-office-data"
 import { officeDataStore } from "@/lib/office-data-store"
-import { OfficeRatesSkeleton } from "@/components/office-rates-skeleton"
+import { OfficeRatesTabSkeleton } from "@/components/office-rates-skeleton"
 
-export function OfficeRatesPanel() {
+export type OfficeRatesPanelProps = {
+  /** Matches other settings tabs: wait until `loadAllData` finishes before showing live data. */
+  settingsBootComplete: boolean
+}
+
+export function OfficeRatesPanel({ settingsBootComplete }: OfficeRatesPanelProps) {
   const { data, loading } = useOfficeData()
   const [selectedCurrency, setSelectedCurrency] = useState<any>(null)
   const [isEditingRates, setIsEditingRates] = useState(false)
@@ -66,12 +71,7 @@ export function OfficeRatesPanel() {
     return maxMs > 0 ? new Date(maxMs) : null
   }, [exchangeRates])
 
-  // Only show skeleton if we're truly loading and have no cached data
-  if (loading && !data) {
-    return <OfficeRatesSkeleton />
-  }
-
-  const formatDate = (dateString: string) => {
+  const showSkeleton = !settingsBootComplete || (loading && !data)
     const date = new Date(dateString)
     const month = date.toLocaleString("en-US", { month: "short" })
     const day = date.getDate().toString().padStart(2, "0")
@@ -275,27 +275,29 @@ export function OfficeRatesPanel() {
   }
 
   return (
-      <div className="space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Currency & Exchange Rates</h1>
-            <p className="text-gray-600">Manage currencies, exchange rates and transaction fees</p>
-          </div>
-          <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-4">
-            <p className="text-sm text-gray-600 sm:text-right">
-              Last update:{" "}
-              <span className="font-medium text-gray-900 tabular-nums">
-                {lastRatesUpdateAt
-                  ? lastRatesUpdateAt.toLocaleString(undefined, {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })
-                  : "—"}
-              </span>
-            </p>
-            <Dialog open={isAddingCurrency} onOpenChange={setIsAddingCurrency}>
+    <Card>
+      <CardHeader>
+        <CardTitle>Currencies & exchange rates</CardTitle>
+        <CardDescription>
+          <span className="block text-gray-600">
+            Manage currencies, exchange rates, and transaction fees.
+          </span>
+          <span className="mt-2 block text-xs tabular-nums text-gray-500">
+            Last update:{" "}
+            <span className="font-medium text-gray-900">
+              {lastRatesUpdateAt
+                ? lastRatesUpdateAt.toLocaleString(undefined, {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })
+                : "—"}
+            </span>
+          </span>
+        </CardDescription>
+        <CardAction>
+          <Dialog open={isAddingCurrency} onOpenChange={setIsAddingCurrency}>
             <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90">
+              <Button className="bg-primary hover:bg-primary/90" disabled={!settingsBootComplete}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Currency
               </Button>
@@ -379,12 +381,14 @@ export function OfficeRatesPanel() {
               </div>
             </DialogContent>
           </Dialog>
-          </div>
-        </div>
-
-        {/* Currency Management Table */}
-        <Card>
-          <CardContent className="p-0">
+        </CardAction>
+      </CardHeader>
+      <CardContent className="space-y-6 p-0 px-6 pb-6">
+        {showSkeleton ? (
+          <OfficeRatesTabSkeleton />
+        ) : (
+          <>
+            <div className="overflow-x-auto rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -444,11 +448,18 @@ export function OfficeRatesPanel() {
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+            </div>
 
-        {/* Edit Rates Dialog */}
-        <Dialog open={isEditingRates} onOpenChange={setIsEditingRates}>
+            {!showSkeleton && currencies.length === 0 ? (
+              <div className="py-8 text-center text-gray-500">
+                <TrendingUp className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+                <p>No currencies yet</p>
+                <p className="mt-1 text-sm text-gray-400">Add a currency to configure exchange rates.</p>
+              </div>
+            ) : null}
+
+            {/* Edit Rates Dialog */}
+            <Dialog open={isEditingRates} onOpenChange={setIsEditingRates}>
           <DialogContent
             hideClose
             className="max-w-4xl max-h-[80vh] [&_input[type=number]]:[-moz-appearance:textfield] [&_input[type=number]::-webkit-inner-spin-button]:appearance-none [&_input[type=number]::-webkit-outer-spin-button]:appearance-none [&_input]:focus-visible:ring-0 [&_input]:focus-visible:ring-offset-0 [&_input]:focus-visible:border-primary [&_select]:focus-visible:ring-0 [&_select]:focus-visible:ring-offset-0 [&_select]:focus-visible:outline-none [&_select]:focus-visible:border-primary"
@@ -727,8 +738,11 @@ export function OfficeRatesPanel() {
                 </Button>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+            </DialogContent>
+            </Dialog>
+          </>
+        )}
+      </CardContent>
+    </Card>
   )
 }
