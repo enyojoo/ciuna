@@ -15,11 +15,11 @@ export interface TierParams {
   sellMult: number
 }
 
-/** Step B: symmetric ~10% retail skew on each side vs B′/S′ (`ciuna_buy_raw = B′×1.10`, `ciuna_sell_raw = S′×0.90`). */
-const STEP_B = { buyMult: 1.1, sellMult: 0.9 }
+/** Step B: symmetric ~8% retail skew on each side vs B′/S′ (`ciuna_buy_raw = B′×1.08`, `ciuna_sell_raw = S′×0.92`). */
+const STEP_B = { buyMult: 1.08, sellMult: 0.92 }
 
 /**
- * Step D caps (vs `mid_c`): must be large enough that they do NOT erase Step B after a ~10% skew.
+ * Step D caps (vs `mid_c`): must be large enough that they do NOT erase Step B after the configured skew.
  * Previously ~1–0.6% caps dominated the pipeline and collapsed published rates toward mid_c.
  */
 const CAP_WIDE = { cap_buy: 0.12, cap_sell: 0.12 }

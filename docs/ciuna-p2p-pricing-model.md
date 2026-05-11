@@ -69,15 +69,15 @@ S'(X) = mid(X) + clamp(SELL(X) - mid(X), -b × mid(X), +b × mid(X))
 
 ## 5. Step B — Ciuna USDT bridge (margin)
 
-**All tiers:** **10%** symmetric skew on **B′** / **S′** (after Step A):
+**All tiers:** **8%** symmetric skew on **B′** / **S′** (after Step A):
 
 | `ciuna_buy_raw` | `ciuna_sell_raw` |
 |-----------------|------------------|
-| B′ × **1.10** | S′ × **0.90** |
+| B′ × **1.08** | S′ × **0.92** |
 
 ```text
-ciuna_buy_raw(X)  = B'(X) × buyMult   (1.10)
-ciuna_sell_raw(X) = S'(X) × sellMult  (0.90)
+ciuna_buy_raw(X)  = B'(X) × buyMult   (1.08)
+ciuna_sell_raw(X) = S'(X) × sellMult  (0.92)
 ```
 
 - **User buys USDT** with `X`: priced off **`ciuna_buy`**.
@@ -113,7 +113,7 @@ Define:
 mid_c(X) = (ciuna_buy(X) + ciuna_sell(X)) / 2
 ```
 
-Apply **caps** from the tier table (`cap_buy`, `cap_sell`). **Important:** caps must not be tighter than your Step B margin, or they **pull published rates back toward `mid_c`** and erase the retail skew. Current policy uses **~12%** each side so a **10%** Step B is not collapsed by Step D on normal books.
+Apply **caps** from the tier table (`cap_buy`, `cap_sell`). **Important:** caps must not be tighter than your Step B margin, or they **pull published rates back toward `mid_c`** and erase the retail skew. Current policy uses **~12%** each side so an **8%** Step B is not collapsed by Step D on normal books.
 
 ```text
 ciuna_buy(X)  = min(ciuna_buy(X),  mid_c(X) × (1 + cap_buy))
@@ -130,12 +130,12 @@ Adjust after live stats (conversion, depth, complaints). Priority corridors: **R
 
 | Tier | Currencies | Pull **b** (pre-margin) | Min wedge **m** (post Step B) | Step B (buy / sell) | **cap_buy** | **cap_sell** |
 |------|------------|-------------------------|-------------------------------|---------------------|-------------|--------------|
-| **A – Russia rail** | **RUB** | **0** | **1.00%** | **×1.10 / ×0.90** | **12%** | **12%** |
-| **B – African retail** | **NGN, KES, GHS** | **0** | **0.75%** | **×1.10 / ×0.90** | **12%** | **12%** |
-| **C – Global legs** | **USD, EUR** | **0** | **0.20%** | **×1.10 / ×0.90** | **12%** | **12%** |
-| **B-other** | *other fiats* | **0** | **0.50%** | **×1.10 / ×0.90** | **12%** | **12%** |
+| **A – Russia rail** | **RUB** | **0** | **1.00%** | **×1.08 / ×0.92** | **12%** | **12%** |
+| **B – African retail** | **NGN, KES, GHS** | **0** | **0.75%** | **×1.08 / ×0.92** | **12%** | **12%** |
+| **C – Global legs** | **USD, EUR** | **0** | **0.20%** | **×1.08 / ×0.92** | **12%** | **12%** |
+| **B-other** | *other fiats* | **0** | **0.50%** | **×1.08 / ×0.92** | **12%** | **12%** |
 
-**Caps (Step D):** **`cap_buy = cap_sell = 12%`** vs `mid_c` so tight **1–2%** caps no longer **override** a **10%** Step B. Tighten only if you intentionally want to clamp quotes toward internal mid after margin.
+**Caps (Step D):** **`cap_buy = cap_sell = 12%`** vs `mid_c` so tight **1–2%** caps no longer **override** an **8%** Step B. Tighten only if you intentionally want to clamp quotes toward internal mid after margin.
 
 **Debug / measurement:** set env **`RATE_SYNC_DEBUG=1`** on the sync process (CLI: `npm run sync:debug -w @ciuna/rate-sync`). Each currency logs one JSON line to stderr with supplier inputs, **B′/S′**, tier knobs, and final legs.
 
