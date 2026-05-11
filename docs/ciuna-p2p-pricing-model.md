@@ -133,7 +133,7 @@ Adjust after live stats (conversion, depth, complaints). Priority corridors: **R
 | Tier | Currencies | Pull **b** (pre-margin) | Min wedge **m** (post Step B) | Step B (buy / sell) | **cap_buy** | **cap_sell** |
 |------|------------|-------------------------|-------------------------------|---------------------|-------------|--------------|
 | **A – Russia rail** | **RUB** | **0** | **1.00%** | **×1.03 / ×0.97** | **8%** | **8%** |
-| **B – African retail** | **NGN, KES, GHS** | **0** | **0.75%** | **×1.03 / ×0.97** | **8%** | **8%** |
+| **B – African retail** | **NGN, KES, GHS** | **0** | **0.50%** | **×1.03 / ×0.97** | **8%** | **8%** |
 | **C – Global legs** | **USD, EUR** | **0** | **0.20%** | **×1.03 / ×0.97** | **8%** | **8%** |
 | **B-other** | *other fiats* | **0** | **0.50%** | **×1.03 / ×0.97** | **8%** | **8%** |
 

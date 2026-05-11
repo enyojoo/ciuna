@@ -37,7 +37,7 @@ export function tierForCurrency(ccy: string): TierParams {
   if (ccy === "NGN" || ccy === "KES" || ccy === "GHS") {
     return {
       b: 0,
-      m: 0.0075,
+      m: 0.005,
       name: "B",
       ...STEP_B,
       ...CAP_WIDE,
