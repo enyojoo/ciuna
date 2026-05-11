@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@ciuna/shared"],
+  transpilePackages: ["@ciuna/shared", "@ciuna/rate-sync"],
   // Enable Turbopack for Next.js 15 (already enabled via --turbo flag in dev script)
   // Enable compression
   compress: true,

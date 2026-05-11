@@ -11,6 +11,7 @@
     "start": "next start --port 3000"
   },
   "dependencies": {
+    "@ciuna/rate-sync": "*",
     "@ciuna/shared": "*",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-accordion": "1.2.2",

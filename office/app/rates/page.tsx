@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { OfficeDashboardLayout } from "@/components/layout/office-dashboard-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -64,6 +64,17 @@ const AdminRatesPage = () => {
 
   const currencies = data?.currencies || []
   const exchangeRates = data?.exchangeRates || []
+
+  const lastRatesUpdateAt = useMemo(() => {
+    let maxMs = 0
+    for (const r of exchangeRates) {
+      const raw = r.updated_at ?? r.created_at
+      if (raw == null) continue
+      const t = new Date(raw as string).getTime()
+      if (Number.isFinite(t) && t > maxMs) maxMs = t
+    }
+    return maxMs > 0 ? new Date(maxMs) : null
+  }, [exchangeRates])
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -271,12 +282,24 @@ const AdminRatesPage = () => {
   return (
     <OfficeDashboardLayout>
       <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Currency & Exchange Rates</h1>
             <p className="text-gray-600">Manage currencies, exchange rates and transaction fees</p>
           </div>
-          <Dialog open={isAddingCurrency} onOpenChange={setIsAddingCurrency}>
+          <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-4">
+            <p className="text-sm text-gray-600 sm:text-right">
+              Last update:{" "}
+              <span className="font-medium text-gray-900 tabular-nums">
+                {lastRatesUpdateAt
+                  ? lastRatesUpdateAt.toLocaleString(undefined, {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })
+                  : "—"}
+              </span>
+            </p>
+            <Dialog open={isAddingCurrency} onOpenChange={setIsAddingCurrency}>
             <DialogTrigger asChild>
               <Button className="bg-primary hover:bg-primary/90">
                 <Plus className="h-4 w-4 mr-2" />
@@ -362,6 +385,7 @@ const AdminRatesPage = () => {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Currency Management Table */}

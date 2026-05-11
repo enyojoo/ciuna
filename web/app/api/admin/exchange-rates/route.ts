@@ -23,11 +23,7 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const user = await requireAuth(request)
-    
-    if (!user.isAdmin) {
-      return NextResponse.json({ error: "Admin access required" }, { status: 403 })
-    }
+    await requireAdmin(request)
 
     const { rates } = await request.json()
 
