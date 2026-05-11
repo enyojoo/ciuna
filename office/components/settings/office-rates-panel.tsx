@@ -72,6 +72,8 @@ export function OfficeRatesPanel({ settingsBootComplete }: OfficeRatesPanelProps
   }, [exchangeRates])
 
   const showSkeleton = !settingsBootComplete || (loading && !data)
+
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     const month = date.toLocaleString("en-US", { month: "short" })
     const day = date.getDate().toString().padStart(2, "0")
@@ -277,7 +279,7 @@ export function OfficeRatesPanel({ settingsBootComplete }: OfficeRatesPanelProps
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Currencies & exchange rates</CardTitle>
+        <CardTitle>{'Currencies & exchange rates'}</CardTitle>
         <CardDescription>
           <span className="block text-gray-600">
             Manage currencies, exchange rates, and transaction fees.
