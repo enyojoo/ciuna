@@ -53,17 +53,8 @@ const AdminRatesPage = () => {
     return Number.isFinite(n) ? n : null
   }
 
-  // Only show skeleton if we're truly loading and have no cached data
-  if (loading && !data) {
-    return (
-      <OfficeDashboardLayout>
-        <OfficeRatesSkeleton />
-      </OfficeDashboardLayout>
-    )
-  }
-
-  const currencies = data?.currencies || []
-  const exchangeRates = data?.exchangeRates || []
+  const currencies = data?.currencies ?? []
+  const exchangeRates = data?.exchangeRates ?? []
 
   const lastRatesUpdateAt = useMemo(() => {
     let maxMs = 0
@@ -75,6 +66,15 @@ const AdminRatesPage = () => {
     }
     return maxMs > 0 ? new Date(maxMs) : null
   }, [exchangeRates])
+
+  // Only show skeleton if we're truly loading and have no cached data
+  if (loading && !data) {
+    return (
+      <OfficeDashboardLayout>
+        <OfficeRatesSkeleton />
+      </OfficeDashboardLayout>
+    )
+  }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
