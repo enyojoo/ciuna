@@ -67,16 +67,15 @@ S'(X) = mid(X) + clamp(SELL(X) - mid(X), -b × mid(X), +b × mid(X))
 
 ## 5. Step B — Ciuna USDT bridge (margin)
 
-Tier-specific multipliers on **B′** / **S′** (after Step A):
+**All tiers:** **10%** symmetric skew on **B′** / **S′** (after Step A):
 
-| Policy | Tiers | `ciuna_buy_raw` | `ciuna_sell_raw` |
-|--------|-------|-----------------|------------------|
-| **Global** | **C** (USD, EUR), **B-other** | B′ × **1.05** | S′ × **0.95** |
-| **Corridor** | **A** (RUB), **B** (NGN, KES, GHS) | B′ × **1.06** | S′ × **0.94** |
+| `ciuna_buy_raw` | `ciuna_sell_raw` |
+|-----------------|------------------|
+| B′ × **1.10** | S′ × **0.90** |
 
 ```text
-ciuna_buy_raw(X)  = B'(X) × buyMult(X)
-ciuna_sell_raw(X) = S'(X) × sellMult(X)
+ciuna_buy_raw(X)  = B'(X) × buyMult   (1.10)
+ciuna_sell_raw(X) = S'(X) × sellMult  (0.90)
 ```
 
 - **User buys USDT** with `X`: priced off **`ciuna_buy`**.
@@ -129,12 +128,12 @@ Adjust after live stats (conversion, depth, complaints). Priority corridors: **R
 
 | Tier | Currencies | Pull **b** (pre-margin) | Min wedge **m** (post Step B) | Step B (buy / sell) | **cap_buy** | **cap_sell** |
 |------|------------|-------------------------|-------------------------------|---------------------|-------------|--------------|
-| **A – Russia rail** | **RUB** | **0** (raw BUY/SELL) | **1.00%** | **×1.06 / ×0.94** | **1.25%** | **1.75%** |
-| **B – African retail** | **NGN, KES, GHS** | **0** (raw BUY/SELL) | **0.75%** | **×1.06 / ×0.94** | **1.50%** | **2.00%** |
-| **C – Global legs** | **USD, EUR** | **0.25%** | **0.20%** | **×1.05 / ×0.95** | **0.40%** | **0.60%** |
-| **B-other** | *other fiats* | **1.5%** | **0.50%** | **×1.05 / ×0.95** | **1.50%** | **2.00%** |
+| **A – Russia rail** | **RUB** | **0** (raw BUY/SELL) | **1.00%** | **×1.10 / ×0.90** | **1.25%** | **1.75%** |
+| **B – African retail** | **NGN, KES, GHS** | **0** (raw BUY/SELL) | **0.75%** | **×1.10 / ×0.90** | **1.50%** | **2.00%** |
+| **C – Global legs** | **USD, EUR** | **0.25%** | **0.20%** | **×1.10 / ×0.90** | **0.40%** | **0.60%** |
+| **B-other** | *other fiats* | **1.5%** | **0.50%** | **×1.10 / ×0.90** | **1.50%** | **2.00%** |
 
-**Corridor trial:** **RUB** and **NGN/KES/GHS** use **`b = 0`**, so **B′ = BUY** and **S′ = SELL** from p2p.army (no compression toward mid). **Wider Step B** (6% vs 5%) and **higher `m`** vs the previous table aim to retain more book width for Russia ↔ Africa flows.
+**Corridor:** **RUB** and **NGN/KES/GHS** use **`b = 0`**, so **B′ = BUY** and **S′ = SELL** from p2p.army (no compression toward mid). **Tier-specific `m`** (min wedge after Step B) stays as in the table.
 
 **Debug / measurement:** set env **`RATE_SYNC_DEBUG=1`** on the sync process (CLI: `npm run sync:debug -w @ciuna/rate-sync`). Each currency logs one JSON line to stderr with supplier inputs, **B′/S′**, tier knobs, and final legs.
 
