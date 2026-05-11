@@ -425,7 +425,6 @@ export function OfficeHubProductsView({ fixedLineSlug }: { fixedLineSlug: HubMar
             <h1 className="text-2xl font-bold text-gray-900">
               {fixedLineSlug === "food" ? "Food" : "Mart"} products
             </h1>
-            <p className="text-gray-600">Create and publish marketplace services for the Ciuna app.</p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>

@@ -2,7 +2,6 @@ import {
   isReferralPayoutMirrorReference,
   resolveTransactionListLine,
   sumCompletedVolumeInBaseCurrency,
-  transactionLinePrimaryBadge,
 } from "@ciuna/shared"
 import { supabase } from "./supabase"
 import { officeFetch } from "./api-client"
@@ -634,7 +633,7 @@ class OfficeDataStore {
 
   /**
    * Completed volume in base currency for dashboard service-line buckets.
-   * Aligns with `sumCompletedVolumeInBaseCurrency` for send + hub, and adds referral payout rows.
+   * Matches `sumCompletedVolumeInBaseCurrency`: hub and customer send only (no referral payouts).
    */
   private completedTxVolumeInBaseForServiceLine(
     tx: any,
@@ -643,6 +642,7 @@ class OfficeDataStore {
   ): number {
     if (!tx || tx.status !== "completed") return 0
     if (isReferralPayoutMirrorReference(tx.reference)) return 0
+    if (tx.type === "referral_payout") return 0
 
     const base = (baseCurrency || "NGN").trim() || "NGN"
     const isHub = tx.type === "hub" || tx.transaction_source === "hub"
@@ -651,9 +651,6 @@ class OfficeDataStore {
 
     if (isHub) {
       amount = Number(tx.total_amount) || Number(tx.send_amount) || 0
-      currency = (typeof tx.send_currency === "string" && tx.send_currency.trim() ? tx.send_currency : base) as string
-    } else if (tx.type === "referral_payout") {
-      amount = Number(tx.send_amount) || Number(tx.total_amount) || 0
       currency = (typeof tx.send_currency === "string" && tx.send_currency.trim() ? tx.send_currency : base) as string
     } else {
       const inferredType = tx.type || (Number(tx.send_amount) > 0 ? "send" : null)
@@ -672,12 +669,12 @@ class OfficeDataStore {
       (t) => t?.status === "completed" && !isReferralPayoutMirrorReference(t?.reference),
     )
 
-    const buckets: Record<"Send" | "Food" | "Mart" | "Experts" | "Referral", any[]> = {
+    type ServiceLineKey = "Send" | "Food" | "Mart" | "Experts"
+    const buckets: Record<ServiceLineKey, any[]> = {
       Send: [],
       Food: [],
       Mart: [],
       Experts: [],
-      Referral: [],
     }
 
     for (const tx of completed) {
@@ -690,21 +687,21 @@ class OfficeDataStore {
         tx.hub_product_category ?? null,
         (tx as { hub_snapshot?: Record<string, unknown> | null }).hub_snapshot ?? null,
       )
-      const label = transactionLinePrimaryBadge(line)
-      const key: keyof typeof buckets =
-        label === "Food"
-          ? "Food"
-          : label === "Mart"
-            ? "Mart"
-            : label === "Referral"
-              ? "Referral"
-              : label === "Experts"
-                ? "Experts"
-                : "Send"
+      if (line.kind === "referral_payout") continue
+
+      const key: ServiceLineKey =
+        line.kind === "send"
+          ? "Send"
+          : line.kind === "experts"
+            ? "Experts"
+            : line.line === "food"
+              ? "Food"
+              : "Mart"
+
       buckets[key].push(tx)
     }
 
-    const order: Array<keyof typeof buckets> = ["Send", "Food", "Mart", "Experts", "Referral"]
+    const order: ServiceLineKey[] = ["Send", "Food", "Mart", "Experts"]
     const rows = order.map((service) => {
       const list = buckets[service]
       let baseVolume = 0

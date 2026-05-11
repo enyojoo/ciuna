@@ -444,7 +444,6 @@ export default function OfficeExpertProfileDetailPage() {
               <Link href="/experts/profiles">← Profiles</Link>
             </Button>
             <h1 className="text-2xl font-bold text-gray-900">{profile.display_name}</h1>
-            <p className="text-gray-600">Manage profile, priced services, and offered slots.</p>
           </div>
           <Button
             variant="destructive"

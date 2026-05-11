@@ -687,7 +687,7 @@ export default function UserSendPage() {
         })
 
         // Redirect to transaction status page immediately (don't wait for receipt upload)
-        router.push(`/hub/orders/${transaction.transaction_id.toLowerCase()}`)
+        router.replace(`/hub/orders/${transaction.transaction_id.toLowerCase()}`)
 
         // Upload receipt in the background after redirect (non-blocking)
         if (uploadedFile && uploadProgress === 100 && !isUploading) {

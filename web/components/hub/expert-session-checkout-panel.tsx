@@ -425,7 +425,7 @@ export function ExpertSessionCheckoutPanel({
         }, 100)
       }
 
-      router.push(`/hub/orders/${String(transactionId).toLowerCase()}`)
+      router.replace(`/hub/orders/${String(transactionId).toLowerCase()}`)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : t("hub.checkout.errors.failed"))
     } finally {

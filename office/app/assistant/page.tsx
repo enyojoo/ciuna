@@ -65,7 +65,6 @@ export default function OfficeAssistantQueuePage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Assistant</h1>
-            <p className="text-gray-600">Review errand requests, set quotes, and update status.</p>
           </div>
           <Button variant="outline" onClick={() => void load()} disabled={loading}>
             Refresh

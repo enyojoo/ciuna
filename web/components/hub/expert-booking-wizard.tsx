@@ -529,7 +529,7 @@ export function ExpertBookingWizard() {
                 disabled={!selectedServiceId}
                 onClick={() => {
                   if (!selectedServiceId || !profile) return
-                  router.push(appendExpertsBookEntryFrom(expertsBookServicePath(profile, selectedServiceId), entryFromProfile))
+                  router.replace(appendExpertsBookEntryFrom(expertsBookServicePath(profile, selectedServiceId), entryFromProfile))
                   setWizardStep(2)
                   setSelectedDay(undefined)
                   setSelectedSlotId(null)

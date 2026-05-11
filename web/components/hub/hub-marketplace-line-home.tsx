@@ -217,7 +217,7 @@ export function HubMarketplaceLineHome({
             {t("hub.marketplaceNoVendors", { defaultValue: "No stores yet — check back soon." })}
           </p>
         ) : (
-          <div className="-mx-1 flex gap-3 overflow-x-auto pb-2 pt-0.5 sm:gap-4">
+          <div className="-mx-1 flex gap-3 overflow-x-auto overscroll-x-contain pb-2 pt-0.5 sm:gap-4">
             {previewVendors.map((v) => (
               <Link
                 key={v.id}

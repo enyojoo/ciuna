@@ -153,13 +153,6 @@ export default function OfficeExpertProfilesPage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Expert profiles</h1>
-            <p className="text-gray-600">
-              Create experts (identity &amp; discovery). Add priced services and schedules under{" "}
-              <Link href="/experts/services" className="text-primary underline">
-                Experts → Services
-              </Link>
-              .
-            </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => void load()} disabled={loading}>

@@ -263,8 +263,8 @@ export default function AdminUsersPage() {
     fetchAllKyc()
   }, [data?.users])
 
-  // Only show skeleton if we're truly loading and have no cached data
-  if (loading && (!data || !data.users?.length)) {
+  // Match `/transactions` and `/referrals`: block only until admin shell exists — empty `users` is valid after load.
+  if (loading && !data) {
     return (
       <OfficeDashboardLayout>
         <OfficeUsersSkeleton />
@@ -521,7 +521,6 @@ export default function AdminUsersPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-            <p className="text-gray-600">Manage user accounts and verification status</p>
           </div>
           <div className="flex gap-2">
             <Button onClick={handleExport} variant="outline">

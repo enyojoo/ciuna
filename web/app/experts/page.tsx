@@ -280,7 +280,7 @@ function ExpertsDiscoveryInner() {
               {t("hub.expertsFeaturedEmpty", { defaultValue: "No experts yet — check back soon." })}
             </p>
           ) : (
-            <div className="-mx-1 flex gap-3 overflow-x-auto pb-2 pt-0.5 sm:gap-4">
+            <div className="-mx-1 flex gap-3 overflow-x-auto overscroll-x-contain pb-2 pt-0.5 sm:gap-4">
               {featuredPreview.map((ex) => (
                 <HubExpertCatalogFeaturedChip key={ex.id} expert={ex} />
               ))}

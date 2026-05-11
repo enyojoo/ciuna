@@ -67,7 +67,6 @@ export default function OfficeReferralsPage() {
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [expandedRefereeId, setExpandedRefereeId] = useState<string | null>(null)
   const [policyCurrency, setPolicyCurrency] = useState("USD")
-  const [referralProgramMode, setReferralProgramMode] = useState<"threshold" | "percent" | "tier">("threshold")
   const [referrerDialogOpen, setReferrerDialogOpen] = useState(false)
 
   useEffect(() => {
@@ -102,9 +101,6 @@ export default function OfficeReferralsPage() {
         if (typeof o.policy_currency === "string") {
           setPolicyCurrency(o.policy_currency)
         }
-        if (o.mode === "tier") setReferralProgramMode("tier")
-        else if (o.mode === "percent") setReferralProgramMode("percent")
-        else setReferralProgramMode("threshold")
       }
     }
     loadProgram()
@@ -213,7 +209,8 @@ export default function OfficeReferralsPage() {
     }
   }
 
-  if (loading && (!data || !data.users?.length)) {
+  // Match `/transactions`: only block the page when admin data is missing — not when `users` is legitimately empty.
+  if (loading && !data) {
     return (
       <OfficeDashboardLayout>
         <OfficeUsersSkeleton />
@@ -234,19 +231,6 @@ export default function OfficeReferralsPage() {
       <div className="p-6 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Referrals</h1>
-          <p className="text-gray-600">
-            Referrers and their invited users. Rewards follow completed sends (send volume), not receive-side activity.
-          </p>
-          <p className="text-sm text-gray-500 mt-2">
-            Program reward mode:{" "}
-            <span className="font-medium text-gray-800">
-              {referralProgramMode === "tier"
-                ? "Tier"
-                : referralProgramMode === "percent"
-                  ? "Percent"
-                  : "Threshold"}
-            </span>
-          </p>
         </div>
 
         <Card>

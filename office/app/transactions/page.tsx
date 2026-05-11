@@ -637,7 +637,6 @@ export default function AdminTransactionsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Transaction Management</h1>
-            <p className="text-gray-600">Monitor and manage all platform transactions</p>
           </div>
           <Button onClick={handleExport} variant="outline">
             <Download className="h-4 w-4 mr-2" />

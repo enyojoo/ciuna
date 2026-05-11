@@ -153,7 +153,7 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
         </div>
 
         {/* Page content */}
-        <main className="mx-auto min-h-0 min-w-0 w-full max-w-3xl flex-1 overflow-x-clip overflow-y-auto pb-app-main-mobile md:max-w-4xl lg:mx-0 lg:max-w-none lg:pb-0 xl:px-3 2xl:px-8">
+        <main className="mx-auto min-h-0 min-w-0 w-full max-w-3xl flex-1 overflow-x-clip overflow-y-auto overscroll-x-contain pb-app-main-mobile md:max-w-4xl lg:mx-0 lg:max-w-none lg:pb-0 xl:px-3 2xl:px-8">
           {children}
         </main>
 

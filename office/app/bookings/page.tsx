@@ -114,7 +114,6 @@ export default function OfficeBookingsPage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Expert bookings</h1>
-            <p className="text-gray-600">Customer reservations by service and offered slot.</p>
           </div>
           <Button variant="outline" onClick={() => void load()} disabled={loading}>
             Refresh

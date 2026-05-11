@@ -255,7 +255,6 @@ export function OfficeHubVendorsView({ fixedLineSlug }: { fixedLineSlug: HubMark
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{lineTitle} vendors</h1>
-            <p className="text-gray-600">Storefronts for the {fixedLineSlug} line.</p>
           </div>
           <div className="flex shrink-0">
             <Button onClick={openCreate}>

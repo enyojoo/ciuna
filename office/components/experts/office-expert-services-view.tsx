@@ -250,14 +250,6 @@ export function OfficeExpertServicesView() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Expert services</h1>
-            <p className="text-gray-600">
-              Priced offerings per expert — same as marketplace <strong>Products</strong>, but for bookings. Set weekly
-              availability (Calendly-style), then regenerate slots. Profiles live under{" "}
-              <Link href="/experts/profiles" className="text-primary underline">
-                Experts → Profiles
-              </Link>
-              .
-            </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => void loadServices()} disabled={loading}>

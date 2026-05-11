@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import Link from "next/link"
 import { OfficeDashboardLayout } from "@/components/layout/office-dashboard-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -102,13 +101,6 @@ export default function OfficeOrdersPage() {
       <div className="space-y-6 p-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
-          <p className="text-gray-600">
-            Service-line inbounds (fulfillment, bookings, errand). Money movement and full checkout history stay under{" "}
-            <Link href="/transactions" className="font-medium text-primary underline">
-              Transactions
-            </Link>
-            .
-          </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
