@@ -10,10 +10,12 @@
     }
   },
   "scripts": {
-    "sync": "npx tsx src/cli.ts"
+    "sync": "npx tsx src/cli.ts",
+    "sync:debug": "RATE_SYNC_DEBUG=1 npx tsx src/cli.ts"
   },
   "dependencies": {
-    "@supabase/supabase-js": "latest"
+    "@supabase/supabase-js": "latest",
+    "dotenv": "^17.2.3"
   },
   "devDependencies": {
     "tsx": "^4.19.2",

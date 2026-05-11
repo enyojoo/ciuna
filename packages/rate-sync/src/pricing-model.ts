@@ -3,53 +3,61 @@
 export type TierName = "A" | "B" | "C" | "B-other"
 
 export interface TierParams {
-  /** When true, Step A is skipped: B′ = BUY, S′ = SELL (full p2p.army leg before margin). */
-  skipPullToMid: boolean
+  /** Step A: pull band as fraction of mid; `0` = use raw p2p BUY/SELL as B′/S′ (no compression). */
   b: number
   m: number
   cap_buy: number
   cap_sell: number
   name: TierName
+  /** Step B: ciuna_buy_raw = B′ × buyMult */
+  buyMult: number
+  /** Step B: ciuna_sell_raw = S′ × sellMult */
+  sellMult: number
 }
+
+/** Tier C / default retail skew vs pulled legs (5% each side). */
+const STEP_B_GLOBAL = { buyMult: 1.05, sellMult: 0.95 }
+/** RUB + Tier B corridor: wider skew (6% each side), no mid pull — see doc §8. */
+const STEP_B_CORRIDOR = { buyMult: 1.06, sellMult: 0.94 }
 
 export function tierForCurrency(ccy: string): TierParams {
   if (ccy === "RUB") {
     return {
-      skipPullToMid: true,
-      b: 0.01,
-      m: 0.0075,
+      b: 0,
+      m: 0.01,
       cap_buy: 0.0125,
       cap_sell: 0.0175,
       name: "A",
+      ...STEP_B_CORRIDOR,
     }
   }
   if (ccy === "NGN" || ccy === "KES" || ccy === "GHS") {
     return {
-      skipPullToMid: true,
-      b: 0.015,
-      m: 0.005,
+      b: 0,
+      m: 0.0075,
       cap_buy: 0.015,
       cap_sell: 0.02,
       name: "B",
+      ...STEP_B_CORRIDOR,
     }
   }
   if (ccy === "USD" || ccy === "EUR") {
     return {
-      skipPullToMid: false,
       b: 0.0025,
       m: 0.002,
       cap_buy: 0.004,
       cap_sell: 0.006,
       name: "C",
+      ...STEP_B_GLOBAL,
     }
   }
   return {
-    skipPullToMid: false,
     b: 0.015,
     m: 0.005,
     cap_buy: 0.015,
     cap_sell: 0.02,
     name: "B-other",
+    ...STEP_B_GLOBAL,
   }
 }
 
@@ -70,10 +78,12 @@ export interface CiunaLegs {
 
 export function pipeline(buy: number, sell: number, t: TierParams): CiunaLegs {
   const mid = (buy + sell) / 2
-  const Bp = t.skipPullToMid ? buy : mid + clamp(buy - mid, -t.b * mid, t.b * mid)
-  const Sp = t.skipPullToMid ? sell : mid + clamp(sell - mid, -t.b * mid, t.b * mid)
-  let cbr = Bp * 1.05
-  let csr = Sp * 0.95
+  const bandLo = -t.b * mid
+  const bandHi = t.b * mid
+  const Bp = mid + clamp(buy - mid, bandLo, bandHi)
+  const Sp = mid + clamp(sell - mid, bandLo, bandHi)
+  let cbr = Bp * t.buyMult
+  let csr = Sp * t.sellMult
   if (cbr < csr * (1 + t.m)) {
     cbr = csr * (1 + t.m)
   }
