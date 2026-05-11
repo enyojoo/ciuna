@@ -1,10 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
-import { requireAdmin } from "@/lib/admin-auth-utils"
+import { requireSuperAdmin, SuperAdminRequiredError } from "@/lib/admin-auth-utils"
+
+function adminRouteErrorStatus(e: unknown): number {
+  if (e instanceof SuperAdminRequiredError) return 403
+  if (e instanceof Error && e.message === "Admin access required") return 401
+  return 500
+}
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAdmin(request)
+    await requireSuperAdmin(request)
     const { id } = await params
     const body = await request.json()
     const server = createServerClient()
@@ -39,14 +45,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ serviceLine: data })
   } catch (e) {
     console.error("admin hub service-lines PATCH", e)
-    const status = e instanceof Error && e.message === "Unauthorized" ? 401 : 500
+    const status = adminRouteErrorStatus(e)
     return NextResponse.json({ error: "Failed to update service line" }, { status })
   }
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAdmin(request)
+    await requireSuperAdmin(request)
     const { id } = await params
     const server = createServerClient()
     const { error } = await server.from("hub_service_lines").delete().eq("id", id)
@@ -54,7 +60,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     return NextResponse.json({ ok: true })
   } catch (e) {
     console.error("admin hub service-lines DELETE", e)
-    const status = e instanceof Error && e.message === "Unauthorized" ? 401 : 500
+    const status = adminRouteErrorStatus(e)
     return NextResponse.json({ error: "Failed to delete service line" }, { status })
   }
 }

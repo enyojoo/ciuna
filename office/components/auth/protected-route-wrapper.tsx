@@ -12,7 +12,6 @@ const PROTECTED_PATHS = [
   "/assistant",
   "/experts",
   "/bookings",
-  "/rates",
   "/kyc",
   "/compliance",
   "/users",
@@ -27,9 +26,21 @@ function isProtectedPath(pathname: string | null): boolean {
   return PROTECTED_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))
 }
 
+function settingsPath(pathname: string | null): boolean {
+  if (!pathname) return false
+  return pathname === "/settings" || pathname.startsWith("/settings/")
+}
+
 export function ProtectedRouteWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const { isChecking } = useRouteProtection({ requireAuth: true, adminOnly: true, redirectTo: "/auth/login" })
+  const requireSuperAdmin = settingsPath(pathname)
+  const { isChecking } = useRouteProtection({
+    requireAuth: true,
+    adminOnly: true,
+    requireSuperAdmin,
+    redirectTo: "/auth/login",
+    forbiddenRedirectTo: "/dashboard",
+  })
 
   if (!isProtectedPath(pathname)) {
     return <>{children}</>

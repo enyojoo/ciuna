@@ -1,10 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
-import { requireAdmin } from "@/lib/admin-auth-utils"
+import { requireSuperAdmin, SuperAdminRequiredError } from "@/lib/admin-auth-utils"
+
+function adminRouteErrorStatus(e: unknown): number {
+  if (e instanceof SuperAdminRequiredError) return 403
+  if (e instanceof Error && e.message === "Admin access required") return 401
+  return 500
+}
 
 export async function GET(request: NextRequest) {
   try {
-    await requireAdmin(request)
+    await requireSuperAdmin(request)
     const server = createServerClient()
     const { data, error } = await server
       .from("hub_service_lines")
@@ -16,14 +22,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ serviceLines: data || [] })
   } catch (e) {
     console.error("admin hub service-lines GET", e)
-    const status = e instanceof Error && e.message === "Unauthorized" ? 401 : 500
+    const status = adminRouteErrorStatus(e)
     return NextResponse.json({ error: "Failed to load service lines" }, { status })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin(request)
+    await requireSuperAdmin(request)
     const body = await request.json()
     const server = createServerClient()
 
@@ -57,7 +63,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ serviceLine: data })
   } catch (e) {
     console.error("admin hub service-lines POST", e)
-    const status = e instanceof Error && e.message === "Unauthorized" ? 401 : 500
+    const status = adminRouteErrorStatus(e)
     return NextResponse.json({ error: "Failed to create service line" }, { status })
   }
 }

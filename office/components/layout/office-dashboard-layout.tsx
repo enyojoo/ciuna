@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   CreditCard,
   Users,
-  TrendingUp,
   Settings,
   LogOut,
   Menu,
@@ -34,11 +33,10 @@ interface OfficeDashboardLayoutProps {
   children: React.ReactNode
 }
 
-const navigation = [
+const baseNavigation = [
   { name: "Users", href: "/users", icon: Users },
   { name: "Referrals", href: "/referrals", icon: Gift },
   { name: "Compliance", href: "/compliance", icon: ShieldCheck },
-  { name: "Rates", href: "/rates", icon: TrendingUp },
   { name: "Settings", href: "/settings", icon: Settings },
 ]
 
@@ -175,7 +173,9 @@ export function OfficeDashboardLayout({ children }: OfficeDashboardLayoutProps) 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [hubNavOpen, setHubNavOpen] = useState(false)
   const [operationsNavOpen, setOperationsNavOpen] = useState(false)
-  const { signOut } = useAuth()
+  const { signOut, isSuperAdmin } = useAuth()
+
+  const navigation = isSuperAdmin ? baseNavigation : baseNavigation.filter((item) => item.href !== "/settings")
 
   useEffect(() => {
     if (isHubSectionPath(pathname)) {

@@ -28,6 +28,8 @@ import {
   Coins,
   Smartphone,
   Store,
+  TrendingUp,
+  UserCog,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -38,6 +40,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { supabase } from "@/lib/supabase"
 import { officeFetch } from "@/lib/api-client"
 import { HubServiceLinesManager, type HubServiceLine } from "@/components/settings/hub-service-lines-manager"
+import { OfficeRatesPanel } from "@/components/settings/office-rates-panel"
+import { OfficeAdminUsersPanel } from "@/components/settings/office-admin-users-panel"
 
 const REFERRAL_HELP_POLICY_CURRENCY =
   "Thresholds and fixed rewards are interpreted in this currency (FX uses your exchange rates)."
@@ -144,12 +148,30 @@ interface PaymentMethod {
   updated_at: string
 }
 
+const SETTINGS_TAB_IDS = new Set([
+  "platform",
+  "payment",
+  "security",
+  "referrals",
+  "hubServices",
+  "rates",
+  "admin",
+])
 
 export default function AdminSettingsPage() {
   const [systemSettings, setSystemSettings] = useState<SystemSetting[]>([])
   const [currencies, setCurrencies] = useState<Currency[]>([])
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [activeTab, setActiveTab] = useState("platform")
+  const handleSettingsTabChange = (value: string) => {
+    setActiveTab(value)
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href)
+      url.searchParams.set("tab", value)
+      window.history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}`)
+    }
+  }
+
   const [saving, setSaving] = useState(false)
   const [isAddPaymentMethodOpen, setIsAddPaymentMethodOpen] = useState(false)
   const [isEditPaymentMethodOpen, setIsEditPaymentMethodOpen] = useState(false)
@@ -219,6 +241,12 @@ export default function AdminSettingsPage() {
   })
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const tab = new URLSearchParams(window.location.search).get("tab")
+      if (tab && SETTINGS_TAB_IDS.has(tab)) {
+        setActiveTab(tab)
+      }
+    }
     loadAllData()
   }, [])
 
@@ -750,8 +778,8 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+        <Tabs value={activeTab} onValueChange={handleSettingsTabChange} className="space-y-6">
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
             <TabsTrigger value="platform" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Platform
@@ -771,6 +799,14 @@ export default function AdminSettingsPage() {
             <TabsTrigger value="hubServices" className="flex items-center gap-2">
               <Store className="h-4 w-4" />
               Hub Services
+            </TabsTrigger>
+            <TabsTrigger value="rates" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Rates
+            </TabsTrigger>
+            <TabsTrigger value="admin" className="flex items-center gap-2">
+              <UserCog className="h-4 w-4" />
+              Admin
             </TabsTrigger>
           </TabsList>
 
@@ -2534,6 +2570,14 @@ export default function AdminSettingsPage() {
               onReload={loadHubServiceLines}
               settingsBootComplete={initialSettingsLoadComplete}
             />
+          </TabsContent>
+
+          <TabsContent value="rates">
+            <OfficeRatesPanel />
+          </TabsContent>
+
+          <TabsContent value="admin">
+            <OfficeAdminUsersPanel />
           </TabsContent>
         </Tabs>
       </div>

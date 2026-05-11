@@ -1,7 +1,6 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { OfficeDashboardLayout } from "@/components/layout/office-dashboard-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,7 +15,7 @@ import { useOfficeData } from "@/hooks/use-office-data"
 import { officeDataStore } from "@/lib/office-data-store"
 import { OfficeRatesSkeleton } from "@/components/office-rates-skeleton"
 
-const AdminRatesPage = () => {
+export function OfficeRatesPanel() {
   const { data, loading } = useOfficeData()
   const [selectedCurrency, setSelectedCurrency] = useState<any>(null)
   const [isEditingRates, setIsEditingRates] = useState(false)
@@ -69,11 +68,7 @@ const AdminRatesPage = () => {
 
   // Only show skeleton if we're truly loading and have no cached data
   if (loading && !data) {
-    return (
-      <OfficeDashboardLayout>
-        <OfficeRatesSkeleton />
-      </OfficeDashboardLayout>
-    )
+    return <OfficeRatesSkeleton />
   }
 
   const formatDate = (dateString: string) => {
@@ -280,8 +275,7 @@ const AdminRatesPage = () => {
   }
 
   return (
-    <OfficeDashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Currency & Exchange Rates</h1>
@@ -736,8 +730,5 @@ const AdminRatesPage = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </OfficeDashboardLayout>
   )
 }
-
-export default AdminRatesPage

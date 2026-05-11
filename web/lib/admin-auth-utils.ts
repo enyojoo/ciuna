@@ -3,6 +3,8 @@ import { createServerClient } from "@/lib/supabase"
 import { createClient } from "@supabase/supabase-js"
 import { getAccessTokenFromRequest } from "@/lib/supabase-server-helpers"
 
+export const SUPER_ADMIN_ROLE = "super_admin" as const
+
 export interface AdminUser {
   id: string
   email: string
@@ -81,6 +83,21 @@ export async function requireAdmin(request: NextRequest): Promise<AdminUser> {
   const user = await getAdminUser(request)
   if (!user) {
     throw new Error("Admin access required")
+  }
+  return user
+}
+
+export class SuperAdminRequiredError extends Error {
+  constructor(message = "Super admin access required") {
+    super(message)
+    this.name = "SuperAdminRequiredError"
+  }
+}
+
+export async function requireSuperAdmin(request: NextRequest): Promise<AdminUser> {
+  const user = await requireAdmin(request)
+  if (user.role !== SUPER_ADMIN_ROLE) {
+    throw new SuperAdminRequiredError()
   }
   return user
 }
