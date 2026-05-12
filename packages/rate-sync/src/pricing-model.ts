@@ -22,13 +22,13 @@ export interface TierParams {
  * - **Tier B** fiats: each leg uses **√(1 + s)** / **√(1 − s)** so a two-leg cross has roughly **one**
  *   effective layer vs naive mid (~**s**), where **s** = **`CIUNA_BRIDGE_MARGIN`**.
  * - **Tier A (USD only):** Step B **×1 / ×1** (USDT is dollar-denominated); margin sits on the other leg.
- * - **Step D caps** are **`CIUNA_BRIDGE_MARGIN + CAP_BUFFER`** (default **`CAP_BUFFER = 0`** → **4.5%** at default margin).
+ * - **Step D caps** are **`CIUNA_BRIDGE_MARGIN + CAP_BUFFER`** (default **`CAP_BUFFER = 0`** → **5%** at default margin).
  *
  * Raise → wider vs market; lower → closer (do not go ≤ 0).
  *
- * Value is a **decimal fraction** (e.g. **4.5% → `4.5 / 100`**).
+ * Value is a **decimal fraction** (e.g. **5% → `5 / 100`**).
  */
-export const CIUNA_BRIDGE_MARGIN = 4.5 / 100
+export const CIUNA_BRIDGE_MARGIN = 5 / 100
 
 const STEP_B_FULL_BUY = 1 + CIUNA_BRIDGE_MARGIN
 const STEP_B_FULL_SELL = 1 - CIUNA_BRIDGE_MARGIN
@@ -41,7 +41,7 @@ const STEP_B_EM = {
 /** Tier A (USD): no Step B stack on the ~USDT peg. */
 const STEP_B_BRIDGE_CCY = { buyMult: 1, sellMult: 1 }
 
-/** Step D caps vs `mid_c` — `CIUNA_BRIDGE_MARGIN + CAP_BUFFER` (buffer **0** → caps match margin, **4.5%** at default). */
+/** Step D caps vs `mid_c` — `CIUNA_BRIDGE_MARGIN + CAP_BUFFER` (buffer **0** → caps match margin, **5%** at default). */
 const CAP_BUFFER = 0
 const CAP_WIDE = {
   cap_buy: CIUNA_BRIDGE_MARGIN + CAP_BUFFER,
