@@ -438,6 +438,20 @@ class AdminDataStore {
     }
   }
 
+  /** Stable fingerprint for applied rates (ignores joined relation shape/order from PostgREST). */
+  private exchangeRatesContentFingerprint(rates: any[] | undefined): string {
+    if (!rates?.length) return ""
+    return [...rates]
+      .map((r) => {
+        const rate = Number(r.rate)
+        const ratePart = Number.isFinite(rate) ? String(rate) : ""
+        const ts = String(r.updated_at ?? r.created_at ?? "")
+        return `${r.from_currency}\t${r.to_currency}\t${ratePart}\t${ts}`
+      })
+      .sort()
+      .join("\n")
+  }
+
   private async calculateStatsFromTransactions(transactions: any[], baseCurrency: string, exchangeRates: any[] = []) {
     const totalTransactions = transactions.length
     const pendingTransactions = transactions.filter((t) => t.status === "pending" || t.status === "processing").length
@@ -845,7 +859,9 @@ class AdminDataStore {
       const stats = await this.calculateStats(this.data.users, this.data.transactions, this.data.baseCurrency, exchangeRatesResult)
       
       // Only update if data actually changed
-      const exchangeRatesChanged = JSON.stringify(exchangeRatesResult) !== JSON.stringify(this.data.exchangeRates)
+      const exchangeRatesChanged =
+        this.exchangeRatesContentFingerprint(exchangeRatesResult) !==
+        this.exchangeRatesContentFingerprint(this.data.exchangeRates)
       const statsChanged = JSON.stringify(stats) !== JSON.stringify(this.data.stats)
       
       if (exchangeRatesChanged || statsChanged) {

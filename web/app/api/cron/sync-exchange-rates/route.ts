@@ -4,9 +4,12 @@ import { syncExchangeRatesFromModel } from "@ciuna/rate-sync"
 /**
  * Scheduled FX refresh: P2P.army / model in docs/ciuna-p2p-pricing-model.md → Supabase exchange_rates.rate
  *
- * Vercel Cron: GET this path. Set CRON_SECRET in project env; Vercel sends Authorization: Bearer <CRON_SECRET>.
- * vercel.json schedule is once daily (06:00 UTC) — Hobby plans allow at most one cron run per day.
- * Manual: GET/POST with same header for ops or run `npm run sync:rates` locally/CI.
+ * **Single deployment:** Configure Vercel Cron only on this **web** project (`web/vercel.json`).
+ * The office admin app does not run this job; it reads `exchange_rates` from Supabase (Realtime + store refresh).
+ * Env on **web**: `CRON_SECRET`, `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`.
+ *
+ * Vercel Cron: GET this path. Vercel sends `Authorization: Bearer <CRON_SECRET>`.
+ * Schedule: `vercel.json` (default once daily 06:00 UTC). Manual: same header or `npm run sync:rates`.
  */
 export async function GET(request: NextRequest) {
   return handleCron(request)
