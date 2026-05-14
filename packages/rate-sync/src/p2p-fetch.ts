@@ -2,13 +2,25 @@
 
 const P2P_BASE = "https://p2p.army/en/p2p/fiats"
 
-export async function fetchText(url: string, timeoutMs = 55_000): Promise<string> {
+const BROWSER_HEADERS: Record<string, string> = {
+  "User-Agent":
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+  Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,application/json;q=0.8,*/*;q=0.7",
+  "Accept-Language": "en-US,en;q=0.9",
+}
+
+/** Plain fetch with timeout. CDN / exchange APIs often 403 bare bot UAs (common on Vercel). */
+export async function fetchText(
+  url: string,
+  timeoutMs = 55_000,
+  extraHeaders?: Record<string, string>,
+): Promise<string> {
   const ctrl = new AbortController()
   const t = setTimeout(() => ctrl.abort(), timeoutMs)
   try {
     const res = await fetch(url, {
       signal: ctrl.signal,
-      headers: { "User-Agent": "Mozilla/5.0 CiunaRateSync/1.0" },
+      headers: { ...BROWSER_HEADERS, ...extraHeaders },
     })
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
     return await res.text()
@@ -41,27 +53,115 @@ export function parseP2pArmyBuySell(html: string): { buy: number | null; sell: n
 }
 
 export async function fetchErRate(usdPerUnit: string): Promise<number> {
-  const j = (await fetchText(`https://open.er-api.com/v6/latest/USD`, 25_000)) as string
-  const data = JSON.parse(j) as { rates?: Record<string, number> }
-  const r = data.rates?.[usdPerUnit]
-  if (typeof r !== "number") throw new Error(`ER-API missing ${usdPerUnit}`)
-  return r
+  const openEr = async () => {
+    const j = await fetchText("https://open.er-api.com/v6/latest/USD", 25_000, {
+      Accept: "application/json",
+    })
+    const data = JSON.parse(j) as { rates?: Record<string, number> }
+    const r = data.rates?.[usdPerUnit]
+    if (typeof r !== "number") throw new Error(`open.er-api missing ${usdPerUnit}`)
+    return r
+  }
+
+  /** Broad fiat list; works when open.er-api blocks datacenter IPs (403 on Vercel). */
+  const fawazJsDelivr = async () => {
+    const j = await fetchText(
+      "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json",
+      28_000,
+      { Accept: "application/json" },
+    )
+    const data = JSON.parse(j) as { usd?: Record<string, number> }
+    const r = data.usd?.[usdPerUnit.toLowerCase()]
+    if (typeof r !== "number") throw new Error(`currency-api (jsdelivr) missing ${usdPerUnit}`)
+    return r
+  }
+
+  const frankfurter = async () => {
+    const to = encodeURIComponent(usdPerUnit)
+    const j = await fetchText(
+      `https://api.frankfurter.app/latest?from=USD&to=${to}`,
+      25_000,
+      { Accept: "application/json" },
+    )
+    const data = JSON.parse(j) as { rates?: Record<string, number> }
+    const r = data.rates?.[usdPerUnit]
+    if (typeof r !== "number") throw new Error(`frankfurter missing ${usdPerUnit}`)
+    return r
+  }
+
+  let last: Error | undefined
+  for (const fn of [openEr, fawazJsDelivr, frankfurter]) {
+    try {
+      return await fn()
+    } catch (e) {
+      last = e instanceof Error ? e : new Error(String(e))
+    }
+  }
+  throw last ?? new Error(`FX rate fallback exhausted for ${usdPerUnit}`)
+}
+
+/** ~1.0 USDT per USD; tries Bybit, then CoinGecko, then peg 1. */
+async function resolveUsdtUsdSpot(): Promise<{ last: number; source: string }> {
+  const browserJsonHeaders = {
+    Accept: "application/json, text/plain, */*",
+    "User-Agent":
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+  }
+  const withTimeout = async (url: string, ms: number): Promise<Response> => {
+    const ctrl = new AbortController()
+    const t = setTimeout(() => ctrl.abort(), ms)
+    try {
+      return await fetch(url, { signal: ctrl.signal, headers: browserJsonHeaders })
+    } finally {
+      clearTimeout(t)
+    }
+  }
+
+  try {
+    const res = await withTimeout(
+      "https://api.bybit.com/v5/market/tickers?category=spot&symbol=USDTUSD",
+      20_000,
+    )
+    if (res.ok) {
+      const data = (await res.json()) as { result?: { list?: { lastPrice?: string }[] } }
+      const last = data.result?.list?.[0]?.lastPrice
+      if (last != null) {
+        const v = parseFloat(last)
+        if (v > 0 && v < 2) return { last: v, source: "Bybit USDTUSD" }
+      }
+    }
+  } catch {
+    /* fall through */
+  }
+
+  try {
+    const res = await withTimeout(
+      "https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=usd",
+      15_000,
+    )
+    if (res.ok) {
+      const data = (await res.json()) as { tether?: { usd?: number } }
+      const u = data.tether?.usd
+      if (typeof u === "number" && u > 0 && u < 2) return { last: u, source: "CoinGecko tether/usd" }
+    }
+  } catch {
+    /* fall through */
+  }
+
+  return { last: 1, source: "peg 1 (fallback)" }
 }
 
 export async function fetchUsdtUsdLast(): Promise<number> {
-  const j = await fetchText("https://api.bybit.com/v5/market/tickers?category=spot&symbol=USDTUSD", 20_000)
-  const data = JSON.parse(j) as { result?: { list?: { lastPrice?: string }[] } }
-  const last = data.result?.list?.[0]?.lastPrice
-  if (last != null) return parseFloat(last)
-  return 1
+  const { last } = await resolveUsdtUsdSpot()
+  return last
 }
 
 export async function fetchBuySellForCurrency(
   ccy: string,
 ): Promise<{ buy: number; sell: number; source: string }> {
   if (ccy === "USD") {
-    const last = await fetchUsdtUsdLast()
-    return { buy: last, sell: last, source: "Bybit USDTUSD last" }
+    const { last, source } = await resolveUsdtUsdSpot()
+    return { buy: last, sell: last, source }
   }
 
   try {
