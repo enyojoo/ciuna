@@ -32,13 +32,31 @@ export default function LoginPage() {
     setIsLoading(true)
     setError("")
 
+    const trimmedEmail = email.trim()
+
     try {
+      const statusRes = await officeFetch("/api/auth/login-attempt/status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: trimmedEmail }),
+      })
+      if (statusRes.ok) {
+        const lockBody = (await statusRes.json()) as { locked?: boolean; remainingMinutes?: number }
+        if (lockBody.locked) {
+          const mins = lockBody.remainingMinutes ?? 0
+          setError(`Account is temporarily locked. Please try again in ${mins} minutes.`)
+          return
+        }
+      }
+
       const response = await officeFetch("/api/auth/admin/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: trimmedEmail, password }),
       })
 
       const data = await response.json()

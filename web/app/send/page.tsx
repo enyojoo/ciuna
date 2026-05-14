@@ -48,6 +48,7 @@ import {
 } from "@/lib/formatters"
 import { cn } from "@/lib/utils"
 import { formatCurrency, roundMoney } from "@/utils/currency"
+import { fetchPublicPlatformFlags } from "@/lib/fetch-public-platform-flags"
 
 function formatReceiveArrivalDuration(
   totalSeconds: number,
@@ -96,6 +97,7 @@ export default function UserSendPage() {
   const [error, setError] = useState<string | null>(null)
   const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false)
   const [isResendingVerification, setIsResendingVerification] = useState(false)
+  const [emailVerificationRequired, setEmailVerificationRequired] = useState(true)
 
   const [recipientData, setRecipientData] = useState({
     fullName: "",
@@ -163,6 +165,10 @@ export default function UserSendPage() {
     }
 
     loadPaymentMethods()
+  }, [])
+
+  useEffect(() => {
+    void fetchPublicPlatformFlags().then((f) => setEmailVerificationRequired(f.emailVerificationRequired))
   }, [])
 
   useEffect(() => {
@@ -633,7 +639,7 @@ export default function UserSendPage() {
   const handleContinue = async () => {
     if (currentStep < 3) {
       // Check email verification before moving to step 2
-      if (currentStep === 1 && !user?.email_confirmed_at) {
+      if (currentStep === 1 && emailVerificationRequired && !user?.email_confirmed_at) {
         setShowEmailVerificationModal(true)
         return
       }

@@ -44,7 +44,7 @@ export async function claimReferralIfNeeded(
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Empty body is ok: server reads ciuna_ref_slug cookie (proxy sets it on ?ref= / ?via=).
+        // Empty body is ok: server reads ciuna_ref_slug cookie (middleware sets it on ?ref= / ?via=).
         body: JSON.stringify(slug ? { referralSlug: slug } : {}),
       },
       { accessToken }

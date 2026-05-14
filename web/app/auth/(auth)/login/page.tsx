@@ -18,6 +18,7 @@ import {
 } from "@/lib/referral-client"
 import { REDIRECT_AFTER_LOGIN_KEY } from "@/lib/auth-login-redirect"
 import { useTranslation } from "react-i18next"
+import { fetchPublicPlatformFlags } from "@/lib/fetch-public-platform-flags"
 
 function LoginPageContent() {
   const { t } = useTranslation("app")
@@ -30,6 +31,11 @@ function LoginPageContent() {
   const [rememberMe, setRememberMe] = useState(false)
   const [formLoading, setFormLoading] = useState(false)
   const [error, setError] = useState("")
+  const [registrationEnabled, setRegistrationEnabled] = useState(true)
+
+  useEffect(() => {
+    void fetchPublicPlatformFlags().then((f) => setRegistrationEnabled(f.registrationEnabled))
+  }, [])
 
   useEffect(() => {
     persistReferralSlugFromSearchParam(getReferralSlugFromSearchParams(searchParams))
@@ -62,13 +68,44 @@ function LoginPageContent() {
     setFormLoading(true)
     setError("")
 
+    const trimmedEmail = email.trim()
+
     try {
-      const { error: signInError, session: signInSession } = await signIn(email, password, rememberMe)
+      const statusRes = await fetch("/api/auth/login-attempt/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmedEmail }),
+      })
+      if (statusRes.ok) {
+        const lockBody = (await statusRes.json()) as { locked?: boolean; remainingMinutes?: number }
+        if (lockBody.locked) {
+          const mins = lockBody.remainingMinutes ?? 0
+          setError(
+            t("auth.accountTemporarilyLocked", {
+              minutes: mins,
+            }),
+          )
+          return
+        }
+      }
+
+      const { error: signInError, session: signInSession } = await signIn(trimmedEmail, password, rememberMe)
 
       if (signInError) {
+        await fetch("/api/auth/login-attempt/failure", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: trimmedEmail }),
+        }).catch(() => {})
         setError(signInError.message)
         return
       }
+
+      await fetch("/api/auth/login-attempt/success", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmedEmail }),
+      }).catch(() => {})
 
       // First login after email confirmation: claim with ref. Pass token from sign-in response because
       // getSession() can still be empty in the same tick after setSession.
@@ -127,6 +164,11 @@ function LoginPageContent() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4 sm:space-y-5">
+          {searchParams.get("registration_disabled") === "1" && (
+            <div className="p-3 rounded-md border border-muted bg-muted/30">
+              <p className="text-sm text-muted-foreground">{t("auth.registrationClosedBanner")}</p>
+            </div>
+          )}
           {error && (
             <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
               <p className="text-sm text-destructive">{error}</p>
@@ -221,10 +263,16 @@ function LoginPageContent() {
           </form>
 
           <div className="text-center text-sm">
-            {t("auth.noAccount")}{" "}
-            <Link href={registerHref} className="text-primary hover:underline font-semibold">
-              {t("auth.signUp")}
-            </Link>
+            {registrationEnabled ? (
+              <>
+                {t("auth.noAccount")}{" "}
+                <Link href={registerHref} className="text-primary hover:underline font-semibold">
+                  {t("auth.signUp")}
+                </Link>
+              </>
+            ) : (
+              <span className="text-muted-foreground">{t("auth.registrationClosedBanner")}</span>
+            )}
           </div>
         </div>
       </CardContent>

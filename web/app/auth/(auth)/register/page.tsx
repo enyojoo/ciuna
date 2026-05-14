@@ -17,6 +17,7 @@ import {
   getReferralSlugFromSearchParams,
   persistReferralSlugFromSearchParam,
 } from "@/lib/referral-client"
+import { fetchPublicPlatformFlags } from "@/lib/fetch-public-platform-flags"
 import { useTranslation } from "react-i18next"
 
 function RegisterPageContent() {
@@ -36,6 +37,7 @@ function RegisterPageContent() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
   const [securitySettings, setSecuritySettings] = useState<any>(null)
+  const [registrationEnabled, setRegistrationEnabled] = useState(true)
 
   React.useEffect(() => {
     persistReferralSlugFromSearchParam(getReferralSlugFromSearchParams(searchParams))
@@ -54,10 +56,20 @@ function RegisterPageContent() {
     loadSecuritySettings()
   }, [])
 
+  React.useEffect(() => {
+    void fetchPublicPlatformFlags().then((f) => setRegistrationEnabled(f.registrationEnabled))
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError("")
+
+    if (!registrationEnabled) {
+      setError(t("auth.registrationDisabled"))
+      setLoading(false)
+      return
+    }
 
     // Use security settings for password validation
     const passwordValidation = validatePassword(formData.password, securitySettings?.passwordMinLength)
@@ -141,6 +153,15 @@ function RegisterPageContent() {
             </div>
           )}
 
+          {!registrationEnabled && (
+            <div className="p-3 rounded-md border border-muted bg-muted/30">
+              <p className="text-sm text-muted-foreground">{t("auth.registrationDisabled")}</p>
+              <Button asChild variant="link" className="h-auto px-0 pt-1">
+                <Link href={loginHref}>{t("auth.signInLink")}</Link>
+              </Button>
+            </div>
+          )}
+
           <p className="text-sm text-muted-foreground text-center">
             {t("auth.termsPrefix")}{" "}
             <a href={`${APP_URLS.website}/terms?from=register`} target="_blank" rel="noopener noreferrer" className="text-primary font-medium hover:underline">
@@ -157,7 +178,7 @@ function RegisterPageContent() {
               const { error: err } = await signInWithGoogle()
               if (err) setError(err.message)
             }}
-            disabled={loading}
+            disabled={loading || !registrationEnabled}
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -189,7 +210,7 @@ function RegisterPageContent() {
                   placeholder={t("auth.firstNamePlaceholder")}
                   className="h-10 sm:h-11"
                   required
-                  disabled={loading}
+                  disabled={loading || !registrationEnabled}
                 />
               </div>
 
@@ -203,7 +224,7 @@ function RegisterPageContent() {
                   placeholder={t("auth.lastNamePlaceholder")}
                   className="h-10 sm:h-11"
                   required
-                  disabled={loading}
+                  disabled={loading || !registrationEnabled}
                 />
               </div>
             </div>
@@ -219,7 +240,7 @@ function RegisterPageContent() {
                 placeholder={t("auth.enterEmail")}
                 className="h-10 sm:h-11"
                 required
-                disabled={loading}
+                disabled={loading || !registrationEnabled}
               />
             </div>
 
@@ -235,7 +256,7 @@ function RegisterPageContent() {
                   placeholder={t("auth.createPasswordPlaceholder")}
                   className="h-10 sm:h-11 pr-10"
                   required
-                  disabled={loading}
+                  disabled={loading || !registrationEnabled}
                 />
                 <Button
                   type="button"
@@ -243,14 +264,14 @@ function RegisterPageContent() {
                   size="sm"
                   className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowPassword(!showPassword)}
-                  disabled={loading}
+                  disabled={loading || !registrationEnabled}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
                 </Button>
               </div>
             </div>
 
-            <Button type="submit" className="w-full h-10 sm:h-11" disabled={loading}>
+            <Button type="submit" className="w-full h-10 sm:h-11" disabled={loading || !registrationEnabled}>
               {loading ? t("auth.creatingAccount") : t("auth.createAccount")}
             </Button>
           </form>

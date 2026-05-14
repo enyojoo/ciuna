@@ -1,5 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
+import { LoginAttemptService } from "@/lib/login-attempts"
+import { getSecuritySettings } from "@/lib/security-settings"
+import { getClientIp, getClientUserAgent } from "@/lib/request-client-meta"
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,7 +12,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 })
     }
 
-    console.log("Admin login attempt for:", email)
+    const emailTrimmed = typeof email === "string" ? email.trim() : ""
+    if (!emailTrimmed) {
+      return NextResponse.json({ error: "Email and password are required" }, { status: 400 })
+    }
+
+    const ipAddress = getClientIp(request)
+    const userAgent = getClientUserAgent(request)
+
+    const lockStatus = await LoginAttemptService.isAccountLocked(emailTrimmed)
+    if (lockStatus.locked) {
+      return NextResponse.json(
+        {
+          error: `Account is temporarily locked. Please try again in ${lockStatus.remainingTime} minutes.`,
+        },
+        { status: 423 },
+      )
+    }
+
+    const security = await getSecuritySettings()
+    if (password.length < security.passwordMinLength) {
+      return NextResponse.json({ error: "Password does not meet security requirements." }, { status: 400 })
+    }
+
+    console.log("Admin login attempt for:", emailTrimmed)
 
     // First authenticate with regular client to get the user
     const { createClient } = await import('@supabase/supabase-js')
@@ -20,16 +46,18 @@ export async function POST(request: NextRequest) {
 
     // Verify password with regular auth client
     const { data: authData, error: authError } = await authClient.auth.signInWithPassword({
-      email,
+      email: emailTrimmed,
       password,
     })
 
     if (authError) {
       console.log("Password verification failed:", authError)
+      await LoginAttemptService.recordAttempt(emailTrimmed, false, ipAddress, userAgent)
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
     if (!authData.user) {
+      await LoginAttemptService.recordAttempt(emailTrimmed, false, ipAddress, userAgent)
       return NextResponse.json({ error: "Authentication failed" }, { status: 401 })
     }
 
@@ -45,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     console.log("Admin user check:", { 
       userId: authData.user.id,
-      email, 
+      email: emailTrimmed, 
       adminError, 
       adminUser: adminUser ? {
         id: adminUser.id,
@@ -82,12 +110,15 @@ export async function POST(request: NextRequest) {
       // Continue anyway, the session is still valid
     }
 
-    console.log("Admin login successful for:", email)
+    console.log("Admin login successful for:", emailTrimmed)
     console.log("Session data:", {
       access_token: authData.session?.access_token ? "Present" : "Missing",
       refresh_token: authData.session?.refresh_token ? "Present" : "Missing",
       expires_at: authData.session?.expires_at
     })
+
+    await LoginAttemptService.recordAttempt(emailTrimmed, true, ipAddress, userAgent)
+    await LoginAttemptService.clearFailedAttempts(emailTrimmed)
 
     // Return the session data with admin flag
     return NextResponse.json({
