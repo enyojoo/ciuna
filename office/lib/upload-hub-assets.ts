@@ -75,7 +75,7 @@ function productContentType(file: File, ext: string): string {
   return "image/jpeg"
 }
 
-/** Hub product hero/grid image (JPG, PNG, WebP, SVG). */
+/** Hub product hero/grid image (JPG, PNG, WebP, SVG). Always uploaded to the hub-assets bucket, not payment QR storage. */
 export async function uploadHubProductImage(file: File): Promise<string> {
   if (!isAllowedProductFile(file)) {
     throw new Error("Only JPG, PNG, WebP, or SVG files are allowed.")

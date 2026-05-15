@@ -1,4 +1,5 @@
 export { BRAND } from "./constants/brand"
+export { HUB_ASSETS_BUCKET, PAYMENT_QR_CODES_BUCKET } from "./constants/storage-buckets"
 export { APP_URLS } from "./constants/urls"
 export {
   sumCompletedVolumeInBaseCurrency,

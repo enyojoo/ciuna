@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
 import { requireUser, withErrorHandling } from "@/lib/auth-utils"
+import { findReferrerRowBySlug } from "@/lib/referral-lookup"
 
 const REF_COOKIE = "ciuna_ref_slug"
 
@@ -85,10 +86,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     return res
   }
 
-  let referrer = (await supabase.from("users").select("id").eq("referral_slug", slug).maybeSingle()).data
-  if (!referrer?.id && slugNorm !== slug) {
-    referrer = (await supabase.from("users").select("id").eq("referral_slug", slugNorm).maybeSingle()).data
-  }
+  const referrer = await findReferrerRowBySlug(supabase, slug)
 
   if (!referrer?.id || referrer.id === user.id) {
     const res = NextResponse.json({

@@ -32,6 +32,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { supabase } from "@/lib/supabase"
+import { PAYMENT_QR_CODES_BUCKET } from "@/lib/hub-assets-bucket"
 import { officeDataStore } from "@/lib/office-data-store"
 import { officeFetch } from "@/lib/api-client"
 import { HubServiceLinesManager, type HubServiceLine } from "@/components/settings/hub-service-lines-manager"
@@ -549,7 +550,7 @@ export default function AdminSettingsPage() {
     const fileName = `qr_${Date.now()}.${fileExt}`
     const filePath = `qr-codes/${fileName}`
 
-    const { data, error } = await supabase.storage.from("payment-qr-codes").upload(filePath, file, {
+    const { data, error } = await supabase.storage.from(PAYMENT_QR_CODES_BUCKET).upload(filePath, file, {
       cacheControl: "3600",
       upsert: false,
     })
@@ -558,7 +559,7 @@ export default function AdminSettingsPage() {
 
     const {
       data: { publicUrl },
-    } = supabase.storage.from("payment-qr-codes").getPublicUrl(filePath)
+    } = supabase.storage.from(PAYMENT_QR_CODES_BUCKET).getPublicUrl(filePath)
 
     return publicUrl
   }

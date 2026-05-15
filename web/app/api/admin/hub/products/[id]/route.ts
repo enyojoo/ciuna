@@ -3,6 +3,7 @@ import { createServerClient } from "@/lib/supabase"
 import { requireAdmin } from "@/lib/admin-auth-utils"
 import { assertHubProductCategoryAllowed } from "@/lib/hub-product-category-validation"
 import { hubMarketplaceLineFromCategory } from "@/lib/hub-slug"
+import { hubProductImageUrlPaymentQrBucketError } from "@/lib/hub-product-image-url"
 import { resolveAdminHubFixedPricing } from "@/lib/hub-product-pricing-server"
 
 function getErrorMessage(e: unknown, fallback: string): string {
@@ -92,6 +93,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
     if (vendorId !== undefined) {
       row.vendor_id = vendorId
+    }
+
+    const imageReject = hubProductImageUrlPaymentQrBucketError(row.image_url)
+    if (imageReject) {
+      return NextResponse.json({ error: imageReject }, { status: 400 })
     }
 
     const catCheck = await assertHubProductCategoryAllowed(server, row.category as string)

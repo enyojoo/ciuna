@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin-auth-utils"
 import { assertHubProductCategoryAllowed } from "@/lib/hub-product-category-validation"
 import { hubMarketplaceLineFromCategory } from "@/lib/hub-slug"
 import { sortHubProductRows } from "@/lib/hub-products-sort"
+import { hubProductImageUrlPaymentQrBucketError } from "@/lib/hub-product-image-url"
 import { resolveAdminHubFixedPricing } from "@/lib/hub-product-pricing-server"
 
 export async function GET(request: NextRequest) {
@@ -62,6 +63,11 @@ export async function POST(request: NextRequest) {
       sla_text: body.sla_text ?? null,
       image_url: body.image_url != null ? String(body.image_url) : null,
       updated_at: new Date().toISOString(),
+    }
+
+    const imageReject = hubProductImageUrlPaymentQrBucketError(row.image_url)
+    if (imageReject) {
+      return NextResponse.json({ error: imageReject }, { status: 400 })
     }
 
     if (row.fulfillment_type === "vendor" && !vendorId) {

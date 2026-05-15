@@ -10,6 +10,7 @@ import {
   SEO_SITE_NAME,
   SEO_SITE_URL,
 } from "@/lib/seo"
+import { findReferrerRowBySlug } from "@/lib/referral-lookup"
 import { ReferralClientRedirect } from "./referral-client-redirect"
 
 /** 200 + OG in <head> for crawlers; client redirects to register (no server redirect — that drops link previews). */
@@ -29,9 +30,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const supabase = createServerClient()
-  const { data, error } = await supabase.from("users").select("id").eq("referral_slug", slug).maybeSingle()
+  const ref = await findReferrerRowBySlug(supabase, slug)
 
-  if (error || !data) {
+  if (!ref?.id) {
     return { title: "Not found" }
   }
 
@@ -76,9 +77,9 @@ export default async function ReferralLandingPage({ params }: Props) {
   }
 
   const supabase = createServerClient()
-  const { data, error } = await supabase.from("users").select("id").eq("referral_slug", slug).maybeSingle()
+  const ref = await findReferrerRowBySlug(supabase, slug)
 
-  if (error || !data) {
+  if (!ref?.id) {
     notFound()
   }
 

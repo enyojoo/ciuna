@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
+import { findReferrerRowBySlug } from "@/lib/referral-lookup"
 
 type AuthWebhookUser = {
   id?: string
@@ -21,11 +22,7 @@ async function attributeReferralFromAuthRecord(
   const slug = typeof rawReferralSlug === "string" ? rawReferralSlug.trim() : ""
   if (!slug) return
 
-  const slugNorm = slug.toLowerCase()
-  let referrer = (await serverClient.from("users").select("id").eq("referral_slug", slug).maybeSingle()).data
-  if (!referrer?.id && slugNorm !== slug) {
-    referrer = (await serverClient.from("users").select("id").eq("referral_slug", slugNorm).maybeSingle()).data
-  }
+  const referrer = await findReferrerRowBySlug(serverClient, slug)
 
   if (!referrer?.id) {
     console.warn("Referral attribution skipped: unknown referrer slug", { userId, slug })

@@ -79,6 +79,9 @@ export async function middleware(request: NextRequest) {
   if (!registrationEnabled && pathname.startsWith("/auth/register")) {
     const u = new URL("/auth/login", request.url)
     u.searchParams.set("registration_disabled", "1")
+    const refPreserve =
+      request.nextUrl.searchParams.get("ref")?.trim() || request.nextUrl.searchParams.get("via")?.trim()
+    if (refPreserve) u.searchParams.set("ref", refPreserve)
     return NextResponse.redirect(u)
   }
 
