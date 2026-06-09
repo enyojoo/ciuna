@@ -31,6 +31,7 @@ async function main() {
     ["USD", "NGN"],
     ["EUR", "NGN"],
     ["USD", "RUB"],
+    ["RUB", "NGN"],
     ["NGN", "KES"],
     ["EUR", "RUB"],
     ["GBP", "USD"],
@@ -39,7 +40,20 @@ async function main() {
   for (const [f, t] of pairs) {
     crosses[`${f}→${t}`] = crossRate(f, t, legs)
   }
-  console.log(JSON.stringify({ crosses }, null, 2))
+
+  const naiveCross = (from: string, to: string) => {
+    const a = legs[from]
+    const b = legs[to]
+    if (!a || !b) return null
+    return b.mid / a.mid
+  }
+  const vsMid: Record<string, string | null> = {}
+  for (const [f, t] of pairs) {
+    const c = crosses[`${f}→${t}`]
+    const n = naiveCross(f, t)
+    vsMid[`${f}→${t}`] = c != null && n != null ? `${(((c / n - 1) * 100).toFixed(2))}% vs naive mid` : null
+  }
+  console.log(JSON.stringify({ crosses, vsMid }, null, 2))
 }
 
 main().catch((e) => {

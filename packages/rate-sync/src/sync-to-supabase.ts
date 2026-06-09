@@ -52,6 +52,21 @@ export async function syncExchangeRatesFromModel(options: {
       skippedPairs.push({ from_currency: from, to_currency: to, reason: "same currency" })
       continue
     }
+    const fromLeg = legs[from]
+    const toLeg = legs[to]
+    const legSourceOk = (ccy: string, leg: (typeof legs)[string] | undefined) => {
+      if (!leg) return false
+      if (ccy === "USD") return !leg.source.includes("fallback")
+      return leg.source === "p2p.army"
+    }
+    if (!legSourceOk(from, fromLeg) || !legSourceOk(to, toLeg)) {
+      skippedPairs.push({
+        from_currency: from,
+        to_currency: to,
+        reason: `supplier leg unavailable (${from}:${fromLeg?.source ?? "missing"}, ${to}:${toLeg?.source ?? "missing"})`,
+      })
+      continue
+    }
     const rate = crossRate(from, to, legs)
     if (rate == null || !Number.isFinite(rate) || rate <= 0) {
       skippedPairs.push({ from_currency: from, to_currency: to, reason: "missing leg or invalid rate" })
